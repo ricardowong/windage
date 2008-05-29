@@ -4,7 +4,7 @@
  * Abstract
   * aaa
  * Development Environment
-  * Drawing Interface : javascript * Python
+  * Drawing Interface : javascript & Python
   * Image Search Algorithm : C
   * Service Environment : Linux based Aparch
 
