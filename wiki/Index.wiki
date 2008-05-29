@@ -1,7 +1,7 @@
  = Project List =
  == 2008 Project ==
 
- === [DIS](Drawing based Image Search : undecided) ===
+ === [VSS](Video Search by Sketch : undecided) ===
  * Abstract
   * aaa
  * Development Environment
