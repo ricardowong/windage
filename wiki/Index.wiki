@@ -1,6 +1,6 @@
  = Project List =
  == 2008 Project ==
- === Drawing based Image Search ===
+ === [Drawing based Image Search] (undecided) ===
  * Abstract
   * aaa
  * Development Environment
@@ -8,7 +8,7 @@
   * Image Search Algorithm : C
   * Service Environment : Linux based Aparch
 
- === ARInterface ===
+ === [ARInterface] ===
  * Abstract
   * aaa
  * Development Environment
