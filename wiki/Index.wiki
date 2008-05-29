@@ -2,7 +2,7 @@
  == 2008 Project ==
  === Drawing based Image Search ===
  * Abstract
-  * ...
+  * aaa
  * Development Environment
   * Drawing Interface : javascript * Python
   * Image Search Algorithm : C
@@ -10,7 +10,7 @@
 
  === ARInterface ===
  * Abstract
-  * ...
+  * aaa
  * Development Environment
   * Windows VISTA
   * Reference Livrary : OpenGL & OpenCV
