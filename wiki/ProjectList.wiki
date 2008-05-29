@@ -1,4 +1,0 @@
- = Project List =
- == 2008 Project ==
- === Image based Search ===
- === ARInterface ===
