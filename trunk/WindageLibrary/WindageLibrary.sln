@@ -1,26 +1,17 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 9.00
-# Visual Studio 2005
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "windage", "windage\windage.vcproj", "{27033CF8-2B80-4028-BEAE-1B2F8F6016B6}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CalibrationTestProject", "CalibrationTestProject\TestProject.vcproj", "{34A77DC8-99C0-41F5-B50A-87497CB3D8DA}"
-	ProjectSection(ProjectDependencies) = postProject
-		{27033CF8-2B80-4028-BEAE-1B2F8F6016B6} = {27033CF8-2B80-4028-BEAE-1B2F8F6016B6}
-	EndProjectSection
-EndProject
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test Project", "Test Project", "{277BB32F-CB3E-4F52-A913-B9AE084BE774}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FingerTrackingTestProject", "FingerTrackingTestProject\FingerTrackingTestProject.vcproj", "{5F8D5A18-B73F-4221-A92E-34D7CE8819DF}"
-	ProjectSection(ProjectDependencies) = postProject
-		{27033CF8-2B80-4028-BEAE-1B2F8F6016B6} = {27033CF8-2B80-4028-BEAE-1B2F8F6016B6}
-	EndProjectSection
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "windage", "windage\windage.vcproj", "{27033CF8-2B80-4028-BEAE-1B2F8F6016B6}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ARopenGLTestProject", "ARopenGLTestProject\ARopenGLTestProject.vcproj", "{DC2E73C7-0EFB-453B-8F7C-C591CCA54612}"
-	ProjectSection(ProjectDependencies) = postProject
-		{27033CF8-2B80-4028-BEAE-1B2F8F6016B6} = {27033CF8-2B80-4028-BEAE-1B2F8F6016B6}
-	EndProjectSection
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ProjectionTestProject", "Sample\ProjectionTestProject\ProjectionTestProject.vcproj", "{19A98E91-C671-4D2B-B02E-A53401F05AB9}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ProjectionTestProject", "ProjectionTestProject\ProjectionTestProject.vcproj", "{19A98E91-C671-4D2B-B02E-A53401F05AB9}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CalibrationTestProject", "Sample\CalibrationTestProject\TestProject.vcproj", "{34A77DC8-99C0-41F5-B50A-87497CB3D8DA}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FingerTrackingTestProject", "Sample\FingerTrackingTestProject\FingerTrackingTestProject.vcproj", "{5F8D5A18-B73F-4221-A92E-34D7CE8819DF}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ARopenGLTestProject", "Sample\ARopenGLTestProject\ARopenGLTestProject.vcproj", "{DC2E73C7-0EFB-453B-8F7C-C591CCA54612}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -32,6 +23,10 @@ Global
 		{27033CF8-2B80-4028-BEAE-1B2F8F6016B6}.Debug|Win32.Build.0 = Debug|Win32
 		{27033CF8-2B80-4028-BEAE-1B2F8F6016B6}.Release|Win32.ActiveCfg = Release|Win32
 		{27033CF8-2B80-4028-BEAE-1B2F8F6016B6}.Release|Win32.Build.0 = Release|Win32
+		{19A98E91-C671-4D2B-B02E-A53401F05AB9}.Debug|Win32.ActiveCfg = Debug|Win32
+		{19A98E91-C671-4D2B-B02E-A53401F05AB9}.Debug|Win32.Build.0 = Debug|Win32
+		{19A98E91-C671-4D2B-B02E-A53401F05AB9}.Release|Win32.ActiveCfg = Release|Win32
+		{19A98E91-C671-4D2B-B02E-A53401F05AB9}.Release|Win32.Build.0 = Release|Win32
 		{34A77DC8-99C0-41F5-B50A-87497CB3D8DA}.Debug|Win32.ActiveCfg = Debug|Win32
 		{34A77DC8-99C0-41F5-B50A-87497CB3D8DA}.Debug|Win32.Build.0 = Debug|Win32
 		{34A77DC8-99C0-41F5-B50A-87497CB3D8DA}.Release|Win32.ActiveCfg = Release|Win32
@@ -44,18 +39,14 @@ Global
 		{DC2E73C7-0EFB-453B-8F7C-C591CCA54612}.Debug|Win32.Build.0 = Debug|Win32
 		{DC2E73C7-0EFB-453B-8F7C-C591CCA54612}.Release|Win32.ActiveCfg = Release|Win32
 		{DC2E73C7-0EFB-453B-8F7C-C591CCA54612}.Release|Win32.Build.0 = Release|Win32
-		{19A98E91-C671-4D2B-B02E-A53401F05AB9}.Debug|Win32.ActiveCfg = Debug|Win32
-		{19A98E91-C671-4D2B-B02E-A53401F05AB9}.Debug|Win32.Build.0 = Debug|Win32
-		{19A98E91-C671-4D2B-B02E-A53401F05AB9}.Release|Win32.ActiveCfg = Release|Win32
-		{19A98E91-C671-4D2B-B02E-A53401F05AB9}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{19A98E91-C671-4D2B-B02E-A53401F05AB9} = {277BB32F-CB3E-4F52-A913-B9AE084BE774}
 		{34A77DC8-99C0-41F5-B50A-87497CB3D8DA} = {277BB32F-CB3E-4F52-A913-B9AE084BE774}
 		{5F8D5A18-B73F-4221-A92E-34D7CE8819DF} = {277BB32F-CB3E-4F52-A913-B9AE084BE774}
 		{DC2E73C7-0EFB-453B-8F7C-C591CCA54612} = {277BB32F-CB3E-4F52-A913-B9AE084BE774}
-		{19A98E91-C671-4D2B-B02E-A53401F05AB9} = {277BB32F-CB3E-4F52-A913-B9AE084BE774}
 	EndGlobalSection
 EndGlobal
