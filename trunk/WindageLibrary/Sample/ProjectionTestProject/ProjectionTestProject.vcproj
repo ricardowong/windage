@@ -61,7 +61,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="cv.lib cxcore.lib highgui.lib ../../lib/windage.lib"
+				AdditionalDependencies="cv.lib cxcore.lib highgui.lib ../../lib/windaged.lib"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
 				SubSystem="1"
