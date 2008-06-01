@@ -14,4 +14,15 @@
   * aaa
  * Development Environment
   * Windows VISTA
-  * Reference Livrary : OpenGL & OpenCV
+  * Reference Library : [WindageLibrary]
+
+
+ == 2007 Project ==
+
+ === [WindageLibrary] ===
+ * Abstract
+  * Camera Calibration Functions (OpenCV Function Wrapping)
+  * Argumented Reality Functions (OpenGL Environment Setting)
+  * Hand Detection Functions (OpenCV Support)
+ * Development Environment
+  * Reference Librry : OpenGL & OpenCV
