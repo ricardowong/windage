@@ -12,7 +12,8 @@
  * Matrix2
  * Matrix3
  * Matrix4
-
+ 
+ 
 == CameraCalibration ==
  _Wrapping OpenCV_
 
@@ -47,7 +48,8 @@ void GetExtrinsicMatrix(Matrix4* extrinsicMatrix, Vector3 rotationVector, Vector
 {{{
 void UnRadialDistortion(IplImage* result, IplImage* input, Matrix3 instrinsicMatrix, Vector4 distortionCoefficients 
 }}}
-
+ 
+ 
 == AugmentedReality ==
  _OpenGL Supporting_
 
@@ -62,12 +64,14 @@ void DrawBackgroundTexture(IplImage* image, int imageWidth=512, bool isFlip=fals
 {{{
 void SetOpenGLCalibrationData(Matrix3 internalMatrix, Matrix3 rotationMatrix, Vector3 translateionVector, int imageWidth, int imageHeight, bool flip);
 }}}
-
+ 
+ 
 == 3DReconstruction ==
  _Visual Hull Method_
 
 "windageReconstruction.h"
-
+ 
+ 
 == FingerTracking ==
 
 "windageFingerTracking.h"
