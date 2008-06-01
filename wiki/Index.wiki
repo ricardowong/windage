@@ -1,7 +1,5 @@
 = Project List =
-
 ----
-
 == 2008 Project ==
 
 === [VSS](Video Search by Sketch : undecided) ===
@@ -20,7 +18,6 @@
   * Reference Library : [WindageLibrary]
  
 ----
- 
 == 2007 Project ==
 === [WindageLibrary] ===
  * Abstract
