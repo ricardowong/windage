@@ -1,6 +1,5 @@
- = [Index] / [WindageLibrary] =
-
- == Data Structure ==
+= [Index] / [WindageLibrary] =
+== Data Structure ==
 
 "windageVector.h"
 
@@ -14,11 +13,10 @@
  * Matrix3
  * Matrix4
 
- == Camera Calibration ==
+== CameraCalibration ==
+ _Wrapping OpenCV_
 
 "windageCalibration.h"
-
-_Wrapping OpenCV_
 
 *_finding Chess Board Corner in Image_*
 {{{
@@ -26,7 +24,7 @@ int FindChessBoardCorner(CvPoint2D32f* resultPoint, IplImage* image, int chessBo
 // CvPoint2D32f * result = new CvPoint2D32f[(chessBoardWidth-1) * (chessBoardHeight-1)];
 }}}
  
-*_Calcuation of Camera Calibration_* (a number of image minimun count is 3)
+*_Calcuation of Camera Calibration_* (minimun number of image >= 3)
 {{{
 /*** output ***/
 // Matrix3 &intrinsicMatrix
@@ -49,3 +47,27 @@ void GetExtrinsicMatrix(Matrix4* extrinsicMatrix, Vector3 rotationVector, Vector
 {{{
 void UnRadialDistortion(IplImage* result, IplImage* input, Matrix3 instrinsicMatrix, Vector4 distortionCoefficients 
 }}}
+
+== AugmentedReality ==
+ _OpenGL Supporting_
+
+"windageAugmentedReality.h"
+
+*_Drawing the Background Image_* (OpenGL View)
+{{{
+void DrawBackgroundTexture(IplImage* image, int imageWidth=512, bool isFlip=false);
+}}}
+
+*_Projection Matrix and ModelView Matrix Setting_* (OpenGL Values)
+{{{
+void SetOpenGLCalibrationData(Matrix3 internalMatrix, Matrix3 rotationMatrix, Vector3 translateionVector, int imageWidth, int imageHeight, bool flip);
+}}}
+
+== 3DReconstruction ==
+ _Visual Hull Method_
+
+"windageReconstruction.h"
+
+== FingerTracking ==
+
+"windageFingerTracking.h"
