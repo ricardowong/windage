@@ -1,0 +1,51 @@
+ = WindageLibrary =
+
+ == Data Structure ==
+
+"windageVector.h"
+
+ * Vector2
+ * Vector3
+ * Vector4
+
+"windageMatrix.h"
+
+ * Matrix2
+ * Matrix3
+ * Matrix4
+
+ == Camera Calibration ==
+
+"windageCalibration.h"
+
+_Wrapping OpenCV_
+
+*_finding Chess Board Corner in Image_*
+{{{
+int FindChessBoardCorner(CvPoint2D32f* resultPoint, IplImage* image, int chessBoardWidth, int chessBoardHeight);
+// CvPoint2D32f * result = new CvPoint2D32f[(chessBoardWidth-1) * (chessBoardHeight-1)];
+}}}
+ 
+*_Calcuation of Camera Calibration_* (a number of image minimun count is 3)
+{{{
+/*** output ***/
+// Matrix3 &intrinsicMatrix
+// Vector4 &distortionCoefficients
+// Vector3 rotationVector[imageCount]
+// Vector3 translationVector[imageCount]
+/*** input ***/
+// CvPoint2D32f * cornersArray = new CvPoint2D32f[imageCount * (chessBoardWidth-1) * (chessBoardHeight-1)];
+void SolveCalibration(Matrix3* intrinsicMatrix, Vector4* distortionCoefficients, Vector3* rotationVector, Vector3* translationVector,
+                      CvPoint2D32f* cornersArray, int chessBoardWidth, int chessBoardHeight, double fieldSize,
+                      int imageWidth, int imageHeight, int imageCount);
+}}}
+ 
+*_Generation Extrinsic Matrix_*
+{{{
+void GetExtrinsicMatrix(Matrix4* extrinsicMatrix, Vector3 rotationVector, Vector3 translationVector);
+}}}
+ 
+*_Generation UnRadial Distortion Image_*
+{{{
+void UnRadialDistortion(IplImage* result, IplImage* input, Matrix3 instrinsicMatrix, Vector4 distortionCoefficients 
+}}}
