@@ -1,7 +1,10 @@
- = Project List =
- == 2008 Project ==
+= Project List =
 
- === [VSS](Video Search by Sketch : undecided) ===
+----
+
+== 2008 Project ==
+
+=== [VSS](Video Search by Sketch : undecided) ===
  * Abstract
   * aaa
  * Development Environment
@@ -9,17 +12,17 @@
   * Image Search Algorithm : C
   * Service Environment : Linux based Aparch
 
- === [ARInterface] ===
+=== [ARInterface] ===
  * Abstract
   * aaa
  * Development Environment
   * Windows VISTA
   * Reference Library : [WindageLibrary]
-
-
- == 2007 Project ==
-
- === [WindageLibrary] ===
+ 
+----
+ 
+== 2007 Project ==
+=== [WindageLibrary] ===
  * Abstract
   * Camera Calibration Functions (OpenCV Function Wrapping)
   * Argumented Reality Functions (OpenGL Environment Setting)
