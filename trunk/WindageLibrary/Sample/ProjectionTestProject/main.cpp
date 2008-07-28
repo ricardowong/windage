@@ -37,7 +37,7 @@ void main()
 	Vector3* translationVector = new Vector3[imageCount];
 	Matrix4* extrinsicMatrix = new Matrix4[imageCount];
 
-	SolveCalibration(&instrinsicMatrix, &distortionCoefficients, rotationVector, translationVector,
+	SolveCalibration2(&instrinsicMatrix, &distortionCoefficients, rotationVector, translationVector,
 		corner, chessBoardWidth, chessBoardHeight, filedSize, image1->width, image1->height, imageCount);
 	
 	// get extrinsic matrix

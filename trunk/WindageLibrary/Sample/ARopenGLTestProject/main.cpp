@@ -138,7 +138,7 @@ void main()
 	Vector3* translationVector = new Vector3[imageCount];
 	Matrix4* extrinsicMatrix = new Matrix4[imageCount];
 
-	SolveCalibration(&instrinsicMatrix, &distortionCoefficients, rotationVector, translationVector,
+	SolveCalibration2(&instrinsicMatrix, &distortionCoefficients, rotationVector, translationVector,
 		corner, chessBoardWidth, chessBoardHeight, filedSize, image1->width, image1->height, imageCount);
 	
 	// get extrinsic matrix
@@ -148,7 +148,7 @@ void main()
 		GetExtrinsicMatrix(&extrinsicMatrix[i], rotationVector[i], translationVector[i]);
 	}
 
-	UpdateExtrinsicParams(&rotationVector[0], &translationVector[0],
+	UpdateExtrinsicParams2(&rotationVector[0], &translationVector[0],
 		instrinsicMatrix, distortionCoefficients, corner, chessBoardWidth, chessBoardHeight, filedSize, image1->width, image1->height);
 /*** calculate end ***/
 

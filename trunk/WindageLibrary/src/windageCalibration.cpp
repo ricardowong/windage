@@ -30,42 +30,26 @@ int FindChessBoardCorner(CvPoint2D32f* resultPoint, IplImage* image, int chessBo
 
 extern "C" __declspec(dllexport)
 void SolveCalibration(Matrix3* intrinsicMatrix, Vector4* distortionCoefficients, Vector3* rotationVector, Vector3* translationVector,
-					  CvPoint2D32f* cornersArray, int chessBoardWidth, int chessBoardHeight, double fieldSize,
+					   std::vector<Vector3>* objectCornersArray, std::vector<Vector3>* imageCornersArray, int pointCount,
 					  int imageWidth, int imageHeight, int imageCount)
 {
-	int pointCount = (chessBoardWidth-1) * (chessBoardHeight-1);
 	int allPointCount = pointCount * imageCount;
 
 	// init object points array
-	int i, x, y;
+	int i, x;
 
 	CvMat* pImagePoints = cvCreateMat(allPointCount, 2, CV_64FC1);
 	CvMat* objectPoints = cvCreateMat(allPointCount, 3, CV_64FC1);
 	CvMat* imagePointCounts = cvCreateMat(imageCount, 1, CV_32SC1);
 
-	for (int i=0; i < allPointCount; ++i)
+	for (i=0; i < allPointCount; ++i)
 	{
-		cvSetReal2D(pImagePoints, i, 0, cornersArray[i].x);
-		cvSetReal2D(pImagePoints, i, 1, cornersArray[i].y);
-	}
+		cvSetReal2D(objectPoints, i, 0, (*objectCornersArray)[i].y);
+		cvSetReal2D(objectPoints, i, 1, (*objectCornersArray)[i].x);
+		cvSetReal2D(objectPoints, i, 2, (*objectCornersArray)[i].z);
 
-	for(y=0; y<chessBoardHeight-1; y++)
-	{
-		for(x=0; x<chessBoardWidth-1; x++)
-		{
-			cvSetReal2D(objectPoints, (y * (chessBoardWidth-1) + x), 0, (fieldSize * y) );
-			cvSetReal2D(objectPoints, (y * (chessBoardWidth-1) + x), 1, (fieldSize * x) );
-			cvSetReal2D(objectPoints, (y * (chessBoardWidth-1) + x), 2, 0.0f );
-		}
-	}
-	for(i=0; i<imageCount; i++)
-	{
-		for(x=0; x<pointCount; x++)
-		{
-			cvSetReal2D(objectPoints, (i*pointCount + x), 0, cvGetReal2D(objectPoints, x, 0) );
-			cvSetReal2D(objectPoints, (i*pointCount + x), 1, cvGetReal2D(objectPoints, x, 1) );
-			cvSetReal2D(objectPoints, (i*pointCount + x), 2, 0.0f );
-		}
+		cvSetReal2D(pImagePoints, i, 0, (*imageCornersArray)[i].x);
+		cvSetReal2D(pImagePoints, i, 1, (*imageCornersArray)[i].y);
 	}
 
 	for(i=0; i<imageCount; i++)
@@ -121,9 +105,118 @@ void SolveCalibration(Matrix3* intrinsicMatrix, Vector4* distortionCoefficients,
 extern "C" __declspec(dllexport)
 void UpdateExtrinsicParams(Vector3* rotationVector, Vector3* translationVector,
 					  Matrix3 intrinsicMatrix, Vector4 distortionCoefficients,
+					  std::vector<Vector3>* objectCornersArray, std::vector<Vector3>* imageCornersArray, int pointCount)
+{
+	int x, y, i;
+
+	CvMat* pImagePoints = cvCreateMat(pointCount, 2, CV_64FC1);
+	CvMat* objectPoints = cvCreateMat(pointCount, 3, CV_64FC1);
+
+	for (i=0; i < pointCount; i++)
+	{
+		cvSetReal2D(objectPoints, i, 0, (*objectCornersArray)[i].y);
+		cvSetReal2D(objectPoints, i, 1, (*objectCornersArray)[i].x);
+		cvSetReal2D(objectPoints, i, 2, (*objectCornersArray)[i].z);
+
+		cvSetReal2D(pImagePoints, i, 0, (*imageCornersArray)[i].x);
+		cvSetReal2D(pImagePoints, i, 1, (*imageCornersArray)[i].y);
+	}
+
+	CvMat* cameraMatrix = cvCreateMat(3, 3, CV_64FC1);
+	CvMat* distortionCoeffs = cvCreateMat(4, 1, CV_64FC1);
+	CvMat* rotationVects = cvCreateMat(1, 3, CV_64FC1);
+	CvMat* transVects = cvCreateMat(1, 3, CV_64FC1);
+
+	for(y=0; y<3; y++)
+	{
+		for(x=0; x<3; x++)
+		{
+			cvSetReal2D(cameraMatrix, y, x, intrinsicMatrix.m[y][x]);
+		}
+	}
+	for(i=0; i<4; i++)
+	{
+		cvSetReal1D(distortionCoeffs, i, distortionCoefficients.v[i]);
+	}
+
+	cvFindExtrinsicCameraParams2(objectPoints, pImagePoints, cameraMatrix, distortionCoeffs, rotationVects, transVects);
+
+	// calibration update result
+	for(x=0; x<3; x++)
+	{
+		translationVector->v[x] = cvGetReal2D(transVects, 0, x);
+		rotationVector->v[x] = cvGetReal2D(rotationVects, 0, x);
+	}
+
+	// release matrix
+	if(pImagePoints != NULL)		cvReleaseMat(&pImagePoints);
+	if(objectPoints != NULL)		cvReleaseMat(&objectPoints);
+
+	if(cameraMatrix != NULL)		cvReleaseMat(&cameraMatrix);
+	if(distortionCoeffs != NULL)	cvReleaseMat(&distortionCoeffs);
+	if(rotationVects != NULL)		cvReleaseMat(&rotationVects);
+	if(transVects != NULL)			cvReleaseMat(&transVects);
+}
+
+extern "C" __declspec(dllexport)
+void SolveCalibration2(Matrix3* intrinsicMatrix, Vector4* distortionCoefficients, Vector3* rotationVector, Vector3* translationVector,
+					  CvPoint2D32f* cornersArray, int chessBoardWidth, int chessBoardHeight, double fieldSize,
+					  int imageWidth, int imageHeight, int imageCount)
+{
+	int pointCount = (chessBoardWidth-1) * (chessBoardHeight-1);
+	int allPointCount = pointCount * imageCount;
+
+	std::vector<Vector3> object;
+	std::vector<Vector3> image;
+
+	int i, x, y;
+	for(i=0; i<allPointCount; i++)
+	{
+		image.push_back(Vector3(cornersArray[i].x, cornersArray[i].y, 0.0f));
+	}
+	for(i=0; i<imageCount; i++)
+	{
+		for(y=0; y<chessBoardHeight-1; y++)
+		{
+			for(x=0; x<chessBoardWidth-1; x++)
+			{
+				object.push_back(Vector3((fieldSize * x), (fieldSize * y), 0.0f));
+			}
+		}
+	}
+
+	SolveCalibration(intrinsicMatrix, distortionCoefficients, rotationVector, translationVector,
+					  &object, &image, pointCount, imageWidth, imageHeight, imageCount);
+}
+
+extern "C" __declspec(dllexport)
+void UpdateExtrinsicParams2(Vector3* rotationVector, Vector3* translationVector,
+					  Matrix3 intrinsicMatrix, Vector4 distortionCoefficients,
 					  CvPoint2D32f* cornersArray, int chessBoardWidth, int chessBoardHeight, double fieldSize,
 					  int imageWidth, int imageHeight)
 {
+	int pointCount = (chessBoardWidth-1) * (chessBoardHeight-1);
+
+	std::vector<Vector3> object;
+	std::vector<Vector3> image;
+
+	int i, x, y;
+	for(i=0; i<pointCount; i++)
+	{
+		image.push_back(Vector3(cornersArray[i].x, cornersArray[i].y, 0.0f));
+	}
+	for(y=0; y<chessBoardHeight-1; y++)
+	{
+		for(x=0; x<chessBoardWidth-1; x++)
+		{
+			object.push_back(Vector3((fieldSize * x), (fieldSize * y), 0.0f));
+		}
+	}
+
+	UpdateExtrinsicParams(rotationVector, translationVector,
+					  intrinsicMatrix, distortionCoefficients, &object, &image, pointCount);
+
+	/*
 	int x, y, i;
 	int pointCount = (chessBoardWidth-1) * (chessBoardHeight-1);
 
@@ -180,6 +273,7 @@ void UpdateExtrinsicParams(Vector3* rotationVector, Vector3* translationVector,
 	if(distortionCoeffs != NULL)	cvReleaseMat(&distortionCoeffs);
 	if(rotationVects != NULL)		cvReleaseMat(&rotationVects);
 	if(transVects != NULL)			cvReleaseMat(&transVects);
+	*/
 }
 
 extern "C" __declspec(dllexport)
