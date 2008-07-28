@@ -1,10 +1,112 @@
 #include <cv.h>
 #include <highgui.h>
 
+#include <gl/glut.h>
+
 #include <iostream>
 using namespace std;
 
 #include "../../include/windageCalibration.h"
+#include "../../include/windageAugmentedReality.h"
+
+IplImage* background;
+Matrix3 internalMatrix;
+Matrix3 rotationMatrix;
+Vector3 translateVector;
+int width, height;
+
+void display()
+{
+	// check if there have been any openGL problems
+    GLenum errCode = glGetError();
+    if( errCode != GL_NO_ERROR )
+    {
+        const GLubyte *errString = gluErrorString( errCode );
+        fprintf( stderr, "OpenGL error: %s\n", errString );
+    }
+
+	 // clear the buffers of the last frame
+	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
+
+	// render virtual objects
+	bool isFlip = false;
+	DrawBackgroundTexture(background, background->width, isFlip);
+	SetOpenGLCalibrationData(internalMatrix, rotationMatrix, translateVector, width, height, isFlip);
+
+	GLfloat colorRed[3] = { 1.0, 0.0, 0.0 };
+	GLfloat colorGreen[3] = { 0.0, 1.0, 0.0 };
+	GLfloat colorBlue[3] = { 0.0, 0.0, 1.0 };
+	glDisable(GL_LIGHTING);
+	glLineWidth( 3 );
+	glBegin(GL_LINES);
+		glMaterialfv(GL_FRONT, GL_AMBIENT, colorRed);
+		glColor3fv( colorRed );
+		glVertex3f(0, 0, 0);
+		glVertex3f(100, 0, 0);
+		glMaterialfv(GL_FRONT, GL_AMBIENT, colorGreen);
+		glColor3fv( colorGreen );
+		glVertex3f(0, 0, 0);
+		glVertex3f(0, 100, 0);
+		glMaterialfv(GL_FRONT, GL_AMBIENT, colorBlue);
+		glColor3fv( colorBlue );
+		glVertex3f(0, 0, 0);
+		glVertex3f(0, 0, 100);
+	glEnd();
+	glPushMatrix();
+		glColor3fv( colorRed );
+		glTranslatef( 100, 0, 0 );
+		glRotatef( 90, 0, 1, 0 );
+		glutSolidCone( 5, 10, 16, 16 );
+	glPopMatrix();
+	glPushMatrix();
+		glColor3fv( colorGreen );
+		glTranslatef( 0, 100, 0 );
+		glRotatef( -90, 1, 0, 0 );
+		glutSolidCone( 5, 10, 16, 16 );
+	glPopMatrix();
+	glPushMatrix();
+		glColor3fv( colorBlue );
+		glTranslatef( 0, 0, 100 );
+		glRotatef( 90, 0, 0, 1 );
+		glutSolidCone( 5, 10, 16, 16 );
+	glPopMatrix();
+	glEnable(GL_LIGHTING);
+
+	glutSwapBuffers();
+}
+
+void init()
+{
+    // properly scale normal vectors
+    glEnable( GL_NORMALIZE );
+
+    // turn on default lighting
+    glEnable( GL_LIGHTING );
+
+    // light 0
+    GLfloat light_position[] = { 100.0, 500, 200, 1.0 };
+    GLfloat white_light[] = { 1.0, 1.0, 1.0, 0.8 };
+    GLfloat lmodel_ambient[] = { 0.9, 0.9, 0.9, 0.5 };
+
+    glClearColor(0.0, 0.0, 0.0, 0.0);
+    glShadeModel(GL_SMOOTH);
+    glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, white_light);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, white_light);
+    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, lmodel_ambient);
+
+    glEnable(GL_LIGHT0);
+
+    glEnable(GL_DEPTH_TEST);
+    glBlendFunc(GL_SRC_ALPHA,GL_ONE);
+    glShadeModel(GL_SMOOTH);
+    glEnable(GL_TEXTURE_2D);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CW);
+
+    // Callback functions
+    glutDisplayFunc( display );
+}
 
 void main()
 {
@@ -45,6 +147,9 @@ void main()
 	{
 		GetExtrinsicMatrix(&extrinsicMatrix[i], rotationVector[i], translationVector[i]);
 	}
+
+	UpdateExtrinsicParams(&rotationVector[0], &translationVector[0],
+		instrinsicMatrix, distortionCoefficients, corner, chessBoardWidth, chessBoardHeight, filedSize, image1->width, image1->height);
 /*** calculate end ***/
 
 /*** draw information start ***/
@@ -56,9 +161,6 @@ void main()
 		cvLine(temp1, cvPoint((int)corner[i].x, (int)corner[i].y), cvPoint((int)corner[i+1].x, (int)corner[i+1].y), CV_RGB(255 * (count-i)/count, 255 * i/count, 0));
 	}
 	cvCircle(temp1, cvPoint((int)corner[i].x, (int)corner[i].y), 3, CV_RGB(255 * (count-i)/count, 255 * i/count, 0), CV_FILLED);
-
-	cvNamedWindow("result1");
-	cvShowImage("result1", temp1);
 
 	// printout calibration data
 	int x, y;
@@ -111,64 +213,29 @@ void main()
 	// radial Undistortion
 	IplImage* undistortion1 = cvCreateImage(cvGetSize(image1), IPL_DEPTH_8U, 3);
 	UnRadialDistortion(undistortion1, image1, instrinsicMatrix, distortionCoefficients);
-	
-	// change chessboard width&height
-	IplImage* resultImage1 = cvCreateImage(cvSize(filedSize*(chessBoardHeight+2), filedSize*(chessBoardWidth+2)), IPL_DEPTH_8U, 3);
 
-	// draw reprojection
-	Matrix3 rotation;
-	for(y=0; y<3; y++)
-	{
-		for(x=0; x<3; x++)
-		{
-			rotation.m[y][x] = extrinsicMatrix[0].m[x][y];
-		}
-	}
+	background = cvCreateImage(cvSize(512, 512), IPL_DEPTH_8U, 3);
+	cvResize(image1, background);
 
-	Vector3 originalp, resultp;
-	for(y=0; y<resultImage1->height; y++)
-	{
-		for(x=0; x<resultImage1->width; x++)
-		{
-			originalp.x = x - filedSize*2;
-			originalp.y = y - filedSize*2;
-			originalp.z = 0;
+	internalMatrix = instrinsicMatrix;
+	rotationMatrix = Matrix3(	extrinsicMatrix[0]._11, extrinsicMatrix[0]._12, extrinsicMatrix[0]._13,
+											extrinsicMatrix[0]._21, extrinsicMatrix[0]._22, extrinsicMatrix[0]._23,
+											extrinsicMatrix[0]._31, extrinsicMatrix[0]._32, extrinsicMatrix[0]._33);
+	translateVector = translationVector[0];
+	width = image1->width;
+	height = image1->height;
 
-			resultp = instrinsicMatrix * (rotation * originalp + translationVector[0]);
+	// OpenGL loop
+	glutInitDisplayMode( GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH );
+    glutInitWindowPosition( 100, 100 );
 
-			resultp.x /= resultp.z;
-			resultp.y /= resultp.z;
-			resultp.z = 1;
+	glutInitWindowSize(image1->width, image1->height);
+	glutCreateWindow( "windage Demo Application" );
 
-			if(0 < resultp.x && resultp.x < undistortion1->width && 0 < resultp.y && resultp.y < undistortion1->height)
-			{
-				resultImage1->imageData[y*resultImage1->widthStep + x*3 + 2] = undistortion1->imageData[(int)resultp.y*undistortion1->widthStep + (int)resultp.x*3 + 2];
-				resultImage1->imageData[y*resultImage1->widthStep + x*3 + 1] = undistortion1->imageData[(int)resultp.y*undistortion1->widthStep + (int)resultp.x*3 + 1];
-				resultImage1->imageData[y*resultImage1->widthStep + x*3 + 0] = undistortion1->imageData[(int)resultp.y*undistortion1->widthStep + (int)resultp.x*3 + 0];
-			}
-			else
-			{
-				resultImage1->imageData[y*resultImage1->widthStep + x*3 + 2] = (unsigned char)0;
-				resultImage1->imageData[y*resultImage1->widthStep + x*3 + 1] = (unsigned char)0;
-				resultImage1->imageData[y*resultImage1->widthStep + x*3 + 0] = (unsigned char)0;
-			}
-
-			if(x == filedSize*2 || y == filedSize*2)
-			{
-				resultImage1->imageData[y*resultImage1->widthStep + x*3 + 2] = (unsigned char)255;
-				resultImage1->imageData[y*resultImage1->widthStep + x*3 + 1] = (unsigned char)0;
-				resultImage1->imageData[y*resultImage1->widthStep + x*3 + 0] = (unsigned char)0;
-			}
-		}
-	}
-
-	cvNamedWindow("reprojection1");
-	cvShowImage("reprojection1", resultImage1);
+	init();
+	glutMainLoop();
 
 	cvReleaseImage(&undistortion1);
-
-	cvReleaseImage(&resultImage1);
-
 	cvReleaseImage(&temp1);
 /*** draw information end ***/
 

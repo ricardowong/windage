@@ -21,6 +21,19 @@ void SolveCalibration(Matrix3* intrinsicMatrix, Vector4* distortionCoefficients,
 					  int imageWidth, int imageHeight, int imageCount);
 
 extern "C" __declspec(dllimport)
+/*** output ***/
+// Vector3 &rotationVector
+// Vector3 &translationVector
+/*** input ***/
+// Matrix3 intrinsicMatrix
+// Vector4 distortionCoefficients
+// CvPoint2D32f * cornersArray = new CvPoint2D32f[(chessBoardWidth-1) * (chessBoardHeight-1)];
+void UpdateExtrinsicParams(Vector3* rotationVector, Vector3* translationVector,
+					  Matrix3 intrinsicMatrix, Vector4 distortionCoefficients,
+					  CvPoint2D32f* cornersArray, int chessBoardWidth, int chessBoardHeight, double fieldSize,
+					  int imageWidth, int imageHeight);
+
+extern "C" __declspec(dllimport)
 void GetExtrinsicMatrix(Matrix4* extrinsicMatrix, Vector3 rotationVector, Vector3 translationVector);
 
 extern "C" __declspec(dllimport)

@@ -119,6 +119,70 @@ void SolveCalibration(Matrix3* intrinsicMatrix, Vector4* distortionCoefficients,
 }
 
 extern "C" __declspec(dllexport)
+void UpdateExtrinsicParams(Vector3* rotationVector, Vector3* translationVector,
+					  Matrix3 intrinsicMatrix, Vector4 distortionCoefficients,
+					  CvPoint2D32f* cornersArray, int chessBoardWidth, int chessBoardHeight, double fieldSize,
+					  int imageWidth, int imageHeight)
+{
+	int x, y, i;
+	int pointCount = (chessBoardWidth-1) * (chessBoardHeight-1);
+
+	CvMat* pImagePoints = cvCreateMat(pointCount, 2, CV_64FC1);
+	CvMat* objectPoints = cvCreateMat(pointCount, 3, CV_64FC1);
+
+	for (i=0; i < pointCount; ++i)
+	{
+		cvSetReal2D(pImagePoints, i, 0, cornersArray[i].x);
+		cvSetReal2D(pImagePoints, i, 1, cornersArray[i].y);
+	}
+
+	for(y=0; y<chessBoardHeight-1; y++)
+	{
+		for(x=0; x<chessBoardWidth-1; x++)
+		{
+			cvSetReal2D(objectPoints, (y * (chessBoardWidth-1) + x), 0, (fieldSize * y) );
+			cvSetReal2D(objectPoints, (y * (chessBoardWidth-1) + x), 1, (fieldSize * x) );
+			cvSetReal2D(objectPoints, (y * (chessBoardWidth-1) + x), 2, 0.0f );
+		}
+	}
+
+	CvMat* cameraMatrix = cvCreateMat(3, 3, CV_64FC1);
+	CvMat* distortionCoeffs = cvCreateMat(4, 1, CV_64FC1);
+	CvMat* rotationVects = cvCreateMat(1, 3, CV_64FC1);
+	CvMat* transVects = cvCreateMat(1, 3, CV_64FC1);
+
+	for(y=0; y<3; y++)
+	{
+		for(x=0; x<3; x++)
+		{
+			cvSetReal2D(cameraMatrix, y, x, intrinsicMatrix.m[y][x]);
+		}
+	}
+	for(i=0; i<4; i++)
+	{
+		cvSetReal1D(distortionCoeffs, i, distortionCoefficients.v[i]);
+	}
+
+	cvFindExtrinsicCameraParams2(objectPoints, pImagePoints, cameraMatrix, distortionCoeffs, rotationVects, transVects);
+
+	// calibration update result
+	for(x=0; x<3; x++)
+	{
+		translationVector->v[x] = cvGetReal2D(transVects, 0, x);
+		rotationVector->v[x] = cvGetReal2D(rotationVects, 0, x);
+	}
+
+	// release matrix
+	if(pImagePoints != NULL)		cvReleaseMat(&pImagePoints);
+	if(objectPoints != NULL)		cvReleaseMat(&objectPoints);
+
+	if(cameraMatrix != NULL)		cvReleaseMat(&cameraMatrix);
+	if(distortionCoeffs != NULL)	cvReleaseMat(&distortionCoeffs);
+	if(rotationVects != NULL)		cvReleaseMat(&rotationVects);
+	if(transVects != NULL)			cvReleaseMat(&transVects);
+}
+
+extern "C" __declspec(dllexport)
 void GetExtrinsicMatrix(Matrix4* extrinsicMatrix, Vector3 rotationVector, Vector3 translationVector)
 {
 	CvMat *rotation_vect=NULL;

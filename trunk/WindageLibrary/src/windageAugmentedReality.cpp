@@ -14,7 +14,13 @@ void DrawBackgroundTexture(IplImage* image, int imageWidth, bool isFlip)
 	glDisable(GL_LIGHTING);
 	glDisable(GL_DEPTH_TEST);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, 3, imageWidth, imageWidth, 0, GL_BGR_EXT, GL_UNSIGNED_BYTE, image->imageData);
+	GLuint backgroundTexture;
+	glGenTextures(1, &backgroundTexture);
+	glBindTexture(GL_TEXTURE_2D, backgroundTexture);
+
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imageWidth, imageWidth, 0, GL_BGR_EXT, GL_UNSIGNED_BYTE, image->imageData);
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -45,10 +51,16 @@ void DrawBackgroundTexture(IplImage* image, int imageWidth, bool isFlip)
 		glVertex2d(0,0);
 	}
 	glEnd();
+
+	glDeleteTextures(1, &backgroundTexture);
+
+	glEnable(GL_BLEND);
+	glEnable(GL_LIGHTING);
+	glEnable(GL_DEPTH_TEST);
 }
 
 extern "C" __declspec(dllexport)
-void SetOpenGLCalibrationData(Matrix3 internalMatrix, Matrix3 rotationMatrix, Vector3 translationVector, int imageWidth, int imageHeight, bool flip)
+void SetOpenGLCalibrationData(Matrix3 internalMatrix, Matrix3 rotationMatrix, Vector3 translationVector, int imageWidth, int imageHeight, bool isFlip)
 {
 	// projection matrix setting...
 	GLdouble m[16];
@@ -79,8 +91,8 @@ void SetOpenGLCalibrationData(Matrix3 internalMatrix, Matrix3 rotationMatrix, Ve
 	glLoadIdentity();
 	glLoadMatrixd(m);
 	
-	if(flip)
-		glScalef(1, -1, 1);
+	if(isFlip)
+		glScalef(1.0f, -1.0f, 1.0f);
 
 	// modelview matrix setting...
 	for(i=0; i<3; ++i)
