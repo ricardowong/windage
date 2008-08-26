@@ -17,7 +17,7 @@ The MPT (pronounced “Empty” or “Empty Box”) supplies cross-platform libr
   1. Open Visual C++
   1. Go to Tools -> Options -> Directories (Include Files)
    1. Add *<DXSDK>\Include* or *<WindowsSDK>\Include* and _move it to the top of the list_
-   1. Add *<DXSDKSAMPLES\C++\DirectShow\BASECLASSES* or * <WindosSDK>\SAMPLES\Multimedia\DirectShow\BASECLASSES* and _move it below the top item in the list_
+   1. Add *<DXSDK>\SAMPLES\C++\DirectShow\BASECLASSES* or * <WindosSDK>\SAMPLES\Multimedia\DirectShow\BASECLASSES* and _move it below the top item in the list_
   1. Directories (Library Files)
    1. Add *<DXSDK>\lib* or *<WindowsSDK>\lib* and _move it to the top of the list_
    1. Add *<DXSDK>\SAMPLES\C++\DirectShow\BASECLASSES\Release* or * <WindosSDK>\SAMPLES\Multimedia\DirectShow\BASECLASSES\Release* and _move it below the second item in the list_
