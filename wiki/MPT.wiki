@@ -61,4 +61,7 @@ int MPColorTracker::DoSearch() {
 ... skip ...
 }
 }}}
-
+ * range of variables (if input image size is 320x240)
+  * 0 <= x <= 160
+  * 0 <= y <= 120
+   * default MPT is downsampling at twice
