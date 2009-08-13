@@ -225,7 +225,7 @@ int ModifiedSURFTracker::FindPairs(SURFDesciription description, std::vector<SUR
 
 int ModifiedSURFTracker::GenerateReferenceFeatureTree()
 {
-	int count = 4;
+	int count = 8;
 	double scale = 4.0;
 	int width = referenceImage->width/scale;
 	int height = referenceImage->height/scale;
