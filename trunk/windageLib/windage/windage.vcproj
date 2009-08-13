@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../component/OpenCv 1.1/include/&quot;;&quot;$(SolutionDir)../../component/PGR FlyCapture/include/&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)windage/&quot;;&quot;$(SolutionDir)../../component/OpenCv 1.1/include/&quot;;&quot;$(SolutionDir)../../component/PGR FlyCapture/include/&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;WINDAGE_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -119,7 +119,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="3"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../component/OpenCv 1.1/include/&quot;;&quot;$(SolutionDir)../../component/PGR FlyCapture/include/&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)windage/&quot;;&quot;$(SolutionDir)../../component/OpenCv 1.1/include/&quot;;&quot;$(SolutionDir)../../component/PGR FlyCapture/include/&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;WINDAGE_EXPORTS"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -237,6 +237,14 @@
 		<Filter
 			Name="Reconstructor"
 			>
+			<File
+				RelativePath=".\Reconstructor\Reconstructor.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Reconstructor\Reconstructor.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Utils"
@@ -247,6 +255,22 @@
 			</File>
 			<File
 				RelativePath=".\Utils\Logger.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Utils\Utils.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Utils\Utils.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Utils\wMatrix.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Utils\wVector.h"
 				>
 			</File>
 		</Filter>

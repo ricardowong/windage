@@ -1,16 +1,19 @@
-#ifndef _UTIL_H_
-#define _UTIL_H_
+#ifndef _3D_RECONSTRUCTOR_H_
+#define _3D_RECONSTRUCTOR_H_
+
+#define DLLEXPORT __declspec(dllexport)
+#define DLLIMPORT __declspec(dllimport)
 
 #include <cv.h>
+#include "Tracker/Calibration.h"
 
-#include "wBaekVector.h"
-#include "Calibration.h"
-
-class Utils
+namespace windage
 {
-public:
-	static void ImmersiveImage(IplImage* image1, IplImage* image2, double rate1=0.5, double rate2=0.5);
-	static CvScalar Calc3DPointApproximation(Calibration* lCalibration, Calibration* rCalibration, CvPoint lPoint, CvPoint rPoint);
-};
+	class DLLEXPORT Reconstructor
+	{
+	public:
+		static CvScalar Calc3DPointApproximation(Calibration* lCalibration, Calibration* rCalibration, CvPoint lPoint, CvPoint rPoint);
+	};
+}
 
 #endif

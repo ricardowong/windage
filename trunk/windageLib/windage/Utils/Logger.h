@@ -11,7 +11,6 @@
 
 namespace windage
 {
-
 	class DLLEXPORT Logger
 	{
 	public:

@@ -1,29 +1,8 @@
-#include "Utils.h"
+#include "Reconstructor.h"
+#include "Utils/wMatrix.h"
+using namespace windage;
 
-void Utils::ImmersiveImage(IplImage* image1, IplImage* image2, double rate1, double rate2)
-{
-	#pragma omp parallel for
-	for(int y=0; y<image1->height; y++)
-	{
-		for(int x=0; x<image1->width; x++)
-		{
-			CvScalar color = cvGet2D(image1, y, x);
-			CvScalar color2 = cvGet2D(image2, y, x);
-			double gray = color2.val[0] + color2.val[1] + color2.val[2];
-			if(gray > 0)
-			{
-				color.val[0] = color.val[0] * rate1 + color2.val[0] * rate2;
-				color.val[1] = color.val[1] * rate1 + color2.val[1] * rate2;
-				color.val[2] = color.val[2] * rate1 + color2.val[2] * rate2;
-			}
-
-			cvSet2D(image1, y, x, color);
-		}
-	}
-}
-
-
-CvScalar Utils::Calc3DPointApproximation(Calibration* lCalibration, Calibration* rCalibration, CvPoint lPoint, CvPoint rPoint)
+CvScalar Reconstructor::Calc3DPointApproximation(Calibration* lCalibration, Calibration* rCalibration, CvPoint lPoint, CvPoint rPoint)
 {
 	CvPoint2D64f temp1, temp2;
 
