@@ -1,0 +1,39 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Utils", "Utils", "{4C79ADA6-265B-4B9F-91F3-5110277EFE0B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Algorithms", "Algorithms", "{8BF375E3-6F4C-4A37-AC13-05B53622449A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Applications", "Applications", "{5C4A8281-0408-4892-A7FE-7337E88AC198}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "windage", "windage\windage.vcproj", "{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LaserTracker", "LaserTracker\LaserTracker.vcproj", "{B223C843-C5E7-4D17-9F5B-8B49D786A76D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B} = {BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}.Debug|Win32.Build.0 = Debug|Win32
+		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}.Release|Win32.ActiveCfg = Release|Win32
+		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}.Release|Win32.Build.0 = Release|Win32
+		{B223C843-C5E7-4D17-9F5B-8B49D786A76D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B223C843-C5E7-4D17-9F5B-8B49D786A76D}.Debug|Win32.Build.0 = Debug|Win32
+		{B223C843-C5E7-4D17-9F5B-8B49D786A76D}.Release|Win32.ActiveCfg = Release|Win32
+		{B223C843-C5E7-4D17-9F5B-8B49D786A76D}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B} = {8BF375E3-6F4C-4A37-AC13-05B53622449A}
+		{B223C843-C5E7-4D17-9F5B-8B49D786A76D} = {5C4A8281-0408-4892-A7FE-7337E88AC198}
+	EndGlobalSection
+EndGlobal
