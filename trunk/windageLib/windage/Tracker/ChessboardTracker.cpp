@@ -60,7 +60,7 @@ int ChessboardTracker::FindChessBoardCorner(IplImage* inputImage)
 	return result;
 }
 
-void ChessboardTracker::DrawChessBoardCorner(IplImage* inputImage)
+void ChessboardTracker::DrawDebugInfo(IplImage* inputImage)
 {
 	int pointCount = this->GetPointCount();
 	int r = 255;

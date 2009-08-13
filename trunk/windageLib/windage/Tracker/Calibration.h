@@ -33,6 +33,8 @@ namespace windage
 		void SetIntrinsicMatirx(double fx, double fy, double cx, double cy);
 		void SetDistortionCoefficients(double d1=0.0, double d2=0.0, double d3=0.0, double d4=0.0);
 		void SetExtrinsicMatrix(CvMat* matrix);
+		void SetExtrinsicMatrix(float* matrix);
+		void SetExtrinsicMatrix(double* matrix);
 
 		void ConvertExtrinsicParameter(CvMat* rotationVector, CvMat* translationVector);
 

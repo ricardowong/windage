@@ -46,6 +46,7 @@
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
+				OpenMP="false"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="4"
@@ -62,6 +63,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="cv.lib cxcore.lib highgui.lib"
+				OutputFile="$(OutDir)\$(ProjectName)d.dll"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="&quot;$(SolutionDir)../../component/OpenCv 1.1/lib/&quot;;&quot;$(SolutionDir)../../component/PGR FlyCapture/lib/&quot;"
 				GenerateDebugInformation="true"
@@ -115,12 +117,13 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="2"
+				Optimization="3"
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../component/OpenCv 1.1/include/&quot;;&quot;$(SolutionDir)../../component/PGR FlyCapture/include/&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;WINDAGE_EXPORTS"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
+				OpenMP="true"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
@@ -191,6 +194,22 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Tracker\ModifiedSURFTracker.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Tracker\ModifiedSURFTracker.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Tracker\OpticalFlow.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Tracker\OpticalFlow.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Tracker\Tracker.cpp"
 				>
 			</File>
@@ -198,6 +217,18 @@
 				RelativePath=".\Tracker\Tracker.h"
 				>
 			</File>
+			<Filter
+				Name="FAST Feature"
+				>
+				<File
+					RelativePath=".\Tracker\FAST\fast.h"
+					>
+				</File>
+				<File
+					RelativePath=".\Tracker\FAST\wsurf.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Camera"
