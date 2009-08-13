@@ -20,9 +20,10 @@ namespace windage
 		Tracker();
 		virtual ~Tracker();
 
-		void Initialize(double fx, double fy, double cx, double cy, double d1=0.0, double d2=0.0, double d3=0.0, double d4=0.0);
+//		void Initialize(double fx, double fy, double cx, double cy, double d1=0.0, double d2=0.0, double d3=0.0, double d4=0.0);
 		
 		virtual int UpdateCameraPose(IplImage* grayImage) = 0;
+		virtual void DrawDebugInfo(IplImage* colorImage) = 0;
 		void DrawInfomation(IplImage* colorImage, double size = 10.0);
 	};
 

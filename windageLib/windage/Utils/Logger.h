@@ -1,6 +1,9 @@
 #ifndef _LOGGER_H_
 #define _LOGGER_H_
 
+#define DLLEXPORT __declspec(dllexport)
+#define DLLIMPORT __declspec(dllimport)
+
 #include <fstream>
 #include <string>
 
@@ -9,7 +12,7 @@
 namespace windage
 {
 
-	class Logger
+	class DLLEXPORT Logger
 	{
 	public:
 		Logger();

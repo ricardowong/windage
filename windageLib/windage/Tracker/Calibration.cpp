@@ -59,7 +59,28 @@ void Calibration::SetExtrinsicMatrix(CvMat* matrix)
 	{
 		for(int x=0; x<4; x++)
 		{
-			cvSetReal2D(this->extrinsicMatrix, x, y, cvGetReal2D(matrix, x, y));
+			cvSetReal2D(this->extrinsicMatrix, y, x, cvGetReal2D(matrix, y, x));
+		}
+	}
+}
+void Calibration::SetExtrinsicMatrix(float* matrix)
+{
+	for(int y=0; y<4; y++)
+	{
+		for(int x=0; x<4; x++)
+		{
+			cvSetReal2D(this->extrinsicMatrix, y, x, (double)matrix[y*4+x]);
+		}
+	}
+}
+
+void Calibration::SetExtrinsicMatrix(double* matrix)
+{
+	for(int y=0; y<4; y++)
+	{
+		for(int x=0; x<4; x++)
+		{
+			cvSetReal2D(this->extrinsicMatrix, y, x, matrix[y*4+x]);
 		}
 	}
 }

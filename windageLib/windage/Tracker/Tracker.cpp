@@ -17,12 +17,12 @@ void Tracker::Release()
 	cameraParameter = NULL;
 }
 
-void Tracker::Initialize(double fx, double fy, double cx, double cy, double d1, double d2, double d3, double d4)
-{
-	this->Release();
-	cameraParameter = new Calibration();
-	cameraParameter->Initialize(fx, fy, cx, cy, d1, d2, d3, d4);
-}
+//void Tracker::Initialize(double fx, double fy, double cx, double cy, double d1, double d2, double d3, double d4)
+//{
+//	this->Release();
+//	cameraParameter = new Calibration();
+//	cameraParameter->Initialize(fx, fy, cx, cy, d1, d2, d3, d4);
+//}
 
 //int Tracker::UpdateCameraPose(IplImage *grayImage)
 //{

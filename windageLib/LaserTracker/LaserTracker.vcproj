@@ -46,6 +46,7 @@
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
+				OpenMP="false"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="4"
@@ -61,7 +62,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="cv.lib cxcore.lib highgui.lib windage.lib PGRFlyCapture.lib pgrflycapturegui.lib"
+				AdditionalDependencies="cv.lib cxcore.lib highgui.lib windaged.lib PGRFlyCapture.lib pgrflycapturegui.lib"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="&quot;$(SolutionDir)../../Component/OpenCv 1.1/lib/&quot;;&quot;$(SolutionDir)../../Component/PGR FlyCapture/lib/&quot;;&quot;$(SolutionDir)bin/&quot;"
 				GenerateDebugInformation="true"
@@ -115,7 +116,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="2"
+				Optimization="3"
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories="&quot;$(SolutionDir)windage&quot;;&quot;$(SolutionDir)../../Component/OpenCv 1.1/include/&quot;;&quot;$(SolutionDir)../../Component/PGR FlyCapture/include/&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"

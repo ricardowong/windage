@@ -33,7 +33,7 @@ namespace windage
 		void Initialize(double fx, double fy, double cx, double cy, double d1, double d2, double d3, double d4, int chessboardWidth, int chessboardHeight, double fieldSize);
 
 		int UpdateCameraPose(IplImage* grayImage);
-		void DrawChessBoardCorner(IplImage* inputImage);
+		void DrawDebugInfo(IplImage* colorImage);
 	};
 }
 
