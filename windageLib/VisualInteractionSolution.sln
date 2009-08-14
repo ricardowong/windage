@@ -1,8 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Utils", "Utils", "{4C79ADA6-265B-4B9F-91F3-5110277EFE0B}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Algorithms", "Algorithms", "{8BF375E3-6F4C-4A37-AC13-05B53622449A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Applications", "Applications", "{5C4A8281-0408-4892-A7FE-7337E88AC198}"
@@ -15,6 +13,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ARSample", "Applications\AR
 	ProjectSection(ProjectDependencies) = postProject
 		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B} = {BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}
 	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "StereoSpatialInteraction", "Applications\StereoSpatialInteraction\StereoSpatialInteraction.vcproj", "{ACC27A79-C0D3-464E-BA2C-BF938B3C84C4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -34,6 +34,10 @@ Global
 		{C4CD3D39-6AE7-49C0-9208-4C57ED65A792}.Debug|Win32.Build.0 = Debug|Win32
 		{C4CD3D39-6AE7-49C0-9208-4C57ED65A792}.Release|Win32.ActiveCfg = Release|Win32
 		{C4CD3D39-6AE7-49C0-9208-4C57ED65A792}.Release|Win32.Build.0 = Release|Win32
+		{ACC27A79-C0D3-464E-BA2C-BF938B3C84C4}.Debug|Win32.ActiveCfg = Debug|Win32
+		{ACC27A79-C0D3-464E-BA2C-BF938B3C84C4}.Debug|Win32.Build.0 = Debug|Win32
+		{ACC27A79-C0D3-464E-BA2C-BF938B3C84C4}.Release|Win32.ActiveCfg = Release|Win32
+		{ACC27A79-C0D3-464E-BA2C-BF938B3C84C4}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -42,5 +46,6 @@ Global
 		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B} = {8BF375E3-6F4C-4A37-AC13-05B53622449A}
 		{A21B71BE-DB3F-406F-95F0-174625303EBD} = {5C4A8281-0408-4892-A7FE-7337E88AC198}
 		{C4CD3D39-6AE7-49C0-9208-4C57ED65A792} = {5C4A8281-0408-4892-A7FE-7337E88AC198}
+		{ACC27A79-C0D3-464E-BA2C-BF938B3C84C4} = {5C4A8281-0408-4892-A7FE-7337E88AC198}
 	EndGlobalSection
 EndGlobal

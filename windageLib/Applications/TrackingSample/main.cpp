@@ -7,7 +7,7 @@
 #include "Utils/Logger.h"
 #include "Utils/Utils.h"
 
-#define STEREO_MODE
+//#define STEREO_MODE
 
 const int WIDTH = 640;
 const int HEIGHT = 480;
@@ -99,7 +99,7 @@ void main()
 
 		log->updateTickCount();
 		int result = tracker1->UpdateCameraPose(gray1);
-//		tracker1->DrawDebugInfo(input1);
+		tracker1->DrawDebugInfo(input1);
 		tracker1->DrawInfomation(input1, 10.0);
 
 		log->log("tracking", log->calculateProcessTime());
