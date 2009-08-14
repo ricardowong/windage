@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)windage/&quot;;&quot;$(SolutionDir)../../component/OpenCv 1.1/include/&quot;;&quot;$(SolutionDir)../../component/PGR FlyCapture/include/&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)windage/&quot;;&quot;$(SolutionDir)../../component/OpenCv 1.1/include/&quot;;&quot;$(SolutionDir)../../component/PGR FlyCapture/include/&quot;;&quot;$(SolutionDir)../../component/GLUT/include/&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;WINDAGE_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -62,10 +62,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="cv.lib cxcore.lib highgui.lib"
+				AdditionalDependencies="cv.lib cxcore.lib highgui.lib glut.lib"
 				OutputFile="$(OutDir)\$(ProjectName)d.dll"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="&quot;$(SolutionDir)../../component/OpenCv 1.1/lib/&quot;;&quot;$(SolutionDir)../../component/PGR FlyCapture/lib/&quot;"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)../../component/OpenCv 1.1/lib/&quot;;&quot;$(SolutionDir)../../component/PGR FlyCapture/lib/&quot;;&quot;$(SolutionDir)../../component/GLUT/lib/&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				TargetMachine="1"
@@ -119,7 +119,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="3"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)windage/&quot;;&quot;$(SolutionDir)../../component/OpenCv 1.1/include/&quot;;&quot;$(SolutionDir)../../component/PGR FlyCapture/include/&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)windage/&quot;;&quot;$(SolutionDir)../../component/OpenCv 1.1/include/&quot;;&quot;$(SolutionDir)../../component/PGR FlyCapture/include/&quot;;&quot;$(SolutionDir)../../component/GLUT/include/&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;WINDAGE_EXPORTS"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -139,9 +139,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="cv.lib cxcore.lib highgui.lib"
+				AdditionalDependencies="cv.lib cxcore.lib highgui.lib glut.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;$(SolutionDir)../../component/OpenCv 1.1/lib/&quot;;&quot;$(SolutionDir)../../component/PGR FlyCapture/lib/&quot;"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)../../component/OpenCv 1.1/lib/&quot;;&quot;$(SolutionDir)../../component/PGR FlyCapture/lib/&quot;;&quot;$(SolutionDir)../../component/GLUT/lib/&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
@@ -271,6 +271,26 @@
 			</File>
 			<File
 				RelativePath=".\Utils\wVector.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="AugmentedReality"
+			>
+			<File
+				RelativePath=".\AugmentedReality\ARForOpenGL.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\AugmentedReality\ARForOpenGL.h"
+				>
+			</File>
+			<File
+				RelativePath=".\AugmentedReality\AugmentedReality.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\AugmentedReality\AugmentedReality.h"
 				>
 			</File>
 		</Filter>

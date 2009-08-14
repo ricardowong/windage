@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="LaserTracker"
-	ProjectGUID="{B223C843-C5E7-4D17-9F5B-8B49D786A76D}"
-	RootNamespace="LaserTracker"
+	Name="TrackingSample"
+	ProjectGUID="{A21B71BE-DB3F-406F-95F0-174625303EBD}"
+	RootNamespace="TrackingSample"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
@@ -46,7 +46,6 @@
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
-				OpenMP="false"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="4"
@@ -62,7 +61,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="cv.lib cxcore.lib highgui.lib windaged.lib PGRFlyCapture.lib pgrflycapturegui.lib"
+				AdditionalDependencies="cvd.lib cxcored.lib highgui.lib windaged.lib PGRFlyCapture.lib pgrflycapturegui.lib"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="&quot;$(SolutionDir)../../Component/OpenCv 1.1/lib/&quot;;&quot;$(SolutionDir)../../Component/PGR FlyCapture/lib/&quot;;&quot;$(SolutionDir)bin/&quot;"
 				GenerateDebugInformation="true"
@@ -116,7 +115,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="3"
+				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories="&quot;$(SolutionDir)windage&quot;;&quot;$(SolutionDir)../../Component/OpenCv 1.1/include/&quot;;&quot;$(SolutionDir)../../Component/PGR FlyCapture/include/&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"

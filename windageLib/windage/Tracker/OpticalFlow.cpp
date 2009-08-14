@@ -3,7 +3,7 @@ using namespace windage;
 
 OpticalFlow::OpticalFlow()
 {
-	terminationCriteria = cvTermCriteria( CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 20, 0.3);
+	terminationCriteria = cvTermCriteria( CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 20, .3);
 	prevImage = NULL;
 	pyramid1 = NULL;
 	pyramid2 = NULL;
@@ -32,7 +32,7 @@ void OpticalFlow::Initialize(int width, int height, CvSize windowSize, int pyram
 	this->SetWindowSize(windowSize);
 	this->SetPyramidLevel(pyramidLevel);
 
-	terminationCriteria = cvTermCriteria(CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 20, 0.3);
+	terminationCriteria = cvTermCriteria(CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 20, .3);
 	prevImage = cvCreateImage(this->GetImageSize(), IPL_DEPTH_8U, 1);
 	pyramid1 = cvCreateImage(this->GetImageSize(), IPL_DEPTH_8U, 1);
 	pyramid2 = cvCreateImage(this->GetImageSize(), IPL_DEPTH_8U, 1);

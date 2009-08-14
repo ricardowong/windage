@@ -5,6 +5,7 @@
 #define DLLIMPORT __declspec(dllimport)
 
 #include <cv.h>
+#include "Tracker/Calibration.h"
 
 namespace windage
 {
@@ -12,6 +13,7 @@ namespace windage
 	{
 	public:
 		static void DrawTextToImage(IplImage* colorImage, CvPoint position, char* message);
+		static void DrawWorldCoordinatePoint(IplImage* colorImage, Calibration* calibration, CvScalar worldPoint, double size=1.0, bool drawText=false);
 	};
 }
 

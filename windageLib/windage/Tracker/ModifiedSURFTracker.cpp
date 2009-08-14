@@ -369,7 +369,7 @@ void DecomposeHomographyToRT(CvMat *intrinsic, CvMat *Homography, CvMat *RT)
 	}
 }
 
-double ModifiedSURFTracker::CalculatePose()
+double ModifiedSURFTracker::CalculatePose(bool update)
 {
 	float homography[9];
 	float intrinsicMatrix[9];
@@ -434,7 +434,7 @@ double ModifiedSURFTracker::CalculatePose()
 				std::vector<CvPoint2D32f>::iterator it1 = this->matchedReferencePoints.begin();
 				std::vector<CvPoint2D32f>::iterator it2 = this->matchedScenePoints.begin();
 
-				if(abs(matchedScenePoints[i].x - projectionPointX) + abs(matchedScenePoints[i].y - projectionPointY) <= ERROR_BOUND)
+				if(abs(matchedScenePoints[i].x - projectionPointX) + abs(matchedScenePoints[i].y - projectionPointY) <= ERROR_BOUND/2)
 				{
 					difference += abs(matchedScenePoints[i].x - projectionPointX);
 					difference += abs(matchedScenePoints[i].y - projectionPointY);
@@ -464,7 +464,8 @@ double ModifiedSURFTracker::CalculatePose()
 			extrinsicOutMatrix[3*4 + 0] = extrinsicOutMatrix[3*4 + 1] = extrinsicOutMatrix[3*4 + 2] = 0;
 			extrinsicOutMatrix[3*4 + 3] = 1;
 
-			cameraParameter->SetExtrinsicMatrix(extrinsicOutMatrix);
+			if(update)
+				cameraParameter->SetExtrinsicMatrix(extrinsicOutMatrix);
 		}
 	}
 	else
@@ -477,10 +478,13 @@ double ModifiedSURFTracker::CalculatePose()
 
 int ModifiedSURFTracker::UpdateCameraPose(IplImage* grayImage)
 {
+	bool update = true;
 	if(runOpticalflow)
 	{
 		if(step > stepSize)
 		{
+			update = false;
+
 			std::vector<CvPoint2D32f> matchedTempPoints;
 			opticalflow->TrackFeature(grayImage, &matchedScenePoints, &matchedTempPoints);
 
@@ -521,8 +525,8 @@ int ModifiedSURFTracker::UpdateCameraPose(IplImage* grayImage)
 				bool isFound = false;
 				for(unsigned int j=0; j<matchedReference.size()&&!isFound; j++)
 				{
-					if( tempReferenceSURF[i].point.x == matchedReference[j].point.x &&
-						tempReferenceSURF[i].point.y == matchedReference[j].point.y)
+					if( abs(tempReferenceSURF[i].point.x - matchedReference[j].point.x) +
+						abs(tempReferenceSURF[i].point.y - matchedReference[j].point.y) < 0.5)
 					{
 						isFound = true;
 					}
@@ -584,7 +588,7 @@ int ModifiedSURFTracker::UpdateCameraPose(IplImage* grayImage)
 		matchedReferencePoints.push_back(matchedReference[i].point);
 		matchedScenePoints.push_back(matchedScene[i].point);
 	}
-	this->CalculatePose();
+	this->CalculatePose(update);
 
 	return (int)matchedScenePoints.size();
 }
@@ -605,12 +609,6 @@ void ModifiedSURFTracker::DrawDebugInfo(IplImage* colorImage)
 		cvCircle(colorImage, cvPoint(sceneSURF[i].point.x, sceneSURF[i].point.y), size, CV_RGB(r, g, b), 1);
 	}
 //*/
-	for(unsigned int i=0; i<matchedScene.size(); i++)
-	{
-		cvCircle(colorImage, cvPoint(matchedReference[i].point.x * colorImage->width/realWidth, (colorImage->height - matchedReference[i].point.y * colorImage->height/realHeight)), size, CV_RGB(0, 255, 255), CV_FILLED);
-		cvCircle(colorImage, cvPoint(matchedScene[i].point.x, matchedScene[i].point.y), size, CV_RGB(255, 255, 0), CV_FILLED);
-		cvLine(colorImage, cvPoint(matchedReference[i].point.x * colorImage->width/realWidth, (colorImage->height - matchedReference[i].point.y * colorImage->height/realHeight)), cvPoint(matchedScene[i].point.x, matchedScene[i].point.y), CV_RGB(255, 0, 0));
-	}
 
 	CvScalar color = CV_RGB(255, 0, 255);
 	cvLine(colorImage, cameraParameter->ConvertWorld2Image(0.0, 0.0, 0.0),							cameraParameter->ConvertWorld2Image(this->realWidth, 0.0, 0.0),					color, 2);
@@ -620,6 +618,13 @@ void ModifiedSURFTracker::DrawDebugInfo(IplImage* colorImage)
 
 	cvLine(colorImage, cameraParameter->ConvertWorld2Image(0.0, 0.0, 0.0),							cameraParameter->ConvertWorld2Image(this->realWidth, this->realHeight, 0.0),	color, 2);
 	cvLine(colorImage, cameraParameter->ConvertWorld2Image(this->realWidth, 0.0, 0.0),				cameraParameter->ConvertWorld2Image(0.0, this->realHeight, 0.0),				color, 2);
+
+	for(unsigned int i=0; i<matchedScene.size(); i++)
+	{
+		cvCircle(colorImage, cvPoint(matchedReference[i].point.x * colorImage->width/realWidth, (colorImage->height - matchedReference[i].point.y * colorImage->height/realHeight)), size, CV_RGB(0, 255, 255), CV_FILLED);
+		cvCircle(colorImage, cvPoint(matchedScene[i].point.x, matchedScene[i].point.y), size, CV_RGB(255, 255, 0), CV_FILLED);
+		cvLine(colorImage, cvPoint(matchedReference[i].point.x * colorImage->width/realWidth, (colorImage->height - matchedReference[i].point.y * colorImage->height/realHeight)), cvPoint(matchedScene[i].point.x, matchedScene[i].point.y), CV_RGB(255, 0, 0));
+	}
 }
 
 

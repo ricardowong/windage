@@ -62,7 +62,7 @@ namespace windage
 		int FindPairs(SURFDesciription description, CvFeatureTree* tree, double distanceRate=0.7);
 		int FindPairs(SURFDesciription description, std::vector<SURFDesciription>* descriptions);
 
-		double CalculatePose();
+		double CalculatePose(bool update=true);
 
 		// optical flow
 		bool runOpticalflow;
