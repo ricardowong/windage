@@ -7,7 +7,7 @@
 #include "Utils/Logger.h"
 #include "Utils/Utils.h"
 
-#define STEREO_MODE
+//#define STEREO_MODE
 
 const int WIDTH = 640;
 const int HEIGHT = 480;
@@ -18,18 +18,22 @@ void main()
 	windage::Logger* fpslog = new windage::Logger(&std::cout);
 
 	// 640 x 480
-//	windage::Tracker* tracker = new windage::ChessboardTracker();
-//	tracker->Initialize(1071.406, 1079.432, 317.678, 196.800, -0.277075, 0.938586, -0.010295, -0.006803, 7, 8, 2.80);
+/*
+	windage::Tracker* tracker1 = new windage::ChessboardTracker();
+	((windage::ChessboardTracker*)tracker1)->Initialize(1071.406, 1079.432, 317.678, 196.800, -0.277075, 0.938586, -0.010295, -0.006803, 7, 8, 2.80);
+//*/
 	// 320 x 240
 //	tracker->Initialize( 535.703,  539.716, 158.839, 098.400, -0.277075, 0.938586, -0.010295, -0.006803, 7, 8, 28.0);
 
 	IplImage* referenceImage = cvLoadImage("reference.png", 0);
+//*
 	windage::Tracker* tracker1 = new windage::ModifiedSURFTracker();
-//	((windage::ModifiedSURFTracker*)tracker1)->Initialize(535.703, 539.716, 158.839, 98.400, -0.277075, 0.938586, -0.010295, -0.006803, referenceImage, 28.10, 21.10, 75);
-	((windage::ModifiedSURFTracker*)tracker1)->Initialize(1071.406, 1079.432, 317.678, 196.800, -0.277075, 0.938586, -0.010295, -0.006803, referenceImage, 28.10, 21.10, 75);
-	((windage::ModifiedSURFTracker*)tracker1)->InitializeOpticalFlow(WIDTH, HEIGHT, 5, cvSize(15, 15), 5);
+//	((windage::ModifiedSURFTracker*)tracker1)->Initialize(535.703, 539.716, 158.839, 98.400, -0.277075, 0.938586, -0.010295, -0.006803, 30);
+	((windage::ModifiedSURFTracker*)tracker1)->Initialize(1071.406, 1079.432, 317.678, 196.800, -0.277075, 0.938586, -0.010295, -0.006803, 30);
+	((windage::ModifiedSURFTracker*)tracker1)->RegistReferenceImage(referenceImage, 28.10, 21.10, 4.0, 8);
+	((windage::ModifiedSURFTracker*)tracker1)->InitializeOpticalFlow(WIDTH, HEIGHT, 5, cvSize(15, 15), 3);
 	((windage::ModifiedSURFTracker*)tracker1)->SetOpticalFlowRunning(true);
-
+//*/
 	CPGRCamera* camera1 = new CPGRCamera();
 	camera1->open();
 	camera1->start();
@@ -43,8 +47,9 @@ void main()
 
 #ifdef STEREO_MODE
 	windage::Tracker* tracker2 = new windage::ModifiedSURFTracker();
-//	((windage::ModifiedSURFTracker*)tracker2)->Initialize(535.703, 539.716, 158.839, 98.400, -0.277075, 0.938586, -0.010295, -0.006803, referenceImage, 28.10, 21.10, 75);
-	((windage::ModifiedSURFTracker*)tracker2)->Initialize(1071.406, 1079.432, 317.678, 196.800, -0.277075, 0.938586, -0.010295, -0.006803, referenceImage, 28.10, 21.10, 75);
+//	((windage::ModifiedSURFTracker*)tracker2)->Initialize(535.703, 539.716, 158.839, 98.400, -0.277075, 0.938586, -0.010295, -0.006803, 75);
+	((windage::ModifiedSURFTracker*)tracker2)->Initialize(1071.406, 1079.432, 317.678, 196.800, -0.277075, 0.938586, -0.010295, -0.006803, 30);
+	((windage::ModifiedSURFTracker*)tracker2)->RegistReferenceImage(referenceImage, 28.10, 21.10, 4.0, 8);
 	((windage::ModifiedSURFTracker*)tracker2)->InitializeOpticalFlow(WIDTH, HEIGHT, 5, cvSize(15, 15), 5);
 	((windage::ModifiedSURFTracker*)tracker2)->SetOpticalFlowRunning(true);
 
@@ -80,7 +85,7 @@ void main()
 		log->log("result", result);
 		log->logNewLine();
 
-		sprintf(message, "FPS : %lf", fps);
+		sprintf(message, "FPS : %lf, Feature Count : %d", fps, result);
 		windage::Utils::DrawTextToImage(input1, cvPoint(10, 20), message);
 		
 		cvShowImage("test1", input1);

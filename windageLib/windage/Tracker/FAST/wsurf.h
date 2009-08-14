@@ -245,6 +245,62 @@ static CvSeq* wFastHessianDetector( const CvMat* sum, const CvMat* mask_sum,
     return points;
 }
 
+/****************************************************************************************\
+                                     Gaussian Blur
+\****************************************************************************************/
+void getGaussianKernel( CvMat* kernel, int n, double sigma, int ktype )
+{
+    const int SMALL_GAUSSIAN_SIZE = 7;
+    static const float small_gaussian_tab[][SMALL_GAUSSIAN_SIZE/2+1] =
+    {
+        {1.f},
+        {0.5f, 0.25f},
+        {0.375f, 0.25f, 0.0625f},
+        {0.28125f, 0.21875f, 0.109375f, 0.03125f}
+    };
+
+    const float* fixed_kernel = n <= SMALL_GAUSSIAN_SIZE && sigma <= 0 ?
+        small_gaussian_tab[n>>1] : 0;
+
+//    CV_Assert( ktype == CV_32F || ktype == CV_64F );
+//    Mat kernel(n, 1, ktype);
+	float* cf = (float*)kernel->data.fl;
+	double* cd = (double*)kernel->data.db;
+
+    double sigmaX = sigma > 0 ? sigma : (n/2 - 1)*0.3 + 0.8;
+    double scale2X = -0.5/(sigmaX*sigmaX);
+
+    double sum = fixed_kernel ? -fixed_kernel[0] : -1.;
+
+    int i;
+    for( i = 0; i <= n/2; i++ )
+    {
+		double temp = scale2X*i*i;
+        double t = fixed_kernel ? (double)fixed_kernel[i] : temp*temp;
+        if( ktype == CV_32F )
+        {
+            cf[n/2+i] = (float)t;
+            sum += cf[n/2+i]*2;
+        }
+        else
+        {
+            cd[n/2+i] = t;
+            sum += cd[n/2+i]*2;
+        }
+    }
+
+    sum = 1./sum;
+    for( i = 0; i <= n/2; i++ )
+    {
+        if( ktype == CV_32F )
+            cf[n/2+i] = cf[n/2-i] = (float)(cf[n/2+i]*sum);
+        else
+            cd[n/2+i] = cd[n/2-i] = cd[n/2+i]*sum;
+    }
+
+//    return kernel;
+}
+
 // modified SURF descriptor
 void wExtractSURF( const CvArr* _img, const CvArr* _mask,
 							CvSeq** _keypoints, CvSeq** _descriptors,
@@ -332,9 +388,10 @@ void wExtractSURF( const CvArr* _img, const CvArr* _mask,
 //    cv::Mat _G = cv::getGaussianKernel( 2*ORI_RADIUS+1, ORI_SIGMA, CV_32F );
 //    const float* G = (const float*)_G.data;
 
-	float G[9] = {0,0,0,0,0,0,0,0,0};
-	CvMat _G = cvMat(1, 9, CV_32F, G);
-	CvSepFilter::init_gaussian_kernel( &_G, ORI_SIGMA );
+	float G[2*ORI_RADIUS+1];
+	CvMat _G = cvMat(1, 2*ORI_RADIUS+1, CV_32F, G);
+	getGaussianKernel(&_G, 2*ORI_RADIUS+1, ORI_SIGMA, CV_32F );
+//	CvSepFilter::init_gaussian_kernel( &_G, ORI_SIGMA );
     
     for( i = -ORI_RADIUS; i <= ORI_RADIUS; i++ )
     {

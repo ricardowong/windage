@@ -39,20 +39,35 @@ void ModifiedSURFTracker::Release()
 	opticalflow = NULL;
 }
 
-void ModifiedSURFTracker::Initialize(double fx, double fy, double cx, double cy, double d1, double d2, double d3, double d4, IplImage* referenceImage, double realWidth, double realHeight, int featureExtractThreshold)
+void ModifiedSURFTracker::Initialize(double fx, double fy, double cx, double cy, double d1, double d2, double d3, double d4, int featureExtractThreshold)
 {
 	this->Release();
 	cameraParameter = new Calibration();
 	cameraParameter->Initialize(fx, fy, cx, cy, d1, d2, d3, d4);
 
+	this->SetFeatureExtractTreshold(featureExtractThreshold);
+}
+
+void ModifiedSURFTracker::RegistReferenceImage(IplImage* referenceImage, double realWidth, double realHeight, double scaleFactor, int scaleStep)
+{
+	// delete previous reference data
+	if(referenceImage) cvReleaseImage(&this->referenceImage);
+	this->referenceImage = NULL;
+
+	if(referenceFeatureStorage) cvReleaseMat(&referenceFeatureStorage);
+	referenceFeatureStorage = NULL;
+	if(referenceFeatureTree) cvReleaseFeatureTree(referenceFeatureTree);
+	referenceFeatureTree = NULL;
+
+	// registrate
 	this->referenceImage = cvCloneImage(referenceImage);
-//	cvFlip(this->referenceImage, this->referenceImage);
+	cvSmooth(this->referenceImage, this->referenceImage, CV_GAUSSIAN, 3, 3, 0.5, 0.5);
 
 	this->realWidth = realWidth;
 	this->realHeight = realHeight;
 	this->SetFeatureExtractTreshold(featureExtractThreshold);
 
-	GenerateReferenceFeatureTree();
+	GenerateReferenceFeatureTree(scaleFactor, scaleStep);
 }
 
 int ModifiedSURFTracker::ExtractFASTCorner(std::vector<CvPoint>* corners, IplImage* grayImage, int threshold, int n)
@@ -108,7 +123,7 @@ int ModifiedSURFTracker::ExtractModifiedSURF(IplImage* grayImage, std::vector<SU
 
 	std::vector<CvPoint> fastCorners;
 
-	ExtractFASTCorner(&fastCorners, grayImage, thresholdFAST, 9);
+	ExtractFASTCorner(&fastCorners, grayImage, thresholdFAST);
 	referenceKeypoints = cvCreateSeq( 0, sizeof(CvSeq), sizeof(CvSURFPoint), storage );
 	for(int i=0; i<fastCorners.size(); i++)
 	{
@@ -160,7 +175,7 @@ CvFeatureTree* ModifiedSURFTracker::CreateReferenceTree(std::vector<SURFDescirip
 	return tree;
 }
 
-int ModifiedSURFTracker::FindPairs(SURFDesciription description, CvFeatureTree* tree)
+int ModifiedSURFTracker::FindPairs(SURFDesciription description, CvFeatureTree* tree, double distanceRate)
 {
 	CvMat* currentFeature = cvCreateMat(1, DESCRIPTOR_DIEMNSION, CV_32FC1);
 	CvMat* result = cvCreateMat(1, 2, CV_32SC1);
@@ -191,7 +206,7 @@ int ModifiedSURFTracker::FindPairs(SURFDesciription description, CvFeatureTree* 
 	cvReleaseMat(&result);
 	cvReleaseMat(&distance);
 
-	if ( min1 < 0.65*min2 )
+	if ( min1 < distanceRate*min2 )
 		return index;
     return -1;
 }
@@ -223,17 +238,15 @@ int ModifiedSURFTracker::FindPairs(SURFDesciription description, std::vector<SUR
 }
 
 
-int ModifiedSURFTracker::GenerateReferenceFeatureTree()
+int ModifiedSURFTracker::GenerateReferenceFeatureTree(double scaleFactor, int scaleStep)
 {
-	int count = 8;
-	double scale = 4.0;
-	int width = referenceImage->width/scale;
-	int height = referenceImage->height/scale;
+	int width = (int)((double)referenceImage->width/scaleFactor);
+	int height = (int)((double)referenceImage->height/scaleFactor);
 
 	IplImage* tempReference;
-	for(int y=1; y<=count; y++)
+	for(int y=1; y<=scaleStep; y++)
 	{
-		for(int x=1; x<=count; x++)
+		for(int x=1; x<=scaleStep; x++)
 		{
 			tempReference = cvCreateImage(cvSize(width*x, height*y), IPL_DEPTH_8U, 1);
 			cvResize(referenceImage, tempReference);
@@ -383,6 +396,8 @@ double ModifiedSURFTracker::CalculatePose()
 		temp.push_back(point);
 	}
 */
+	const double ERROR_BOUND = 5.0;
+
 	float homographyError = 0;
 	int n = (int)matchedReferencePoints.size();
 	if(n >= 4)
@@ -396,7 +411,7 @@ double ModifiedSURFTracker::CalculatePose()
 		CvMat _pt2 = cvMat(1, n, CV_32FC2, &(matchedScenePoints[0]) );
 
 		homographyError = 0.0;
-		if(cvFindHomography( &_pt1, &_pt2, &_h, CV_RANSAC, 2.0 ))
+		if(cvFindHomography( &_pt1, &_pt2, &_h, CV_RANSAC, ERROR_BOUND ))
 		{
 //*
 			// calculate homography error & remove outlier
@@ -419,7 +434,7 @@ double ModifiedSURFTracker::CalculatePose()
 				std::vector<CvPoint2D32f>::iterator it1 = this->matchedReferencePoints.begin();
 				std::vector<CvPoint2D32f>::iterator it2 = this->matchedScenePoints.begin();
 
-				if(abs(matchedScenePoints[i].x - projectionPointX) + abs(matchedScenePoints[i].y - projectionPointY) < 2.0)
+				if(abs(matchedScenePoints[i].x - projectionPointX) + abs(matchedScenePoints[i].y - projectionPointY) <= ERROR_BOUND)
 				{
 					difference += abs(matchedScenePoints[i].x - projectionPointX);
 					difference += abs(matchedScenePoints[i].y - projectionPointY);
@@ -582,7 +597,7 @@ void ModifiedSURFTracker::DrawDebugInfo(IplImage* colorImage)
 	int b = 0;
 
 	int size = 4;
-//*
+/*
 	for(int i=0; i<pointCount; i++)
 	{
 		r = 255 - 255 * (i/(double)pointCount);
