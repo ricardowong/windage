@@ -59,7 +59,7 @@ void display()
 		glEnd();
 //*/
 		glTranslated(10, 10, 5);
-		OpenGLRenderer::setMaterial(Vector4(0, 0, 255, 0.8));
+		OpenGLRenderer::setMaterial(Vector4(0, 0, 255, 0.5));
 		glutSolidCube(10);
 
 	glPopMatrix();
