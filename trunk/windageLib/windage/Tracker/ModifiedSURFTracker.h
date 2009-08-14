@@ -54,12 +54,12 @@ namespace windage
 
 		CvMat* referenceFeatureStorage;
 		CvFeatureTree* referenceFeatureTree;
-		int GenerateReferenceFeatureTree();
+		int GenerateReferenceFeatureTree(double scaleFactor=4.0, int scaleStep=8);
 
-		int ExtractFASTCorner(std::vector<CvPoint>* corners, IplImage* grayImage, int threshold, int n=12);
+		int ExtractFASTCorner(std::vector<CvPoint>* corners, IplImage* grayImage, int threshold, int n=9);
 		int ExtractModifiedSURF(IplImage* grayImage, std::vector<SURFDesciription>* descriptions, int thresholdFAST);
 		CvFeatureTree* CreateReferenceTree(std::vector<SURFDesciription>* referenceSURF, CvMat* referenceFeatureStorage);
-		int FindPairs(SURFDesciription description, CvFeatureTree* tree);
+		int FindPairs(SURFDesciription description, CvFeatureTree* tree, double distanceRate=0.7);
 		int FindPairs(SURFDesciription description, std::vector<SURFDesciription>* descriptions);
 
 		double CalculatePose();
@@ -78,7 +78,8 @@ namespace windage
 		inline int GetFeatureExtractTreshold(){return this->featureExtractThreshold;};
 		inline void SetFeatureExtractTreshold(int threshold=80){this->featureExtractThreshold = threshold;};
 
-		void Initialize(double fx, double fy, double cx, double cy, double d1, double d2, double d3, double d4, IplImage* referenceImage, double realWidth, double realHeight, int featureExtractThreshold=100);
+		void Initialize(double fx, double fy, double cx, double cy, double d1, double d2, double d3, double d4, int featureExtractThreshold=100);
+		void RegistReferenceImage(IplImage* referenceImage, double realWidth, double realHeight, double scaleFactor=4.0, int scaleStep=8);
 
 		int UpdateCameraPose(IplImage* grayImage);
 		void DrawDebugInfo(IplImage* colorImage);
