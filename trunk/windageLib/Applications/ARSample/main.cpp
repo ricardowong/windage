@@ -74,7 +74,7 @@ void main()
 
 	IplImage* referenceImage = cvLoadImage("reference.png", 0);
 	tracker = new windage::ModifiedSURFTracker();
-	((windage::ModifiedSURFTracker*)tracker)->Initialize(1071.406, 1079.432, 317.678, 196.800, -0.277075, 0.938586, -0.010295, -0.006803, 45);
+	((windage::ModifiedSURFTracker*)tracker)->Initialize(778.195, 779.430, 324.659, 235.685, -0.333103, 0.173760, 0.000653, 0.001114, 45);
 	((windage::ModifiedSURFTracker*)tracker)->RegistReferenceImage(referenceImage, 26.70, 20.00, 4.0, 8);
 	((windage::ModifiedSURFTracker*)tracker)->InitializeOpticalFlow(WIDTH, HEIGHT, 10, cvSize(15, 15), 3);
 	((windage::ModifiedSURFTracker*)tracker)->SetOpticalFlowRunning(true);
