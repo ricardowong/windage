@@ -294,6 +294,26 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="SpatialInteraction"
+			>
+			<File
+				RelativePath=".\SpatialInteraction\SpatialSensor.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\SpatialInteraction\SpatialSensor.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SpatialInteraction\StereoSpatialSensor.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\SpatialInteraction\StereoSpatialSensor.h"
+				>
+			</File>
+		</Filter>
 	</Files>
 	<Globals>
 	</Globals>

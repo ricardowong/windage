@@ -192,6 +192,10 @@
 				RelativePath=".\PGRCamera.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\SpataialSensorGridMain.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"

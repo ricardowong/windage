@@ -39,16 +39,13 @@ void main()
 	// 640 x 480
 /*
 	windage::Tracker* tracker = new windage::ChessboardTracker();
-	((windage::ChessboardTracker*)tracker)->Initialize(1071.406, 1079.432, 317.678, 196.800, -0.277075, 0.938586, -0.010295, -0.006803, 7, 8, 2.80);
+	((windage::ChessboardTracker*)tracker)->Initialize(778.195, 779.430, 324.659, 235.685, -0.333103, 0.173760, 0.000653, 0.001114, 7, 8, 2.80);
 //*/
-	// 320 x 240
-//	tracker->Initialize( 535.703,  539.716, 158.839, 098.400, -0.277075, 0.938586, -0.010295, -0.006803, 7, 8, 28.0);
 
 	IplImage* referenceImage = cvLoadImage("reference.png", 0);
 //*
 	windage::Tracker* tracker1 = new windage::ModifiedSURFTracker();
-//	((windage::ModifiedSURFTracker*)tracker1)->Initialize(535.703, 539.716, 158.839, 98.400, -0.277075, 0.938586, -0.010295, -0.006803, 30);
-	((windage::ModifiedSURFTracker*)tracker1)->Initialize(1071.406, 1079.432, 317.678, 196.800, -0.277075, 0.938586, -0.010295, -0.006803, 45);
+	((windage::ModifiedSURFTracker*)tracker1)->Initialize(778.195, 779.430, 324.659, 235.685, -0.333103, 0.173760, 0.000653, 0.001114, 45);
 	((windage::ModifiedSURFTracker*)tracker1)->RegistReferenceImage(referenceImage, 26.70, 20.00, 4.0, 8);
 	((windage::ModifiedSURFTracker*)tracker1)->InitializeOpticalFlow(WIDTH, HEIGHT, 10, cvSize(15, 15), 3);
 	((windage::ModifiedSURFTracker*)tracker1)->SetOpticalFlowRunning(true);
@@ -67,8 +64,7 @@ void main()
 
 #ifdef STEREO_MODE
 	windage::Tracker* tracker2 = new windage::ModifiedSURFTracker();
-//	((windage::ModifiedSURFTracker*)tracker2)->Initialize(535.703, 539.716, 158.839, 98.400, -0.277075, 0.938586, -0.010295, -0.006803, 75);
-	((windage::ModifiedSURFTracker*)tracker2)->Initialize(1071.406, 1079.432, 317.678, 196.800, -0.277075, 0.938586, -0.010295, -0.006803, 45);
+	((windage::ModifiedSURFTracker*)tracker2)->Initialize(778.195, 779.430, 324.659, 235.685, -0.333103, 0.173760, 0.000653, 0.001114, 45);
 	((windage::ModifiedSURFTracker*)tracker2)->RegistReferenceImage(referenceImage, 26.70, 20.00, 4.0, 8);
 	((windage::ModifiedSURFTracker*)tracker2)->InitializeOpticalFlow(WIDTH, HEIGHT, 5, cvSize(15, 15), 3);
 	((windage::ModifiedSURFTracker*)tracker2)->SetOpticalFlowRunning(true);
@@ -121,7 +117,7 @@ void main()
 		cvCvtColor(input2, gray2, CV_BGRA2GRAY);
 
 		result = tracker2->UpdateCameraPose(gray2);
-//		tracker2->DrawDebugInfo(input2);
+		tracker2->DrawDebugInfo(input2);
 		tracker2->DrawInfomation(input2, 10.0);
 
 		windage::Utils::DrawWorldCoordinatePoint(input2, tracker2->GetCameraParameter(), worldPoint, 1.0, true);
