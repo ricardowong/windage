@@ -22,6 +22,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "StereoSpatialInteraction", 
 		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B} = {BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "StereoReconstruction", "Applications\StereoReconstruction\StereoReconstruction.vcproj", "{7A206DB1-A76F-4EBD-B9F3-38C64AF1B566}"
+	ProjectSection(ProjectDependencies) = postProject
+		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B} = {BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -44,6 +49,10 @@ Global
 		{ACC27A79-C0D3-464E-BA2C-BF938B3C84C4}.Debug|Win32.Build.0 = Debug|Win32
 		{ACC27A79-C0D3-464E-BA2C-BF938B3C84C4}.Release|Win32.ActiveCfg = Release|Win32
 		{ACC27A79-C0D3-464E-BA2C-BF938B3C84C4}.Release|Win32.Build.0 = Release|Win32
+		{7A206DB1-A76F-4EBD-B9F3-38C64AF1B566}.Debug|Win32.ActiveCfg = Debug|Win32
+		{7A206DB1-A76F-4EBD-B9F3-38C64AF1B566}.Debug|Win32.Build.0 = Debug|Win32
+		{7A206DB1-A76F-4EBD-B9F3-38C64AF1B566}.Release|Win32.ActiveCfg = Release|Win32
+		{7A206DB1-A76F-4EBD-B9F3-38C64AF1B566}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -53,5 +62,6 @@ Global
 		{A21B71BE-DB3F-406F-95F0-174625303EBD} = {5C4A8281-0408-4892-A7FE-7337E88AC198}
 		{C4CD3D39-6AE7-49C0-9208-4C57ED65A792} = {5C4A8281-0408-4892-A7FE-7337E88AC198}
 		{ACC27A79-C0D3-464E-BA2C-BF938B3C84C4} = {5C4A8281-0408-4892-A7FE-7337E88AC198}
+		{7A206DB1-A76F-4EBD-B9F3-38C64AF1B566} = {5C4A8281-0408-4892-A7FE-7337E88AC198}
 	EndGlobalSection
 EndGlobal
