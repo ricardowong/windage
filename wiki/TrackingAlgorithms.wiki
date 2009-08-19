@@ -1,4 +1,6 @@
-= [SampleApplications Sample Applications]/[TrackingAlgorithms Tracking Algorithms] =
+[SampleApplications Sample Applications]/[TrackingAlgorithms Tracking Algorithms]
+
+= Tracking Algorithms =
 <wiki:toc max_depth="3" />
 
 == Real-Time Natural Feature Tracking ==
