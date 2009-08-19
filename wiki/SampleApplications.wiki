@@ -1,0 +1,18 @@
+#labels Featured
+
+= [SampleApplications Sample Applications] =
+
+== [TrackingAlgorithms Tracking Method] ==
+   * Real-time Natural Feature Tracking
+   * Chessboard-based Tracking
+
+== [AugmentedRealityAlgorithms Augmented Reality Method] ==
+   * for OpenGL
+   * ~~for DirectX~~
+   * ~~for OpenSceneGraph~~
+
+== [ReconstructionAlgorithms 3D Reconstruction Method] ==
+   * Stereo-based 3D Reconstruction
+
+== [SpatialInteractionAlgorithms Spatial Interaction Method] ==
+   * Spatial Interaction for AR Interaction
