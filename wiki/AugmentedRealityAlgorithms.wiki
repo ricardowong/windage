@@ -1,0 +1,47 @@
+[SampleApplications Sample Applications]/[AugmentedRealityAlgorithms Augmented Reality Algorithms]
+
+= Augmented Reality Algorithms =
+<wiki:toc max_depth="3" />
+
+== for OpenGL ==
+  http://windage.googlecode.com/svn/trunk/Document/images/Demo_AugmentedReality.png
+
+   * Augmented Reality for OpenGL
+      * Initialize(input_image_width, input_image_height, is_image_flip, texture_width)
+
+{{{
+((windage::ARForOpenGL*)arTool)->Initialize(WIDTH, HEIGHT, true);
+}}}
+      * AttatchCameraParameter(tracker_camera_parameter)
+{{{
+((windage::ARForOpenGL*)arTool)->AttatchCameraParameter(tracker->GetCameraParameter());
+}}}
+
+
+<HR/>
+
+   * Sample Code
+{{{
+#include "Tracker/Tracker.h"
+#include "AugmentedReality/ARForOpenGL.h"
+
+/* initilization part */
+// after Tracker initialize
+arTool = new windage::ARForOpenGL();
+((windage::ARForOpenGL*)arTool)->Initialize(WIDTH, HEIGHT, true);
+((windage::ARForOpenGL*)arTool)->AttatchCameraParameter(tracker->GetCameraParameter());
+
+/* rendering part */
+// draw real scene image
+arTool->DrawBackgroundTexture(input);
+
+// apply camera paramter for AR
+arTool->SetProjectionMatrix();
+arTool->SetModelViewMatrix();
+}}}
+
+== for DirectX ==
+   * currently not support
+
+== for OpenSceneGraph ==
+   * currently not support
