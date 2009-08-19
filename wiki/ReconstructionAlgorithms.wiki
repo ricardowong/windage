@@ -8,9 +8,10 @@ http://windage.googlecode.com/svn/trunk/Document/images/Demo_StereoReconstructio
 
    * 3D Reconstruction
       * Calc3DPointApproximation(left_camera_parameter, right_camera_parameter, left_image_coordinate, right_image_coordinate)
-{
+
+{{{
 CvScalar worldPoint = windage::Reconstructor::Calc3DPointApproximation(tracker1->GetCameraParameter(), tracker2->GetCameraParameter(), lPoint, rPoint);
-}
+}}}
 
 <HR/>
 
