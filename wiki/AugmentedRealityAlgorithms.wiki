@@ -13,6 +13,7 @@
 ((windage::ARForOpenGL*)arTool)->Initialize(WIDTH, HEIGHT, true);
 }}}
       * AttatchCameraParameter(tracker_camera_parameter)
+
 {{{
 ((windage::ARForOpenGL*)arTool)->AttatchCameraParameter(tracker->GetCameraParameter());
 }}}
