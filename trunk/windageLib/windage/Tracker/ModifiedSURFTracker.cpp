@@ -1,3 +1,42 @@
+/* ========================================================================
+ * PROJECT: windage Library
+ * ========================================================================
+ * This work is based on the original windage Library developed by
+ *   Woonhyuk Baek
+ *   Woontack Woo
+ *   U-VR Lab, GIST of Gwangju in Korea.
+ *   http://windage.googlecode.com/
+ *   http://uvr.gist.ac.kr/
+ *
+ * Copyright of the derived and new portions of this work
+ *     (C) 2009 GIST U-VR Lab.
+ *
+ * This framework is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This framework is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this framework; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ * For further information please contact 
+ *   Woonhyuk Baek
+ *   <windage@live.com>
+ *   GIST U-VR Lab.
+ *   Department of Information and Communication
+ *   Gwangju Institute of Science and Technology
+ *   1, Oryong-dong, Buk-gu, Gwangju
+ *   South Korea
+ * ========================================================================
+ ** @author   Woonhyuk Baek
+ * ======================================================================== */
+
 #include "ModifiedSURFTracker.h"
 using namespace windage;
 
@@ -113,7 +152,7 @@ int ModifiedSURFTracker::ExtractFASTCorner(std::vector<CvPoint>* corners, IplIma
 	return (int)corners->size();
 }
 
-int ModifiedSURFTracker::ExtractModifiedSURF(IplImage* grayImage, std::vector<SURFDesciription>* descriptions, int thresholdFAST)
+int ModifiedSURFTracker::ExtractModifiedSURF(IplImage* grayImage, std::vector<CvPoint>* corners, std::vector<SURFDesciription>* descriptions)
 {
 	CvSURFParams params = cvSURFParams(500, 0);
 
@@ -121,13 +160,13 @@ int ModifiedSURFTracker::ExtractModifiedSURF(IplImage* grayImage, std::vector<SU
 	CvSeq *referenceKeypoints = 0, *referenceDescriptors = 0;
 //	cvExtractSURF(image, 0, &referenceKeypoints, &referenceDescriptors, storage, params );
 
-	std::vector<CvPoint> fastCorners;
+//	std::vector<CvPoint> fastCorners;
+//	ExtractFASTCorner(&fastCorners, grayImage, thresholdFAST);
 
-	ExtractFASTCorner(&fastCorners, grayImage, thresholdFAST);
 	referenceKeypoints = cvCreateSeq( 0, sizeof(CvSeq), sizeof(CvSURFPoint), storage );
-	for(int i=0; i<fastCorners.size(); i++)
+	for(int i=0; i<(*corners).size(); i++)
 	{
-		CvSURFPoint point = cvSURFPoint( cvPoint2D32f(fastCorners[i].x, fastCorners[i].y), 0, 15, 0, 0);
+		CvSURFPoint point = cvSURFPoint( cvPoint2D32f((*corners)[i].x, (*corners)[i].y), 0, 15, 0, 0);
 		cvSeqPush(referenceKeypoints, &point);
 	}
 	wExtractSURF(grayImage, 0, &referenceKeypoints, &referenceDescriptors, storage, params, 1);
@@ -254,7 +293,9 @@ int ModifiedSURFTracker::GenerateReferenceFeatureTree(double scaleFactor, int sc
 			std::vector<SURFDesciription> tempSurf;
 			tempSurf.clear();
 
-			this->ExtractModifiedSURF(tempReference, &tempSurf, featureExtractThreshold);
+			std::vector<CvPoint> fastCorners;
+			ModifiedSURFTracker::ExtractFASTCorner(&fastCorners, tempReference, featureExtractThreshold);
+			ModifiedSURFTracker::ExtractModifiedSURF(tempReference, &fastCorners, &tempSurf);
 			float xScaleFactor = (float)this->realWidth / (float)tempReference->width;
 			float yScaleFactor = (float)this->realHeight / (float)tempReference->height;
 
@@ -505,7 +546,9 @@ int ModifiedSURFTracker::UpdateCameraPose(IplImage* grayImage)
 
 			// add feature
 			sceneSURF.clear();
-			int featureCount = ExtractModifiedSURF(grayImage, &sceneSURF, featureExtractThreshold);
+			std::vector<CvPoint> fastCorners;
+			ModifiedSURFTracker::ExtractFASTCorner(&fastCorners, grayImage, featureExtractThreshold);
+			int featureCount = ModifiedSURFTracker::ExtractModifiedSURF(grayImage, &fastCorners, &sceneSURF);
 
 			std::vector<SURFDesciription> tempReferenceSURF;
 			std::vector<SURFDesciription> tempSceneSURF;
@@ -566,7 +609,9 @@ int ModifiedSURFTracker::UpdateCameraPose(IplImage* grayImage)
 	else
 	{
 		sceneSURF.clear();
-		int featureCount = ExtractModifiedSURF(grayImage, &sceneSURF, featureExtractThreshold);
+		std::vector<CvPoint> fastCorners;
+		ModifiedSURFTracker::ExtractFASTCorner(&fastCorners, grayImage, featureExtractThreshold);
+		int featureCount = ModifiedSURFTracker::ExtractModifiedSURF(grayImage, &fastCorners, &sceneSURF);
 
 		matchedReference.clear();
 		matchedScene.clear();

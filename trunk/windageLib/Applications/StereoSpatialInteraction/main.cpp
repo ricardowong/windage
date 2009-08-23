@@ -1,5 +1,46 @@
+/* ========================================================================
+ * PROJECT: windage Library
+ * ========================================================================
+ * This work is based on the original windage Library developed by
+ *   Woonhyuk Baek
+ *   Woontack Woo
+ *   U-VR Lab, GIST of Gwangju in Korea.
+ *   http://windage.googlecode.com/
+ *   http://uvr.gist.ac.kr/
+ *
+ * Copyright of the derived and new portions of this work
+ *     (C) 2009 GIST U-VR Lab.
+ *
+ * This framework is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This framework is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this framework; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ * For further information please contact 
+ *   Woonhyuk Baek
+ *   <windage@live.com>
+ *   GIST U-VR Lab.
+ *   Department of Information and Communication
+ *   Gwangju Institute of Science and Technology
+ *   1, Oryong-dong, Buk-gu, Gwangju
+ *   South Korea
+ * ========================================================================
+ ** @author   Woonhyuk Baek
+ * ======================================================================== */
+
 #include <iostream>
 #include <vector>
+
+#include <omp.h>
 
 #include "PGRCamera.h"
 
@@ -7,12 +48,13 @@
 #include "AugmentedReality/ARForOpenGL.h"
 #include "Tracker/ModifiedSURFTracker.h"
 #include "SpatialInteraction/StereoSpatialSensor.h"
+#include "SpatialInteraction/StereoSURFSpatialSensor.h"
 
 const int WIDTH = 640;
 const int HEIGHT = 480;
-const int SPACE = 7;
+const int SPACE = 10;
 
-const int ACTIVATION_TRESHOLD = 30.0;
+const double ACTIVATION_TRESHOLD = 0.2;
 
 IplImage* input1;
 IplImage* input2;
@@ -70,9 +112,11 @@ void idle(void)
 	std::vector<IplImage*> images;
 	images.push_back(gray1);
 	images.push_back(gray2);
+
+	#pragma omp parallel for
 	for(int i=0; i<spatialSensors.size(); i++)
 	{		
-		((StereoSpatialSensor*)spatialSensors[i])->CalculateActivation(&images);
+		spatialSensors[i]->CalculateActivation(&images);
 	}
 
 	cvShowImage("image1", input1);
@@ -103,7 +147,9 @@ void display()
 		glEnd();
 	glPopMatrix();
 
+	int activeCount = 0;
 	// draw spatial sensors
+
 	for(int i=0; i<spatialSensors.size(); i++)
 	{
 		glPushMatrix();
@@ -115,6 +161,7 @@ void display()
 			if(spatialSensors[i]->IsActive())
 			{
 				glColor4f(1, 0, 0, 0.8);
+				activeCount++;
 			}
 			else
 			{
@@ -168,13 +215,14 @@ void main()
 	((windage::ARForOpenGL*)arTool)->AttatchCameraParameter(tracker1->GetCameraParameter());
 
 	// initialize spatial sensors
-	for(int z=1; z<10; z++)
+	const int count = 5;
+	for(int z=5; z<5+count; z++)
 	{
-		for(int y=1; y<10; y++)
+		for(int y=1; y<count; y++)
 		{
-			for(int x=1; x<10; x++)
+			for(int x=1; x<count; x++)
 			{
-				StereoSpatialSensor* tempSpatialSensor = new StereoSpatialSensor();
+				StereoSURFSpatialSensor* tempSpatialSensor = new StereoSURFSpatialSensor();
 				tempSpatialSensor->Initialize(Vector3(x*SPACE*2, y*SPACE*2, z*SPACE*2), ACTIVATION_TRESHOLD);
 				tempSpatialSensor->AttatchCameraParameter(0, tracker1->GetCameraParameter());
 				tempSpatialSensor->AttatchCameraParameter(1, tracker2->GetCameraParameter());
