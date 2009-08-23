@@ -313,6 +313,14 @@
 				RelativePath=".\SpatialInteraction\StereoSpatialSensor.h"
 				>
 			</File>
+			<File
+				RelativePath=".\SpatialInteraction\StereoSURFSpatialSensor.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\SpatialInteraction\StereoSURFSpatialSensor.h"
+				>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>
