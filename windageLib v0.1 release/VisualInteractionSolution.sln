@@ -1,0 +1,67 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Algorithms", "Algorithms", "{8BF375E3-6F4C-4A37-AC13-05B53622449A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Applications", "Applications", "{5C4A8281-0408-4892-A7FE-7337E88AC198}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "windage", "windage\windage.vcproj", "{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TrackingSample", "Applications\TrackingSample\TrackingSample.vcproj", "{A21B71BE-DB3F-406F-95F0-174625303EBD}"
+	ProjectSection(ProjectDependencies) = postProject
+		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B} = {BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ARSample", "Applications\ARSample\ARSample.vcproj", "{C4CD3D39-6AE7-49C0-9208-4C57ED65A792}"
+	ProjectSection(ProjectDependencies) = postProject
+		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B} = {BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "StereoSpatialInteraction", "Applications\StereoSpatialInteraction\StereoSpatialInteraction.vcproj", "{ACC27A79-C0D3-464E-BA2C-BF938B3C84C4}"
+	ProjectSection(ProjectDependencies) = postProject
+		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B} = {BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "StereoReconstruction", "Applications\StereoReconstruction\StereoReconstruction.vcproj", "{7A206DB1-A76F-4EBD-B9F3-38C64AF1B566}"
+	ProjectSection(ProjectDependencies) = postProject
+		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B} = {BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}.Debug|Win32.Build.0 = Debug|Win32
+		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}.Release|Win32.ActiveCfg = Release|Win32
+		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}.Release|Win32.Build.0 = Release|Win32
+		{A21B71BE-DB3F-406F-95F0-174625303EBD}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A21B71BE-DB3F-406F-95F0-174625303EBD}.Debug|Win32.Build.0 = Debug|Win32
+		{A21B71BE-DB3F-406F-95F0-174625303EBD}.Release|Win32.ActiveCfg = Release|Win32
+		{A21B71BE-DB3F-406F-95F0-174625303EBD}.Release|Win32.Build.0 = Release|Win32
+		{C4CD3D39-6AE7-49C0-9208-4C57ED65A792}.Debug|Win32.ActiveCfg = Debug|Win32
+		{C4CD3D39-6AE7-49C0-9208-4C57ED65A792}.Debug|Win32.Build.0 = Debug|Win32
+		{C4CD3D39-6AE7-49C0-9208-4C57ED65A792}.Release|Win32.ActiveCfg = Release|Win32
+		{C4CD3D39-6AE7-49C0-9208-4C57ED65A792}.Release|Win32.Build.0 = Release|Win32
+		{ACC27A79-C0D3-464E-BA2C-BF938B3C84C4}.Debug|Win32.ActiveCfg = Debug|Win32
+		{ACC27A79-C0D3-464E-BA2C-BF938B3C84C4}.Debug|Win32.Build.0 = Debug|Win32
+		{ACC27A79-C0D3-464E-BA2C-BF938B3C84C4}.Release|Win32.ActiveCfg = Release|Win32
+		{ACC27A79-C0D3-464E-BA2C-BF938B3C84C4}.Release|Win32.Build.0 = Release|Win32
+		{7A206DB1-A76F-4EBD-B9F3-38C64AF1B566}.Debug|Win32.ActiveCfg = Debug|Win32
+		{7A206DB1-A76F-4EBD-B9F3-38C64AF1B566}.Debug|Win32.Build.0 = Debug|Win32
+		{7A206DB1-A76F-4EBD-B9F3-38C64AF1B566}.Release|Win32.ActiveCfg = Release|Win32
+		{7A206DB1-A76F-4EBD-B9F3-38C64AF1B566}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B} = {8BF375E3-6F4C-4A37-AC13-05B53622449A}
+		{A21B71BE-DB3F-406F-95F0-174625303EBD} = {5C4A8281-0408-4892-A7FE-7337E88AC198}
+		{C4CD3D39-6AE7-49C0-9208-4C57ED65A792} = {5C4A8281-0408-4892-A7FE-7337E88AC198}
+		{ACC27A79-C0D3-464E-BA2C-BF938B3C84C4} = {5C4A8281-0408-4892-A7FE-7337E88AC198}
+		{7A206DB1-A76F-4EBD-B9F3-38C64AF1B566} = {5C4A8281-0408-4892-A7FE-7337E88AC198}
+	EndGlobalSection
+EndGlobal
