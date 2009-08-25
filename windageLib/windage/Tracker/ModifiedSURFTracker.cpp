@@ -443,7 +443,7 @@ double ModifiedSURFTracker::CalculatePose(bool update)
 		CvMat _pt2 = cvMat(1, n, CV_32FC2, &(matchedScenePoints[0]) );
 
 		homographyError = 0.0;
-		if(cvFindHomography( &_pt1, &_pt2, &_h, CV_RANSAC, ERROR_BOUND ))
+		if(cvFindHomography( &_pt1, &_pt2, &_h, CV_RANSAC, ERROR_BOUND))
 		{
 #ifdef REMOVE_OUTLIER
 			// calculate homography error & remove outlier

@@ -50,6 +50,9 @@ Calibration::Calibration()
 	cvmSetZero(distortionCoefficients);
 	cvmSetZero(extrinsicMatrix);
 
+	dstMapX = NULL;
+	dstMapY = NULL;
+
 //	chessboardPoints = NULL;
 }
 
@@ -63,6 +66,12 @@ void Calibration::Release()
 	if(intrinsicMatrix)			cvReleaseMat(&intrinsicMatrix);
 	if(distortionCoefficients)	cvReleaseMat(&distortionCoefficients);
 	if(extrinsicMatrix)			cvReleaseMat(&extrinsicMatrix);
+
+	if(dstMapX) cvReleaseImage(&dstMapX);
+	dstMapX = NULL;
+	if(dstMapY) cvReleaseImage(&dstMapY);
+	dstMapY = NULL;
+
 	initialized = false;
 }
 
@@ -360,7 +369,22 @@ CvPoint2D64f Calibration::ConvertImage2World(double ix, double iy, double wz)
 	return point;
 }
 
+void Calibration::InitUndistortionMap(int width, int height)
+{
+	if(dstMapX) cvReleaseImage(&dstMapX);
+	if(dstMapY) cvReleaseImage(&dstMapY);
+
+	dstMapX = cvCreateImage(cvSize(width, height), IPL_DEPTH_32F, 1);
+	dstMapY = cvCreateImage(cvSize(width, height), IPL_DEPTH_32F, 1);
+
+	cvInitUndistortMap(this->intrinsicMatrix,this->distortionCoefficients, this->dstMapX, this->dstMapY);
+}
+
+#include <iostream>
 void Calibration::Undistortion(IplImage* input, IplImage* output)
 {
-	cvUndistort2(input, output, this->intrinsicMatrix, this->distortionCoefficients);
+	if(dstMapX && dstMapY)
+		cvRemap(input, output, this->dstMapX, this->dstMapY);
+	else
+		cvUndistort2(input, output, this->intrinsicMatrix, this->distortionCoefficients);
 }

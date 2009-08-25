@@ -70,6 +70,8 @@ namespace windage
 		double calculateFPS();
 		inline double getProcessTime(){return processTime;};
 
+		static std::string getTimeString();
+
 	private:
 		std::ostream* logging;
 		bool fileStream;

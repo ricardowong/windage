@@ -56,6 +56,9 @@ namespace windage
 		CvMat* distortionCoefficients;
 		CvMat* extrinsicMatrix;
 
+		IplImage* dstMapX;
+		IplImage* dstMapY;
+
 		void Release();
 		
 	public:
@@ -90,6 +93,7 @@ namespace windage
 		int ConvertImage2World(CvMat* output3vector, CvMat* input3vector, double z);
 		CvPoint2D64f ConvertImage2World(double ix, double iy, double wz=0.0);
 
+		void InitUndistortionMap(int width, int height); // init -> map / non-init -> realtime
 		void Undistortion(IplImage* input, IplImage* output);
 	};
 

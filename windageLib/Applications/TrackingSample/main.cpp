@@ -87,6 +87,8 @@ void main()
 #endif
 #endif
 
+	((windage::ModifiedSURFTracker*)tracker)->GetCameraParameter()->InitUndistortionMap(WIDTH, HEIGHT);
+
 	// connect camera
 	CPGRCamera* camera = new CPGRCamera();
 	camera->open();
@@ -109,7 +111,6 @@ void main()
 		// camera frame grabbing
 		log->updateTickCount();
 		camera->update();
-
 #ifdef RECTIFICATION
 		tracker->GetCameraParameter()->Undistortion(camera->GetIPLImage(), tempImage);
 #else
