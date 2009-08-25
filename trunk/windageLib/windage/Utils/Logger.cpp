@@ -44,13 +44,8 @@ using namespace windage;
 
 Logger::Logger()
 {
-	time_t now;
-	time(&now);
-	struct tm *t;
-	t = localtime(&now);
-
 	char filename[100];
-	sprintf(filename, "log_%d-%d-%d_%d_%d_%d.txt", t->tm_year+1900, t->tm_mon+1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
+	sprintf(filename, "log_%s.txt", Logger::getTimeString());
 	logging = new std::ofstream(filename);
 
 	fileStream = true;
@@ -58,14 +53,11 @@ Logger::Logger()
 
 Logger::Logger(char* filenameString, bool addTime)
 {
-	time_t now;
-	time(&now);
-	struct tm *t;
-	t = localtime(&now);
-
 	char filename[100];
 	if(addTime)
-		sprintf(filename, "%s_%d-%d-%d_%d_%d_%d.txt", filenameString, t->tm_year+1900, t->tm_mon+1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
+		sprintf(filename, "%s_%s.txt", filenameString, Logger::getTimeString());
+	else
+		sprintf(filename, "%s", filenameString);
 	logging = new std::ofstream(filename);
 	fileStream = true;
 }
@@ -138,6 +130,20 @@ double Logger::calculateProcessTime()
 
 double Logger::calculateFPS()
 {
-	processTime = 1000./(((cvGetTickCount() - tickCount)/cvGetTickFrequency())/1000.);
+	processTime = 1000000./(((cvGetTickCount() - tickCount)/cvGetTickFrequency()));
 	return processTime;
+}
+
+std::string Logger::getTimeString()
+{
+	time_t now;
+	time(&now);
+	struct tm *t;
+	t = localtime(&now);
+
+	char timestemp[100];
+	sprintf(timestemp, "%d-%d-%d_%d_%d_%d", t->tm_year+1900, t->tm_mon+1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
+
+	std::string result = timestemp;
+	return result;
 }

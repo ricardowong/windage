@@ -46,6 +46,7 @@
 #include "Tracker/ModifiedSURFTracker.h"
 #include "SpatialInteraction/StereoSpatialSensor.h"
 #include "SpatialInteraction/StereoSURFSpatialSensor.h"
+#include "SpatialInteraction/StereoSURFSpatialSensor.h"
 
 #define SPATIAL_SENSOR_TYPE StereoSURFSpatialSensor
 #define UNDISTORTION
@@ -87,12 +88,14 @@ void main()
 	((windage::ModifiedSURFTracker*)tracker1)->RegistReferenceImage(referenceImage, 267.0, 200.0, 4.0, 8);
 	((windage::ModifiedSURFTracker*)tracker1)->InitializeOpticalFlow(WIDTH, HEIGHT, 10, cvSize(15, 15), 3);
 	((windage::ModifiedSURFTracker*)tracker1)->SetOpticalFlowRunning(true);
+	((windage::ModifiedSURFTracker*)tracker1)->GetCameraParameter()->InitUndistortionMap(WIDTH, HEIGHT);
 	
 	windage::Tracker* tracker2 = new windage::ModifiedSURFTracker();
 	((windage::ModifiedSURFTracker*)tracker2)->Initialize(778.195, 779.430, 324.659, 235.685, -0.333103, 0.173760, 0.000653, 0.001114, 45);
 	((windage::ModifiedSURFTracker*)tracker2)->RegistReferenceImage(referenceImage, 267.0, 200.0, 4.0, 8);
 	((windage::ModifiedSURFTracker*)tracker2)->InitializeOpticalFlow(WIDTH, HEIGHT, 10, cvSize(15, 15), 3);
 	((windage::ModifiedSURFTracker*)tracker2)->SetOpticalFlowRunning(true);
+	((windage::ModifiedSURFTracker*)tracker2)->GetCameraParameter()->InitUndistortionMap(WIDTH, HEIGHT);
 
 	// for spatial sensor
 	std::vector<windage::SpatialSensor*> spatialSensors;
