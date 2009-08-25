@@ -43,6 +43,8 @@ using namespace windage;
 #include "FAST/fast.h"
 #include "FAST/wsurf.h"
 
+//#define REMOVE_OUTLIER
+
 ModifiedSURFTracker::ModifiedSURFTracker()
 {
 	cameraParameter = NULL;
@@ -426,17 +428,6 @@ double ModifiedSURFTracker::CalculatePose(bool update)
 		}
 	}
 
-
-	// HACK! for coordinate
-/*
-	std::vector<CvPoint2D32f> temp;
-	for(int i=0; i<pt2->size(); i++)
-	{
-		CvPoint2D32f point = (*pt2)[i];
-		point.y = this->imageHeight - point.y;
-		temp.push_back(point);
-	}
-*/
 	const double ERROR_BOUND = 5.0;
 
 	float homographyError = 0;
@@ -454,7 +445,7 @@ double ModifiedSURFTracker::CalculatePose(bool update)
 		homographyError = 0.0;
 		if(cvFindHomography( &_pt1, &_pt2, &_h, CV_RANSAC, ERROR_BOUND ))
 		{
-//*
+#ifdef REMOVE_OUTLIER
 			// calculate homography error & remove outlier
 			float difference = 0;
 			int count = 0;
@@ -475,7 +466,7 @@ double ModifiedSURFTracker::CalculatePose(bool update)
 				std::vector<CvPoint2D32f>::iterator it1 = this->matchedReferencePoints.begin();
 				std::vector<CvPoint2D32f>::iterator it2 = this->matchedScenePoints.begin();
 
-				if(abs(matchedScenePoints[i].x - projectionPointX) + abs(matchedScenePoints[i].y - projectionPointY) <= ERROR_BOUND/2)
+				if(abs(matchedScenePoints[i].x - projectionPointX) + abs(matchedScenePoints[i].y - projectionPointY) <= ERROR_BOUND)
 				{
 					difference += abs(matchedScenePoints[i].x - projectionPointX);
 					difference += abs(matchedScenePoints[i].y - projectionPointY);
@@ -491,7 +482,7 @@ double ModifiedSURFTracker::CalculatePose(bool update)
 				}
 			}
 			homographyError = (difference / 2.) / (float)count;
-//*/
+#endif
 			DecomposeHomographyToRT(&_intrinsic, &_h, &_extrinsic);
 
 //			memset(extrinsicOutMatrix, 0, sizeof(double)*16);
@@ -524,7 +515,7 @@ int ModifiedSURFTracker::UpdateCameraPose(IplImage* grayImage)
 	{
 		if(step > stepSize)
 		{
-			update = false;
+//			update = false;
 
 			std::vector<CvPoint2D32f> matchedTempPoints;
 			opticalflow->TrackFeature(grayImage, &matchedScenePoints, &matchedTempPoints);
