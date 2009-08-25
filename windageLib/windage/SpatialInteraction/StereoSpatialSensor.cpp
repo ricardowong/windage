@@ -128,51 +128,50 @@ bool StereoSpatialSensor::GenerateKernelImage(std::vector<IplImage*>* images)
 double StereoSpatialSensor::GetDisparity(std::vector<IplImage*>* images)
 {
 	double disparity = 0.0;
-
-	CvScalar baseColor;
-	CvScalar compareColor;
-	for(int i=1; i<this->kernelImages.size(); i++)
+	if(this->GenerateKernelImage(images))
 	{
-		double tempDisparity = 0.0;
-		for(int y=0; y<kernelSize*2; y++)
+		CvScalar baseColor;
+		CvScalar compareColor;
+		for(int i=1; i<this->kernelImages.size(); i++)
 		{
-			for(int x=0; x<kernelSize*2; x++)
+			double tempDisparity = 0.0;
+			for(int y=0; y<kernelSize*2; y++)
 			{
-				baseColor = cvGet2D(this->kernelImages[0], y, x);
-				compareColor = cvGet2D(this->kernelImages[i], y, x);
+				for(int x=0; x<kernelSize*2; x++)
+				{
+					baseColor = cvGet2D(this->kernelImages[0], y, x);
+					compareColor = cvGet2D(this->kernelImages[i], y, x);
 
-				 double temp = abs(baseColor.val[0] - compareColor.val[0]) + 
-								abs(baseColor.val[1] - compareColor.val[1]) + 
-								abs(baseColor.val[2] - compareColor.val[2]) + 
-								abs(baseColor.val[3] - compareColor.val[3]);
-				 temp /= (double)this->CHANNEL;
-				 tempDisparity += temp;
+					 double temp = abs(baseColor.val[0] - compareColor.val[0]) + 
+									abs(baseColor.val[1] - compareColor.val[1]) + 
+									abs(baseColor.val[2] - compareColor.val[2]) + 
+									abs(baseColor.val[3] - compareColor.val[3]);
+					 temp /= (double)this->CHANNEL;
+					 tempDisparity += temp;
+				}
 			}
+			tempDisparity /= (double)((kernelSize*2) * (kernelSize*2));
+
+			disparity += tempDisparity;
 		}
-		tempDisparity /= (double)((kernelSize*2) * (kernelSize*2));
 
-		disparity += tempDisparity;
+		disparity /= (double)(this->kernelImages.size()-1);
 	}
-
-	disparity /= (double)(this->kernelImages.size()-1);
+	else
+	{
+		disparity = -1.0;
+	}
 	return disparity;
 }
 
 bool StereoSpatialSensor::CalculateActivation(std::vector<IplImage*>* images)
 {
 	this->SetActivation(false);
-	if(this->GenerateKernelImage(images))
+	double diaparity = this->GetDisparity(images);
+	if(diaparity < this->GetActivationThreshold())
 	{
-		double diaparity = this->GetDisparity(images);
-		if(diaparity < this->GetActivationThreshold())
-		{
-			this->SetActivation(true);
-			return true;
-		}
-		else
-		{
-			return false;
-		}
+		this->SetActivation(true);
+		return true;
 	}
 	else
 	{
