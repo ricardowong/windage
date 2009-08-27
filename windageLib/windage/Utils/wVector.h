@@ -45,6 +45,12 @@
 
 namespace windage
 {
+	/**
+	 * @brief
+	 *		Vector4
+	 * @author
+	 *		windage
+	 */
 	struct Vector4{
 		union{
 			struct{double x, y, z, w;};
@@ -183,6 +189,12 @@ namespace windage
 		}
 	};
 
+	/**
+	 * @brief
+	 *		Vector3
+	 * @author
+	 *		windage
+	 */
 	struct Vector3{
 		union{
 			struct{double x, y, z;};
@@ -310,6 +322,12 @@ namespace windage
 		}
 	};
 
+	/**
+	 * @brief
+	 *		Vector2
+	 * @author
+	 *		windage
+	 */
 	struct Vector2{
 		union{
 			struct{double x, y;};

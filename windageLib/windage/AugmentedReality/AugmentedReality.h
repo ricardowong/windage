@@ -47,28 +47,72 @@
 
 namespace windage
 {
+	/**
+	 * @brief
+	 *		Abstract Class for Augmented Reality
+	 * @author
+	 *		windage
+	 */
 	class DLLEXPORT AugmentedReality
 	{
 	protected:
-		Calibration* cameraParameter;
+		Calibration* cameraParameter;	///< camera parameter only read (not-update)
 
 		bool isFlip;
-		int imageWidth;
-		int imageHeight;
-		int textureWidth;
+		int imageWidth;		///< input background image width size
+		int imageHeight;	///< input background image height size
+		int textureWidth;	///< drawing background texture image size (width == height) (*necessary multiple of 4)
 
-		IplImage* textureRepository;
+		IplImage* textureRepository;	///< background texture storage
 		
 		virtual void Release() = 0;
 
 	public:
 		AugmentedReality();
 		virtual ~AugmentedReality();
+
+		/**
+		 * @brief
+		 *		Attatch Camera Parameter
+		 * @remark
+		 *		attatch camera paramter only read and update from outside
+		 */
 		inline void AttatchCameraParameter(Calibration* cameraParameter){this->cameraParameter = cameraParameter;};
 
+		/**
+		 * @defgroup AugmentedRealityMethod Augmented Reality Method
+		 * @brief
+		 *		Augmented Reality Method
+		 * @remark
+		 *		DrawBackground -> SetProjectionMatrix and ModelViewMatrix -> Draw Virtual Object
+		 * @addtogroup AugmentedRealityMethod
+		 * @{
+		 */
+
+		/**
+		 * @brief
+		 *		Draw Background Texture
+		 * @remark
+		 *		draw background image abstract method using input image
+		 */
 		virtual void DrawBackgroundTexture(IplImage* inputImage) = 0;
+		
+		/**
+		 * @brief
+		 *		Set Projection Matrix
+		 * @remark
+		 *		set projection matrix abstract method using intrinsic matrix
+		 */
 		virtual void SetProjectionMatrix() = 0;
+
+		/**
+		 * @brief
+		 *		Set ModelView Matrix
+		 * @remark
+		 *		set model-view matrix abstract method using extrinsic matrix
+		 */
 		virtual void SetModelViewMatrix() = 0;
+		/** @} */
 	};
 }
 

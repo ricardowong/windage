@@ -48,23 +48,29 @@
 
 namespace windage
 {
+	/**
+	 * @brief
+	 *		Class for OpticalFlow
+	 * @author
+	 *		windage
+	 */
 	class OpticalFlow
 	{
 	private:
-		int imageWidth;
-		int imageHeight;
+		int imageWidth;		///< input image size
+		int imageHeight;	///< input image size
 
-		CvSize windowSize;
-		int pyramidLevel;
+		CvSize windowSize;	///< opticalflow window size
+		int pyramidLevel;	///< opticalflow pyramid level
 		
-		const static int maxPointCount = 1000;
-		CvPoint2D32f feature1[maxPointCount];
-		CvPoint2D32f feature2[maxPointCount];
-		char foundFeature[maxPointCount];
+		const static int maxPointCount = 1000;	///< maximum feature points count
+		CvPoint2D32f feature1[maxPointCount];	///< preview image feature points
+		CvPoint2D32f feature2[maxPointCount];	///< current image feature points
+		char foundFeature[maxPointCount];		///< tracking status
 		float errorFeature[maxPointCount];
 
 		CvTermCriteria terminationCriteria;
-		IplImage* prevImage;
+		IplImage* prevImage;					///< saved preview images (automated save value after calling TrackFeature method)
 		IplImage* pyramid1;
 		IplImage* pyramid2;
 
@@ -80,8 +86,31 @@ namespace windage
 		inline void SetPyramidLevel(int level=3){this->pyramidLevel = level;};
 		inline int GetPyramidLevel(){return this->pyramidLevel;};
 
-		void Initialize(int width, int height, CvSize windowSize=cvSize(10, 10), int pyramidLevel=3);
-		int TrackFeature(IplImage* grayImage, std::vector<CvPoint2D32f>* prevPoints, std::vector<CvPoint2D32f>* currentPoints);
+		/**
+		 * @brief
+		 *		Initialize OpticalFlow
+		 * @remark
+		 *		initialize OpticalFlow setting pyramid level and window size
+		 *		running opticalflow after initialization
+		 */
+		void Initialize(
+						int width,							///< input image width size
+						int height,							///< input image heightsize
+						CvSize windowSize=cvSize(10, 10),	///< opticalflow window size
+						int pyramidLevel=3					///< opticalflow pyramid level
+						);
+
+		/**
+		 * @brief
+		 *		Tracking Feature using OpticalFlow
+		 * @remark
+		 *		Tracking Feature using OpticalFlow
+		 */
+		int TrackFeature(
+						IplImage* grayImage,						///< input image
+						std::vector<CvPoint2D32f>* prevPoints,		///< input previous points
+						std::vector<CvPoint2D32f>* currentPoints	///< output updated points
+						);
 	};
 }
 

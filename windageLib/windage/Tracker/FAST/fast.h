@@ -37,8 +37,10 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#ifndef __FAST_H__
-#define __FAST_H__
+#ifndef _FAST_H_
+#define _FAST_H_
+
+/** @cond */
 
 typedef struct { int x, y; } xy;
 typedef unsigned char byte;
@@ -8167,5 +8169,7 @@ xy* fast_corner_detect_12(const byte* im, int xsize, int ysize, int barrier, int
 	*num = total;																				
 	return ret;																					
 }
+
+/** @endcond */
 
 #endif

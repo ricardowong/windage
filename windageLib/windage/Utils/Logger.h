@@ -50,6 +50,12 @@
 
 namespace windage
 {
+	/**
+	 * @brief
+	 *		Class for Logging at processtime and programmer's message
+	 * @author
+	 *		windage
+	 */
 	class DLLEXPORT Logger
 	{
 	public:
@@ -58,22 +64,59 @@ namespace windage
 		Logger(std::string filenameString, bool addTime=false);
 		Logger(std::ostream* out);
 		~Logger();
+
+		/**
+		 * @defgroup Logging User Message Logging Method
+		 * @brief
+		 *		User Message Logging Method
+		 * @remark
+		 *		logging "dataName : data" or "data"
+		 * @addtogroup Logging
+		 * @{
+		 */
 		void logNewLine();
 		void log(char* data);
 		void log(char* dataName, char data);
 		void log(char* dataName, int data);
 		void log(char* dataName, double data);
 		void log(char* dataName, float data);
+		/** @} */
 
+		/**
+		 * @brief
+		 *		update Tick Count
+		 * @remark
+		 *		update tick count member value from update currnet tick count
+		 */
 		void updateTickCount();
+
+		/**
+		 * @brief
+		 *		calcuate processing time
+		 * @remark
+		 *		calcuate processing time after calling updateTickCount method
+		 */
 		double calculateProcessTime();
+
+		/**
+		 * @brief
+		 *		calcuate FPS
+		 * @remark
+		 *		calcuate FPS after calling updateTickCount method
+		 */
 		double calculateFPS();
 		inline double getProcessTime(){return processTime;};
 
+		/**
+		 * @brief
+		 *		get Time Stemp
+		 * @remark
+		 *		return current time stemp
+		 */
 		static std::string getTimeString();
 
 	private:
-		std::ostream* logging;
+		std::ostream* logging;	///< logging target (file or std::cout stream)
 		bool fileStream;
 		double tickCount;
 		double processTime;

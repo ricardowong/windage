@@ -71,15 +71,12 @@ void Calibration::Release()
 	dstMapX = NULL;
 	if(dstMapY) cvReleaseImage(&dstMapY);
 	dstMapY = NULL;
-
-	initialized = false;
 }
 
 void Calibration::Initialize(double fx, double fy, double cx, double cy, double d1, double d2, double d3, double d4)
 {
 	this->SetIntrinsicMatirx(fx, fy, cx, cy);
 	this->SetDistortionCoefficients(d1, d2, d3, d4);
-	initialized = true;
 }
 
 void Calibration::SetIntrinsicMatirx(double fx, double fy, double cx, double cy)

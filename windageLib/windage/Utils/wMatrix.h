@@ -40,14 +40,20 @@
 //----------------------------------------------------------------
 // 2x2,3x3,4x4 행렬 클래스
 //----------------------------------------------------------------
-#include "memory.h"
-#include "wVector.h"
-
 #ifndef _WBAEK_MATRIX_H_
 #define _WBAEK_MATRIX_H_
 
+#include "memory.h"
+#include "wVector.h"
+
 namespace windage
 {
+	/**
+	 * @brief
+	 *		Matrix4
+	 * @author
+	 *		windage
+	 */
 	struct Matrix4{
 		union{
 			struct{double m[4][4];};
@@ -244,6 +250,12 @@ namespace windage
 		}
 	};
 
+	/**
+	 * @brief
+	 *		Matrix3
+	 * @author
+	 *		windage
+	 */
 	struct Matrix3{
 		union{
 			struct{double m[3][3];};
@@ -340,6 +352,12 @@ namespace windage
 
 	};
 
+	/**
+	 * @brief
+	 *		Matrix2
+	 * @author
+	 *		windage
+	 */
 	struct Matrix2{
 		union{
 			struct{double m[2][2];};

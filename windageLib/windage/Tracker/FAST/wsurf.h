@@ -37,10 +37,11 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#ifndef __W_SURF_H__
-#define __W_SURF_H__
+#ifndef _W_SURF_H_
+#define _W_SURF_H_
 
 // modified SURF by windage
+/** @cond */
 
 #include <cv.h>
 #include <cxmisc.h>
@@ -683,5 +684,7 @@ void wExtractSURF( const CvArr* _img, const CvArr* _mask,
     if (mask_sum) cvReleaseMat( &mask_sum );
     cvFree( &win_bufs );
 }
+
+/** @endcond */
 
 #endif

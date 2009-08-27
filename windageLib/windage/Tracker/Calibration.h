@@ -47,31 +47,50 @@
 
 namespace windage
 {
-
+	/**
+	 * @brief
+	 *		Class for Camera Parameter
+	 * @author
+	 *		windage
+	 */
 	class DLLEXPORT Calibration
 	{
 	private:
-		bool initialized;
-		CvMat* intrinsicMatrix;
-		CvMat* distortionCoefficients;
-		CvMat* extrinsicMatrix;
+		CvMat* intrinsicMatrix;			///< intrinsic parameter (Camera coordinate to Image coordinate)
+		CvMat* distortionCoefficients;	///< distortion coefficient
+		CvMat* extrinsicMatrix;			///< extrinsic parameter (World coordinate to Camera coordinate)
 
-		IplImage* dstMapX;
-		IplImage* dstMapY;
+		IplImage* dstMapX;				///< pre-calculated data storage for map-based undistortion method
+		IplImage* dstMapY;				///< pre-calculated data storage for map-based undistortion method
 
 		void Release();
 		
 	public:
 		Calibration();
 		~Calibration();
-
-		inline void SetInitialized(bool state){this->initialized = state;};
 		
 		inline CvMat* GetIntrinsicMatrix(){return intrinsicMatrix;};
 		inline CvMat* GetDistortionCoefficients(){return distortionCoefficients;};
 		inline CvMat* GetExtrinsicMatrix(){return extrinsicMatrix;};
 
-		void Initialize(double fx, double fy, double cx, double cy, double d1, double d2, double d3, double d4);
+		/**
+		 * @brief
+		 *		initialize camera paramter (intrinsic parameter)
+		 * @remark
+		 *		it is not necessary function 
+		 *		can alternate SetIntrinsicMatirx and SetDistortionCoefficients functions but recommended
+		 */
+		void Initialize(
+						double fx, 				///< intrinsic parameter x focal length
+						double fy, 				///< intrinsic parameter y focal length
+						double cx, 				///< intrinsic parameter x principle point
+						double cy, 				///< intrinsic parameter y principle point
+						double d1, 				///< intrinsic parameter distortion factor1
+						double d2, 				///< intrinsic parameter distortion factor2
+						double d3, 				///< intrinsic parameter distortion factor3
+						double d4 				///< intrinsic parameter distortion factor4
+						);
+
 		void SetIntrinsicMatirx(double fx, double fy, double cx, double cy);
 		void SetDistortionCoefficients(double d1=0.0, double d2=0.0, double d3=0.0, double d4=0.0);
 		void SetExtrinsicMatrix(CvMat* matrix);
@@ -83,7 +102,15 @@ namespace windage
 		void GetCameraPosition(CvMat* output3vector);
 		CvScalar GetCameraPosition();
 
-		// utils
+		/**
+		 * @defgroup CoordinateConvertor Coordinate Convertor
+		 * @brief
+		 *		Coordinate Convertor
+		 * @remark
+		 *		Coordinate Convert World, Camera, Image coordinate
+		 * @addtogroup CoordinateConvertor
+		 * @{
+		 */
 		int ConvertWorld2Camera(CvMat* output4vector, CvMat* input4vector);
 		int ConvertCamera2Image(CvMat* output3vector, CvMat* input3vector);
 		int ConvertWorld2Image(CvMat* output3vector, CvMat* input4vector);
@@ -92,8 +119,25 @@ namespace windage
 		int ConvertImage2Camera(CvMat* output3vector, CvMat* input3vector, double z);
 		int ConvertImage2World(CvMat* output3vector, CvMat* input3vector, double z);
 		CvPoint2D64f ConvertImage2World(double ix, double iy, double wz=0.0);
+		/** @} */
 
-		void InitUndistortionMap(int width, int height); // init -> map / non-init -> realtime
+		/**
+		 * @brief
+		 *		initialize remapping data for map-based undistortion method
+		 * @remark
+		 *		pre-calculate undistortion reampping data using distortino coefficents
+		 */
+		void InitUndistortionMap(
+									int width,	///< input image width size
+									int height	///< input image height size
+								);
+		/**
+		 * @brief
+		 *		undistortion method
+		 * @remark
+		 *		if after initialized undistortion map then undistort input image using pre-calculated data (faster)
+		 *		else real-time calculate undisotrtion map
+		 */
 		void Undistortion(IplImage* input, IplImage* output);
 	};
 
