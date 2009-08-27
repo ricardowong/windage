@@ -1,5 +1,0 @@
-<map id="G" name="G">
-<area shape="rect" id="node3" href="$classwindage_1_1_stereo_s_u_r_f_detector.html#a59ad2932eaef3a3874a9797f2db93781" title="Get Disparity." alt="" coords="415,5,692,33"/>
-<area shape="rect" id="node7" href="$classwindage_1_1_modified_s_u_r_f_tracker.html#a280141e72d9cb4abb7ec4a465cceb5c2" title="Update Camera Pose (extrinsic parameter)." alt="" coords="391,55,716,83"/>
-<area shape="rect" id="node5" href="$classwindage_1_1_stereo_s_u_r_f_detector.html#aa9854d4188e1d95fcd0d82d727a5d509" title="Calculate Activation." alt="" coords="767,5,1081,33"/>
-</map>
