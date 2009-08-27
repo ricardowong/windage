@@ -51,23 +51,30 @@ namespace windage
 {
 	class DLLEXPORT SpatialSensor
 	{
+	public:
+		static enum STATE{INACTIVATE=1, ACTIVATE = 2};
+
 	protected:
 		Vector3 position;
-		bool activation;
+		STATE state;
 
-		inline void SetActivation(bool state){this->activation = state;};
+		inline void SetActivation(bool state){if(state) this->state = SpatialSensor::ACTIVATE; else this->state = SpatialSensor::INACTIVATE;};
 
 	public:
 		SpatialSensor();
 		virtual ~SpatialSensor();
 
+		void Initialize(Vector3 position=Vector3());
+
 		inline void SetPosition(Vector3 position){this->position = position;};
 		inline Vector3 GetPosition(){return this->position;};
-		inline bool IsActive(){return this->activation;};
+		inline bool IsActive(){return this->state == SpatialSensor::ACTIVATE;};
 
-		virtual bool CalculateActivation(std::vector<IplImage*>* images) = 0;
-		
-//		virtual IsActive()=0;
+		inline void SetActive(){this->state = SpatialSensor::ACTIVATE;};
+		inline void SetInactive(){this->state = SpatialSensor::INACTIVATE;};
+		inline STATE GetState(){return state;};
+
+//		SpatialSensor& operator=(const SpatialSensor&);
 	};
 }
 

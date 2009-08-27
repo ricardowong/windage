@@ -37,32 +37,31 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
+#ifndef _SENSOR_DETECTOR_H_
+#define _SENSOR_DETECTOR_H_
+
+#define DLLEXPORT __declspec(dllexport)
+#define DLLIMPORT __declspec(dllimport)
+
+#include <vector>
+#include <cv.h>
 #include "SpatialInteraction/SpatialSensor.h"
-using namespace windage;
 
-SpatialSensor::SpatialSensor()
+namespace windage
 {
-	position = Vector3();
-	state = SpatialSensor::INACTIVATE;
+	class DLLEXPORT SensorDetector
+	{
+	protected:
+		std::vector<SpatialSensor*>* spatialSensors;
+
+	public:
+		SensorDetector();
+		~SensorDetector();
+
+		void AttatchSpatialSensors(std::vector<SpatialSensor*>* spatialSensors);
+
+		virtual void CalculateActivation(std::vector<IplImage*>* images) = 0;
+	};
 }
 
-SpatialSensor::~SpatialSensor()
-{
-}
-
-void SpatialSensor::Initialize(Vector3 position)
-{
-	this->SetPosition(position);
-	this->SetInactive();
-}
-
-/*
-SpatialSensor& SpatialSensor::operator=(const SpatialSensor& rhs)
-{
-	if(this == &rhs)
-		return *this;
-	this->position = rhs.GetPosition();
-	this->state = rhs.GetState();
-	return *this;
-}
-*/
+#endif

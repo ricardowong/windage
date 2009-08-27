@@ -37,11 +37,11 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#include "SpatialInteraction/StereoSpatialSensor.h"
+#include "SpatialInteraction/StereoSensorDetector.h"
 using namespace windage;
 
 
-StereoSpatialSensor::StereoSpatialSensor()
+StereoSensorDetector::StereoSensorDetector()
 {
 	cameraNumber = 0;
 	kernelSize = 0;
@@ -49,12 +49,12 @@ StereoSpatialSensor::StereoSpatialSensor()
 
 }
 
-StereoSpatialSensor::~StereoSpatialSensor()
+StereoSensorDetector::~StereoSensorDetector()
 {
 	this->Release();
 }
 
-void StereoSpatialSensor::Release()
+void StereoSensorDetector::Release()
 {
 	for(int i=0; i<kernelImages.size(); i++)
 	{
@@ -64,11 +64,9 @@ void StereoSpatialSensor::Release()
 	kernelImages.clear();
 }
 
-void StereoSpatialSensor::Initialize(Vector3 position, double activationThreshold, double kernelSize, int cameraNumber)
+void StereoSensorDetector::Initialize(double activationThreshold, double kernelSize, int cameraNumber)
 {
 	this->Release();
-
-	this->SetPosition(position);
 
 	this->SetActivationThreshold(activationThreshold);
 	this->SetCameraNumber(cameraNumber);
@@ -76,7 +74,7 @@ void StereoSpatialSensor::Initialize(Vector3 position, double activationThreshol
 	this->SetKernelSize(kernelSize);
 }
 
-void StereoSpatialSensor::SetKernelSize(int kernelSize)
+void StereoSensorDetector::SetKernelSize(int kernelSize)
 {
 	this->kernelSize = kernelSize/2;
 	
@@ -88,7 +86,7 @@ void StereoSpatialSensor::SetKernelSize(int kernelSize)
 	this->cameraParameters.resize(cameraNumber);
 }
 
-void StereoSpatialSensor::AttatchCameraParameter(int cameraNumber, Calibration* cameraParameters)
+void StereoSensorDetector::AttatchCameraParameter(int cameraNumber, Calibration* cameraParameters)
 {
 	if(cameraNumber < this->cameraParameters.size())
 	{
@@ -96,7 +94,8 @@ void StereoSpatialSensor::AttatchCameraParameter(int cameraNumber, Calibration* 
 	}
 }
 
-bool StereoSpatialSensor::GenerateKernelImage(std::vector<IplImage*>* images)
+
+bool StereoSensorDetector::GenerateKernelImage(std::vector<IplImage*>* images, SpatialSensor* sensor)
 {
 	if((*images).size() == this->kernelImages.size() && this->kernelImages.size() == (unsigned int)this->cameraNumber)
 	{
@@ -105,7 +104,8 @@ bool StereoSpatialSensor::GenerateKernelImage(std::vector<IplImage*>* images)
 
 		for(int i=0; i<this->cameraNumber; i++)
 		{
-			CvPoint imageCoordinate = cameraParameters[i]->ConvertWorld2Image(this->position.x, this->position.y, this->position.z);
+			Vector3 position = sensor->GetPosition();
+			CvPoint imageCoordinate = cameraParameters[i]->ConvertWorld2Image(position.x, position.y, position.z);
 
 			cvZero(this->kernelImages[i]);
 			if( this->kernelSize <= imageCoordinate.x && imageCoordinate.x < width-this->kernelSize && 
@@ -125,10 +125,10 @@ bool StereoSpatialSensor::GenerateKernelImage(std::vector<IplImage*>* images)
 	}
 }
 
-double StereoSpatialSensor::GetDisparity(std::vector<IplImage*>* images)
+double StereoSensorDetector::GetDisparity(std::vector<IplImage*>* images, SpatialSensor* sensor)
 {
 	double disparity = 0.0;
-	if(this->GenerateKernelImage(images))
+	if(this->GenerateKernelImage(images, sensor))
 	{
 		CvScalar baseColor;
 		CvScalar compareColor;
@@ -164,17 +164,15 @@ double StereoSpatialSensor::GetDisparity(std::vector<IplImage*>* images)
 	return disparity;
 }
 
-bool StereoSpatialSensor::CalculateActivation(std::vector<IplImage*>* images)
+void StereoSensorDetector::CalculateActivation(std::vector<IplImage*>* images)
 {
-	this->SetActivation(false);
-	double diaparity = this->GetDisparity(images);
-	if(diaparity < this->GetActivationThreshold())
+	for(int i=0; i<this->spatialSensors->size(); i++)
 	{
-		this->SetActivation(true);
-		return true;
-	}
-	else
-	{
-		return false;
+		(*spatialSensors)[i]->SetInactive();
+		double diaparity = this->GetDisparity(images, (*spatialSensors)[i]);
+		if(diaparity < this->GetActivationThreshold())
+		{
+			(*spatialSensors)[i]->SetActive();
+		}
 	}
 }
