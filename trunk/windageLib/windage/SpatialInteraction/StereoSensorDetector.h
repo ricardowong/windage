@@ -51,15 +51,21 @@
 
 namespace windage
 {
+	/**
+	 * @brief
+	 *		Class for Spatial Sensor Detector using stereo image
+	 * @author
+	 *		windage
+	 */
 	class DLLEXPORT StereoSensorDetector : public SensorDetector
 	{
 	private:
-		static const int CHANNEL = 1;
-		int cameraNumber;
-		int kernelSize;
-		double activationThreshold;
-		std::vector<Calibration*> cameraParameters;
-		std::vector<IplImage*> kernelImages;
+		static const int CHANNEL = 1;	///< COLOR CHANNEL (fixed)
+		int cameraNumber;				///< number of camera
+		int kernelSize;					///< compaired image kernel size
+		double activationThreshold;		///< activation threshold
+		std::vector<Calibration*> cameraParameters;	///< attatched camera parameter only read (not-update)
+		std::vector<IplImage*> kernelImages;		///< kernel image storage
 
 		void Release();
 
@@ -72,15 +78,54 @@ namespace windage
 		StereoSensorDetector();
 		~StereoSensorDetector();
 
+		/**
+		 * @brief
+		 *		Initialize stereo spatial sensor detector
+		 * @remark
+		 *		Initialize stereo spatial sensor detector, set activation threshold and kernel size and camera number
+		 */
 		void Initialize(double activationThreshold = 20.0, double kernelSize = 10.0, int cameraNumber = 2);
 
 		inline double GetActivationThreshold(){return this->activationThreshold;};
 		inline void SetActivationThreshold(double activationThreshold){this->activationThreshold = activationThreshold;};
 
-		void AttatchCameraParameter(int cameraNumber, Calibration* cameraParameters);
-		
-		bool GenerateKernelImage(std::vector<IplImage*>* images, SpatialSensor* sensor);
-		double GetDisparity(std::vector<IplImage*>* images, SpatialSensor* sensor);
+		/**
+		 * @brief
+		 *		Attatch Camera Parameter
+		 * @remark
+		 *		attatch camera paramter only read and update from outside
+		 */
+		void AttatchCameraParameter(
+									int cameraNumber,				///< attatching camera parameter position
+									Calibration* cameraParameters	///< attatching camera parameter
+									);
+		/**
+		 * @brief
+		 *		Generate Kernel Image
+		 * @remark
+		 *		generate kernel image depend on spatial sensor position and camera parameter
+		 */
+		bool GenerateKernelImage(
+									std::vector<IplImage*>* images,	///< input image list
+									SpatialSensor* sensor			///< spatial sensor sensor
+								);
+		/**
+		 * @brief
+		 *		Get Disparity
+		 * @remark
+		 *		compaire kernel images from spatial sensor position
+		 */
+		double GetDisparity(
+							std::vector<IplImage*>* images,	///< input image list
+							SpatialSensor* sensor			///< spatial sensor sensor
+							);
+
+		/**
+		 * @brief
+		 *		Calculate Activation
+		 * @remark
+		 *		calculate activation from attatched all spatial sensors
+		 */
 		void CalculateActivation(std::vector<IplImage*>* images);
 
 //		void operator=(const StereoSpatialSensor rhs);

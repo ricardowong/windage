@@ -51,12 +51,18 @@
 
 namespace windage
 {
+	/**
+	 * @brief
+	 *		Class for cube sensor group
+	 * @author
+	 *		windage
+	 */
 	class DLLEXPORT CubeSensorGroup : public SensorGroup
 	{
 	protected:
-		double cellSize;
-		double cellSpacing;
-		int arragneCount;
+		double cellSize;		///< spatial sensor cell size
+		double cellSpacing;		///< spatial sensor cell spacing
+		int arragneCount;		///< spatial sensor count at a corner
 
 		void Release();
 

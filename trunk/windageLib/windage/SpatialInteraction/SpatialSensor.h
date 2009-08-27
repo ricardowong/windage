@@ -49,14 +49,20 @@
 
 namespace windage
 {
+	/**
+	 * @brief
+	 *		Class for Spatial Sensor
+	 * @author
+	 *		windage
+	 */
 	class DLLEXPORT SpatialSensor
 	{
 	public:
 		static enum STATE{INACTIVATE=1, ACTIVATE = 2};
 
 	protected:
-		Vector3 position;
-		STATE state;
+		Vector3 position;	///< spatial sensor position
+		STATE state;		///< activate state
 
 		inline void SetActivation(bool state){if(state) this->state = SpatialSensor::ACTIVATE; else this->state = SpatialSensor::INACTIVATE;};
 
