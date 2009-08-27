@@ -76,7 +76,9 @@ void SensorGroup::SetRotation(Vector3 rotation)
 	this->rotation = rotation;
 }
 
-void SensorGroup::AddSensor(SpatialSensor* sensor)
+void SensorGroup::AddSensor(SpatialSensor* sensor, bool absolute)
 {
+	if(absolute == false)
+		sensor->SetPosition(sensor->GetPosition() + this->GetPosition());
 	this->sensors.push_back(sensor);
 }

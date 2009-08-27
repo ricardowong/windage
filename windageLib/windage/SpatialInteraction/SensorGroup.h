@@ -51,14 +51,20 @@
 
 namespace windage
 {
+	/**
+	 * @brief
+	 *		Abstract Class for Spatial Sensor Group
+	 * @author
+	 *		windage
+	 */
 	class DLLEXPORT SensorGroup
 	{
 	protected:
-		int id;
-		Vector3 position;
-		Vector3 rotation;
+		int id;				///< sensor group id
+		Vector3 position;	///< sensor group position
+		Vector3 rotation;	///< sensor group rotation
 
-		std::vector<SpatialSensor*> sensors;
+		std::vector<SpatialSensor*> sensors;	///< spatial sensor repository
 
 		void Release();
 
@@ -66,7 +72,22 @@ namespace windage
 		SensorGroup();
 		virtual ~SensorGroup();
 
+		/**
+		 * @brief
+		 *		Set Sensor Group Position
+		 * @remark
+		 *		set sensor group position and update sensor position
+		 */
 		void SetPosition(Vector3 position);
+
+		/**
+		 * @brief
+		 *		Set Sensor Group Rotation
+		 * @remark
+		 *		set sensor group rotation and update sensor position
+		 * @warning
+		 *		currently do not operate
+		 */
 		void SetRotation(Vector3 rotation);
 
 		inline void SetID(int id){this->id = id;};
@@ -76,7 +97,17 @@ namespace windage
 		inline Vector3 GetRotation(){return rotation;};
 
 		inline std::vector<SpatialSensor*>* GetSensors(){return &sensors;};
-		void AddSensor(SpatialSensor* sensor);
+
+		/**
+		 * @brief
+		 *		Add Sensor
+		 * @remark
+		 *		add sensor to sensor group
+		 * @warning
+		 *		currently do not apply sensor group rotation information
+		 *		and do not remove spatial sensor data at outside
+		 */
+		void AddSensor(SpatialSensor* sensor, bool absolute=false);
 	};
 }
 

@@ -49,17 +49,35 @@
 
 namespace windage
 {
+	/**
+	 * @brief
+	 *		Abstract Class for Spatial Sensor Detector
+	 * @author
+	 *		windage
+	 */
 	class DLLEXPORT SensorDetector
 	{
 	protected:
-		std::vector<SpatialSensor*>* spatialSensors;
+		std::vector<SpatialSensor*>* spatialSensors;	///< attatched spatial sensor
 
 	public:
 		SensorDetector();
 		~SensorDetector();
 
+		/**
+		 * @brief
+		 *		Attatch spatial sensor list
+		 * @remark
+		 *		attatch spatial sensor for sensor activation
+		 */
 		void AttatchSpatialSensors(std::vector<SpatialSensor*>* spatialSensors);
 
+		/**
+		 * @brief
+		 *		abstract method for Calculate Activation
+		 * @remark
+		 *		calculate activation from attatched all spatial sensors
+		 */
 		virtual void CalculateActivation(std::vector<IplImage*>* images) = 0;
 	};
 }

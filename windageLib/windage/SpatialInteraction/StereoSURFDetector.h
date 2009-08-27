@@ -53,12 +53,18 @@
 
 namespace windage
 {
+	/**
+	 * @brief
+	 *		Class for Spatial Sensor Detector using stereo SURF Descriptor
+	 * @author
+	 *		windage
+	 */
 	class DLLEXPORT StereoSURFDetector : public SensorDetector
 	{
 	private:
-		int cameraNumber;
-		double activationThreshold;
-		std::vector<Calibration*> cameraParameters;
+		int cameraNumber;							///< number of camera
+		double activationThreshold;					///< compaired image kernel size
+		std::vector<Calibration*> cameraParameters;	///< activation threshold
 
 		void Release();
 
@@ -69,14 +75,39 @@ namespace windage
 		StereoSURFDetector();
 		~StereoSURFDetector();
 
+		/**
+		 * @brief
+		 *		Initialize stereo-based SURF Descriptor spatial sensor detector
+		 * @remark
+		 *		Initialize stereo-based SURF Descriptor spatial sensor detector, set activation threshold and camera number
+		 */
 		void Initialize(double activationThreshold = 0.2, int cameraNumber = 2);
 
 		inline double GetActivationThreshold(){return this->activationThreshold;};
 		inline void SetActivationThreshold(double activationThreshold){this->activationThreshold = activationThreshold;};
 
+		/**
+		 * @brief
+		 *		Attatch Camera Parameter
+		 * @remark
+		 *		attatch camera paramter only read and update from outside
+		 */
 		void AttatchCameraParameter(int cameraNumber, Calibration* cameraParameters);
 		
+		/**
+		 * @brief
+		 *		Get Disparity
+		 * @remark
+		 *		compaire SURF Descriptor from spatial sensor position
+		 */
 		double GetDisparity(std::vector<IplImage*>* images, SpatialSensor* sensor);
+
+		/**
+		 * @brief
+		 *		Calculate Activation
+		 * @remark
+		 *		calculate activation from attatched all spatial sensors
+		 */
 		void CalculateActivation(std::vector<IplImage*>* images);
 
 //		void operator=(const StereoSpatialSensor rhs);
