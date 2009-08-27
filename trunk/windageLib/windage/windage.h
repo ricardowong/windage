@@ -70,10 +70,21 @@
  * @section developer Developer
  *		- windage
  *			- windage@live.com
- * @section info library information
+ * @section info Library Information
  *		- Source code is available under the GNU General Public License.
  *		- In short, if you distribute a software that uses windageLib-demo, you have to distribute it under GPL with the source code.
  *		- Another option is to contact us to purchase a commercial license.
+ * @section advenced Functions
+ *		-# Real-time Natural Feature Tracking 
+ *			- <img src="http://windage.googlecode.com/svn/trunk/Document/images/Demo_ModifiedSURF.png"/>
+ *		-# Muli-method Tracking
+ *			- <img src="http://windage.googlecode.com/svn/trunk/Document/images/Demo_MultimethodTracking.png"/>
+ *		-# Augmented Reality 
+ *			- <img src="http://windage.googlecode.com/svn/trunk/Document/images/Demo_AugmentedReality.png"/>
+ *		-# Stereo based 3D Reconstruction 
+ *			- <img src="http://windage.googlecode.com/svn/trunk/Document/images/Demo_StereoReconstruction.png"/>
+ *		-# Stereo based Spatial Sensors 
+ *			- <img src="http://windage.googlecode.com/svn/trunk/Document/images/Demo_SpatialSensor.png"/>
  * @section advenced For further information please contact 
  *		- Woonhyuk Baek
  *			- <windage@live.com>
