@@ -1,0 +1,5 @@
+<map id="G" name="G">
+<area shape="rect" id="node1" href="$classwindage_1_1_sensor_detector.html" title="Abstract Class for Spatial Sensor Detector." alt="" coords="7,30,172,58"/>
+<area shape="rect" id="node3" href="$classwindage_1_1_stereo_sensor_detector.html" title="Class for Spatial Sensor Detector using stereo image." alt="" coords="223,5,425,33"/>
+<area shape="rect" id="node5" href="$classwindage_1_1_stereo_s_u_r_f_detector.html" title="Class for Spatial Sensor Detector using stereo SURF Descriptor." alt="" coords="225,55,423,83"/>
+</map>
