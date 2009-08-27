@@ -63,3 +63,24 @@
 #include "Utils/wVector.h"
 #include "Utils/wMatrix.h"
 #include "Utils/Utils.h"
+
+// for Doxygen Mainpage Documentation
+/**
+ * @mainpage windage Library
+ * @section developer Developer
+ *		- windage
+ *			- windage@live.com
+ * @section info library information
+ *		- Source code is available under the GNU General Public License.
+ *		- In short, if you distribute a software that uses windageLib-demo, you have to distribute it under GPL with the source code.
+ *		- Another option is to contact us to purchase a commercial license.
+ * @section advenced For further information please contact 
+ *		- Woonhyuk Baek
+ *			- <windage@live.com>
+ *			-
+ *			- GIST U-VR Lab.
+ *			- Department of Information and Communication
+ *			- Gwangju Institute of Science and Technology
+ *			- 1, Oryong-dong, Buk-gu, Gwangju
+ *			- South Korea
+ */
