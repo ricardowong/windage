@@ -37,32 +37,29 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
+// header files for tracking
+#include "Tracker/Calibration.h"
+#include "Tracker/Tracker.h"
+#include "Tracker/ChessboardTracker.h"
+#include "Tracker/ModifiedSURFTracker.h"
+
+// header files for augmented reality
+#include "AugmentedReality/AugmentedReality.h"
+#include "AugmentedReality/ARForOpenGL.h"
+
+// header files for 3d reconstruction
+#include "Reconstructor/Reconstructor.h"
+
+// header files for spatial interaction
 #include "SpatialInteraction/SpatialSensor.h"
-using namespace windage;
+#include "SpatialInteraction/SensorGroup.h"
+#include "SpatialInteraction/CubeSensorGroup.h"
+#include "SpatialInteraction/SensorDetector.h"
+#include "SpatialInteraction/StereoSensorDetector.h"
+#include "SpatialInteraction/StereoSURFDetector.h"
 
-SpatialSensor::SpatialSensor()
-{
-	position = Vector3();
-	state = SpatialSensor::INACTIVATE;
-}
-
-SpatialSensor::~SpatialSensor()
-{
-}
-
-void SpatialSensor::Initialize(Vector3 position)
-{
-	this->SetPosition(position);
-	this->SetInactive();
-}
-
-/*
-SpatialSensor& SpatialSensor::operator=(const SpatialSensor& rhs)
-{
-	if(this == &rhs)
-		return *this;
-	this->position = rhs.GetPosition();
-	this->state = rhs.GetState();
-	return *this;
-}
-*/
+// utilities header file
+#include "Utils/Logger.h"
+#include "Utils/wVector.h"
+#include "Utils/wMatrix.h"
+#include "Utils/Utils.h"

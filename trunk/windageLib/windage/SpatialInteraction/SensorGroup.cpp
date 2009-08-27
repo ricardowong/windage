@@ -37,32 +37,46 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#include "SpatialInteraction/SpatialSensor.h"
+#include "SpatialInteraction/SensorGroup.h"
 using namespace windage;
 
-SpatialSensor::SpatialSensor()
+SensorGroup::SensorGroup()
 {
-	position = Vector3();
-	state = SpatialSensor::INACTIVATE;
+	this->id = -1;
+	this->position = Vector3();
+	this->rotation = Vector3();
 }
 
-SpatialSensor::~SpatialSensor()
+SensorGroup::~SensorGroup()
 {
 }
 
-void SpatialSensor::Initialize(Vector3 position)
+void SensorGroup::Release()
 {
-	this->SetPosition(position);
-	this->SetInactive();
+	for(unsigned int i=0; i<this->sensors.size(); i++)
+	{
+		delete this->sensors[0];
+		this->sensors.erase(this->sensors.begin());
+	}
+	this->sensors.clear();
 }
 
-/*
-SpatialSensor& SpatialSensor::operator=(const SpatialSensor& rhs)
+void SensorGroup::SetPosition(Vector3 position)
 {
-	if(this == &rhs)
-		return *this;
-	this->position = rhs.GetPosition();
-	this->state = rhs.GetState();
-	return *this;
+	this->position = position;
+
+	for(unsigned int i=0; i<this->sensors.size(); i++)
+	{
+		sensors[i]->SetPosition(sensors[i]->GetPosition() + position);
+	}
 }
-*/
+
+void SensorGroup::SetRotation(Vector3 rotation)
+{
+	this->rotation = rotation;
+}
+
+void SensorGroup::AddSensor(SpatialSensor* sensor)
+{
+	this->sensors.push_back(sensor);
+}

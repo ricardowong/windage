@@ -37,32 +37,54 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
+#ifndef _STEREO_SENSOR_DETECTOR_H_
+#define _STEREO_SENSOR_DETECTOR_H_
+
+#define DLLEXPORT __declspec(dllexport)
+#define DLLIMPORT __declspec(dllimport)
+
+#include <vector>
+#include <cv.h>
+#include "SpatialInteraction/SensorDetector.h"
 #include "SpatialInteraction/SpatialSensor.h"
-using namespace windage;
+#include "Tracker/Calibration.h"
 
-SpatialSensor::SpatialSensor()
+namespace windage
 {
-	position = Vector3();
-	state = SpatialSensor::INACTIVATE;
+	class DLLEXPORT StereoSensorDetector : public SensorDetector
+	{
+	private:
+		static const int CHANNEL = 1;
+		int cameraNumber;
+		int kernelSize;
+		double activationThreshold;
+		std::vector<Calibration*> cameraParameters;
+		std::vector<IplImage*> kernelImages;
+
+		void Release();
+
+		inline int GetCameraNumber(){return this->cameraNumber;};
+		inline void SetCameraNumber(int cameraNumber){this->cameraNumber = cameraNumber;};
+		inline int GetKernelSize(){return this->kernelSize*2;};
+		void SetKernelSize(int kernelSize);
+
+	public:
+		StereoSensorDetector();
+		~StereoSensorDetector();
+
+		void Initialize(double activationThreshold = 20.0, double kernelSize = 10.0, int cameraNumber = 2);
+
+		inline double GetActivationThreshold(){return this->activationThreshold;};
+		inline void SetActivationThreshold(double activationThreshold){this->activationThreshold = activationThreshold;};
+
+		void AttatchCameraParameter(int cameraNumber, Calibration* cameraParameters);
+		
+		bool GenerateKernelImage(std::vector<IplImage*>* images, SpatialSensor* sensor);
+		double GetDisparity(std::vector<IplImage*>* images, SpatialSensor* sensor);
+		void CalculateActivation(std::vector<IplImage*>* images);
+
+//		void operator=(const StereoSpatialSensor rhs);
+	};
 }
 
-SpatialSensor::~SpatialSensor()
-{
-}
-
-void SpatialSensor::Initialize(Vector3 position)
-{
-	this->SetPosition(position);
-	this->SetInactive();
-}
-
-/*
-SpatialSensor& SpatialSensor::operator=(const SpatialSensor& rhs)
-{
-	if(this == &rhs)
-		return *this;
-	this->position = rhs.GetPosition();
-	this->state = rhs.GetState();
-	return *this;
-}
-*/
+#endif

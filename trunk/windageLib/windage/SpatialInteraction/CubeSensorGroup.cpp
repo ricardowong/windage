@@ -37,32 +37,65 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#include "SpatialInteraction/SpatialSensor.h"
+#include "SpatialInteraction/CubeSensorGroup.h"
 using namespace windage;
 
-SpatialSensor::SpatialSensor()
+CubeSensorGroup::CubeSensorGroup()
 {
-	position = Vector3();
-	state = SpatialSensor::INACTIVATE;
+	this->id = -1;
+	this->position = Vector3();
+	this->rotation = Vector3();
+
+	cellSize = 0;
+	cellSpacing = 0;
+	arragneCount = 0;
 }
 
-SpatialSensor::~SpatialSensor()
+CubeSensorGroup::~CubeSensorGroup()
 {
 }
 
-void SpatialSensor::Initialize(Vector3 position)
+void CubeSensorGroup::Release()
 {
+	for(unsigned int i=0; i<this->sensors.size(); i++)
+	{
+		delete this->sensors[0];
+		this->sensors.erase(this->sensors.begin());
+	}
+	this->sensors.clear();
+}
+
+void CubeSensorGroup::Initialize(int id, Vector3 position, int arrangeCount, double arrangeSize)
+{
+	double cellSize = arrangeSize / (double)(arrangeCount * 2);
+	double cellSpacing = cellSize;
+	this->Initialize(id, position, arrangeCount, cellSize, cellSpacing);
+}
+
+void CubeSensorGroup::Initialize(int id, Vector3 position, int arrangeCount, double cellSize, double cellSpacing)
+{
+	this->Release();
+
+	this->SetID(id);
+
+	this->SetArrangeCount(arrangeCount);
+	this->SetCellSize(cellSize);
+	this->SetCellSpacing(cellSpacing);
+
+	double spacing = cellSize + cellSpacing;
+	for(int z=-arrangeCount/2; z<=arrangeCount/2; z++)
+	{
+		for(int y=-arrangeCount/2; y<=arrangeCount/2; y++)
+		{
+			for(int x=-arrangeCount/2; x<=arrangeCount/2; x++)
+			{
+				SpatialSensor* tempSensor = new SpatialSensor();
+				tempSensor->Initialize(Vector3(spacing*x, spacing*y, spacing*z));
+
+				this->sensors.push_back(tempSensor);
+			}
+		}
+	}
+
 	this->SetPosition(position);
-	this->SetInactive();
 }
-
-/*
-SpatialSensor& SpatialSensor::operator=(const SpatialSensor& rhs)
-{
-	if(this == &rhs)
-		return *this;
-	this->position = rhs.GetPosition();
-	this->state = rhs.GetState();
-	return *this;
-}
-*/

@@ -297,31 +297,67 @@
 		<Filter
 			Name="SpatialInteraction"
 			>
-			<File
-				RelativePath=".\SpatialInteraction\SpatialSensor.cpp"
+			<Filter
+				Name="Sensors"
 				>
-			</File>
-			<File
-				RelativePath=".\SpatialInteraction\SpatialSensor.h"
+				<File
+					RelativePath=".\SpatialInteraction\CubeSensorGroup.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\SpatialInteraction\CubeSensorGroup.h"
+					>
+				</File>
+				<File
+					RelativePath=".\SpatialInteraction\SensorGroup.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\SpatialInteraction\SensorGroup.h"
+					>
+				</File>
+				<File
+					RelativePath=".\SpatialInteraction\SpatialSensor.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\SpatialInteraction\SpatialSensor.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="Detector"
 				>
-			</File>
-			<File
-				RelativePath=".\SpatialInteraction\StereoSpatialSensor.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\SpatialInteraction\StereoSpatialSensor.h"
-				>
-			</File>
-			<File
-				RelativePath=".\SpatialInteraction\StereoSURFSpatialSensor.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\SpatialInteraction\StereoSURFSpatialSensor.h"
-				>
-			</File>
+				<File
+					RelativePath=".\SpatialInteraction\SensorDetector.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\SpatialInteraction\SensorDetector.h"
+					>
+				</File>
+				<File
+					RelativePath=".\SpatialInteraction\StereoSensorDetector.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\SpatialInteraction\StereoSensorDetector.h"
+					>
+				</File>
+				<File
+					RelativePath=".\SpatialInteraction\StereoSURFDetector.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\SpatialInteraction\StereoSURFDetector.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
+		<File
+			RelativePath=".\windage.h"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

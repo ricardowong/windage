@@ -37,31 +37,29 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#include "SpatialInteraction/StereoSURFSpatialSensor.h"
+#include "SpatialInteraction/StereoSURFDetector.h"
 using namespace windage;
 
-StereoSURFSpatialSensor::StereoSURFSpatialSensor()
+StereoSURFDetector::StereoSURFDetector()
 {
 	cameraNumber = 0;
 	activationThreshold = 0;
 
 }
 
-StereoSURFSpatialSensor::~StereoSURFSpatialSensor()
+StereoSURFDetector::~StereoSURFDetector()
 {
 	this->Release();
 }
 
-void StereoSURFSpatialSensor::Release()
+void StereoSURFDetector::Release()
 {
 	this->cameraParameters.clear();
 }
 
-void StereoSURFSpatialSensor::Initialize(Vector3 position, double activationThreshold, int cameraNumber)
+void StereoSURFDetector::Initialize(double activationThreshold, int cameraNumber)
 {
 	this->Release();
-
-	this->SetPosition(position);
 
 	this->SetActivationThreshold(activationThreshold);
 	this->SetCameraNumber(cameraNumber);
@@ -69,7 +67,7 @@ void StereoSURFSpatialSensor::Initialize(Vector3 position, double activationThre
 	this->cameraParameters.resize(cameraNumber);
 }
 
-void StereoSURFSpatialSensor::AttatchCameraParameter(int cameraNumber, Calibration* cameraParameters)
+void StereoSURFDetector::AttatchCameraParameter(int cameraNumber, Calibration* cameraParameters)
 {
 	if(cameraNumber < this->cameraParameters.size())
 	{
@@ -77,15 +75,17 @@ void StereoSURFSpatialSensor::AttatchCameraParameter(int cameraNumber, Calibrati
 	}
 }
 
-double StereoSURFSpatialSensor::GetDisparity(std::vector<IplImage*>* images)
+double StereoSURFDetector::GetDisparity(std::vector<IplImage*>* images, SpatialSensor* sensor)
 {
 	std::vector<CvPoint> featurePoints;
 	std::vector<SURFDesciription> description;
 	
 	for(int i=0; i<this->cameraNumber; i++)
 	{
+		Vector3 position = sensor->GetPosition();
+
 		featurePoints.clear();
-		CvPoint imageCoordinate = cameraParameters[i]->ConvertWorld2Image(this->position.x, this->position.y, this->position.z);
+		CvPoint imageCoordinate = cameraParameters[i]->ConvertWorld2Image(position.x, position.y, position.z);
 		featurePoints.push_back(imageCoordinate);
 
 		std::vector<SURFDesciription> tempDescription;
@@ -101,26 +101,15 @@ double StereoSURFSpatialSensor::GetDisparity(std::vector<IplImage*>* images)
 	return disparity;
 }
 
-bool StereoSURFSpatialSensor::CalculateActivation(std::vector<IplImage*>* images)
+void StereoSURFDetector::CalculateActivation(std::vector<IplImage*>* images)
 {
-	this->SetActivation(false);
-
-	if((int)images->size() == this->cameraNumber && (int)cameraParameters.size() == this->cameraNumber)
+	for(int i=0; i<this->spatialSensors->size(); i++)
 	{
-		double diaparity = this->GetDisparity(images);
-
+		(*spatialSensors)[i]->SetInactive();
+		double diaparity = this->GetDisparity(images, (*spatialSensors)[i]);
 		if(diaparity < this->GetActivationThreshold())
 		{
-			this->SetActivation(true);
-			return true;
+			(*spatialSensors)[i]->SetActive();
 		}
-		else
-		{
-			return false;
-		}
-	}
-	else
-	{
-		return false;
 	}
 }

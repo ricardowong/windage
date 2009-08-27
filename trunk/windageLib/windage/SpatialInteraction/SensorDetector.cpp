@@ -37,49 +37,19 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#ifndef _STEREO_SURF_SPATIAL_SENSOR_H_
-#define _STEREO_SURF_SPATIAL_SENSOR_H_
+#include "SpatialInteraction/SensorDetector.h"
+using namespace windage;
 
-#define DLLEXPORT __declspec(dllexport)
-#define DLLIMPORT __declspec(dllimport)
-
-#include <vector>
-#include <cv.h>
-
-#include "SpatialInteraction/SpatialSensor.h"
-#include "Tracker/Calibration.h"
-#include "Tracker/ModifiedSURFTracker.h"
-
-namespace windage
+SensorDetector::SensorDetector()
 {
-	class DLLEXPORT StereoSURFSpatialSensor : public SpatialSensor
-	{
-	private:
-		int cameraNumber;
-		double activationThreshold;
-		std::vector<Calibration*> cameraParameters;
-
-		void Release();
-
-		inline int GetCameraNumber(){return this->cameraNumber;};
-		inline void SetCameraNumber(int cameraNumber){this->cameraNumber = cameraNumber;};
-
-	public:
-		StereoSURFSpatialSensor();
-		~StereoSURFSpatialSensor();
-
-		void Initialize(Vector3 position, double activationThreshold = 20.0, int cameraNumber = 2);
-
-		inline double GetActivationThreshold(){return this->activationThreshold;};
-		inline void SetActivationThreshold(double activationThreshold){this->activationThreshold = activationThreshold;};
-
-		void AttatchCameraParameter(int cameraNumber, Calibration* cameraParameters);
-		
-		double GetDisparity(std::vector<IplImage*>* images);
-		bool CalculateActivation(std::vector<IplImage*>* images);
-
-//		void operator=(const StereoSpatialSensor rhs);
-	};
+	spatialSensors = NULL;
 }
 
-#endif
+SensorDetector::~SensorDetector()
+{
+}
+
+void SensorDetector::AttatchSpatialSensors(std::vector<SpatialSensor*>* spatialSensors)
+{
+	this->spatialSensors = spatialSensors;
+}

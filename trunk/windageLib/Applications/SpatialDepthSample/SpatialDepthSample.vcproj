@@ -182,10 +182,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\OpenGLRenderer.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\PGRCamera.cpp"
 				>
 			</File>
@@ -195,10 +191,6 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
-			<File
-				RelativePath=".\OpenGLRenderer.h"
-				>
-			</File>
 			<File
 				RelativePath=".\PGRCamera.h"
 				>

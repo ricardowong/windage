@@ -41,14 +41,13 @@
 #include <vector>
 
 #include <omp.h>
+#include <windage.h>
 
 #include "PGRCamera.h"
-#include "Tracker/ModifiedSURFTracker.h"
-#include "SpatialInteraction/StereoSpatialSensor.h"
-#include "SpatialInteraction/StereoSURFSpatialSensor.h"
-#include "SpatialInteraction/StereoSURFSpatialSensor.h"
 
-#define SPATIAL_SENSOR_TYPE StereoSURFSpatialSensor
+
+#define DETECTOR_TYPE StereoSensorDetector
+//#define DETECTOR_TYPE StereoSURFDetector
 #define UNDISTORTION
 
 const int WIDTH = 640;
@@ -107,15 +106,20 @@ void main()
 		{
 			for(int x=0; x<SPATIAL_X; x++)
 			{
-				windage::SPATIAL_SENSOR_TYPE* tempSpatialSensor = new windage::SPATIAL_SENSOR_TYPE();
-				tempSpatialSensor->Initialize(windage::Vector3(x*SPACING, y*SPACING, z*SPACING), ACTIVATION_TRESHOLD);
-				tempSpatialSensor->AttatchCameraParameter(0, tracker1->GetCameraParameter());
-				tempSpatialSensor->AttatchCameraParameter(1, tracker2->GetCameraParameter());
+				windage::SpatialSensor* tempSpatialSensor = new windage::SpatialSensor();
+				tempSpatialSensor->Initialize(windage::Vector3(x*SPACING, y*SPACING, z*SPACING));
 
 				spatialSensors.push_back(tempSpatialSensor);
 			}
 		}
 	}
+
+	windage::SensorDetector* sensorDetector = new windage::DETECTOR_TYPE();
+	((windage::DETECTOR_TYPE*)sensorDetector)->Initialize(ACTIVATION_TRESHOLD, 10.0);
+	((windage::DETECTOR_TYPE*)sensorDetector)->AttatchCameraParameter(0, tracker1->GetCameraParameter());
+	((windage::DETECTOR_TYPE*)sensorDetector)->AttatchCameraParameter(1, tracker2->GetCameraParameter());
+
+	sensorDetector->AttatchSpatialSensors(&spatialSensors);
 
 	bool processing = true;
 	bool isSpatialProcessing = false;
@@ -182,7 +186,7 @@ void main()
 					{
 //						#pragma omp critical
 						{
-							distance = ((windage::SPATIAL_SENSOR_TYPE*)spatialSensors[z*(SPATIAL_X*SPATIAL_Y) + y*(SPATIAL_X) + x])->GetDisparity(&images);
+							distance = ((windage::DETECTOR_TYPE*)sensorDetector)->GetDisparity(&images, spatialSensors[z*(SPATIAL_X*SPATIAL_Y) + y*(SPATIAL_X) + x]);
 						}
 						if(minDistance > distance)
 						{

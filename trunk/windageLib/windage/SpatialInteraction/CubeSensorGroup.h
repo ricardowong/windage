@@ -37,32 +37,44 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#include "SpatialInteraction/SpatialSensor.h"
-using namespace windage;
+#ifndef _CUBE_SENSOR_GROUP_H_
+#define _CUBE_SENSOR_GROUP_H_
 
-SpatialSensor::SpatialSensor()
+#define DLLEXPORT __declspec(dllexport)
+#define DLLIMPORT __declspec(dllimport)
+
+#include <vector>
+#include <cv.h>
+#include "Utils/wVector.h"
+
+#include "SpatialInteraction/SensorGroup.h"
+
+namespace windage
 {
-	position = Vector3();
-	state = SpatialSensor::INACTIVATE;
+	class DLLEXPORT CubeSensorGroup : public SensorGroup
+	{
+	protected:
+		double cellSize;
+		double cellSpacing;
+		int arragneCount;
+
+		void Release();
+
+	public:
+		CubeSensorGroup();
+		virtual ~CubeSensorGroup();
+
+		void Initialize(int id, Vector3 position = Vector3(), int arrangeCount=5, double arrangeSize=150.0);
+		void Initialize(int id, Vector3 position, int arrangeCount, double cellSize, double cellSpacing);
+
+		inline void SetCellSize(double size){this->cellSize = size;};
+		inline void SetCellSpacing(double size){this->cellSpacing = size;};
+		inline void SetArrangeCount(int count){this->arragneCount = count;};
+		inline double GetCellSize(){return this->cellSize;};
+		inline double GetCellSpacing(){return this->cellSpacing;};
+		inline int GetArrangeCount(){return this->arragneCount;};
+	};
 }
 
-SpatialSensor::~SpatialSensor()
-{
-}
 
-void SpatialSensor::Initialize(Vector3 position)
-{
-	this->SetPosition(position);
-	this->SetInactive();
-}
-
-/*
-SpatialSensor& SpatialSensor::operator=(const SpatialSensor& rhs)
-{
-	if(this == &rhs)
-		return *this;
-	this->position = rhs.GetPosition();
-	this->state = rhs.GetState();
-	return *this;
-}
-*/
+#endif
