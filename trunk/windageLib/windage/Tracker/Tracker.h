@@ -48,11 +48,16 @@
 
 namespace windage
 {
-
+	/**
+	 * @brief
+	 *		Abstract Class for Camera Tracker
+	 * @author
+	 *		windage
+	 */
 	class DLLEXPORT Tracker
 	{
 	protected:
-		Calibration* cameraParameter;
+		Calibration* cameraParameter;	///< camera parameter
 		virtual void Release();
 		
 	public:
@@ -62,8 +67,28 @@ namespace windage
 //		void Initialize(double fx, double fy, double cx, double cy, double d1=0.0, double d2=0.0, double d3=0.0, double d4=0.0);
 		inline Calibration* GetCameraParameter(){return this->cameraParameter;};
 		
+		/**
+		 * @brief
+		 *		Update Camera Pose (extrinsic parameter)
+		 * @remark
+		 *		update extrinsic parameter abstract method using input image
+		 */
 		virtual int UpdateCameraPose(IplImage* grayImage) = 0;
+
+		/**
+		 * @brief
+		 *		Draw Debug Information
+		 * @remark
+		 *		draw debug information abstract method
+		 */
 		virtual void DrawDebugInfo(IplImage* colorImage) = 0;
+
+		/**
+		 * @brief
+		 *		Draw 3-Axis
+		 * @remark
+		 *		draw axis line for confirming tracked object information
+		 */
 		void DrawInfomation(IplImage* colorImage, double size = 10.0);
 	};
 

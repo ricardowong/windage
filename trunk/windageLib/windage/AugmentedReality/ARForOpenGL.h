@@ -48,10 +48,16 @@
 
 namespace windage
 {
+	/**
+	 * @brief
+	 *		Class for Augmented Reality Tool at OpenGL Environment
+	 * @author
+	 *		windage
+	 */
 	class DLLEXPORT ARForOpenGL : public AugmentedReality
 	{
 	private:
-		GLuint backgroundTexture;
+		GLuint backgroundTexture;	///< OpenGL Texture Pointer
 
 		void Release();
 
@@ -59,7 +65,18 @@ namespace windage
 		ARForOpenGL();
 		~ARForOpenGL();
 
-		void Initialize(int imageWidth, int imageHeight, bool isFlip=false, int textureWidth=512);
+		/**
+		 * @brief
+		 *		Initialize ARTool for OpenGL
+		 * @remark
+		 *		initialize ARTool for OpenGL Environment
+		 */
+		void Initialize(
+						int imageWidth,			///< input background image width size
+						int imageHeight,		///< input background image height size
+						bool isFlip=false,		///< input flip background and modelview matrix
+						int textureWidth=512	///< input texture image size (width == height) (*necessary multiple of 4)
+						);
 
 		void DrawBackgroundTexture(IplImage* inputImage);
 		void SetProjectionMatrix();

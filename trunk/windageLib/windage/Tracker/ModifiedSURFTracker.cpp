@@ -204,10 +204,10 @@ int ModifiedSURFTracker::ExtractModifiedSURF(IplImage* grayImage, std::vector<Cv
 CvFeatureTree* ModifiedSURFTracker::CreateReferenceTree(std::vector<SURFDesciription>* referenceSURF, CvMat* referenceFeatureStorage)
 {
 	int count = (int)referenceSURF->size();
-	referenceFeatureStorage = cvCreateMat(count, DESCRIPTOR_DIEMNSION, CV_32FC1);
+	referenceFeatureStorage = cvCreateMat(count, DESCRIPTOR_DIMENSION, CV_32FC1);
 	for(int y=0; y<count; y++)
 	{
-		for(int x=0; x<DESCRIPTOR_DIEMNSION; x++)
+		for(int x=0; x<DESCRIPTOR_DIMENSION; x++)
 		{
 			cvSetReal2D(referenceFeatureStorage, y, x, (*referenceSURF)[y].descriptor[x]);
 		}
@@ -218,10 +218,10 @@ CvFeatureTree* ModifiedSURFTracker::CreateReferenceTree(std::vector<SURFDescirip
 
 int ModifiedSURFTracker::FindPairs(SURFDesciription description, CvFeatureTree* tree, double distanceRate)
 {
-	CvMat* currentFeature = cvCreateMat(1, DESCRIPTOR_DIEMNSION, CV_32FC1);
+	CvMat* currentFeature = cvCreateMat(1, DESCRIPTOR_DIMENSION, CV_32FC1);
 	CvMat* result = cvCreateMat(1, 2, CV_32SC1);
 	CvMat* distance = cvCreateMat(1, 2, CV_64FC1);
-	for(int x=0; x<DESCRIPTOR_DIEMNSION; x++)
+	for(int x=0; x<DESCRIPTOR_DIMENSION; x++)
 	{
 		cvSetReal2D(currentFeature, 0, x, description.descriptor[x]);
 	}

@@ -52,6 +52,7 @@ CPGRCamera* camera;
 windage::Tracker* tracker;
 windage::AugmentedReality* arTool;
 IplImage* input;
+IplImage* temp;
 IplImage* gray;
 
 void keyboard(unsigned char ch, int x, int y)
@@ -71,7 +72,8 @@ void idle(void)
 {
 	// camera frame grabbing
 	camera->update();
-	cvResize(camera->GetIPLImage(), input);
+	tracker->GetCameraParameter()->Undistortion(camera->GetIPLImage(), temp);
+	cvResize(temp, input);
 	cvCvtColor(input, gray, CV_BGRA2GRAY);
 
 	// call tracking algorithm
@@ -118,6 +120,7 @@ void main()
 	camera->start();
 
 	input = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 4);
+	temp = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 4);
 	gray = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 1);
 
 	// initialize tracker
@@ -127,6 +130,8 @@ void main()
 	((windage::ModifiedSURFTracker*)tracker)->RegistReferenceImage(referenceImage, 26.70, 20.00, 4.0, 8);
 	((windage::ModifiedSURFTracker*)tracker)->InitializeOpticalFlow(WIDTH, HEIGHT, 10, cvSize(15, 15), 3);
 	((windage::ModifiedSURFTracker*)tracker)->SetOpticalFlowRunning(true);
+
+	tracker->GetCameraParameter()->InitUndistortionMap(WIDTH, HEIGHT);
 
 	// initialize ar tools
 	arTool = new windage::ARForOpenGL();

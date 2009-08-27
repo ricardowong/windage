@@ -48,10 +48,27 @@
 
 namespace windage
 {
+	/**
+	 * @brief
+	 *		Class for 3D Reconstruction
+	 * @author
+	 *		windage
+	 */
 	class DLLEXPORT Reconstructor
 	{
 	public:
-		static CvScalar Calc3DPointApproximation(Calibration* lCalibration, Calibration* rCalibration, CvPoint lPoint, CvPoint rPoint);
+		/**
+		 * @brief
+		 *		Stereo-based 3D Reconstruction Method
+		 * @remark
+		 *		Calculate 3D Point from Approximate projection line at stereo-camera
+		 */
+		static CvScalar Calc3DPointApproximation(
+													Calibration* lCalibration,	///< stereo-camera1 parameter
+													Calibration* rCalibration,	///< stereo-camera2 parameter
+													CvPoint lPoint,				///< stereo-camera1 point based on Image coordinate
+													CvPoint rPoint				///< stereo-camera2 point based on Image coordinate
+												);
 	};
 }
 

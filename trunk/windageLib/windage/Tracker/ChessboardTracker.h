@@ -48,14 +48,20 @@
 
 namespace windage
 {
+	/**
+	 * @brief
+	 *		Class for Camera Tracker using chessboard
+	 * @author
+	 *		windage
+	 */
 	class DLLEXPORT ChessboardTracker:public Tracker
 	{
 	private:
-		CvPoint2D32f* chessboardPoints;
+		CvPoint2D32f* chessboardPoints;	///< storage for chessboard position at image coordinate
 
-		int chessboardWidth;
-		int chessboardHeight;
-		double fieldSize;
+		int chessboardWidth;			///< chessboard block count
+		int chessboardHeight;			///< chessboard block count
+		double fieldSize;				///< chessboard block size
 
 		void Release();
 
@@ -69,9 +75,39 @@ namespace windage
 		ChessboardTracker();
 		virtual ~ChessboardTracker();
 
-		void Initialize(double fx, double fy, double cx, double cy, double d1, double d2, double d3, double d4, int chessboardWidth, int chessboardHeight, double fieldSize);
+		/**
+		 * @brief
+		 *		Initialize Chessboard Tracker
+		 * @remark
+		 *		initialize chessboard tracker setting the chessboard information and camera paramter (intrinsic parameter)
+		 */
+		void Initialize(double fx, 				///< intrinsic parameter x focal length
+						double fy, 				///< intrinsic parameter y focal length
+						double cx, 				///< intrinsic parameter x principle point
+						double cy, 				///< intrinsic parameter y principle point
+						double d1, 				///< intrinsic parameter distortion factor1
+						double d2, 				///< intrinsic parameter distortion factor2
+						double d3, 				///< intrinsic parameter distortion factor3
+						double d4, 				///< intrinsic parameter distortion factor4
+						int chessboardWidth,	///< chessboard block width count
+						int chessboardHeight,	///< chessboard block height count
+						double fieldSize		///< chessboard block size
+						);
 
+		/**
+		 * @brief
+		 *		Update Camera Pose (extrinsic parameter)
+		 * @remark
+		 *		update extrinsic parameter method using input image
+		 */
 		int UpdateCameraPose(IplImage* grayImage);
+
+		/**
+		 * @brief
+		 *		Draw Debug Information
+		 * @remark
+		 *		draw debug information method
+		 */
 		void DrawDebugInfo(IplImage* colorImage);
 	};
 }
