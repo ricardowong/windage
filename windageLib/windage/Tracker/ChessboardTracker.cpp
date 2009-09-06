@@ -68,6 +68,8 @@ void ChessboardTracker::Initialize(double fx, double fy, double cx, double cy, d
 	
 	int pointCount = this->GetPointCount();
 	chessboardPoints = new CvPoint2D32f[pointCount];
+
+	this->usingSubpixelAccuracy = true;
 }
 
 int ChessboardTracker::FindChessBoardCorner(IplImage* inputImage)
@@ -87,10 +89,14 @@ int ChessboardTracker::FindChessBoardCorner(IplImage* inputImage)
 	}
 
 	int result = cvFindChessBoardCornerGuesses(grayImage, inputImage, NULL, size, chessboardPoints, &pointCount);
-	if(result)
+
+	if(usingSubpixelAccuracy)
 	{
-		cvFindCornerSubPix(grayImage, chessboardPoints, pointCount, cvSize(5,5), cvSize(-1,-1),
-								   cvTermCriteria( CV_TERMCRIT_ITER|CV_TERMCRIT_EPS, 10, 0.01f ));
+		if(result)
+		{
+			cvFindCornerSubPix(grayImage, chessboardPoints, pointCount, cvSize(5,5), cvSize(-1,-1),
+									   cvTermCriteria( CV_TERMCRIT_ITER|CV_TERMCRIT_EPS, 10, 0.01f ));
+		}
 	}
 
 	if(isGrayImage == false)

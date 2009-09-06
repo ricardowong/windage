@@ -63,6 +63,8 @@ namespace windage
 		int chessboardHeight;			///< chessboard block count
 		double fieldSize;				///< chessboard block size
 
+		bool usingSubpixelAccuracy;
+
 		void Release();
 
 		inline void SetChessboard(int width, int height, double size){this->chessboardWidth=width, this->chessboardHeight=height; this->fieldSize=size;};
@@ -74,6 +76,8 @@ namespace windage
 	public:
 		ChessboardTracker();
 		virtual ~ChessboardTracker();
+
+		inline void SetUsingSubpixelAccuracy(bool use){this->usingSubpixelAccuracy = use;};
 
 		/**
 		 * @brief
@@ -89,9 +93,9 @@ namespace windage
 						double d2, 				///< intrinsic parameter distortion factor2
 						double d3, 				///< intrinsic parameter distortion factor3
 						double d4, 				///< intrinsic parameter distortion factor4
-						int chessboardWidth,	///< chessboard block width count
-						int chessboardHeight,	///< chessboard block height count
-						double fieldSize		///< chessboard block size
+						int chessboardWidth = 7,	///< chessboard block width count
+						int chessboardHeight = 8,	///< chessboard block height count
+						double fieldSize = 28.0		///< chessboard block size
 						);
 
 		/**

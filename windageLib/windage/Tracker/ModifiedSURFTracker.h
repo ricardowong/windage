@@ -94,6 +94,7 @@ namespace windage
 		int featureExtractThreshold;	///< FAST Corner extract threshold value
 
 		IplImage* referenceImage;	///< attatched reference image
+		IplImage* prevImage;
 		std::vector<SURFDesciription> referenceSURF;	///< reference image surf description
 		std::vector<SURFDesciription> sceneSURF;		///< input image surf description
 
@@ -206,6 +207,8 @@ namespace windage
 		 *		draw debug information method
 		 */
 		void DrawDebugInfo(IplImage* colorImage);
+
+		void DrawOutLine(IplImage* colorImage);
 
 		// optical flow
 		/**

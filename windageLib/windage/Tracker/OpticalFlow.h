@@ -54,7 +54,7 @@ namespace windage
 	 * @author
 	 *		windage
 	 */
-	class OpticalFlow
+	class DLLEXPORT OpticalFlow
 	{
 	private:
 		int imageWidth;		///< input image size
@@ -70,15 +70,23 @@ namespace windage
 		float errorFeature[maxPointCount];
 
 		CvTermCriteria terminationCriteria;
-		IplImage* prevImage;					///< saved preview images (automated save value after calling TrackFeature method)
 		IplImage* pyramid1;
 		IplImage* pyramid2;
+
+		bool removePrevPoints;
 
 		void Release();
 	public:
 		OpticalFlow();
 		~OpticalFlow();
 
+		/**
+		 * @brief
+		 *		Set prev points remove mode
+		 * @remark
+		 *		default : false
+		 */
+		inline void SetRemovePrevPoints(bool removePrevPoints=true){this->removePrevPoints=removePrevPoints;};
 		inline void SetImageSize(int width, int height){this->imageWidth=width;this->imageHeight=height;};
 		inline CvSize GetImageSize(){return cvSize(this->imageWidth, this->imageHeight);};
 		inline void SetWindowSize(CvSize size=cvSize(10, 10)){this->windowSize = size;};
@@ -107,7 +115,8 @@ namespace windage
 		 *		Tracking Feature using OpticalFlow
 		 */
 		int TrackFeature(
-						IplImage* grayImage,						///< input image
+						IplImage* prevGrayImage,						///< input image
+						IplImage* currGrayImage,						///< input image
 						std::vector<CvPoint2D32f>* prevPoints,		///< input previous points
 						std::vector<CvPoint2D32f>* currentPoints	///< output updated points
 						);

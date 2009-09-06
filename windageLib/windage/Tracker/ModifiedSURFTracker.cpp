@@ -48,6 +48,7 @@ using namespace windage;
 ModifiedSURFTracker::ModifiedSURFTracker()
 {
 	cameraParameter = NULL;
+	prevImage = NULL;
 	referenceImage = NULL;
 	featureExtractThreshold = 50;
 
@@ -68,6 +69,8 @@ void ModifiedSURFTracker::Release()
 {
 	if(cameraParameter) delete cameraParameter;
 	cameraParameter = NULL;
+	if(prevImage) cvReleaseImage(&prevImage);
+	prevImage = NULL;
 	if(referenceImage) cvReleaseImage(&referenceImage);
 	referenceImage = NULL;
 
@@ -102,7 +105,7 @@ void ModifiedSURFTracker::RegistReferenceImage(IplImage* referenceImage, double 
 
 	// registrate
 	this->referenceImage = cvCloneImage(referenceImage);
-	cvSmooth(this->referenceImage, this->referenceImage, CV_GAUSSIAN, 3, 3, 0.5, 0.5);
+//	cvSmooth(this->referenceImage, this->referenceImage, CV_GAUSSIAN, 3, 3, 0.5, 0.5);
 
 	this->realWidth = realWidth;
 	this->realHeight = realHeight;
@@ -306,6 +309,11 @@ int ModifiedSURFTracker::GenerateReferenceFeatureTree(double scaleFactor, int sc
 				tempSurf[i].point.x *= xScaleFactor;
 				tempSurf[i].point.y *= yScaleFactor;
 				tempSurf[i].point.y = this->realHeight - tempSurf[i].point.y;
+
+				tempSurf[i].point.x = tempSurf[i].point.x - (float)this->realWidth/2;
+				tempSurf[i].point.y = tempSurf[i].point.y - (float)this->realHeight/2;
+
+
 				referenceSURF.push_back(tempSurf[i]);
 			}
 
@@ -513,89 +521,99 @@ int ModifiedSURFTracker::UpdateCameraPose(IplImage* grayImage)
 	bool update = true;
 	if(runOpticalflow)
 	{
-		if(step > stepSize)
+		if(prevImage)
 		{
-//			update = false;
-
-			std::vector<CvPoint2D32f> matchedTempPoints;
-			opticalflow->TrackFeature(grayImage, &matchedScenePoints, &matchedTempPoints);
-
-			int index = 0;
-			for(unsigned int i=0; i<matchedTempPoints.size(); i++)
+			if(step > stepSize)
 			{
-				if(matchedTempPoints[i].x >= 0 && matchedTempPoints[i].y >= 0)
-				{
-					matchedScene[index].point = matchedTempPoints[i];
-					index++;
-				}
-				else
-				{
-					matchedReference.erase(matchedReference.begin() + index);
-					matchedScene.erase(matchedScene.begin() + index);
-				}
-			}
+	//			update = false;
+				std::vector<CvPoint2D32f> matchedTempPoints;
+				opticalflow->TrackFeature(prevImage, grayImage, &matchedScenePoints, &matchedTempPoints);
 
-			// add feature
-			sceneSURF.clear();
-			std::vector<CvPoint> fastCorners;
-			ModifiedSURFTracker::ExtractFASTCorner(&fastCorners, grayImage, featureExtractThreshold);
-			int featureCount = ModifiedSURFTracker::ExtractModifiedSURF(grayImage, &fastCorners, &sceneSURF);
-
-			std::vector<SURFDesciription> tempReferenceSURF;
-			std::vector<SURFDesciription> tempSceneSURF;
-
-			for(unsigned int i=0; i<sceneSURF.size(); i++)
-			{
-				int index = FindPairs(sceneSURF[i], referenceFeatureTree);
-				if(index > 0)
+				int index = 0;
+				for(unsigned int i=0; i<matchedTempPoints.size(); i++)
 				{
-					tempReferenceSURF.push_back(referenceSURF[index]);
-					tempSceneSURF.push_back(sceneSURF[i]);
-				}
-			}
-
-			for(unsigned int i=0; i<tempReferenceSURF.size(); i++)
-			{
-				bool isFound = false;
-				for(unsigned int j=0; j<matchedReference.size()&&!isFound; j++)
-				{
-					if( abs(tempReferenceSURF[i].point.x - matchedReference[j].point.x) +
-						abs(tempReferenceSURF[i].point.y - matchedReference[j].point.y) < 0.5)
+					if(matchedTempPoints[i].x >= 0 && matchedTempPoints[i].y >= 0)
 					{
-						isFound = true;
+						matchedScene[index].point = matchedTempPoints[i];
+						index++;
+					}
+					else
+					{
+						matchedReference.erase(matchedReference.begin() + index);
+						matchedScene.erase(matchedScene.begin() + index);
 					}
 				}
 
-				if(!isFound)
+				// add feature
+				sceneSURF.clear();
+				std::vector<CvPoint> fastCorners;
+				ModifiedSURFTracker::ExtractFASTCorner(&fastCorners, grayImage, featureExtractThreshold);
+				int featureCount = ModifiedSURFTracker::ExtractModifiedSURF(grayImage, &fastCorners, &sceneSURF);
+
+				std::vector<SURFDesciription> tempReferenceSURF;
+				std::vector<SURFDesciription> tempSceneSURF;
+
+				for(unsigned int i=0; i<sceneSURF.size(); i++)
 				{
-					matchedReference.push_back(tempReferenceSURF[i]);
-					matchedScene.push_back(tempSceneSURF[i]);
+					int index = FindPairs(sceneSURF[i], referenceFeatureTree);
+					if(index > 0)
+					{
+						tempReferenceSURF.push_back(referenceSURF[index]);
+						tempSceneSURF.push_back(sceneSURF[i]);
+					}
+				}
+
+				for(unsigned int i=0; i<tempReferenceSURF.size(); i++)
+				{
+					bool isFound = false;
+					for(unsigned int j=0; j<matchedReference.size()&&!isFound; j++)
+					{
+						if( abs(tempReferenceSURF[i].point.x - matchedReference[j].point.x) +
+							abs(tempReferenceSURF[i].point.y - matchedReference[j].point.y) < 0.5)
+						{
+							isFound = true;
+						}
+					}
+
+					if(!isFound)
+					{
+						matchedReference.push_back(tempReferenceSURF[i]);
+						matchedScene.push_back(tempSceneSURF[i]);
+					}
+				}
+
+				step = 0;
+			}
+			else
+			{
+				std::vector<CvPoint2D32f> matchedTempPoints;
+				opticalflow->TrackFeature(prevImage, grayImage, &matchedScenePoints, &matchedTempPoints);
+
+				int index = 0;
+				for(unsigned int i=0; i<matchedTempPoints.size(); i++)
+				{
+					if(matchedTempPoints[i].x >= 0 && matchedTempPoints[i].y >= 0)
+					{
+						matchedScene[index].point = matchedTempPoints[i];
+						index++;
+					}
+					else
+					{
+						matchedReference.erase(matchedReference.begin() + index);
+						matchedScene.erase(matchedScene.begin() + index);
+					}
 				}
 			}
-
-			step = 0;
 		}
 		else
 		{
-			std::vector<CvPoint2D32f> matchedTempPoints;
-			opticalflow->TrackFeature(grayImage, &matchedScenePoints, &matchedTempPoints);
-
-			int index = 0;
-			for(unsigned int i=0; i<matchedTempPoints.size(); i++)
-			{
-				if(matchedTempPoints[i].x >= 0 && matchedTempPoints[i].y >= 0)
-				{
-					matchedScene[index].point = matchedTempPoints[i];
-					index++;
-				}
-				else
-				{
-					matchedReference.erase(matchedReference.begin() + index);
-					matchedScene.erase(matchedScene.begin() + index);
-				}
-			}
+			prevImage = cvCreateImage(cvGetSize(grayImage), IPL_DEPTH_8U, 1);
 		}
+
 		step++;
+
+		// for optical flow
+		cvCopyImage(grayImage, prevImage);
 	}
 	else
 	{
@@ -647,20 +665,43 @@ void ModifiedSURFTracker::DrawDebugInfo(IplImage* colorImage)
 //*/
 
 	CvScalar color = CV_RGB(255, 0, 255);
-	cvLine(colorImage, cameraParameter->ConvertWorld2Image(0.0, 0.0, 0.0),							cameraParameter->ConvertWorld2Image(this->realWidth, 0.0, 0.0),					color, 2);
-	cvLine(colorImage, cameraParameter->ConvertWorld2Image(this->realWidth, 0.0, 0.0),				cameraParameter->ConvertWorld2Image(this->realWidth, this->realHeight, 0.0),	color, 2);
-	cvLine(colorImage, cameraParameter->ConvertWorld2Image(this->realWidth, this->realHeight, 0.0), cameraParameter->ConvertWorld2Image(0.0, this->realHeight, 0.0),				color, 2);
-	cvLine(colorImage, cameraParameter->ConvertWorld2Image(0.0, this->realHeight, 0.0),				cameraParameter->ConvertWorld2Image(0.0, 0.0, 0.0),								color, 2);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(-this->realWidth/2, -this->realHeight/2, 0.0),	cameraParameter->ConvertWorld2Image(+this->realWidth/2, -this->realHeight/2, 0.0),	color, 2);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(+this->realWidth/2, -this->realHeight/2, 0.0),	cameraParameter->ConvertWorld2Image(+this->realWidth/2, +this->realHeight/2, 0.0),	color, 2);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(+this->realWidth/2, +this->realHeight/2, 0.0),	cameraParameter->ConvertWorld2Image(-this->realWidth/2, +this->realHeight/2, 0.0),	color, 2);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(-this->realWidth/2, +this->realHeight/2, 0.0),	cameraParameter->ConvertWorld2Image(-this->realWidth/2, -this->realHeight/2, 0.0),	color, 2);
 
-	cvLine(colorImage, cameraParameter->ConvertWorld2Image(0.0, 0.0, 0.0),							cameraParameter->ConvertWorld2Image(this->realWidth, this->realHeight, 0.0),	color, 2);
-	cvLine(colorImage, cameraParameter->ConvertWorld2Image(this->realWidth, 0.0, 0.0),				cameraParameter->ConvertWorld2Image(0.0, this->realHeight, 0.0),				color, 2);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(-this->realWidth/2, -this->realHeight/2, 0.0),	cameraParameter->ConvertWorld2Image(+this->realWidth/2, +this->realHeight/2, 0.0),	color, 2);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(-this->realWidth/2, +this->realHeight/2, 0.0),	cameraParameter->ConvertWorld2Image(+this->realWidth/2, -this->realHeight/2, 0.0),	color, 2);
 
 	for(unsigned int i=0; i<matchedScene.size(); i++)
 	{
-		cvCircle(colorImage, cvPoint(matchedReference[i].point.x * colorImage->width/realWidth, (colorImage->height - matchedReference[i].point.y * colorImage->height/realHeight)), size, CV_RGB(0, 255, 255), CV_FILLED);
-		cvCircle(colorImage, cvPoint(matchedScene[i].point.x, matchedScene[i].point.y), size, CV_RGB(255, 255, 0), CV_FILLED);
-		cvLine(colorImage, cvPoint(matchedReference[i].point.x * colorImage->width/realWidth, (colorImage->height - matchedReference[i].point.y * colorImage->height/realHeight)), cvPoint(matchedScene[i].point.x, matchedScene[i].point.y), CV_RGB(255, 0, 0));
+		CvPoint referencePoint = cvPoint(matchedReference[i].point.x * colorImage->width/realWidth + colorImage->width/2,
+									(colorImage->height - matchedReference[i].point.y * colorImage->height/realHeight - colorImage->height/2));
+		CvPoint imagePoint = cvPoint(matchedScene[i].point.x, matchedScene[i].point.y);
+
+		cvCircle(colorImage, referencePoint, size, CV_RGB(0, 255, 255), CV_FILLED);
+		cvCircle(colorImage, imagePoint, size, CV_RGB(255, 255, 0), CV_FILLED);
+		cvLine(colorImage, referencePoint, imagePoint, CV_RGB(255, 0, 0));
 	}
+}
+
+void ModifiedSURFTracker::DrawOutLine(IplImage* colorImage)
+{
+	int pointCount = (int)sceneSURF.size();
+	int r = 255;
+	int g = 0;
+	int b = 0;
+
+	int size = 4;
+
+	CvScalar color = CV_RGB(255, 0, 255);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(-this->realWidth/2, -this->realHeight/2, 0.0),	cameraParameter->ConvertWorld2Image(+this->realWidth/2, -this->realHeight/2, 0.0),	color, 2);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(+this->realWidth/2, -this->realHeight/2, 0.0),	cameraParameter->ConvertWorld2Image(+this->realWidth/2, +this->realHeight/2, 0.0),	color, 2);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(+this->realWidth/2, +this->realHeight/2, 0.0),	cameraParameter->ConvertWorld2Image(-this->realWidth/2, +this->realHeight/2, 0.0),	color, 2);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(-this->realWidth/2, +this->realHeight/2, 0.0),	cameraParameter->ConvertWorld2Image(-this->realWidth/2, -this->realHeight/2, 0.0),	color, 2);
+
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(-this->realWidth/2, -this->realHeight/2, 0.0),	cameraParameter->ConvertWorld2Image(+this->realWidth/2, +this->realHeight/2, 0.0),	color, 2);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(-this->realWidth/2, +this->realHeight/2, 0.0),	cameraParameter->ConvertWorld2Image(+this->realWidth/2, -this->realHeight/2, 0.0),	color, 2);
 }
 
 
@@ -669,6 +710,7 @@ void ModifiedSURFTracker::InitializeOpticalFlow(int width, int height, int stepS
 	if(opticalflow) delete opticalflow;
 	opticalflow = new OpticalFlow();
 	opticalflow->Initialize(width, height, windowSize, pyramidLevel);
+	opticalflow->SetRemovePrevPoints(false);
 
 	runOpticalflow = true;
 	this->stepSize = stepSize;

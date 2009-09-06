@@ -61,7 +61,7 @@ void Utils::DrawWorldCoordinatePoint(IplImage* colorImage, Calibration* calibrat
 		sprintf(message, "%d, %d, %d", (int)worldPoint.val[0], (int)worldPoint.val[1], (int)worldPoint.val[2]);
 		Utils::DrawTextToImage(colorImage, projection, message);
 	}
-
+//*
 	cvLine(colorImage,	calibration->ConvertWorld2Image(worldPoint.val[0], worldPoint.val[1]-size, worldPoint.val[2]-size),
 						calibration->ConvertWorld2Image(worldPoint.val[0], worldPoint.val[1]-size, worldPoint.val[2]+size), CV_RGB(255, 0, 0));
 	cvLine(colorImage,	calibration->ConvertWorld2Image(worldPoint.val[0], worldPoint.val[1]-size, worldPoint.val[2]+size),
@@ -70,7 +70,8 @@ void Utils::DrawWorldCoordinatePoint(IplImage* colorImage, Calibration* calibrat
 						calibration->ConvertWorld2Image(worldPoint.val[0], worldPoint.val[1]+size, worldPoint.val[2]-size), CV_RGB(255, 0, 0));
 	cvLine(colorImage,	calibration->ConvertWorld2Image(worldPoint.val[0], worldPoint.val[1]+size, worldPoint.val[2]-size),
 						calibration->ConvertWorld2Image(worldPoint.val[0], worldPoint.val[1]-size, worldPoint.val[2]-size), CV_RGB(255, 0, 0));
-
+//*/
+//*
 	cvLine(colorImage,	calibration->ConvertWorld2Image(worldPoint.val[0]-size, worldPoint.val[1], worldPoint.val[2]-size),
 						calibration->ConvertWorld2Image(worldPoint.val[0]-size, worldPoint.val[1], worldPoint.val[2]+size), CV_RGB(0, 255, 0));
 	cvLine(colorImage,	calibration->ConvertWorld2Image(worldPoint.val[0]-size, worldPoint.val[1], worldPoint.val[2]+size),
@@ -79,7 +80,8 @@ void Utils::DrawWorldCoordinatePoint(IplImage* colorImage, Calibration* calibrat
 						calibration->ConvertWorld2Image(worldPoint.val[0]+size, worldPoint.val[1], worldPoint.val[2]-size), CV_RGB(0, 255, 0));
 	cvLine(colorImage,	calibration->ConvertWorld2Image(worldPoint.val[0]+size, worldPoint.val[1], worldPoint.val[2]-size),
 						calibration->ConvertWorld2Image(worldPoint.val[0]-size, worldPoint.val[1], worldPoint.val[2]-size), CV_RGB(0, 255, 0));
-
+//*/
+//*
 	cvLine(colorImage,	calibration->ConvertWorld2Image(worldPoint.val[0]-size, worldPoint.val[1]-size, worldPoint.val[2]),
 						calibration->ConvertWorld2Image(worldPoint.val[0]-size, worldPoint.val[1]+size, worldPoint.val[2]), CV_RGB(0, 0, 255));
 	cvLine(colorImage,	calibration->ConvertWorld2Image(worldPoint.val[0]-size, worldPoint.val[1]+size, worldPoint.val[2]),
@@ -88,5 +90,5 @@ void Utils::DrawWorldCoordinatePoint(IplImage* colorImage, Calibration* calibrat
 						calibration->ConvertWorld2Image(worldPoint.val[0]+size, worldPoint.val[1]-size, worldPoint.val[2]), CV_RGB(0, 0, 255));
 	cvLine(colorImage,	calibration->ConvertWorld2Image(worldPoint.val[0]+size, worldPoint.val[1]-size, worldPoint.val[2]),
 						calibration->ConvertWorld2Image(worldPoint.val[0]-size, worldPoint.val[1]-size, worldPoint.val[2]), CV_RGB(0, 0, 255));
-
+//*/
 }

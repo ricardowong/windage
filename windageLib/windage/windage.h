@@ -45,7 +45,7 @@
 
 // header files for augmented reality
 #include "AugmentedReality/AugmentedReality.h"
-#include "AugmentedReality/ARForOpenGL.h"
+//#include "AugmentedReality/ARForOpenGL.h"
 
 // header files for 3d reconstruction
 #include "Reconstructor/Reconstructor.h"
@@ -74,7 +74,7 @@
  *		- Source code is available under the GNU General Public License.
  *		- In short, if you distribute a software that uses windageLib-demo, you have to distribute it under GPL with the source code.
  *		- Another option is to contact us to purchase a commercial license.
- * @section advenced Functions
+ *		- 
  *		-# Real-time Natural Feature Tracking 
  *			- <img src="http://windage.googlecode.com/svn/trunk/Document/images/Demo_ModifiedSURF.png"/>
  *		-# Muli-method Tracking
@@ -88,7 +88,7 @@
  * @section advenced For further information please contact 
  *		- Woonhyuk Baek
  *			- <windage@live.com>
- *			-
+ *			- 
  *			- GIST U-VR Lab.
  *			- Department of Information and Communication
  *			- Gwangju Institute of Science and Technology

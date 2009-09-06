@@ -46,7 +46,7 @@
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
-				OpenMP="false"
+				OpenMP="true"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="4"
@@ -231,10 +231,6 @@
 			</Filter>
 		</Filter>
 		<Filter
-			Name="Camera"
-			>
-		</Filter>
-		<Filter
 			Name="Reconstructor"
 			>
 			<File
@@ -352,6 +348,10 @@
 					RelativePath=".\SpatialInteraction\StereoSURFDetector.h"
 					>
 				</File>
+			</Filter>
+			<Filter
+				Name="Interpretor"
+				>
 			</Filter>
 		</Filter>
 		<File

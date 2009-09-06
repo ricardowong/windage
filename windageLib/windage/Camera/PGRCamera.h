@@ -1,4 +1,6 @@
 #pragma once
+/** @cond */
+
 /**
  * Wrapper class for controlling PGR cameras such as flea, dragonfly..
  *
@@ -51,3 +53,5 @@ private:
 
 	unsigned char* _buffer;
 };
+
+/** @endcond */
