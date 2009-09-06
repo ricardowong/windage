@@ -63,12 +63,12 @@ void SensorGroup::Release()
 
 void SensorGroup::SetPosition(Vector3 position)
 {
-	this->position = position;
-
 	for(unsigned int i=0; i<this->sensors.size(); i++)
 	{
-		sensors[i]->SetPosition(sensors[i]->GetPosition() + position);
+		sensors[i]->SetPosition(sensors[i]->GetPosition() - this->position + position);
 	}
+
+	this->position = position;
 }
 
 void SensorGroup::SetRotation(Vector3 rotation)

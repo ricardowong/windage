@@ -50,7 +50,7 @@ namespace windage
 {
 	/**
 	 * @brief
-	 *		Utily Class
+	 *		Utility Class
 	 * @author
 	 *		windage
 	 */

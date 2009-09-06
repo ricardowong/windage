@@ -42,12 +42,13 @@
 
 #include <omp.h>
 #include <windage.h>
+#include "AugmentedReality/ARForOpenGL.h"
 
 #include "PGRCamera.h"
 #include "OpenGLRenderer.h"
 
-#define DETECTOR_TYPE StereoSensorDetector
-//#define DETECTOR_TYPE StereoSURFDetector
+//#define DETECTOR_TYPE StereoSensorDetector
+#define DETECTOR_TYPE StereoSURFDetector
 #define UNDISTORTION
 
 const int WIDTH = 640;
@@ -72,9 +73,11 @@ windage::AugmentedReality* arTool;
 
 bool isTracking = true;
 SensorGroup* cubeGroup;
+SensorGroup* extendedCubeGroup;
 //std::vector<windage::SpatialSensor*> spatialSensors;
 
 SensorDetector* sensorDetector;
+SensorDetector* extendedSensorDetector;
 
 void keyboard(unsigned char ch, int x, int y)
 {
@@ -118,6 +121,9 @@ void idle(void)
 	{
 		tracker1->UpdateCameraPose(gray1);
 		tracker2->UpdateCameraPose(gray2);
+
+//		tracker1->DrawDebugInfo(input1);
+//		tracker2->DrawDebugInfo(input2);
 	}
 	tracker1->DrawInfomation(input1, 100.0);
 	tracker2->DrawInfomation(input2, 100.0);
@@ -128,6 +134,7 @@ void idle(void)
 	images.push_back(gray2);
 
 	sensorDetector->CalculateActivation(&images);
+	extendedSensorDetector->CalculateActivation(&images);
 
 	cvShowImage("image1", input1);
 	cvShowImage("image2", input2);
@@ -160,7 +167,38 @@ void display()
 	int activeCount = 0;
 	// draw spatial sensors
 
+	Vector3 averagePosition = Vector3();
 	std::vector<windage::SpatialSensor*>* spatialSensors = cubeGroup->GetSensors();
+	for(int i=0; i<spatialSensors->size(); i++)
+	{
+		glPushMatrix();
+			Vector3 position = (*spatialSensors)[i]->GetPosition();
+			glTranslated(position.x, position.y, position.z);
+
+			glDisable(GL_LIGHTING);
+			glEnable(GL_BLEND);
+
+			if((*spatialSensors)[i]->IsActive())
+			{
+				glColor4f(1, 0, 0, 0.8);
+				activeCount++;
+
+				averagePosition += position;
+			}
+			else
+			{
+				glColor4f(0, 0, 1, 0.2);
+			}
+			glutSolidCube(((CubeSensorGroup*)cubeGroup)->GetCellSize());
+
+			glEnable(GL_LIGHTING);
+			glDisable(GL_BLEND);
+		glPopMatrix();
+	}
+
+	averagePosition /= (double)activeCount;
+	extendedCubeGroup->SetPosition(averagePosition);
+	spatialSensors = extendedCubeGroup->GetSensors();
 	for(int i=0; i<spatialSensors->size(); i++)
 	{
 		glPushMatrix();
@@ -172,12 +210,12 @@ void display()
 
 			if((*spatialSensors)[i]->IsActive())
 			{
-				glColor4f(1, 0, 0, 0.8);
+				glColor4f(1, 0, 1, 0.8);
 				activeCount++;
 			}
 			else
 			{
-				glColor4f(0, 0, 1, 0.2);
+				glColor4f(0, 1, 1, 0.2);
 			}
 			glutSolidCube(((CubeSensorGroup*)cubeGroup)->GetCellSize());
 
@@ -234,13 +272,22 @@ void main()
 	cubeGroup = new CubeSensorGroup();
 	((CubeSensorGroup*)cubeGroup)->Initialize(1, Vector3(75, 75, 75));
 
+	extendedCubeGroup = new CubeSensorGroup();
+	((CubeSensorGroup*)extendedCubeGroup)->Initialize(2, Vector3(0, 0, 0), 3, 10.0, 15.0);
+
 	sensorDetector = new DETECTOR_TYPE();
-	((DETECTOR_TYPE*)sensorDetector)->Initialize(ACTIVATION_TRESHOLD, 10.0);
+	((DETECTOR_TYPE*)sensorDetector)->Initialize(ACTIVATION_TRESHOLD);
 	((DETECTOR_TYPE*)sensorDetector)->AttatchCameraParameter(0, tracker1->GetCameraParameter());
 	((DETECTOR_TYPE*)sensorDetector)->AttatchCameraParameter(1, tracker2->GetCameraParameter());
 
+	extendedSensorDetector = new DETECTOR_TYPE();
+	((DETECTOR_TYPE*)extendedSensorDetector)->Initialize(ACTIVATION_TRESHOLD);
+	((DETECTOR_TYPE*)extendedSensorDetector)->AttatchCameraParameter(0, tracker1->GetCameraParameter());
+	((DETECTOR_TYPE*)extendedSensorDetector)->AttatchCameraParameter(1, tracker2->GetCameraParameter());
+
 	// attatch sensors
 	sensorDetector->AttatchSpatialSensors(cubeGroup->GetSensors());
+	extendedSensorDetector->AttatchSpatialSensors(extendedCubeGroup->GetSensors());
 
 	// initialize rendering engine
 	OpenGLRenderer::init(WIDTH, HEIGHT);

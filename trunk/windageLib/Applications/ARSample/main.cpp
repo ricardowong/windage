@@ -45,14 +45,15 @@
 #include "AugmentedReality/ARForOpenGL.h"
 #include "Tracker/ModifiedSURFTracker.h"
 
+#define FILP
+
 const int WIDTH = 640;
 const int HEIGHT = 480;
 
-CPGRCamera* camera;
+CvCapture* capture;
 windage::Tracker* tracker;
 windage::AugmentedReality* arTool;
 IplImage* input;
-IplImage* temp;
 IplImage* gray;
 
 void keyboard(unsigned char ch, int x, int y)
@@ -61,8 +62,7 @@ void keyboard(unsigned char ch, int x, int y)
 	{
 	case 'q':
 	case 'Q':
-		camera->stop();
-		camera->close();
+		cvReleaseCapture(&capture);
 		exit(0);
 		break;
 	}
@@ -71,9 +71,11 @@ void keyboard(unsigned char ch, int x, int y)
 void idle(void)
 {
 	// camera frame grabbing
-	camera->update();
-	tracker->GetCameraParameter()->Undistortion(camera->GetIPLImage(), temp);
-	cvResize(temp, input);
+	IplImage* grabFrame = cvQueryFrame(capture);
+	tracker->GetCameraParameter()->Undistortion(grabFrame, input);
+#ifdef FILP
+	cvFlip(input, input);
+#endif
 	cvCvtColor(input, gray, CV_BGRA2GRAY);
 
 	// call tracking algorithm
@@ -115,12 +117,11 @@ void display()
 void main()
 {
 	// connect camera
-	camera = new CPGRCamera();
-	camera->open();
-	camera->start();
+	capture = cvCaptureFromCAM(CV_CAP_ANY);
+	cvSetCaptureProperty(capture, CV_CAP_PROP_FRAME_WIDTH, WIDTH);
+	cvSetCaptureProperty(capture, CV_CAP_PROP_FRAME_HEIGHT, HEIGHT);
 
-	input = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 4);
-	temp = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 4);
+	input = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
 	gray = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 1);
 
 	// initialize tracker
@@ -147,6 +148,5 @@ void main()
 
 	glutMainLoop();
 
-	camera->stop();
-	camera->close();
+	cvReleaseCapture(&capture);
 }

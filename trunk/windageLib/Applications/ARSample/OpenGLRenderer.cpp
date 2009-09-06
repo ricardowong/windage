@@ -84,79 +84,12 @@ void OpenGLRenderer::drawClear()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void OpenGLRenderer::drawBackground(IplImage* inputImage)
-{
-	// Draw background
-#ifdef DRAWPIXEL_MODE
-	// using Draw Pixels
-	IplImage* flipImage = cvCreateImage(cvGetSize(inputImage), inputImage->depth, inputImage->nChannels);
-	cvFlip(inputImage, flipImage);
-
-	glDisable(GL_DEPTH_TEST);
-//	glPixelZoom(resizeFactorX, resizeFactorY);
-	glDrawPixels(flipImage->width, flipImage->height, GL_BGR_EXT, GL_UNSIGNED_BYTE, flipImage->imageData);
-	glEnable(GL_DEPTH_TEST);
-
-	cvReleaseImage(&flipImage);
-#else
-	// using texturemapping
-	IplImage* resizeTexture = cvCreateImage(cvSize(512, 512), IPL_DEPTH_8U, 3);
-	cvResize(inputImage, resizeTexture);
-
-	glEnable(GL_TEXTURE_2D);
-    glDisable(GL_BLEND);
-    glDisable(GL_LIGHTING);
-    glDisable(GL_DEPTH_TEST);
-
-    GLuint backgroundTexture;
-    glGenTextures(1, &backgroundTexture);
-    glBindTexture(GL_TEXTURE_2D, backgroundTexture);
-
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, resizeTexture->width, resizeTexture->width, 0, GL_BGR_EXT, GL_UNSIGNED_BYTE, resizeTexture->imageData);
-
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-//	glOrtho(0, 1, 0, 1, -1, 1);
-	// isflip
-    glOrtho(0, 1, 1, 0, -1, 1);
-
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-
-    glColor3f(1.0f, 1.0f, 1.0f);
-    glBegin(GL_POLYGON);
-    {
-		glTexCoord2d(0,1);
-		glVertex2d(0,1);
-
-		glTexCoord2d(1,1);
-		glVertex2d(1,1);
-
-		glTexCoord2d(1,0);
-		glVertex2d(1,0);
-
-		glTexCoord2d(0,0);
-		glVertex2d(0,0);
-    }
-    glEnd();
-
-    glDeleteTextures(1, &backgroundTexture);
-
-	cvReleaseImage(&resizeTexture);
-	glEnable(GL_DEPTH_TEST);
-#endif
-}
-
 void OpenGLRenderer::setLight()
 {
 	GLfloat diffuse0[]={1.0, 1.0, 1.0, 1.0};
 	GLfloat ambient0[]={1.0, 1.0, 1.0, 1.0};
 	GLfloat specular0[]={1.0, 1.0, 1.0, 1.0};
-	GLfloat light0_pos[]={0.0, 0.0, 200, 1.0};
+	GLfloat light0_pos[]={0.0, 250.0, 250, 1.0};
 
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
