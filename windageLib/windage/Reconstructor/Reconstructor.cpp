@@ -71,3 +71,123 @@ CvScalar Reconstructor::Calc3DPointApproximation(Calibration* lCalibration, Cali
 
 	return cvScalar(result.x, result.y, result.z);
 }
+
+double Reconstructor::CalculatePlaneError(Vector4 plane, Vector3 point)
+{
+	Vector3 normal = Vector3(plane.x, plane.y, plane.z);
+	double error = abs(normal * point + plane.w) / normal.getLength();
+	return error;
+}
+
+Vector4 Reconstructor::PlaneEstimation(Vector3 point1, Vector3 point2, Vector3 point3)
+{
+	Vector3 direction1 = point2 - point1;
+	Vector3 direction2 = point3 - point1;
+	
+	Vector3 plane = direction1^direction2;
+	double d = - (plane * point1);
+
+	return Vector4(plane.x, plane.y, plane.z, d);
+}
+
+#include <time.h>
+Vector4 Reconstructor::PlaneEstimationRANSAC(std::vector<Vector3>* points, Vector3& center, std::vector<Vector3>* consensusPoints)
+{
+	srand(time(NULL));
+	Vector4 bestResult;
+
+	Vector3 bestSum;
+	double bestCount = 0;
+	double bestError = 9999999;
+	Vector4 bestPlane;
+
+	for(int i=0; i<points->size() * 100; i++)
+	{
+		int index[3];
+		
+		index[0] = rand()%points->size();
+		index[1] = rand()%points->size();
+		index[2] = rand()%points->size();
+
+		while(index[0] == index[1] || index[0] == index[2] || index[1] == index[2])
+		{
+			index[0] = rand()%points->size();
+			index[1] = rand()%points->size();
+			index[2] = rand()%points->size();
+		}
+
+		Vector3 point1 = (*points)[index[0]];
+		Vector3 point2 = (*points)[index[1]];
+		Vector3 point3 = (*points)[index[2]];
+
+		Vector4 plane = PlaneEstimation(point1, point2, point3);
+
+		const double ERROR_THRESHOLD = 1.0;
+
+		Vector3 sum = Vector3();
+		int count = 0;
+		double error = 0.0;
+		for(int j=0; j<points->size(); j++)
+		{
+			double tempError = CalculatePlaneError(plane, (*points)[j]);
+			if(tempError < ERROR_THRESHOLD)
+			{
+				error += tempError;
+				count++;
+				sum += (*points)[j];
+			}
+		}
+		error /= count;
+		sum /= count;
+
+		if(count >= bestCount)
+		{
+			if(count == bestCount)
+			{
+				if(error < bestError)
+				{
+					bestPlane = plane;
+					bestCount = count;
+					bestError = error;
+					bestSum = sum;
+
+					if(consensusPoints)
+					{
+						consensusPoints->clear();
+						for(int j=0; j<points->size(); j++)
+						{
+							double tempError = CalculatePlaneError(plane, (*points)[j]);
+							if(tempError < ERROR_THRESHOLD)
+							{
+								consensusPoints->push_back((*points)[j]);
+							}
+						}
+					}
+				}
+			}
+			else
+			{
+				bestPlane = plane;
+				bestCount = count;
+				bestError = error;
+				bestSum = sum;
+
+				if(consensusPoints)
+				{
+					consensusPoints->clear();
+					for(int j=0; j<points->size(); j++)
+					{
+						double tempError = CalculatePlaneError(plane, (*points)[j]);
+						if(tempError < ERROR_THRESHOLD)
+						{
+							consensusPoints->push_back((*points)[j]);
+						}
+					}
+				}
+			}			
+		}
+	}
+
+	center = bestSum;
+	return bestPlane;
+}
