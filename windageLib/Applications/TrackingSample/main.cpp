@@ -1,3 +1,6 @@
+//#define RUNNING
+#ifdef RUNNING
+
 /* ========================================================================
  * PROJECT: windage Library
  * ========================================================================
@@ -43,7 +46,7 @@
 #include <windage.h>
 
 #define FLIP
-//#define RECTIFICATION
+#define RECTIFICATION
 
 const int WIDTH = 640;
 const int HEIGHT = 480;
@@ -134,3 +137,5 @@ void main()
 
 	cvReleaseCapture(&capture);
 }
+
+#endif

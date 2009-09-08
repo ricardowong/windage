@@ -123,6 +123,18 @@ void ChessboardTracker::DrawDebugInfo(IplImage* inputImage)
 	}
 }
 
+void ChessboardTracker::DrawOutLine(IplImage* colorImage)
+{
+	CvScalar color = CV_RGB(255, 0, 255);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(-fieldSize,								-fieldSize,								0.0),	cameraParameter->ConvertWorld2Image(+fieldSize*(double)(chessboardHeight-1), -fieldSize,							 0.0),	color, 2);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(-fieldSize,								+fieldSize*(double)(chessboardWidth-1), 0.0),	cameraParameter->ConvertWorld2Image(+fieldSize*(double)(chessboardHeight-1), +fieldSize*(double)(chessboardWidth-1), 0.0),	color, 2);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(-fieldSize,								-fieldSize,								0.0),	cameraParameter->ConvertWorld2Image(-fieldSize,								 +fieldSize*(double)(chessboardWidth-1), 0.0),	color, 2);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(+fieldSize*(double)(chessboardHeight-1), -fieldSize,								0.0),	cameraParameter->ConvertWorld2Image(+fieldSize*(double)(chessboardHeight-1), +fieldSize*(double)(chessboardWidth-1), 0.0),	color, 2);
+
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(-fieldSize,								-fieldSize,								0.0),	cameraParameter->ConvertWorld2Image(+fieldSize*(double)(chessboardHeight-1), +fieldSize*(double)(chessboardWidth-1), 0.0),	color, 2);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(-fieldSize,								+fieldSize*(double)(chessboardWidth-1), 0.0),	cameraParameter->ConvertWorld2Image(+fieldSize*(double)(chessboardHeight-1), -fieldSize,							 0.0),	color, 2);
+}
+
 bool ChessboardTracker::UpdateExtrinsicParams()
 {
 	CvMat* rotationVector = cvCreateMat(3, 1, CV_64FC1);

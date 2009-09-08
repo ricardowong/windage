@@ -38,6 +38,7 @@
  * ======================================================================== */
 
 #include "Calibration.h"
+#include "Utils/wMatrix.h"
 using namespace windage;
 
 Calibration::Calibration()
@@ -164,10 +165,36 @@ void Calibration::GetCameraPosition(CvMat* output)
 
 CvScalar Calibration::GetCameraPosition()
 {
+	windage::Matrix3 rotation;
+	rotation.m[0][0] = cvGetReal2D(this->extrinsicMatrix, 0, 0);
+	rotation.m[0][1] = cvGetReal2D(this->extrinsicMatrix, 1, 0);
+	rotation.m[0][2] = cvGetReal2D(this->extrinsicMatrix, 2, 0);
+
+	rotation.m[1][0] = cvGetReal2D(this->extrinsicMatrix, 0, 1);
+	rotation.m[1][1] = cvGetReal2D(this->extrinsicMatrix, 1, 1);
+	rotation.m[1][2] = cvGetReal2D(this->extrinsicMatrix, 2, 1);
+
+	rotation.m[2][0] = cvGetReal2D(this->extrinsicMatrix, 0, 2);
+	rotation.m[2][1] = cvGetReal2D(this->extrinsicMatrix, 1, 2);
+	rotation.m[2][2] = cvGetReal2D(this->extrinsicMatrix, 2, 2);
+
+	windage::Vector3 translation;
+	translation.x = cvGetReal2D(this->extrinsicMatrix, 0, 3);
+	translation.y = cvGetReal2D(this->extrinsicMatrix, 1, 3);
+	translation.z = cvGetReal2D(this->extrinsicMatrix, 2, 3);
+
+	rotation = rotation.Transpose();
+	windage::Vector3 temp = rotation * translation;
+
 	CvScalar cameraPos;
-	cameraPos.val[0] = cvGetReal2D(this->extrinsicMatrix, 0, 3);
-	cameraPos.val[1] = cvGetReal2D(this->extrinsicMatrix, 1, 3);
-	cameraPos.val[2] = cvGetReal2D(this->extrinsicMatrix, 2, 3);
+
+	cameraPos.val[0] = temp.x;
+	cameraPos.val[1] = temp.y;
+	cameraPos.val[2] = temp.z;
+
+//	cameraPos.val[0] = cvGetReal2D(this->extrinsicMatrix, 0, 3);
+//	cameraPos.val[1] = cvGetReal2D(this->extrinsicMatrix, 1, 3);
+//	cameraPos.val[2] = cvGetReal2D(this->extrinsicMatrix, 2, 3);
 	return cameraPos;
 }
 
@@ -377,11 +404,17 @@ void Calibration::InitUndistortionMap(int width, int height)
 	cvInitUndistortMap(this->intrinsicMatrix,this->distortionCoefficients, this->dstMapX, this->dstMapY);
 }
 
-#include <iostream>
 void Calibration::Undistortion(IplImage* input, IplImage* output)
 {
 	if(dstMapX && dstMapY)
 		cvRemap(input, output, this->dstMapX, this->dstMapY);
 	else
 		cvUndistort2(input, output, this->intrinsicMatrix, this->distortionCoefficients);
+}
+
+void Calibration::DrawInfomation(IplImage* colorImage, double size)
+{
+	cvLine(colorImage, this->ConvertWorld2Image(0.0, 0.0, 0.0), this->ConvertWorld2Image(size, 0.0, 0.0), CV_RGB(255, 0, 0), 2);
+	cvLine(colorImage, this->ConvertWorld2Image(0.0, 0.0, 0.0), this->ConvertWorld2Image(0.0, size, 0.0), CV_RGB(0, 255, 0), 2);
+	cvLine(colorImage, this->ConvertWorld2Image(0.0, 0.0, 0.0), this->ConvertWorld2Image(0.0, 0.0, size), CV_RGB(0, 0, 255), 2);
 }

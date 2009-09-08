@@ -46,7 +46,7 @@
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
-				OpenMP="true"
+				OpenMP="false"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="4"
@@ -221,7 +221,15 @@
 				Name="FAST Feature"
 				>
 				<File
+					RelativePath=".\Tracker\FAST\fast.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\Tracker\FAST\fast.h"
+					>
+				</File>
+				<File
+					RelativePath=".\Tracker\FAST\wsurf.cpp"
 					>
 				</File>
 				<File
@@ -353,6 +361,42 @@
 				Name="Interpretor"
 				>
 			</Filter>
+		</Filter>
+		<Filter
+			Name="FeatureMatching"
+			>
+			<File
+				RelativePath=".\FeatureMatching\CameraPoseCalculator.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\FeatureMatching\CameraPoseCalculator.h"
+				>
+			</File>
+			<File
+				RelativePath=".\FeatureMatching\FeatureFactory.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\FeatureMatching\FeatureFactory.h"
+				>
+			</File>
+			<File
+				RelativePath=".\FeatureMatching\FeatureTree.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\FeatureMatching\FeatureTree.h"
+				>
+			</File>
+			<File
+				RelativePath=".\FeatureMatching\SURFFeature.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\FeatureMatching\SURFFeature.h"
+				>
+			</File>
 		</Filter>
 		<File
 			RelativePath=".\windage.h"

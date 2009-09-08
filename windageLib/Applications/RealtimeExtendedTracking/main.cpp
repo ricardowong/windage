@@ -1,3 +1,4 @@
+//#define RUNNING
 #ifdef RUNNING
 
 /* ========================================================================
@@ -115,6 +116,7 @@ void main()
 		{
 			chessboardTracker->UpdateCameraPose(grayImage);
 			chessboardTracker->DrawInfomation(inputImage, 100.0);
+			chessboardTracker->DrawOutLine(inputImage);
 		}
 
 		if(isOpticalFlow)
