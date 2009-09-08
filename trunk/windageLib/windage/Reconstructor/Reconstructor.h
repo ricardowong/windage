@@ -43,8 +43,10 @@
 #define DLLEXPORT __declspec(dllexport)
 #define DLLIMPORT __declspec(dllimport)
 
+#include <vector>
 #include <cv.h>
 #include "Tracker/Calibration.h"
+#include "Utils/wVector.h"
 
 namespace windage
 {
@@ -69,6 +71,11 @@ namespace windage
 													CvPoint lPoint,				///< stereo-camera1 point based on Image coordinate
 													CvPoint rPoint				///< stereo-camera2 point based on Image coordinate
 												);
+
+
+		static double CalculatePlaneError(Vector4 plane, Vector3 point);
+		static Vector4 PlaneEstimation(Vector3 point1, Vector3 point2, Vector3 point3);
+		static Vector4 PlaneEstimationRANSAC(std::vector<Vector3>* points, Vector3& center, std::vector<Vector3>* consensusPoints=NULL);
 	};
 }
 

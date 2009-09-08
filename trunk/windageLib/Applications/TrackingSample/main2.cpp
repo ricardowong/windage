@@ -161,6 +161,9 @@ void main()
 			for(int i=0; i<worldPoints.size(); i++)
 			{
 				windage::Utils::DrawWorldCoordinatePoint(inputImage, tracker->GetCameraParameter(), worldPoints[i]);
+
+//				CvPoint projectionPoint = tracker->GetCameraParameter()->ConvertWorld2Image(worldPoints[i].val[0], worldPoints[i].val[1], worldPoints[i].val[2]);
+//				cvRectangle(inputImage, cvPoint(projectionPoint.x - 3, projectionPoint.y - 3), cvPoint(projectionPoint.x + 3, projectionPoint.y + 3), CV_RGB(0, 255, 0));
 			}
 		}
 
@@ -204,6 +207,7 @@ void main()
 		case 'a':
 		case 'A':
 			{
+				std::cout << "extract feature and tracking" << std::endl;
 				if(isOpticalFlow)
 				{
 					isOpticalFlow = false;
@@ -238,6 +242,7 @@ void main()
 		case 'p':
 		case 'P':
 			{
+				std::cout << "reconstruct 3d points" << std::endl;
 				if(isReconstruction)
 				{
 					isReconstruction = false;
@@ -265,6 +270,7 @@ void main()
 		case 'r':
 		case 'R':
 			{
+				std::cout << "generate reference descriptor" << std::endl;
 				for(int i=0; i<worldPoints.size(); i++)
 				{
 					windage::SURFFeature* tempFeature = new windage::SURFFeature();
@@ -283,6 +289,23 @@ void main()
 
 				isExtendedTracking = true;
 				isReconstruction = false;
+			}
+			break;
+		case 'e':
+		case 'E':
+			{
+				std::cout << "plane estimation" << std::endl;
+
+				windage::Vector3 center;
+				std::vector<windage::Vector3> dataPoints;
+				std::vector<windage::Vector3> consensusPoints;
+				for(int i=0; i<worldPoints.size(); i++)
+					dataPoints.push_back(windage::Vector3(worldPoints[i].val[0], worldPoints[i].val[1], worldPoints[i].val[2]));
+
+				windage::Reconstructor::PlaneEstimationRANSAC(&dataPoints, center, &consensusPoints);
+				worldPoints.clear();
+				for(int i=0; i<consensusPoints.size(); i++)
+					worldPoints.push_back(cvScalar(consensusPoints[i].x, consensusPoints[i].y, consensusPoints[i].z));
 			}
 			break;
 		case 'q':
