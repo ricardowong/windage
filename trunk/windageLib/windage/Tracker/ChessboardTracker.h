@@ -113,6 +113,7 @@ namespace windage
 		 *		draw debug information method
 		 */
 		void DrawDebugInfo(IplImage* colorImage);
+		void DrawOutLine(IplImage* colorImage);
 	};
 }
 

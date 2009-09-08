@@ -37,30 +37,27 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#ifndef _W_SURF_H_
-#define _W_SURF_H_
+#ifndef _FEATURE_FACTORY_
+#define _FEATURE_FACTORY_
 
-// modified SURF by windage
-/** @cond */
+#define DLLEXPORT __declspec(dllexport)
+#define DLLIMPORT __declspec(dllimport)
 
+#include <vector>
 #include <cv.h>
-#include <cxmisc.h>
+#include "Utils/wMatrix.h"
 
-struct CvSurfHF
+#include "SURFFeature.h"
+
+namespace windage
 {
-    int p0, p1, p2, p3;
-    float w;
-};
-
-float wCalcHaarPattern( const int* origin, const CvSurfHF* f, int n );
-static void wResizeHaarPattern( const int src[][5], CvSurfHF* dst, int n, int oldSize, int newSize, int widthStep );
-int wInterpolateKeypoint( float N9[3][9], int dx, int dy, int ds, CvSURFPoint *point );
-
-static CvSeq* wFastHessianDetector( const CvMat* sum, const CvMat* mask_sum, CvMemStorage* storage, const CvSURFParams* params );
-void getGaussianKernel( CvMat* kernel, int n, double sigma, int ktype );
-void wExtractSURF( const CvArr* _img, const CvArr* _mask,
-							CvSeq** _keypoints, CvSeq** _descriptors,
-							CvMemStorage* storage, CvSURFParams params,
-							int useProvidedKeyPts);
+	class DLLEXPORT FeatureFactory
+	{
+	public:
+		static int ExtractFASTCorner(IplImage* grayImage, int threshold, std::vector<CvPoint>* corners, int n=9);
+		static int Create2DPlaneSURFFeatureDescriptor(IplImage* grayImage, std::vector<CvPoint>* pointList, std::vector<SURFFeature*>* featureList, double scaleFactor=3.0, int scaleStep=6);
+		
+	};
+}
 
 #endif

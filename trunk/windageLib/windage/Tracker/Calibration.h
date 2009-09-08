@@ -139,6 +139,8 @@ namespace windage
 		 *		else real-time calculate undisotrtion map
 		 */
 		void Undistortion(IplImage* input, IplImage* output);
+
+		void DrawInfomation(IplImage* colorImage, double size = 10.0);
 	};
 
 }

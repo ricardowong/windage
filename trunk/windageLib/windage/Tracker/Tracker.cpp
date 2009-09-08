@@ -70,7 +70,10 @@ void Tracker::Release()
 
 void Tracker::DrawInfomation(IplImage *colorImage, double size)
 {
+	cameraParameter->DrawInfomation(colorImage, size);
+/*
 	cvLine(colorImage, cameraParameter->ConvertWorld2Image(0.0, 0.0, 0.0), cameraParameter->ConvertWorld2Image(size, 0.0, 0.0), CV_RGB(255, 0, 0), 2);
 	cvLine(colorImage, cameraParameter->ConvertWorld2Image(0.0, 0.0, 0.0), cameraParameter->ConvertWorld2Image(0.0, size, 0.0), CV_RGB(0, 255, 0), 2);
 	cvLine(colorImage, cameraParameter->ConvertWorld2Image(0.0, 0.0, 0.0), cameraParameter->ConvertWorld2Image(0.0, 0.0, size), CV_RGB(0, 0, 255), 2);
+//*/
 }

@@ -37,30 +37,28 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#ifndef _W_SURF_H_
-#define _W_SURF_H_
+#ifndef _CAMERA_POSE_CALCULATOR_H_
+#define _CAMERA_POSE_CALCULATOR_H_
 
-// modified SURF by windage
-/** @cond */
+#define DLLEXPORT __declspec(dllexport)
+#define DLLIMPORT __declspec(dllimport)
 
-#include <cv.h>
-#include <cxmisc.h>
+#include <vector>
 
-struct CvSurfHF
+#include "Tracker/Calibration.h"
+#include "Utils/wVector.h"
+
+namespace windage
 {
-    int p0, p1, p2, p3;
-    float w;
-};
+	class DLLEXPORT CameraPoseCalculator
+	{
+	public:
+		static void Update(std::vector<Vector2>* imagePoints, std::vector<Vector3>* objectPoints, Calibration* calibration);
 
-float wCalcHaarPattern( const int* origin, const CvSurfHF* f, int n );
-static void wResizeHaarPattern( const int src[][5], CvSurfHF* dst, int n, int oldSize, int newSize, int widthStep );
-int wInterpolateKeypoint( float N9[3][9], int dx, int dy, int ds, CvSURFPoint *point );
-
-static CvSeq* wFastHessianDetector( const CvMat* sum, const CvMat* mask_sum, CvMemStorage* storage, const CvSURFParams* params );
-void getGaussianKernel( CvMat* kernel, int n, double sigma, int ktype );
-void wExtractSURF( const CvArr* _img, const CvArr* _mask,
-							CvSeq** _keypoints, CvSeq** _descriptors,
-							CvMemStorage* storage, CvSURFParams params,
-							int useProvidedKeyPts);
+		// using Homograpy
+		static void DecomposeHomographyToRT(CvMat *intrinsic, CvMat *Homography, CvMat *RT);
+		static double Update(std::vector<Vector2>* imagePoints, std::vector<Vector2>* referencePoints, Calibration* calibration, bool deleteOutlier=false);
+	};
+}
 
 #endif

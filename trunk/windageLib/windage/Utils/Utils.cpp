@@ -92,3 +92,62 @@ void Utils::DrawWorldCoordinatePoint(IplImage* colorImage, Calibration* calibrat
 						calibration->ConvertWorld2Image(worldPoint.val[0]-size, worldPoint.val[1]-size, worldPoint.val[2]), CV_RGB(0, 0, 255));
 //*/
 }
+
+IplImage* Utils::GeneratePatchMap(std::vector<SURFFeature*>* featureList)
+{
+	int count = featureList->size();
+	if(count > 0)
+	{
+		int widthCount = sqrt((double)count) + 1;
+		int width = widthCount * (*featureList)[0]->GetPatchWidth();
+
+		IplImage* temp = cvCreateImage(cvSize(width, width), IPL_DEPTH_8U, 1);
+		cvZero(temp);
+
+		for(int i=0; i<featureList->size(); i++)
+		{
+			int x = i%widthCount;
+			int y = i/widthCount;
+
+			cvSetImageROI(temp, cvRect(x*(*featureList)[i]->GetPatchWidth(), y*(*featureList)[i]->GetPatchHeight(), (*featureList)[i]->GetPatchWidth(), (*featureList)[i]->GetPatchHeight()));
+			cvCopy((*featureList)[i]->GetPatch(), temp);
+		}
+		cvResetImageROI(temp);
+
+		return temp;
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
+bool Utils::IsInside(CvPoint point, CvPoint corner1, CvPoint corner2, CvPoint corner3, CvPoint corner4, bool isClockWise)
+{
+	int line1 = (corner1.x*corner2.y + corner2.x*point.y + point.x*corner1.y)
+			  - (corner1.y*corner2.x + corner2.y*point.x + point.y*corner1.x);
+
+	int line2 = (corner2.x*corner3.y + corner3.x*point.y + point.x*corner2.y)
+			  - (corner2.y*corner3.x + corner3.y*point.x + point.y*corner2.x);
+
+	int line3 = (corner3.x*corner4.y + corner4.x*point.y + point.x*corner3.y)
+			  - (corner3.y*corner4.x + corner4.y*point.x + point.y*corner3.x);
+
+	int line4 = (corner4.x*corner1.y + corner1.x*point.y + point.x*corner4.y)
+			  - (corner4.y*corner1.x + corner1.y*point.x + point.y*corner4.x);
+	
+	if(isClockWise)
+	{
+		if(line1 < 0 && line2 < 0 && line3 < 0 && line4 < 0)
+			return true;
+		else
+			return false;
+	}
+	else
+	{
+		if(line1 > 0 && line2 > 0 && line3 > 0 && line4 > 0)
+			return true;
+		else
+			return false;
+	}
+}

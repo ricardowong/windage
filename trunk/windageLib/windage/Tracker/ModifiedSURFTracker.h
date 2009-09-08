@@ -133,6 +133,9 @@ namespace windage
 		ModifiedSURFTracker();
 		virtual ~ModifiedSURFTracker();
 
+		inline double GetRealWidth(){return this->realWidth;};
+		inline double GetRealHeight(){return this->realHeight;};
+
 		inline IplImage* GetReferenceImage(){return this->referenceImage;};
 		inline int GetFeatureExtractTreshold(){return this->featureExtractThreshold;};
 		inline void SetFeatureExtractTreshold(int threshold=80){this->featureExtractThreshold = threshold;};
@@ -207,8 +210,7 @@ namespace windage
 		 *		draw debug information method
 		 */
 		void DrawDebugInfo(IplImage* colorImage);
-
-		void DrawOutLine(IplImage* colorImage);
+		void DrawOutLine(IplImage* colorImage, bool drawCross = false);
 
 		// optical flow
 		/**

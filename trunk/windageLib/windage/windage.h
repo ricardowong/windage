@@ -43,6 +43,12 @@
 #include "Tracker/ChessboardTracker.h"
 #include "Tracker/ModifiedSURFTracker.h"
 
+// header files for feature descriptor
+#include "FeatureMatching/SURFFeature.h"
+#include "FeatureMatching/FeatureFactory.h"
+#include "FeatureMatching/FeatureTree.h"
+#include "FeatureMatching/CameraPoseCalculator.h"
+
 // header files for augmented reality
 #include "AugmentedReality/AugmentedReality.h"
 //#include "AugmentedReality/ARForOpenGL.h"

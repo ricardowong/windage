@@ -45,6 +45,7 @@
 
 #include <cv.h>
 #include "Tracker/Calibration.h"
+#include "FeatureMatching/SURFFeature.h"
 
 namespace windage
 {
@@ -65,6 +66,8 @@ namespace windage
 		 */
 		static void DrawTextToImage(IplImage* colorImage, CvPoint position, char* message);
 		static void DrawWorldCoordinatePoint(IplImage* colorImage, Calibration* calibration, CvScalar worldPoint, double size=1.0, bool drawText=false);
+		static IplImage* GeneratePatchMap(std::vector<SURFFeature*>* featureList);
+		static bool IsInside(CvPoint point, CvPoint corner1, CvPoint corner2, CvPoint corner3, CvPoint corner4, bool isClockWise=false);
 	};
 }
 

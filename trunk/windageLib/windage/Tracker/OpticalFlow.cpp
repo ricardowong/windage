@@ -98,7 +98,7 @@ int OpticalFlow::TrackFeature(IplImage* prevGrayImage, IplImage* currGrayImage, 
 				if(removePrevPoints)
 					prevPoints->erase(prevPoints->begin() + index);
 				else
-					currPoints->push_back(cvPoint2D32f(-1.0, -1.0));
+					currPoints->push_back(cvPoint2D32f(-this->imageWidth, -this->imageHeight));
 			}
 		}
 		return 1;
