@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="RootFindingExample"
-	ProjectGUID="{095D412C-9F70-49C4-A1E9-E20518044AF8}"
-	RootNamespace="RootFindingExample"
+	Name="Utils"
+	ProjectGUID="{2B829BF6-5495-48FB-9B67-5E4BA29C67AB}"
+	RootNamespace="Utils"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
@@ -18,9 +18,9 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(SolutionDir)bin/"
+			OutputDirectory="$(SolutionDir)bin"
 			IntermediateDirectory="$(SolutionDir)BuildLog/$(ProjectName)/$(ConfigurationName)"
-			ConfigurationType="1"
+			ConfigurationType="4"
 			CharacterSet="1"
 			>
 			<Tool
@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)Algorithms/Utils/include&quot;;&quot;$(SolutionDir)Algorithms/RootFindingAlgorithm/include&quot;;&quot;$(SolutionDir)../../component/OpenCV 1.1/include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)Algorithms/Utils/include&quot;;&quot;$(SolutionDir)../../component/OpenCV 1.1/include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -60,19 +60,10 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLinkerTool"
-				AdditionalDependencies="cxcore.lib"
-				LinkIncremental="2"
-				AdditionalLibraryDirectories="&quot;$(SolutionDir)../../component/OpenCV 1.1/lib&quot;"
-				GenerateDebugInformation="true"
-				SubSystem="1"
-				TargetMachine="1"
+				Name="VCLibrarianTool"
 			/>
 			<Tool
 				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -84,17 +75,14 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(SolutionDir)bin/"
+			OutputDirectory="$(SolutionDir)bin"
 			IntermediateDirectory="$(SolutionDir)BuildLog/$(ProjectName)/$(ConfigurationName)"
-			ConfigurationType="1"
+			ConfigurationType="4"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
 			>
@@ -118,7 +106,7 @@
 				Optimization="3"
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)Algorithms/Utils/include&quot;;&quot;$(SolutionDir)Algorithms/RootFindingAlgorithm/include&quot;;&quot;$(SolutionDir)../../component/OpenCV 1.1/include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)Algorithms/Utils/include&quot;;&quot;$(SolutionDir)../../component/OpenCV 1.1/include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -136,21 +124,10 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLinkerTool"
-				AdditionalDependencies="cxcore.lib"
-				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;$(SolutionDir)../../component/OpenCV 1.1/lib&quot;"
-				GenerateDebugInformation="true"
-				SubSystem="1"
-				OptimizeReferences="2"
-				EnableCOMDATFolding="2"
-				TargetMachine="1"
+				Name="VCLibrarianTool"
 			/>
 			<Tool
 				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -160,9 +137,6 @@
 			/>
 			<Tool
 				Name="VCFxCopTool"
-			/>
-			<Tool
-				Name="VCAppVerifierTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -178,7 +152,7 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\main.cpp"
+				RelativePath=".\src\Logger.cpp"
 				>
 			</File>
 		</Filter>
@@ -187,6 +161,18 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath=".\include\Logger.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\wMatrix.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\wVector.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"

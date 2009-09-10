@@ -38,26 +38,64 @@
  * ======================================================================== */
 
 
-#ifndef _BISECTION_METHOD_H_
-#define _BISECTION_METHOD_H_
+#include "SecantMethod.h"
 
-#include "RootFinding.h"
-
-namespace windage
+using namespace windage;
+SecantMethod::SecantMethod()
 {
-	class BisectionMethod : public RootFinding
-	{
-	private:
-		long double xMin;
-		long double xMax;
-
-	public:
-		inline BisectionMethod(){;this->xMin = -1.0;this->xMax = -1.0;};
-		inline ~BisectionMethod(){};
-	
-		inline void SetInitialValue(long double xMin, long double xMax){this->xMin = xMin; this->xMax = xMax;};
-		bool Calculate(long double* solution);
-	};
+	x0 = 0.0;
+	x1 = 0.0;
 }
 
-#endif
+bool SecantMethod::Calculate(long double* solution)
+{
+	this->repeat = 1;
+
+	// fault initialization
+	if(!function)
+	{
+		(*solution) = -2;
+		return false;
+	}
+
+	long double localX0 = this->x0;
+	long double localX1 = this->x1;
+	long double localX2 = 0.0;
+
+	long double result0 = function(localX0);
+	long double result1 = function(localX1);
+
+	bool processing = true;
+	while(processing)
+	{
+		//result0 = function(localX0);
+		result1 = function(localX1);
+		
+		if(abs(result0) < LEAST_ERROR_RANGE)
+		{
+			(*solution) = localX0;
+			return true;
+		}
+		if(abs(result1) < LEAST_ERROR_RANGE)
+		{
+			(*solution) = localX1;
+			return true;
+		}
+
+		localX2 = localX1 - ((localX1 - localX0)/(result1 - result0)) * result1;
+		localX0 = localX1;
+		localX1 = localX2;
+
+		result0 = result1;
+
+		this->repeat++;
+		if(this->repeat > MAX_INTERATE_TIME)
+		{
+			(*solution) = abs(localX0)<abs(localX1)?localX0:localX1;
+			return false;
+		}
+	}
+
+	(*solution) = 0;
+	return false;
+}

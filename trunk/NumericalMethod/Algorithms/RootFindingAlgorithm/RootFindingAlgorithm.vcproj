@@ -103,8 +103,9 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="2"
+				Optimization="3"
 				EnableIntrinsicFunctions="true"
+				FavorSizeOrSpeed="1"
 				AdditionalIncludeDirectories="&quot;$(SolutionDir)Algorithms/RootFindingAlgorithm/include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
@@ -155,6 +156,18 @@
 				RelativePath=".\src\BisectionMethod.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\src\FalsiMethod.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\NewtonMethod.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\SecantMethod.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -166,7 +179,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\include\FalsiMethod.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\NewtonMethod.h"
+				>
+			</File>
+			<File
 				RelativePath=".\include\RootFinding.h"
+				>
+			</File>
+			<File
+				RelativePath=".\include\SecantMethod.h"
 				>
 			</File>
 		</Filter>

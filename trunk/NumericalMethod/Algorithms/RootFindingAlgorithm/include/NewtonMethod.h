@@ -38,24 +38,25 @@
  * ======================================================================== */
 
 
-#ifndef _BISECTION_METHOD_H_
-#define _BISECTION_METHOD_H_
+#ifndef _NEWTON_METHOD_H_
+#define _NEWTON_METHOD_H_
 
 #include "RootFinding.h"
 
 namespace windage
 {
-	class BisectionMethod : public RootFinding
+	class NewtonMethod : public RootFinding
 	{
 	private:
-		long double xMin;
-		long double xMax;
+		long double xValue;
+		function_pointer derivativeFunction;
 
 	public:
-		inline BisectionMethod(){;this->xMin = -1.0;this->xMax = -1.0;};
-		inline ~BisectionMethod(){};
+		NewtonMethod();
+		inline ~NewtonMethod(){};
 	
-		inline void SetInitialValue(long double xMin, long double xMax){this->xMin = xMin; this->xMax = xMax;};
+		inline void SetInitialValue(long double xValue){this->xValue = xValue;};
+		inline void AttatchDerivativeFunction(function_pointer derivativeFunction){this->derivativeFunction = derivativeFunction;};
 		bool Calculate(long double* solution);
 	};
 }

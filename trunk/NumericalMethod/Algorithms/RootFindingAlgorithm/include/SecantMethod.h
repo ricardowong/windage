@@ -38,24 +38,24 @@
  * ======================================================================== */
 
 
-#ifndef _BISECTION_METHOD_H_
-#define _BISECTION_METHOD_H_
+#ifndef _SECANT_METHOD_H_
+#define _SECANT_METHOD_H_
 
 #include "RootFinding.h"
 
 namespace windage
 {
-	class BisectionMethod : public RootFinding
+	class SecantMethod : public RootFinding
 	{
 	private:
-		long double xMin;
-		long double xMax;
+		long double x0;
+		long double x1;
 
 	public:
-		inline BisectionMethod(){;this->xMin = -1.0;this->xMax = -1.0;};
-		inline ~BisectionMethod(){};
+		SecantMethod();
+		inline ~SecantMethod(){};
 	
-		inline void SetInitialValue(long double xMin, long double xMax){this->xMin = xMin; this->xMax = xMax;};
+		inline void SetInitialValue(long double x0, long double x1){this->x0 = x0;this->x1 = x1;};
 		bool Calculate(long double* solution);
 	};
 }
