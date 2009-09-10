@@ -10,7 +10,10 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RootFindingExample", "Examples\RootFindingExample\RootFindingExample.vcproj", "{095D412C-9F70-49C4-A1E9-E20518044AF8}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0B006D53-7EC8-4FD3-8935-9F5A26D680B7} = {0B006D53-7EC8-4FD3-8935-9F5A26D680B7}
+		{2B829BF6-5495-48FB-9B67-5E4BA29C67AB} = {2B829BF6-5495-48FB-9B67-5E4BA29C67AB}
 	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Utils", "Algorithms\Utils\Utils.vcproj", "{2B829BF6-5495-48FB-9B67-5E4BA29C67AB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -26,12 +29,17 @@ Global
 		{095D412C-9F70-49C4-A1E9-E20518044AF8}.Debug|Win32.Build.0 = Debug|Win32
 		{095D412C-9F70-49C4-A1E9-E20518044AF8}.Release|Win32.ActiveCfg = Release|Win32
 		{095D412C-9F70-49C4-A1E9-E20518044AF8}.Release|Win32.Build.0 = Release|Win32
+		{2B829BF6-5495-48FB-9B67-5E4BA29C67AB}.Debug|Win32.ActiveCfg = Debug|Win32
+		{2B829BF6-5495-48FB-9B67-5E4BA29C67AB}.Debug|Win32.Build.0 = Debug|Win32
+		{2B829BF6-5495-48FB-9B67-5E4BA29C67AB}.Release|Win32.ActiveCfg = Release|Win32
+		{2B829BF6-5495-48FB-9B67-5E4BA29C67AB}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{0B006D53-7EC8-4FD3-8935-9F5A26D680B7} = {E3F1D81E-BA6F-4DD1-9510-045FB305D1E5}
+		{2B829BF6-5495-48FB-9B67-5E4BA29C67AB} = {E3F1D81E-BA6F-4DD1-9510-045FB305D1E5}
 		{095D412C-9F70-49C4-A1E9-E20518044AF8} = {EAFAA2EA-0891-4F22-B326-9BE1C46B9400}
 	EndGlobalSection
 EndGlobal

@@ -37,18 +37,22 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-
 #ifndef _ROOT_FINDING_H_
 #define _ROOT_FINDING_H_
 
+#include <math.h>
+
 namespace windage
 {
-	typedef double (*function_pointer) (double x);
+	const int MAX_INTERATE_TIME = 10000000;
+	const long double LEAST_ERROR_RANGE = 1.0e-128;
+	typedef long double (*function_pointer) (long double x);
+
 	class RootFinding
 	{
 	protected:
 		int repeat;
-		function_pointer function;		
+		function_pointer function;
 
 	public:
 		inline RootFinding(){this->repeat = 0; this->function = 0;};
@@ -56,7 +60,16 @@ namespace windage
 
 		inline void AttatchFunction(function_pointer function){this->function = function;};
 		inline int GetRepatCount(){return this->repeat;};
-		virtual bool Calculate(double* solution) = 0;
+
+		/*
+		 * Can not found Case (false - return solution value)
+		 * 0 : unknown error
+		 * -1 : time-out (maybe cannot found solution)
+		 * -2 : not initialized function
+		 * -3 : wrong initial value
+		 * -9 : method specific error
+		 */
+		virtual bool Calculate(long double* solution) = 0;
 	};
 }
 

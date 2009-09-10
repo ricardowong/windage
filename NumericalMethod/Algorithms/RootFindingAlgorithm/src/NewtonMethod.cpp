@@ -37,27 +37,55 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
+#include "NewtonMethod.h"
 
-#ifndef _BISECTION_METHOD_H_
-#define _BISECTION_METHOD_H_
-
-#include "RootFinding.h"
-
-namespace windage
+using namespace windage;
+NewtonMethod::NewtonMethod()
 {
-	class BisectionMethod : public RootFinding
-	{
-	private:
-		long double xMin;
-		long double xMax;
-
-	public:
-		inline BisectionMethod(){;this->xMin = -1.0;this->xMax = -1.0;};
-		inline ~BisectionMethod(){};
-	
-		inline void SetInitialValue(long double xMin, long double xMax){this->xMin = xMin; this->xMax = xMax;};
-		bool Calculate(long double* solution);
-	};
+	xValue = 0.0;
+	derivativeFunction = 0;
 }
 
-#endif
+bool NewtonMethod::Calculate(long double* solution)
+{
+	this->repeat = 1;
+
+	// fault initialization
+	if(!function || !derivativeFunction)
+	{
+		(*solution) = -2;
+		return false;
+	}
+
+	long double localXValue = this->xValue;
+
+	bool processing = true;
+	while(processing)
+	{
+		long double result = function(localXValue);
+		long double derivativeResult = derivativeFunction(localXValue);
+		
+		if(abs(result) < LEAST_ERROR_RANGE)
+		{
+			(*solution) = localXValue;
+			return true;
+		}
+		if(abs(derivativeResult) < LEAST_ERROR_RANGE) // do not following next step
+		{
+			(*solution) = -10;
+			return false;
+		}
+		
+		localXValue = localXValue - (result / derivativeResult);
+
+		this->repeat++;
+		if(this->repeat > MAX_INTERATE_TIME)
+		{
+			(*solution) = localXValue;
+			return false;
+		}
+	}
+
+	(*solution) = 0;
+	return false;
+}
