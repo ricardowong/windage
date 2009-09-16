@@ -107,7 +107,7 @@ bool BisectionMethod::Calculate(long double* solution)
 		this->repeat++;
 		if(this->repeat > MAX_INTERATE_TIME)
 		{
-			(*solution) = -1;
+			(*solution) = abs(minResult)<abs(maxResult)?localXMin:localXMax;
 			return false;
 		}
 	}

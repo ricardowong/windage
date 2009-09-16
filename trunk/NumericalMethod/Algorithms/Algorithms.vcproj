@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="Utils"
-	ProjectGUID="{2B829BF6-5495-48FB-9B67-5E4BA29C67AB}"
-	RootNamespace="Utils"
+	Name="Algorithms"
+	ProjectGUID="{B7E8F7A0-935B-43B7-9518-6A4C01E8120D}"
+	RootNamespace="Algorithms"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
@@ -18,7 +18,7 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(SolutionDir)bin"
+			OutputDirectory="$(SolutionDir)bin/"
 			IntermediateDirectory="$(SolutionDir)BuildLog/$(ProjectName)/$(ConfigurationName)"
 			ConfigurationType="4"
 			CharacterSet="1"
@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)Algorithms/Utils/include&quot;;&quot;$(SolutionDir)../../component/OpenCV 1.1/include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)Algorithms/RootFindingAlgorithm/include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -80,7 +80,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(SolutionDir)bin"
+			OutputDirectory="$(SolutionDir)bin/"
 			IntermediateDirectory="$(SolutionDir)BuildLog/$(ProjectName)/$(ConfigurationName)"
 			ConfigurationType="4"
 			CharacterSet="1"
@@ -103,13 +103,13 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="3"
+				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				FavorSizeOrSpeed="1"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)Algorithms/Utils/include&quot;;&quot;$(SolutionDir)../../component/OpenCV 1.1/include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)Algorithms/&quot;;&quot;$(SolutionDir)../../component/OpenCv 1.1/include/&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
+				OpenMP="true"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
@@ -147,38 +147,68 @@
 	</References>
 	<Files>
 		<Filter
-			Name="Source Files"
-			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
-			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
+			Name="RootFinding"
 			>
 			<File
-				RelativePath=".\src\Logger.cpp"
+				RelativePath=".\RootFinding\BisectionMethod.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\RootFinding\BisectionMethod.h"
+				>
+			</File>
+			<File
+				RelativePath=".\RootFinding\FalsiMethod.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\RootFinding\FalsiMethod.h"
+				>
+			</File>
+			<File
+				RelativePath=".\RootFinding\NewtonMethod.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\RootFinding\NewtonMethod.h"
+				>
+			</File>
+			<File
+				RelativePath=".\RootFinding\RootFinding.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\RootFinding\RootFinding.h"
+				>
+			</File>
+			<File
+				RelativePath=".\RootFinding\SecantMethod.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\RootFinding\SecantMethod.h"
 				>
 			</File>
 		</Filter>
 		<Filter
-			Name="Header Files"
-			Filter="h;hpp;hxx;hm;inl;inc;xsd"
-			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
+			Name="Utils"
 			>
 			<File
-				RelativePath=".\include\Logger.h"
+				RelativePath=".\Utils\Logger.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\include\wMatrix.h"
+				RelativePath=".\Utils\Logger.h"
 				>
 			</File>
 			<File
-				RelativePath=".\include\wVector.h"
+				RelativePath=".\Utils\wMatrix.h"
 				>
 			</File>
-		</Filter>
-		<Filter
-			Name="Resource Files"
-			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
-			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
-			>
+			<File
+				RelativePath=".\Utils\wVector.h"
+				>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>
