@@ -91,7 +91,7 @@ bool SecantMethod::Calculate(long double* solution)
 		this->repeat++;
 		if(this->repeat > MAX_INTERATE_TIME)
 		{
-			(*solution) = abs(localX0)<abs(localX1)?localX0:localX1;
+			(*solution) = abs(result0)<abs(result1)?localX0:localX1;
 			return false;
 		}
 	}

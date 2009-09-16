@@ -48,10 +48,10 @@
 
 #include "Logger.h"
 
-#define FUNCTION function_example2
-#define DERIVATIVE_FUNCTION derivative_function_example2
-const long double INITIAL_VALUE_1 = -2.0;
-const long double INITIAL_VALUE_2 = +2.0;
+#define FUNCTION function_example4
+#define DERIVATIVE_FUNCTION derivative_function_example4
+const long double INITIAL_VALUE_1 = +2.0;
+const long double INITIAL_VALUE_2 = +5.0;
 
 // problem set
 long double function_example1(long double x)
@@ -93,11 +93,11 @@ long double derivative_function_example4(long double x)
 
 long double function_example5(long double x)
 {
-	return function_example1(x) * function_example3(x);
+	return function_example4(x) * function_example3(x);
 }
 long double derivative_function_example5(long double x)
 {
-	return derivative_function_example1(x) * function_example3(x) + derivative_function_example3(x) * function_example1(x);
+	return derivative_function_example4(x) * function_example3(x) + derivative_function_example4(x) * function_example3(x);
 }
 
 std::string PrintErrorMessage(double value)
