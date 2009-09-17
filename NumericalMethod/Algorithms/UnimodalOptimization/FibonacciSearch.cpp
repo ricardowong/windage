@@ -119,11 +119,11 @@ bool FibonacciSearch::Calculate(long double* solution1, long double* solution2)
 			solutionX2 = function(x2);
 		}
 
-		if(solutionX1 > solutionX2)
+		if(solutionX1 >= solutionX2)
 		{
 			localXMin = x1;
 		}
-		else if(solutionX1 < solutionX2)
+		else if(solutionX1 <= solutionX2)
 		{
 			localXMax = x2;
 		}

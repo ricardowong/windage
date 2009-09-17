@@ -108,16 +108,16 @@ bool GoldenSectionSearch::Calculate(long double* solution1, long double* solutio
 			solutionX2 = function(x2);
 		}
 
-		if(solutionX1 > solutionX2)
+		if(solutionX1 >= solutionX2)
 		{
 			localXMin = x1;
 		}
-		else if(solutionX1 < solutionX2)
+		else if(solutionX1 <= solutionX2)
 		{
 			localXMax = x2;
 		}
 
-		if(abs(x1 - x2) < LEAST_ERROR_RANGE)
+		if(abs(localXMin - localXMax) < LEAST_ERROR_RANGE)
 		{
 			(*solution1) = localXMin;
 			(*solution2) = localXMax;
