@@ -40,6 +40,7 @@
 #include <iostream>
 #include <string.h>
 
+#include "UnimodalOptimization/UnimodalOptimization.h"
 #include "UnimodalOptimization/FibonacciSearch.h"
 #include "UnimodalOptimization/GoldenSectionSearch.h"
 
@@ -56,12 +57,20 @@ long double function_example1(long double x)
 {
 	return abs(x - 0.6);
 }
+long double function_example2(long double x)
+{
+	return abs(x - 0.3);
+}
+long double function_example3(long double x)
+{
+	return pow(x, 2) - 2 * x + 7;
+}
 
 std::string PrintErrorMessage(double value)
 {
 	switch((int)value)
 	{
-	case 0: return std::string("unknown error");break;
+//	case 0: return std::string("unknown error");break;
 //	case -1:return std::string("time-out (maybe cannot found solution)");break;
 	case -2:return std::string("not initialized function");break;
 	case -3:return std::string("wrong initial value");break;
@@ -85,15 +94,20 @@ void main()
 	long double solution2 = 0.0;
 	int iteration = 0;
 
-	std::cout << "[[ Fibonacci Search ]]" << std::endl;
 	windage::FibonacciSearch* fibonacciSearch = new windage::FibonacciSearch();
 	fibonacciSearch->AttatchFunction(FUNCTION);
-	fibonacciSearch->SetFibonacciCount(FIBONACCI_COUNT);
+
 	iteration = fibonacciSearch->SeekBound(&INITIAL_VALUE_1, &INITIAL_VALUE_2);
+	std::cout << "\tinitial values : " << INITIAL_VALUE_1 << ", " << INITIAL_VALUE_2 << " (" << iteration << ")" << std::endl;
+
+
+	std::cout << "[[ Fibonacci Search ]]" << std::endl;
+	
+	fibonacciSearch->SetFibonacciCount(FIBONACCI_COUNT);
 	fibonacciSearch->SetInitialValue(INITIAL_VALUE_1, INITIAL_VALUE_2);
 
 	logger->updateTickCount();
-	std::cout << "\tinitial values : " << INITIAL_VALUE_1 << ", " << INITIAL_VALUE_2 << " (" << iteration << ")" << std::endl;
+	std::cout << "\tinitial values : " << INITIAL_VALUE_1 << ", " << INITIAL_VALUE_2 << std::endl;
 	if(fibonacciSearch->Calculate(&solution1, &solution2))
 		std::cout << "\tcalculate optimization poin : [" << solution1 << ", " << solution2 << "] (repeat : " << fibonacciSearch->GetRepatCount() << ")" << std::endl;
 	else

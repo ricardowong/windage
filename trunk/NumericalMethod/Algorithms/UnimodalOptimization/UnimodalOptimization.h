@@ -44,7 +44,7 @@
 
 namespace windage
 {
-	const int MAX_INTERATE_TIME = 10000000;
+	const int MAX_INTERATE_TIME = 1.0e+8;
 	const long double LEAST_ERROR_RANGE = 1.0e-10;
 	const long double DELTA = 1.0e-10;
 

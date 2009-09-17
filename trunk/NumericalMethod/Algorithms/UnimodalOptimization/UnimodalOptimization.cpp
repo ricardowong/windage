@@ -47,8 +47,8 @@ int UnimodalOptimization::SeekBound(double* xMin, double* xMax)
 {
 	srand(time(NULL));
 
-	double x = (double)rand();
-	double d = (double)rand();
+	double x = (double)rand() - RAND_MAX/2;
+	double d = (double)rand() + DELTA;
 
 	double xMinus = x - d;
 	double xPlus = x + d;	
@@ -70,14 +70,11 @@ int UnimodalOptimization::SeekBound(double* xMin, double* xMax)
 
 		if(solutionMinus >= solution && solution >= solutionPlus)
 		{
-			xList.push_back(x - d);			
-			solutionList.push_back(function(x - d));
+			
 		}
 		if(solutionMinus <= solution && solution <= solutionPlus)
 		{
 			d = -d;
-			xList.push_back(x - d);			
-			solutionList.push_back(function(x - d));
 		}
 		if(solutionMinus >= solution && solution <= solutionPlus)
 		{
@@ -86,30 +83,43 @@ int UnimodalOptimization::SeekBound(double* xMin, double* xMax)
 			return iteration;
 		}
 
+		// k = -1
+		xList.push_back(x - d);			
+		solutionList.push_back(function(x - d));
+		// k = 0
 		xList.push_back(x);
 		solutionList.push_back(function(x));
+		// k = +1
+		xList.push_back(x + d);
+		solutionList.push_back(function(x + d));
 
-		for(int k=1; k<2; k++)
+		for(int k=1; k<5; k++)
 		{
-			double tempX = xList[k-1] + pow(2.0, k-1) * d;
+			double tempX = xList[k+1] + pow(2.0, k) * d;
 			double tempSolution = function(tempX);
 
 			xList.push_back(tempX);
 			solutionList.push_back(tempSolution);
 
-			if(solutionList[k] >= solutionList[k-1] && d > 0)
+			if(solutionList[k+2] >= solutionList[k+1] && d > 0)
 			{
-				(*xMin) = xList[k-1];
-				(*xMax) = xList[k+1];
+				(*xMin) = xList[k];
+				(*xMax) = xList[k+2];
 				return iteration;
 			}
-			if(solutionList[k] >= solutionList[k-1] && d < 0)
+			if(solutionList[k+2] >= solutionList[k+1] && d < 0)
 			{
-				(*xMin) = xList[k+1];
-				(*xMax) = xList[k-1];
+				(*xMin) = xList[k+2];
+				(*xMax) = xList[k];
 				return iteration;
 			}
 		}
+
+		if(iteration == 10)
+		{
+			iteration  = 10;
+		}
+
 
 		xMinus = x - d;
 		xPlus = x + d;
