@@ -37,26 +37,42 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
+#ifndef _UNIMODAL_OPTIMIZATION_H_
+#define _UNIMODAL_OPTIMIZATION_H_
 
-#ifndef _BISECTION_METHOD_H_
-#define _BISECTION_METHOD_H_
-
-#include "RootFinding.h"
+#include <math.h>
 
 namespace windage
 {
-	class BisectionMethod : public RootFinding
+	const int MAX_INTERATE_TIME = 10000000;
+	const long double LEAST_ERROR_RANGE = 1.0e-10;
+	const long double DELTA = 1.0e-10;
+
+	typedef long double (*function_pointer) (long double x);
+
+	class UnimodalOptimization
 	{
-	private:
-		long double xMin;
-		long double xMax;
+	protected:
+		int repeat;
+		function_pointer function;
 
 	public:
-		inline BisectionMethod(){this->xMin = -1.0;this->xMax = -1.0;};
-		inline ~BisectionMethod(){};
-	
-		inline void SetInitialValue(long double xMin, long double xMax){this->xMin = xMin; this->xMax = xMax;};
-		bool Calculate(long double* solution);
+		inline UnimodalOptimization(){this->repeat = 0; this->function = 0;};
+		virtual inline ~UnimodalOptimization(){};
+
+		inline void AttatchFunction(function_pointer function){this->function = function;};
+		inline int GetRepatCount(){return this->repeat;};
+
+		/*
+		 * Can not found Case (false - return solution value)
+		 * 0 : unknown error
+		 * -1 : time-out (maybe cannot found solution)
+		 * -2 : not initialized function
+		 * -3 : wrong initial value
+		 * -9 : method specific error
+		 */
+		virtual bool Calculate(long double* solution1, long double* solution2) = 0;
+		int SeekBound(double* xMin, double* xMax);
 	};
 }
 

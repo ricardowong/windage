@@ -40,13 +40,13 @@
 #include <iostream>
 #include <string.h>
 
-#include "RootFinding.h"
-#include "BisectionMethod.h"
-#include "NewtonMethod.h"
-#include "SecantMethod.h"
-#include "FalsiMethod.h"
+#include "RootFinding/RootFinding.h"
+#include "RootFinding/BisectionMethod.h"
+#include "RootFinding/NewtonMethod.h"
+#include "RootFinding/SecantMethod.h"
+#include "RootFinding/FalsiMethod.h"
 
-#include "Logger.h"
+#include "Utils/Logger.h"
 
 #define FUNCTION function_example4
 #define DERIVATIVE_FUNCTION derivative_function_example4

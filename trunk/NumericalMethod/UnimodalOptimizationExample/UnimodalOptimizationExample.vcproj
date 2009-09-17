@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="RootFindingExample"
-	ProjectGUID="{095D412C-9F70-49C4-A1E9-E20518044AF8}"
-	RootNamespace="RootFindingExample"
+	Name="UnimodalOptimizationExample"
+	ProjectGUID="{9113E11B-1C95-425C-AE70-2DD58046DF56}"
+	RootNamespace="UnimodalOptimizationExample"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
@@ -115,9 +115,8 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="3"
+				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				FavorSizeOrSpeed="1"
 				AdditionalIncludeDirectories="&quot;$(SolutionDir)Algorithms/&quot;;&quot;$(SolutionDir)../../component/OpenCV 1.1/include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
