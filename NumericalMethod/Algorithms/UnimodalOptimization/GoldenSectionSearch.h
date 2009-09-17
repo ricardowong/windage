@@ -37,26 +37,29 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
+#ifndef _GOLDEN_SECTION_SEARCH_H_
+#define _GOLDEN_SECTION_SEARCH_H_
 
-#ifndef _BISECTION_METHOD_H_
-#define _BISECTION_METHOD_H_
-
-#include "RootFinding.h"
+#include "UnimodalOptimization.h"
+#include <vector>
+#include <math.h>
 
 namespace windage
 {
-	class BisectionMethod : public RootFinding
+	const double TAU = ( -1.0 + sqrt(5.0)) / 2.0;
+
+	class GoldenSectionSearch : public UnimodalOptimization
 	{
 	private:
-		long double xMin;
-		long double xMax;
+		double xMin;
+		double xMax;
 
 	public:
-		inline BisectionMethod(){this->xMin = -1.0;this->xMax = -1.0;};
-		inline ~BisectionMethod(){};
-	
+		inline GoldenSectionSearch(){this->xMin = -1.0;this->xMax = -1.0;};
+		inline ~GoldenSectionSearch(){};
+		
 		inline void SetInitialValue(long double xMin, long double xMax){this->xMin = xMin; this->xMax = xMax;};
-		bool Calculate(long double* solution);
+		bool Calculate(long double* solution1, long double* solution2);
 	};
 }
 

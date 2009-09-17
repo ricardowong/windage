@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)Algorithms/RootFindingAlgorithm/include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)Algorithms/&quot;;&quot;$(SolutionDir)../../component/OpenCV 1.1/include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -174,10 +174,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\RootFinding\RootFinding.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\RootFinding\RootFinding.h"
 				>
 			</File>
@@ -207,6 +203,34 @@
 			</File>
 			<File
 				RelativePath=".\Utils\wVector.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="UnimodalOptimization"
+			>
+			<File
+				RelativePath=".\UnimodalOptimization\FibonacciSearch.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\UnimodalOptimization\FibonacciSearch.h"
+				>
+			</File>
+			<File
+				RelativePath=".\UnimodalOptimization\GoldenSectionSearch.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\UnimodalOptimization\GoldenSectionSearch.h"
+				>
+			</File>
+			<File
+				RelativePath=".\UnimodalOptimization\UnimodalOptimization.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\UnimodalOptimization\UnimodalOptimization.h"
 				>
 			</File>
 		</Filter>
