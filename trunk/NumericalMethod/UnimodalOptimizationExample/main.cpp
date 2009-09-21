@@ -46,7 +46,7 @@
 
 #include "Utils/Logger.h"
 
-#define FUNCTION function_example1
+#define FUNCTION function_example5
 double INITIAL_VALUE_1 = +0.0;
 double INITIAL_VALUE_2 = +1.0;
 
@@ -55,15 +55,23 @@ const int FIBONACCI_COUNT = 30;
 // problem set
 long double function_example1(long double x)
 {
-	return abs(x - 0.6);
+	return abs(x - 0.3);
 }
 long double function_example2(long double x)
 {
-	return abs(x - 0.3);
+	return abs(x - 0.6);
 }
 long double function_example3(long double x)
 {
-	return pow(x, 2) - 2 * x + 7;
+	return pow((double)x, 2.0) - 2.0 * x + 7.0;
+}
+long double function_example4(long double x)
+{
+	return pow((double)x, 4.0) - 2.0 * pow((double)x, 3.0) + 7.0;
+}
+long double function_example5(long double x)
+{
+	return abs(pow((double)x, 3.0) - 2.0 * x + 7.0);
 }
 
 std::string PrintErrorMessage(double value)
@@ -84,7 +92,6 @@ std::string PrintErrorMessage(double value)
 	}
 }
 
-
 void main()
 {
 	windage::Logger* logger = new windage::Logger(&std::cout);
@@ -97,17 +104,21 @@ void main()
 	windage::FibonacciSearch* fibonacciSearch = new windage::FibonacciSearch();
 	fibonacciSearch->AttatchFunction(FUNCTION);
 
-	iteration = fibonacciSearch->SeekBound(&INITIAL_VALUE_1, &INITIAL_VALUE_2);
-	std::cout << "\tinitial values : " << INITIAL_VALUE_1 << ", " << INITIAL_VALUE_2 << " (" << iteration << ")" << std::endl;
+	std::cout << "[[ Seeking Bound Search ]]" << std::endl;
+	iteration = fibonacciSearch->SeekBound((double*)&INITIAL_VALUE_1, (double*)&INITIAL_VALUE_2);
+	std::cout << "\tinitial values : " << INITIAL_VALUE_1 << ", " << INITIAL_VALUE_2 << std::endl;
 
+	solution1 = INITIAL_VALUE_1;
+	solution2 = INITIAL_VALUE_2;
 
-	std::cout << "[[ Fibonacci Search ]]" << std::endl;
-	
+	// single test
+	std::cout << "\n[[ single step ]]" << std::endl;
+	std::cout << "[[ Fibonacci Search Only ]]" << std::endl;
 	fibonacciSearch->SetFibonacciCount(FIBONACCI_COUNT);
 	fibonacciSearch->SetInitialValue(INITIAL_VALUE_1, INITIAL_VALUE_2);
 
 	logger->updateTickCount();
-	std::cout << "\tinitial values : " << INITIAL_VALUE_1 << ", " << INITIAL_VALUE_2 << std::endl;
+	std::cout << "\tinitial values : " << solution1 << ", " << solution2 << std::endl;
 	if(fibonacciSearch->Calculate(&solution1, &solution2))
 		std::cout << "\tcalculate optimization poin : [" << solution1 << ", " << solution2 << "] (repeat : " << fibonacciSearch->GetRepatCount() << ")" << std::endl;
 	else
@@ -118,10 +129,11 @@ void main()
 	logger->log("\tprocessing time", logger->calculateProcessTime());
 	logger->logNewLine();
 
-	std::cout << "[[ GoldenSection Search ]]" << std::endl;
+
 	windage::GoldenSectionSearch* goldenSectionSearch = new windage::GoldenSectionSearch();
 	goldenSectionSearch->AttatchFunction(FUNCTION);
-	goldenSectionSearch->SetInitialValue(solution1, solution2);
+	std::cout << "[[ GoldenSection Search Only ]]" << std::endl;
+	goldenSectionSearch->SetInitialValue(INITIAL_VALUE_1, INITIAL_VALUE_2);
 
 	logger->updateTickCount();
 	std::cout << "\tinitial values : " << solution1 << ", " << solution2 << std::endl;
@@ -135,4 +147,43 @@ void main()
 	logger->log("\tprocessing time", logger->calculateProcessTime());
 	logger->logNewLine();
 
+	// mixed test
+//*
+	solution1 = INITIAL_VALUE_1;
+	solution2 = INITIAL_VALUE_2;
+
+	std::cout << "\n[[ mixed step ]]" << std::endl;
+	std::cout << "[[ Fibonacci Search Step ]]" << std::endl;
+	fibonacciSearch->SetFibonacciCount(FIBONACCI_COUNT);
+	fibonacciSearch->SetInitialValue(solution1, solution2);
+
+	logger->updateTickCount();
+	std::cout << "\tinitial values : " << solution1 << ", " << solution2 << std::endl;
+	if(fibonacciSearch->Calculate(&solution1, &solution2))
+		std::cout << "\tcalculate optimization poin : [" << solution1 << ", " << solution2 << "] (repeat : " << fibonacciSearch->GetRepatCount() << ")" << std::endl;
+	else
+	{
+		std::cout << "\tfault : can not found optimization point" << " (repeat : " << fibonacciSearch->GetRepatCount() << ")" << std::endl;
+		std::cout << "\t\t( " << PrintErrorMessage(solution1).c_str() << ")" << std::endl;
+	}
+	logger->log("\tprocessing time", logger->calculateProcessTime());
+	logger->logNewLine();
+
+
+	goldenSectionSearch->AttatchFunction(FUNCTION);
+	std::cout << "[[ GoldenSection Search Step ]]" << std::endl;
+	goldenSectionSearch->SetInitialValue(solution1, solution2);
+
+	logger->updateTickCount();
+	std::cout << "\tinitial values : " << solution1 << ", " << solution2 << std::endl;
+	if(goldenSectionSearch->Calculate(&solution1, &solution2))
+		std::cout << "\tcalculate optimization poin : [" << solution1 << ", " << solution2 << "] (repeat : " << goldenSectionSearch->GetRepatCount() << ")" << std::endl;
+	else
+	{
+		std::cout << "\tfault : can not found optimization point" << " (repeat : " << goldenSectionSearch->GetRepatCount() << ")" << std::endl;
+		std::cout << "\t\t( " << PrintErrorMessage(solution1).c_str() << ")" << std::endl;
+	}
+	logger->log("\tprocessing time", logger->calculateProcessTime());
+	logger->logNewLine();
+//*/
 }
