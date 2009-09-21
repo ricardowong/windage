@@ -93,7 +93,7 @@ int UnimodalOptimization::SeekBound(double* xMin, double* xMax)
 		xList.push_back(x + d);
 		solutionList.push_back(function(x + d));
 
-		for(int k=1; k<5; k++)
+		for(int k=1; k<1000; k++)
 		{
 			double tempX = xList[k+1] + pow(2.0, k) * d;
 			double tempSolution = function(tempX);
@@ -115,12 +115,6 @@ int UnimodalOptimization::SeekBound(double* xMin, double* xMax)
 			}
 		}
 
-		if(iteration == 10)
-		{
-			iteration  = 10;
-		}
-
-
 		xMinus = x - d;
 		xPlus = x + d;
 
@@ -129,6 +123,12 @@ int UnimodalOptimization::SeekBound(double* xMin, double* xMax)
 		solutionPlus  = function(xPlus);
 
 		iteration++;
+		if(iteration > MAX_INTERATE_TIME)
+		{
+			(*xMin) = xMinus;
+			(*xMax) = xPlus;
+			return false;
+		}
 	}
 
 	return -1;
