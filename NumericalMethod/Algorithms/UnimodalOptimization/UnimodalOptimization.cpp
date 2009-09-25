@@ -45,6 +45,7 @@
 using namespace windage;
 int UnimodalOptimization::SeekBound(double* xMin, double* xMax)
 {
+	std::vector<double> params;			params.resize(1);
 	srand(time(NULL));
 
 	double x = (double)rand() - RAND_MAX/2;
@@ -53,13 +54,16 @@ int UnimodalOptimization::SeekBound(double* xMin, double* xMax)
 	double xMinus = x - d;
 	double xPlus = x + d;	
 	
-	double solutionMinus = function(xMinus);
-	double solution		 = function(x);
-	double solutionPlus  = function(xPlus);
+	params[0] = xMinus;
+	double solutionMinus = function(&params, 1);
+	params[0] = x;
+	double solution		 = function(&params, 1);
+	params[0] = xPlus;
+	double solutionPlus  = function(&params, 1);
 
 	std::vector<double> xList;
 	std::vector<double> solutionList;
-	
+		
 	int iteration = 0;
 
 	bool processing = true;
@@ -85,18 +89,23 @@ int UnimodalOptimization::SeekBound(double* xMin, double* xMax)
 
 		// k = -1
 		xList.push_back(x - d);			
-		solutionList.push_back(function(x - d));
+		params[0] = x - d;
+		solutionList.push_back(function(&params, 1));
 		// k = 0
 		xList.push_back(x);
-		solutionList.push_back(function(x));
+		params[0] = x;
+		solutionList.push_back(function(&params, 1));
 		// k = +1
 		xList.push_back(x + d);
-		solutionList.push_back(function(x + d));
+		params[0] = x + d;
+		solutionList.push_back(function(&params, 1));
 
 		for(int k=1; k<1000; k++)
 		{
 			double tempX = xList[k+1] + pow(2.0, k) * d;
-			double tempSolution = function(tempX);
+
+			params[0] = tempX;
+			double tempSolution = function(&params, 1);
 
 			xList.push_back(tempX);
 			solutionList.push_back(tempSolution);
@@ -118,9 +127,12 @@ int UnimodalOptimization::SeekBound(double* xMin, double* xMax)
 		xMinus = x - d;
 		xPlus = x + d;
 
-		solutionMinus = function(xMinus);
-		solution	  = function(x);
-		solutionPlus  = function(xPlus);
+		params[0] = xMinus;
+		solutionMinus = function(&params, 1);
+		params[0] = x;
+		solution	  = function(&params, 1);
+		params[0] = xPlus;
+		solutionPlus  = function(&params, 1);
 
 		iteration++;
 		if(iteration > MAX_INTERATE_TIME)

@@ -390,10 +390,11 @@ namespace windage
 			return Vector2(this->x / rhs, this->y / rhs);
 		}
 
-		void operator/=(const double s)
+		Vector2 operator/=(const double s)
 		{
 			this->x /= s;
 			this->y /= s;
+			return Vector2(this->x, this->y);
 		}
 
 		// cross
@@ -408,6 +409,14 @@ namespace windage
 			this->y = rhs.y;
 
 			//return *this;
+		}
+
+		bool operator==(const Vector2 rhs)
+		{
+			if(this->x == rhs.x && this->y == rhs.y)
+				return true;
+			else
+				return false;
 		}
 
 		Vector2 operator-() const

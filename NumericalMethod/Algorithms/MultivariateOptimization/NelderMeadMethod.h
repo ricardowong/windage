@@ -37,41 +37,45 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#ifndef _UNIMODAL_OPTIMIZATION_H_
-#define _UNIMODAL_OPTIMIZATION_H_
+#ifndef _NELDER_MEAD_METHOD_H_
+#define _NELDER_MEAD_METHOD_H_
 
-#include <math.h>
+#include "MultivariateOptimization.h"
+
 #include <vector>
-
-#include "base.h"
+#include "Utils/wVector.h"
+#include "Utils/Logger.h"
 
 namespace windage
 {
-	const double TAU = ( -1.0 + sqrt(5.0)) / 2.0;
-
-	class UnimodalOptimization
+	class NelderMeadMethod : public MultivariateOptimization
 	{
-	protected:
-		int repeat;
-		function_pointer function;
+	private:
+		int dimension;
+		double ALPHA;
+		double BETA;
+		double GAMMA;
+
+		int Reflection(std::vector<double>* evaluation, std::vector<Vector2>* point);
+		int Expansion(std::vector<double>* evaluation, std::vector<Vector2>* point);
+		int Contraction(std::vector<double>* evaluation, std::vector<Vector2>* point);
+		
+		std::vector<double> params;
 
 	public:
-		inline UnimodalOptimization(){this->repeat = 0; this->function = 0;};
-		virtual inline ~UnimodalOptimization(){};
+		NelderMeadMethod()
+		{
+			this->dimension = 2;
+			this->SetThreshold();
+			params.resize(this->dimension);
+			trace = NULL;
+		}
+		inline ~NelderMeadMethod(){};
 
-		inline void AttatchFunction(function_pointer function){this->function = function;};
-		inline int GetRepatCount(){return this->repeat;};
-
-		/*
-		 * Can not found Case (false - return solution value)
-		 * 0 : unknown error
-		 * -1 : time-out (maybe cannot found solution)
-		 * -2 : not initialized function
-		 * -3 : wrong initial value
-		 * -9 : method specific error
-		 */
-		virtual bool Calculate(long double* solution1, long double* solution2) = 0;
-		int SeekBound(double* xMin, double* xMax);
+		inline void SetDemesion(int dimension){this->dimension = dimension;};
+		inline void SetThreshold(double alpha=1.0, double beta=2.0, double gamma=0.5){this->ALPHA=alpha; this->BETA=beta; this->GAMMA=gamma;};
+		
+		bool Calculate(double* solutionX, double* solutionY);
 	};
 }
 

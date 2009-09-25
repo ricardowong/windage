@@ -37,41 +37,32 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#ifndef _UNIMODAL_OPTIMIZATION_H_
-#define _UNIMODAL_OPTIMIZATION_H_
+#ifndef _GOLDEN_SECTION_SEARCH_2D_H_
+#define _GOLDEN_SECTION_SEARCH_2D_H_
 
-#include <math.h>
+#include "UnimodalOptimization.h"
 #include <vector>
+#include <math.h>
 
-#include "base.h"
+#include "Utils/wVector.h"
 
 namespace windage
 {
-	const double TAU = ( -1.0 + sqrt(5.0)) / 2.0;
-
-	class UnimodalOptimization
+	class GoldenSectionSearch2D : public UnimodalOptimization
 	{
-	protected:
-		int repeat;
-		function_pointer function;
+	private:
+		Vector2 xMin;
+		Vector2 xMax;
 
 	public:
-		inline UnimodalOptimization(){this->repeat = 0; this->function = 0;};
-		virtual inline ~UnimodalOptimization(){};
-
-		inline void AttatchFunction(function_pointer function){this->function = function;};
-		inline int GetRepatCount(){return this->repeat;};
-
-		/*
-		 * Can not found Case (false - return solution value)
-		 * 0 : unknown error
-		 * -1 : time-out (maybe cannot found solution)
-		 * -2 : not initialized function
-		 * -3 : wrong initial value
-		 * -9 : method specific error
-		 */
-		virtual bool Calculate(long double* solution1, long double* solution2) = 0;
-		int SeekBound(double* xMin, double* xMax);
+		GoldenSectionSearch2D()
+		{
+		}
+		inline ~GoldenSectionSearch2D(){};
+		
+		inline void SetInitialValue(Vector2 xMin, Vector2 xMax){this->xMin = xMin; this->xMax = xMax;};
+		bool Calculate(Vector2* solution1, Vector2* solution2);
+		bool Calculate(long double* solution1, long double* solution2);
 	};
 }
 

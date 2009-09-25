@@ -37,29 +37,31 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#ifndef _UNIMODAL_OPTIMIZATION_H_
-#define _UNIMODAL_OPTIMIZATION_H_
+
+#ifndef _MULTIVARIATE_OPTIMIZATION_H_
+#define _MULTIVARIATE_OPTIMIZATION_H_
 
 #include <math.h>
-#include <vector>
-
 #include "base.h"
+
+#include "Utils/Logger.h"
 
 namespace windage
 {
-	const double TAU = ( -1.0 + sqrt(5.0)) / 2.0;
-
-	class UnimodalOptimization
+	class MultivariateOptimization
 	{
 	protected:
 		int repeat;
 		function_pointer function;
 
+		Logger* trace;
+
 	public:
-		inline UnimodalOptimization(){this->repeat = 0; this->function = 0;};
-		virtual inline ~UnimodalOptimization(){};
+		inline MultivariateOptimization(){this->repeat = 0; this->function = 0;};
+		virtual inline ~MultivariateOptimization(){};
 
 		inline void AttatchFunction(function_pointer function){this->function = function;};
+		inline void AttatchTrace(Logger* trace){this->trace = trace;};
 		inline int GetRepatCount(){return this->repeat;};
 
 		/*
@@ -70,8 +72,7 @@ namespace windage
 		 * -3 : wrong initial value
 		 * -9 : method specific error
 		 */
-		virtual bool Calculate(long double* solution1, long double* solution2) = 0;
-		int SeekBound(double* xMin, double* xMax);
+		virtual bool Calculate(double* solutionX, double* solutionY) = 0;
 	};
 }
 

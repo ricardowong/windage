@@ -46,7 +46,7 @@
 
 namespace windage
 {
-	const double TAU = ( -1.0 + sqrt(5.0)) / 2.0;
+	
 
 	class GoldenSectionSearch : public UnimodalOptimization
 	{
