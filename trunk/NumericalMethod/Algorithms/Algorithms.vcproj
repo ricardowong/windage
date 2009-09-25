@@ -226,6 +226,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\UnimodalOptimization\GoldenSectionSearch2D.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\UnimodalOptimization\GoldenSectionSearch2D.h"
+				>
+			</File>
+			<File
 				RelativePath=".\UnimodalOptimization\UnimodalOptimization.cpp"
 				>
 			</File>
@@ -234,6 +242,34 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="MultivariateOptimization"
+			>
+			<File
+				RelativePath=".\MultivariateOptimization\MultivariateOptimization.h"
+				>
+			</File>
+			<File
+				RelativePath=".\MultivariateOptimization\NelderMeadMethod.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\MultivariateOptimization\NelderMeadMethod.h"
+				>
+			</File>
+			<File
+				RelativePath=".\MultivariateOptimization\PowellsMethod.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\MultivariateOptimization\PowellsMethod.h"
+				>
+			</File>
+		</Filter>
+		<File
+			RelativePath=".\base.h"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

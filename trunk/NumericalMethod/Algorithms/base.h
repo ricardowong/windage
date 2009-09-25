@@ -37,42 +37,25 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#ifndef _UNIMODAL_OPTIMIZATION_H_
-#define _UNIMODAL_OPTIMIZATION_H_
+#ifndef _BASE_H_
+#define _BASE_H_
 
-#include <math.h>
 #include <vector>
 
-#include "base.h"
+#ifndef MIN
+#define MIN(a,b)  ((a) > (b) ? (b) : (a))
+#endif
+#ifndef MAX
+#define MAX(a,b)  ((a) < (b) ? (b) : (a))
+#endif
 
 namespace windage
 {
-	const double TAU = ( -1.0 + sqrt(5.0)) / 2.0;
+	const int MAX_INTERATE_TIME = 1.0e+6;
+	const long double LEAST_ERROR_RANGE = 1.0e-8;
+	const long double DELTA = 1.0e-10;
 
-	class UnimodalOptimization
-	{
-	protected:
-		int repeat;
-		function_pointer function;
-
-	public:
-		inline UnimodalOptimization(){this->repeat = 0; this->function = 0;};
-		virtual inline ~UnimodalOptimization(){};
-
-		inline void AttatchFunction(function_pointer function){this->function = function;};
-		inline int GetRepatCount(){return this->repeat;};
-
-		/*
-		 * Can not found Case (false - return solution value)
-		 * 0 : unknown error
-		 * -1 : time-out (maybe cannot found solution)
-		 * -2 : not initialized function
-		 * -3 : wrong initial value
-		 * -9 : method specific error
-		 */
-		virtual bool Calculate(long double* solution1, long double* solution2) = 0;
-		int SeekBound(double* xMin, double* xMax);
-	};
+	typedef double (*function_pointer) (std::vector<double>* x, int DIMENSION);
 }
 
 #endif

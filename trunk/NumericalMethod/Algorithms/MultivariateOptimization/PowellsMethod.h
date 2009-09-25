@@ -37,41 +37,32 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#ifndef _UNIMODAL_OPTIMIZATION_H_
-#define _UNIMODAL_OPTIMIZATION_H_
+#ifndef _POWELLS_METHOD_METHOD_H_
+#define _POWELLS_METHOD_METHOD_H_
 
-#include <math.h>
+#include "MultivariateOptimization.h"
+#include "Utils/wVector.h"
+
 #include <vector>
-
-#include "base.h"
 
 namespace windage
 {
-	const double TAU = ( -1.0 + sqrt(5.0)) / 2.0;
-
-	class UnimodalOptimization
+	class PowellsMethod : public MultivariateOptimization
 	{
-	protected:
-		int repeat;
-		function_pointer function;
+	private:
+		int dimension;
+
+		Vector2 FindGradient(Vector2 xk);
+		double FindSetpLength(Vector2 xk, Vector2 pk);
+
+		std::vector<double> params;
 
 	public:
-		inline UnimodalOptimization(){this->repeat = 0; this->function = 0;};
-		virtual inline ~UnimodalOptimization(){};
+		PowellsMethod();
+		inline ~PowellsMethod(){};
 
-		inline void AttatchFunction(function_pointer function){this->function = function;};
-		inline int GetRepatCount(){return this->repeat;};
-
-		/*
-		 * Can not found Case (false - return solution value)
-		 * 0 : unknown error
-		 * -1 : time-out (maybe cannot found solution)
-		 * -2 : not initialized function
-		 * -3 : wrong initial value
-		 * -9 : method specific error
-		 */
-		virtual bool Calculate(long double* solution1, long double* solution2) = 0;
-		int SeekBound(double* xMin, double* xMax);
+		inline void SetDemesion(int dimension){this->dimension = dimension;};
+		bool Calculate(double* solutionX, double* solutionY);
 	};
 }
 

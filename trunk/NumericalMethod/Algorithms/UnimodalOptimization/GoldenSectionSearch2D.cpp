@@ -37,39 +37,49 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#include "GoldenSectionSearch.h"
+#include "GoldenSectionSearch2D.h"
 
 #include <vector>
 
 using namespace windage;
-bool GoldenSectionSearch::Calculate(long double* solution1, long double* solution2)
+bool GoldenSectionSearch2D::Calculate(long double* solution1, long double* solution2)
+{
+	return false;
+}
+
+bool GoldenSectionSearch2D::Calculate(Vector2* solution1, Vector2* solution2)
 {
 	this->repeat = 1;
-	std::vector<double> params;			params.resize(1);
+	std::vector<double> params;			params.resize(2);
 
-	double localXMin = this->xMin;
-	double localXMax = this->xMax;
+	Vector2 localXMin = this->xMin;
+	Vector2 localXMax = this->xMax;
+	Vector2 direction = localXMax - localXMin;
+	direction /= direction.getLength();
 
-	double length = localXMax - localXMin;
-	double x1 = localXMin + TAU * length;
-	double x2 = localXMax - TAU * length;
+	double length = (localXMax - localXMin).getLength();
+	Vector2 x1 = localXMin + direction * (TAU * length);
+	Vector2 x2 = localXMax - direction * (TAU * length);
 
-	params[0] = x1;
-	double solutionX1 = function(&params, 1);
-	params[0] = x2;
-	double solutionX2 = function(&params, 1);
+	params[0] = x1.x; params[1] = x1.y;
+	double solutionX1 = function(&params, 2);
+	params[0] = x2.x; params[1] = x2.y;
+	double solutionX2 = function(&params, 2);
 
 	bool processing = true;
 	while(processing)
 	{
 		// calculate
-		length = localXMax - localXMin;
-		double tempX1 = localXMin + (1 - TAU) * length;
-		double tempX2 = localXMin + TAU * length;
+		length = (localXMax - localXMin).getLength();
+		Vector2 tempX1 = localXMin + direction * ( (1 - TAU) * length );
+		Vector2 tempX2 = localXMin + direction * ( TAU * length );
 
 		// always x1 != x2
 		if(tempX1 == tempX2)
-			tempX2 += windage::DELTA;
+		{
+			tempX2.x += windage::DELTA;
+			tempX2.y += windage::DELTA;
+		}
 //*
 		if(tempX1 == x1)
 		{
@@ -77,16 +87,16 @@ bool GoldenSectionSearch::Calculate(long double* solution1, long double* solutio
 			x2 = tempX2;
 
 //			solutionX1 = function(x1);
-			params[0] = x2;
-			solutionX2 = function(&params, 1);
+			params[0] = x2.x;	params[1] = x2.y;
+			solutionX2 = function(&params, 2);
 		}
 		else if(tempX2 == x2)
 		{
 			x1 = tempX1;
 			x2 = tempX2;
 
-			params[0] = x1;
-			solutionX1 = function(&params, 1);
+			params[0] = x1.x;	params[1] = x1.y;
+			solutionX1 = function(&params, 2);
 //			solutionX2 = function(x2);
 		}
 		else if(tempX1 == x2)
@@ -95,8 +105,8 @@ bool GoldenSectionSearch::Calculate(long double* solution1, long double* solutio
 			x2 = tempX2;
 
 			solutionX1 = solutionX2;
-			params[0] = x2;
-			solutionX2 = function(&params, 1);
+			params[0] = x2.x;	params[1] = x2.y;
+			solutionX2 = function(&params, 2);
 		}
 		else if(tempX2 == x1)
 		{
@@ -104,8 +114,8 @@ bool GoldenSectionSearch::Calculate(long double* solution1, long double* solutio
 			x2 = tempX2;
 
 			solutionX2 = solutionX1;
-			params[0] = x1;
-			solutionX1 = function(&params, 1);
+			params[0] = x1.x;	params[1] = x1.y;
+			solutionX1 = function(&params, 2);
 		}
 		else
 //*/
@@ -113,10 +123,10 @@ bool GoldenSectionSearch::Calculate(long double* solution1, long double* solutio
 			x1 = tempX1;
 			x2 = tempX2;
 
-			params[0] = x1;
-			solutionX1 = function(&params, 1);
-			params[0] = x2;
-			solutionX2 = function(&params, 1);
+			params[0] = x1.x;	params[1] = x1.y;
+			solutionX1 = function(&params, 2);
+			params[0] = x2.x;	params[1] = x2.y;
+			solutionX2 = function(&params, 2);
 		}
 
 		if(solutionX1 >= solutionX2)
@@ -128,7 +138,7 @@ bool GoldenSectionSearch::Calculate(long double* solution1, long double* solutio
 			localXMax = x2;
 		}
 
-		if(abs(localXMin - localXMax) < LEAST_ERROR_RANGE)
+		if(abs((localXMin - localXMax).getLength()) < LEAST_ERROR_RANGE)
 		{
 			(*solution1) = localXMin;
 			(*solution2) = localXMax;

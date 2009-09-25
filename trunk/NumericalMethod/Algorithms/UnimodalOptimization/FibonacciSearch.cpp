@@ -39,10 +39,13 @@
 
 #include "FibonacciSearch.h"
 
+#include <vector>
+
 using namespace windage;
 bool FibonacciSearch::Calculate(long double* solution1, long double* solution2)
 {
 	this->repeat = 1;
+	std::vector<double> params;			params.resize(1);
 
 	this->fibonacciNumbers.clear();
 
@@ -63,8 +66,10 @@ bool FibonacciSearch::Calculate(long double* solution1, long double* solution2)
 	double x1 = localXMin + fibonacciNumbers[n-2]/fibonacciNumbers[n] * length;
 	double x2 = localXMax - fibonacciNumbers[n-2]/fibonacciNumbers[n] * length;
 
-	double solutionX1 = function(x1);
-	double solutionX2 = function(x2);
+	params[0] = x1;
+	double solutionX1 = function(&params, 1);
+	params[0] = x2;
+	double solutionX2 = function(&params, 1);
 
 	while(n > 1)
 	{
@@ -83,14 +88,16 @@ bool FibonacciSearch::Calculate(long double* solution1, long double* solution2)
 			x2 = tempX2;
 
 //			solutionX1 = function(x1);
-			solutionX2 = function(x2);
+			params[0] = x2;
+			solutionX2 = function(&params, 1);
 		}
 		else if(tempX2 == x2)
 		{
 			x1 = tempX1;
 			x2 = tempX2;
 
-			solutionX1 = function(x1);
+			params[0] = x1;
+			solutionX1 = function(&params, 1);
 //			solutionX2 = function(x2);
 		}
 		else if(tempX1 == x2)
@@ -99,7 +106,8 @@ bool FibonacciSearch::Calculate(long double* solution1, long double* solution2)
 			x2 = tempX2;
 
 			solutionX1 = solutionX2;
-			solutionX2 = function(x2);
+			params[0] = x2;
+			solutionX2 = function(&params, 1);
 		}
 		else if(tempX2 == x1)
 		{
@@ -107,7 +115,8 @@ bool FibonacciSearch::Calculate(long double* solution1, long double* solution2)
 			x2 = tempX2;
 
 			solutionX2 = solutionX1;
-			solutionX1 = function(x1);
+			params[0] = x1;
+			solutionX1 = function(&params, 1);
 		}
 		else
 //*/
@@ -115,8 +124,10 @@ bool FibonacciSearch::Calculate(long double* solution1, long double* solution2)
 			x1 = tempX1;
 			x2 = tempX2;
 
-			solutionX1 = function(x1);
-			solutionX2 = function(x2);
+			params[0] = x1;
+			solutionX1 = function(&params, 1);
+			params[0] = x2;
+			solutionX2 = function(&params, 1);
 		}
 
 		if(solutionX1 >= solutionX2)

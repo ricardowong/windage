@@ -12,7 +12,12 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RootFindingExample", "Examp
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Algorithms", "Algorithms\Algorithms.vcproj", "{B7E8F7A0-935B-43B7-9518-6A4C01E8120D}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UnimodalOptimizationExample", "UnimodalOptimizationExample\UnimodalOptimizationExample.vcproj", "{9113E11B-1C95-425C-AE70-2DD58046DF56}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UnimodalOptimizationExample", "Examples\UnimodalOptimizationExample\UnimodalOptimizationExample.vcproj", "{9113E11B-1C95-425C-AE70-2DD58046DF56}"
+	ProjectSection(ProjectDependencies) = postProject
+		{B7E8F7A0-935B-43B7-9518-6A4C01E8120D} = {B7E8F7A0-935B-43B7-9518-6A4C01E8120D}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MultivariateOptimizationExample", "Examples\MultivariateOptimizationExample\MultivariateOptimizationExample.vcproj", "{EB72473D-D689-4AD5-9721-97D2A5E26990}"
 	ProjectSection(ProjectDependencies) = postProject
 		{B7E8F7A0-935B-43B7-9518-6A4C01E8120D} = {B7E8F7A0-935B-43B7-9518-6A4C01E8120D}
 	EndProjectSection
@@ -35,6 +40,10 @@ Global
 		{9113E11B-1C95-425C-AE70-2DD58046DF56}.Debug|Win32.Build.0 = Debug|Win32
 		{9113E11B-1C95-425C-AE70-2DD58046DF56}.Release|Win32.ActiveCfg = Release|Win32
 		{9113E11B-1C95-425C-AE70-2DD58046DF56}.Release|Win32.Build.0 = Release|Win32
+		{EB72473D-D689-4AD5-9721-97D2A5E26990}.Debug|Win32.ActiveCfg = Debug|Win32
+		{EB72473D-D689-4AD5-9721-97D2A5E26990}.Debug|Win32.Build.0 = Debug|Win32
+		{EB72473D-D689-4AD5-9721-97D2A5E26990}.Release|Win32.ActiveCfg = Release|Win32
+		{EB72473D-D689-4AD5-9721-97D2A5E26990}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -43,5 +52,6 @@ Global
 		{B7E8F7A0-935B-43B7-9518-6A4C01E8120D} = {E3F1D81E-BA6F-4DD1-9510-045FB305D1E5}
 		{095D412C-9F70-49C4-A1E9-E20518044AF8} = {EAFAA2EA-0891-4F22-B326-9BE1C46B9400}
 		{9113E11B-1C95-425C-AE70-2DD58046DF56} = {EAFAA2EA-0891-4F22-B326-9BE1C46B9400}
+		{EB72473D-D689-4AD5-9721-97D2A5E26990} = {EAFAA2EA-0891-4F22-B326-9BE1C46B9400}
 	EndGlobalSection
 EndGlobal
