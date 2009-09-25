@@ -186,8 +186,6 @@ bool PowellsMethod::Calculate(double* solutionX, double* solutionY)
 			trace->log("repeat", this->repeat);
 			trace->log("x", temp.x);
 			trace->log("y", temp.y);
-			trace->log("dx", direction[N-1].x);
-			trace->log("dy", direction[N-1].y);
 			trace->logNewLine();
 		}
 //*/

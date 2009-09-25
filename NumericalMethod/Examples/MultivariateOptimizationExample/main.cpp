@@ -79,14 +79,15 @@ std::string PrintErrorMessage(double valueX, double valueY)
 void main()
 {
 	windage::Logger* logger = new windage::Logger(&std::cout);
-	windage::Logger* trace = new windage::Logger("trace.txt");
+	windage::Logger* traceNMM = new windage::Logger("trace_NMM.txt");
+	windage::Logger* tracePM = new windage::Logger("trace_PM.txt");
 
 	double solutionX = 0.0;
 	double solutionY = 0.0;
 
 	windage::NelderMeadMethod* nelderMeadMethod = new windage::NelderMeadMethod();
 	nelderMeadMethod->AttatchFunction(FUNCTION);
-	nelderMeadMethod->AttatchTrace(trace);
+	nelderMeadMethod->AttatchTrace(traceNMM);
 
 	std::cout << "[[ Nelder Mead Method ]]" << std::endl;
 	if(nelderMeadMethod->Calculate(&solutionX, &solutionY))
@@ -101,7 +102,8 @@ void main()
 
 	windage::PowellsMethod* powellsMethod = new windage::PowellsMethod();
 	powellsMethod->AttatchFunction(FUNCTION);
-	powellsMethod->AttatchTrace(trace);
+	powellsMethod->AttatchTrace(tracePM);
+
 	std::cout << "[[ Powell's Method ]]" << std::endl;
 	if(powellsMethod->Calculate(&solutionX, &solutionY))
 		std::cout << "\tcalculate local minmum point : " << solutionX << ", " << solutionY << " (repeat : " << powellsMethod->GetRepatCount() << ")" << std::endl;
