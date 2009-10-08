@@ -414,6 +414,10 @@ void Calibration::Undistortion(IplImage* input, IplImage* output)
 
 void Calibration::DrawInfomation(IplImage* colorImage, double size)
 {
+	cvLine(colorImage, this->ConvertWorld2Image(0.0, 0.0, 0.0), this->ConvertWorld2Image(size, 0.0, 0.0), CV_RGB(0, 0, 0), 5);
+	cvLine(colorImage, this->ConvertWorld2Image(0.0, 0.0, 0.0), this->ConvertWorld2Image(0.0, size, 0.0), CV_RGB(0, 0, 0), 5);
+	cvLine(colorImage, this->ConvertWorld2Image(0.0, 0.0, 0.0), this->ConvertWorld2Image(0.0, 0.0, size), CV_RGB(0, 0, 0), 5);
+
 	cvLine(colorImage, this->ConvertWorld2Image(0.0, 0.0, 0.0), this->ConvertWorld2Image(size, 0.0, 0.0), CV_RGB(255, 0, 0), 2);
 	cvLine(colorImage, this->ConvertWorld2Image(0.0, 0.0, 0.0), this->ConvertWorld2Image(0.0, size, 0.0), CV_RGB(0, 255, 0), 2);
 	cvLine(colorImage, this->ConvertWorld2Image(0.0, 0.0, 0.0), this->ConvertWorld2Image(0.0, 0.0, size), CV_RGB(0, 0, 255), 2);

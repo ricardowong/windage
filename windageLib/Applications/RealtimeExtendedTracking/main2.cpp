@@ -55,8 +55,12 @@
 const int WIDTH = 640;
 const int HEIGHT = 480;
 
+const int PATCH_WIDTH = 300;
+const int PATCH_HEIGHT = 300;
+
 const double intrinsic[] = {778.195, 779.430, 324.659, 235.685, -0.333103, 0.173760, 0.000653, 0.001114};
 
+CvPoint mousePoint;
 
 bool updateTracker = false;
 CvPoint imagePoint;
@@ -65,8 +69,8 @@ void MouseEvent( int mevent, int x, int y, int flags, void* param )
    switch(mevent)
    {
    case CV_EVENT_LBUTTONDOWN:
-	   imagePoint.x = x;
-	   imagePoint.y = y;
+	   mousePoint.x = x;
+	   mousePoint.y = y;
 	   updateTracker = true;
 	   break;
    case CV_EVENT_LBUTTONUP:
@@ -74,6 +78,10 @@ void MouseEvent( int mevent, int x, int y, int flags, void* param )
    case CV_EVENT_RBUTTONDOWN:
 	   break;
    case CV_EVENT_RBUTTONUP:
+	   break;
+   case CV_EVENT_MOUSEMOVE:
+	   mousePoint.x = x;
+	   mousePoint.y = y;
 	   break;
    }
 }
@@ -91,6 +99,8 @@ void main()
 	IplImage* inputImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
 	IplImage* grayImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 1);
 
+	IplImage* patchImage = cvCreateImage(cvSize(PATCH_WIDTH, PATCH_HEIGHT), IPL_DEPTH_8U, 1);
+
 	windage::Calibration* calibration = new windage::Calibration();
 	calibration->Initialize(intrinsic[0], intrinsic[1], intrinsic[2], intrinsic[3], intrinsic[4], intrinsic[5], intrinsic[6], intrinsic[7]);
 	calibration->InitUndistortionMap(WIDTH, HEIGHT);
@@ -99,7 +109,8 @@ void main()
 	savedCalibration->Initialize(intrinsic[0], intrinsic[1], intrinsic[2], intrinsic[3], intrinsic[4], intrinsic[5], intrinsic[6], intrinsic[7]);
 	savedCalibration->InitUndistortionMap(WIDTH, HEIGHT);
 
-	
+
+	std::vector<windage::Matrix4> relationT;
 	std::vector<windage::ModifiedSURFTracker*> trackerList;
 	const char* message = "reference #%d";
 	char resultMessage[100];
@@ -112,6 +123,8 @@ void main()
 	while(isProcessing)
 	{
 //		fpslog->logNewLine();
+
+		fpslog->updateTickCount();
 
 		// image grabbing
 		log->updateTickCount();
@@ -130,30 +143,53 @@ void main()
 		// calcuate multiple tracking
 		log->updateTickCount();
 
-		#pragma omp parallel for schedule(dynamic)
+//		#pragma omp parallel for schedule(dynamic)
 		for(int i=0; i<trackerList.size(); i++)
 		{
-			trackerList[i]->UpdateCameraPose(grayImage);
-//			trackerList[i]->DrawDebugInfo(inputImage);
-			trackerList[i]->DrawInfomation(inputImage, 100.0);
-			trackerList[i]->DrawOutLine(inputImage);
-
-			#pragma omp critical
+			if(trackerList[i]->UpdateCameraPose(grayImage) > 0.0)
 			{
-				windage::Calibration* cameraPose = trackerList[i]->GetCameraParameter();
-				CvPoint cameraPosition2D = cameraPose->ConvertWorld2Image(0, -20, 0);
+//				trackerList[i]->DrawDebugInfo(inputImage);
 
-				sprintf(resultMessage, message, i);
-				windage::Utils::DrawTextToImage(inputImage, cameraPosition2D, resultMessage);
+				trackerList[i]->DrawOutLine(inputImage);
+				trackerList[i]->DrawInfomation(inputImage, 100.0);
+
+				#pragma omp critical
+				{
+					windage::Calibration* cameraPose = trackerList[i]->GetCameraParameter();
+					CvPoint cameraPosition2D = cameraPose->ConvertWorld2Image(0, -20, 0);
+
+					sprintf(resultMessage, message, i);
+					windage::Utils::DrawTextToImage(inputImage, cameraPosition2D, resultMessage);
+				}
+			}
+			else
+			{
+				int prevIndex = i-1;
+				if(prevIndex >= 0 && relationT.size() == trackerList.size())
+				{
+					CvMat* extrinsic2 = trackerList[i]->GetCameraParameter()->GetExtrinsicMatrix();
+					CvMat* extrinsic1 = trackerList[prevIndex]->GetCameraParameter()->GetExtrinsicMatrix();
+
+					for(int y=0; y<4; y++)
+					{
+						for(int x=0; x<4; x++)
+						{
+							cvSetReal2D(extrinsic2, y, x, cvGetReal2D(extrinsic1, y, x) + relationT[prevIndex].m[y][x]);
+						}
+					}
+
+					trackerList[i]->DrawOutLine(inputImage);
+					trackerList[i]->DrawInfomation(inputImage, 100.0);
+				}
 			}
 		}
 		log->log("tracking", log->calculateProcessTime());
 		log->logNewLine();
 
 		sprintf(resultMessage, "fps : %lf", fpslog->calculateFPS());
-		fpslog->updateTickCount();
-		windage::Utils::DrawTextToImage(inputImage, cvPoint(10, 20), resultMessage);
 
+		windage::Utils::DrawTextToImage(inputImage, cvPoint(10, 20), resultMessage);
+/*
 		if(trackerList.size() > 0)
 		{
 			cvCircle(inputImage, imagePoint, 10, CV_RGB(255, 0, 0));
@@ -181,6 +217,30 @@ void main()
 			savedCalibration->SetExtrinsicMatrix(trackerList[0]->GetCameraParameter()->GetExtrinsicMatrix());
 			updateTracker = false;
 		}
+*/
+
+		if(updateTracker)
+		{
+			cvSetImageROI(grayImage, cvRect(mousePoint.x - PATCH_WIDTH/2, mousePoint.y - PATCH_HEIGHT/2, PATCH_WIDTH, PATCH_HEIGHT));
+			cvCopy(grayImage, patchImage);
+			cvResetImageROI(grayImage);
+
+			std::cout << "attatch reference at current patch image" << std::endl;
+			windage::ModifiedSURFTracker* tempTracker = new windage::ModifiedSURFTracker();
+			tempTracker->Initialize(intrinsic[0], intrinsic[1], intrinsic[2], intrinsic[3], intrinsic[4], intrinsic[5], intrinsic[6], intrinsic[7], 30);
+			tempTracker->RegistReferenceImage(patchImage, PATCH_WIDTH, PATCH_HEIGHT, 8.0, 8);
+			tempTracker->InitializeOpticalFlow(WIDTH, HEIGHT, 15, cvSize(15, 15), 3);
+			tempTracker->SetOpticalFlowRunning(true);
+			trackerList.push_back(tempTracker);
+
+			tempTracker->SetFeatureExtractTreshold(45);
+
+			updateTracker = false;
+		}
+		if(mousePoint.x > 0)
+			cvRectangle(inputImage, cvPoint(mousePoint.x - PATCH_WIDTH/2, mousePoint.y - PATCH_HEIGHT/2), cvPoint(mousePoint.x + PATCH_WIDTH/2, mousePoint.y + PATCH_HEIGHT/2), CV_RGB(255, 0, 0), 3);
+		mousePoint.x = -1;
+		
 
 		// draw result image
 		cvShowImage("result image", inputImage);
@@ -195,11 +255,38 @@ void main()
 			{
 				std::cout << "attatch reference at current image" << std::endl;
 				windage::ModifiedSURFTracker* tempTracker = new windage::ModifiedSURFTracker();
-				tempTracker->Initialize(intrinsic[0], intrinsic[1], intrinsic[2], intrinsic[3], intrinsic[4], intrinsic[5], intrinsic[6], intrinsic[7], 60);
+				tempTracker->Initialize(intrinsic[0], intrinsic[1], intrinsic[2], intrinsic[3], intrinsic[4], intrinsic[5], intrinsic[6], intrinsic[7], 30);
 				tempTracker->RegistReferenceImage(grayImage, WIDTH, HEIGHT, 4.0, 8);
-				tempTracker->InitializeOpticalFlow(WIDTH, HEIGHT, 10, cvSize(15, 15), 3);
+				tempTracker->InitializeOpticalFlow(WIDTH, HEIGHT, 15, cvSize(15, 15), 3);
 				tempTracker->SetOpticalFlowRunning(true);
 				trackerList.push_back(tempTracker);
+
+				tempTracker->SetFeatureExtractTreshold(50);
+			}
+			break;
+		case 'c':
+		case 'C':
+			{
+				windage::Matrix4 tempMatrix;
+
+				relationT.clear();
+				for(int i=0; i<trackerList.size(); i++)
+				{
+					int nextIndex = (i+1)%trackerList.size();
+
+					CvMat* tempExtrinsic1 = trackerList[i]->GetCameraParameter()->GetExtrinsicMatrix();
+					CvMat* tempExtrinsic2 = trackerList[nextIndex]->GetCameraParameter()->GetExtrinsicMatrix();
+
+					for(int y=0; y<4; y++)
+					{
+						for(int x=0; x<4; x++)
+						{
+							tempMatrix.m[y][x] = cvGetReal2D(tempExtrinsic2, y, x) - cvGetReal2D(tempExtrinsic1, y, x);
+						}
+					}
+
+					relationT.push_back(tempMatrix);
+				}
 			}
 			break;
 		case 'r':

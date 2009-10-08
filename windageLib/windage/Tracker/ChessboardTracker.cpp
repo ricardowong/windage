@@ -171,7 +171,7 @@ bool ChessboardTracker::UpdateExtrinsicParams()
 	return true;
 }
 
-int ChessboardTracker::UpdateCameraPose(IplImage* grayImage)
+double ChessboardTracker::UpdateCameraPose(IplImage* grayImage)
 {
 	if(this->FindChessBoardCorner(grayImage) == true)
 	{
