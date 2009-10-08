@@ -44,7 +44,7 @@ using namespace windage;
 #include "FAST/wsurf.h"
 #include "FAST/wfastsurf.h"
 
-//#define REMOVE_OUTLIER
+#define REMOVE_OUTLIER
 #define USING_RANSAC
 
 ModifiedSURFTracker::ModifiedSURFTracker()
@@ -534,9 +534,7 @@ double ModifiedSURFTracker::CalculatePose(bool update)
 	else
 	{
 		homographyError = -1.0;
-	}
-
-	
+	}	
 
 	return homographyError;
 }
@@ -590,17 +588,13 @@ double ModifiedSURFTracker::UpdateCameraPose(IplImage* grayImage)
 
 				if(log) log->updateTickCount();
 
-				#pragma omp parallel for schedule(dynamic)
-				for(int i=0; i<sceneSURF.size(); i++)
+				for(unsigned int i=0; i<sceneSURF.size(); i++)
 				{
 					int index = FindPairs(sceneSURF[i], referenceFeatureTree);
 					if(index > 0)
 					{
-						#pragma omp critical
-						{
-							tempReferenceSURF.push_back(referenceSURF[index]);
-							tempSceneSURF.push_back(sceneSURF[i]);
-						}
+						tempReferenceSURF.push_back(referenceSURF[index]);
+						tempSceneSURF.push_back(sceneSURF[i]);
 					}
 				}
 				if(log) log->log("Matching", log->calculateProcessTime());

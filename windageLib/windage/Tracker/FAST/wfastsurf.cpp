@@ -166,9 +166,8 @@ void wExtractFASTSURF( const CvArr* _img, const CvArr* _mask,
 		float* vec = (float*)cvGetSeqElem( descriptors, k );
         for(int kk = 0; kk < (int)(descriptors->elem_size/sizeof(vec[0])); kk++ )
             vec[kk] = 0;
-        double square_mag = 0;
 
-        // always 36-bin descriptor
+		// always 36-bin descriptor
         for(int i = 0; i < 3; i++ )
             for(int j = 0; j < 3; j++ )
             {
@@ -184,18 +183,8 @@ void wExtractFASTSURF( const CvArr* _img, const CvArr* _mask,
 						vec[3] += (float)fabs(ty);
                     }
                 }
-                for(int kk = 0; kk < 4; kk++ )
-                    square_mag += vec[kk]*vec[kk];
                 vec+=4;
 			}
-
-        // unit vector is essential for contrast invariance 
-/*
-        vec = (float*)cvGetSeqElem( descriptors, k );
-        double scale = 1./(sqrt(square_mag) + DBL_EPSILON);
-        for(int kk = 0; kk < descriptor_size; kk++ )
-            vec[kk] = (float)(vec[kk]*scale);
-//*/
     }
 
 	if( _descriptors )	*_descriptors = descriptors;

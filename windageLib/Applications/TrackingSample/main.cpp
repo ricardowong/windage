@@ -71,8 +71,8 @@ void main()
 	windage::ModifiedSURFTracker* tracker = new windage::ModifiedSURFTracker();
 	tracker->Initialize(778.195, 779.430, 324.659, 235.685, -0.333103, 0.173760, 0.000653, 0.001114, 50);
 	tracker->RegistReferenceImage(referenceImage, 26.70, 20.00, 8.0, 8);
-	tracker->InitializeOpticalFlow(WIDTH, HEIGHT, 10, cvSize(15, 15), 3);
-	tracker->SetOpticalFlowRunning(false);
+	tracker->InitializeOpticalFlow(WIDTH, HEIGHT, 10, cvSize(15, 15), 4);
+	tracker->SetOpticalFlowRunning(true);
 	tracker->GetCameraParameter()->InitUndistortionMap(WIDTH, HEIGHT);
 	tracker->SetFeatureExtractTreshold(50);
 
