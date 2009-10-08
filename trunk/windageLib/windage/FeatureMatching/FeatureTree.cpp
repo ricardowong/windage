@@ -83,7 +83,8 @@ void FeatureTree::CreateReferenceTree(std::vector<SURFFeature*>* referenceSURF)
 		}
 	}
 
-	this->referenceFeatureTree = cvCreateFeatureTree(referenceFeatureStorage);
+	
+	this->referenceFeatureTree = cvCreateKDTree(referenceFeatureStorage);
 }
 
 int FeatureTree::FindPairs(SURFFeature* description, double distanceRate)

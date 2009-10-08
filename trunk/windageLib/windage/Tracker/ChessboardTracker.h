@@ -104,7 +104,7 @@ namespace windage
 		 * @remark
 		 *		update extrinsic parameter method using input image
 		 */
-		int UpdateCameraPose(IplImage* grayImage);
+		double UpdateCameraPose(IplImage* grayImage);
 
 		/**
 		 * @brief

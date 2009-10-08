@@ -37,60 +37,20 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#ifndef _TRACKER_H_
-#define _TRACKER_H_
+#ifndef _W_FAST_SURF_H_
+#define _W_FAST_SURF_H_
 
-#define DLLEXPORT __declspec(dllexport)
-#define DLLIMPORT __declspec(dllimport)
+// modified SURF by windage
+/** @cond */
 
 #include <cv.h>
-#include "Calibration.h"
+#include <cxmisc.h>
 
-namespace windage
-{
-	/**
-	 * @brief
-	 *		Abstract Class for Camera Tracker
-	 * @author
-	 *		windage
-	 */
-	class DLLEXPORT Tracker
-	{
-	protected:
-		Calibration* cameraParameter;	///< camera parameter
-		virtual void Release();
-		
-	public:
-		Tracker();
-		virtual ~Tracker();
+#include "wsurf.h"
 
-//		void Initialize(double fx, double fy, double cx, double cy, double d1=0.0, double d2=0.0, double d3=0.0, double d4=0.0);
-		inline Calibration* GetCameraParameter(){return this->cameraParameter;};
-		
-		/**
-		 * @brief
-		 *		Update Camera Pose (extrinsic parameter)
-		 * @remark
-		 *		update extrinsic parameter abstract method using input image
-		 */
-		virtual double UpdateCameraPose(IplImage* grayImage) = 0;
+void wExtractFASTSURF( const CvArr* _img, const CvArr* _mask,
+							CvSeq** _keypoints, CvSeq** _descriptors,
+							CvMemStorage* storage, CvSURFParams params,
+							int useProvidedKeyPts);
 
-		/**
-		 * @brief
-		 *		Draw Debug Information
-		 * @remark
-		 *		draw debug information abstract method
-		 */
-		virtual void DrawDebugInfo(IplImage* colorImage) = 0;
-
-		/**
-		 * @brief
-		 *		Draw 3-Axis
-		 * @remark
-		 *		draw axis line for confirming tracked object information
-		 */
-		void DrawInfomation(IplImage* colorImage, double size = 10.0);
-	};
-
-}
 #endif

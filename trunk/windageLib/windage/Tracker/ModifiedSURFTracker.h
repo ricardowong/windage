@@ -45,8 +45,11 @@
 
 #include <vector>
 #include <cv.h>
+#include <cvaux.h>
+
 #include "Tracker.h"
 #include "OpticalFlow.h"
+#include "Utils/Logger.h"
 
 namespace windage
 {
@@ -62,20 +65,22 @@ namespace windage
 	{
 		CvPoint2D32f point;							///< extract point
 		int size;									///< scale value
-		double descriptor[DESCRIPTOR_DIMENSION];	///< SURF Descriptor 36-dimension
+		float dir;
+		float descriptor[DESCRIPTOR_DIMENSION];	///< SURF Descriptor 36-dimension
 
 		void operator=(struct _SURFDescription oprd)
 		{
 			point = oprd.point;
 			size = oprd.size;
+			dir = oprd.dir;
 			for(int i=0; i<DESCRIPTOR_DIMENSION; i++)
 				descriptor[i] = oprd.descriptor[i];
 		}
-		double distance(struct _SURFDescription oprd)
+		float distance(struct _SURFDescription oprd)
 		{
-			double sum = 0;
+			float sum = 0;
 			for(int i=0; i<DESCRIPTOR_DIMENSION; i++)
-				sum += (double)((descriptor[i] - oprd.descriptor[i]) * (descriptor[i] - oprd.descriptor[i]));
+				sum += (float)((descriptor[i] - oprd.descriptor[i]) * (descriptor[i] - oprd.descriptor[i]));
 			return sum;
 		}
 	}SURFDesciription;
@@ -135,6 +140,9 @@ namespace windage
 
 		inline double GetRealWidth(){return this->realWidth;};
 		inline double GetRealHeight(){return this->realHeight;};
+
+		inline int GetFeatureCount(){return sceneSURF.size();};
+		inline int GetMatchedCount(){return matchedScene.size();};
 
 		inline IplImage* GetReferenceImage(){return this->referenceImage;};
 		inline int GetFeatureExtractTreshold(){return this->featureExtractThreshold;};
@@ -201,7 +209,7 @@ namespace windage
 		 * @remark
 		 *		update extrinsic parameter method using input image
 		 */
-		int UpdateCameraPose(IplImage* grayImage);
+		double UpdateCameraPose(IplImage* grayImage);
 
 		/**
 		 * @brief
@@ -210,6 +218,7 @@ namespace windage
 		 *		draw debug information method
 		 */
 		void DrawDebugInfo(IplImage* colorImage);
+		void DrawDebugInfo2(IplImage* colorImage);
 		void DrawOutLine(IplImage* colorImage, bool drawCross = false);
 
 		// optical flow
@@ -228,6 +237,8 @@ namespace windage
 									int pyramidLevel=3					///< opticalflow pyramid level
 									);
 		inline void SetOpticalFlowRunning(bool run){this->runOpticalflow = run;};
+
+		Logger* log;
 	};
 }
 

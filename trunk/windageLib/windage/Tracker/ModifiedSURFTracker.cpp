@@ -42,8 +42,10 @@ using namespace windage;
 
 #include "FAST/fast.h"
 #include "FAST/wsurf.h"
+#include "FAST/wfastsurf.h"
 
-#define REMOVE_OUTLIER
+//#define REMOVE_OUTLIER
+#define USING_RANSAC
 
 ModifiedSURFTracker::ModifiedSURFTracker()
 {
@@ -58,6 +60,8 @@ ModifiedSURFTracker::ModifiedSURFTracker()
 	opticalflow = NULL;
 	runOpticalflow = false;
 	step = 0;
+
+	log = new Logger("modifiedSURF_Performance", true);
 }
 
 ModifiedSURFTracker::~ModifiedSURFTracker()
@@ -174,7 +178,8 @@ int ModifiedSURFTracker::ExtractModifiedSURF(IplImage* grayImage, std::vector<Cv
 		CvSURFPoint point = cvSURFPoint( cvPoint2D32f((*corners)[i].x, (*corners)[i].y), 0, 15, 0, 0);
 		cvSeqPush(referenceKeypoints, &point);
 	}
-	wExtractSURF(grayImage, 0, &referenceKeypoints, &referenceDescriptors, storage, params, 1);
+//	wExtractSURF(grayImage, 0, &referenceKeypoints, &referenceDescriptors, storage, params, 1);
+	wExtractFASTSURF(grayImage, 0, &referenceKeypoints, &referenceDescriptors, storage, params, 1);
 //	cvExtractSURF(grayImage, 0, &referenceKeypoints, &referenceDescriptors, storage, params, 1);
 
 	CvSeqReader reader;
@@ -188,6 +193,7 @@ int ModifiedSURFTracker::ExtractModifiedSURF(IplImage* grayImage, std::vector<Cv
 		CvSURFPoint* r = (CvSURFPoint*)cvGetSeqElem( referenceKeypoints, i );
 		description.point = r->pt;
 		description.size = r->size;
+		description.dir = r->dir;
 
 		float* vec = (float*)reader.ptr;
 		for(int i=0; i<length; i++)
@@ -215,7 +221,8 @@ CvFeatureTree* ModifiedSURFTracker::CreateReferenceTree(std::vector<SURFDescirip
 			cvSetReal2D(referenceFeatureStorage, y, x, (*referenceSURF)[y].descriptor[x]);
 		}
 	}
-	CvFeatureTree* tree = cvCreateFeatureTree(referenceFeatureStorage);
+	
+	CvFeatureTree* tree = cvCreateKDTree(referenceFeatureStorage);
 	return tree;
 }
 
@@ -293,7 +300,8 @@ int ModifiedSURFTracker::GenerateReferenceFeatureTree(double scaleFactor, int sc
 		for(int x=1; x<=scaleStep; x++)
 		{
 			tempReference = cvCreateImage(cvSize(width*x, height*y), IPL_DEPTH_8U, 1);
-			cvResize(referenceImage, tempReference);
+			cvResize(referenceImage, tempReference, CV_INTER_AREA);
+			cvSmooth(tempReference, tempReference, CV_GAUSSIAN, 3, 3, 1.5);
 
 			std::vector<SURFDesciription> tempSurf;
 			tempSurf.clear();
@@ -440,8 +448,11 @@ double ModifiedSURFTracker::CalculatePose(bool update)
 
 	float homographyError = 0;
 	int n = (int)matchedReferencePoints.size();
-	if(n >= 4)
+	if(n >= 5)
 	{
+		int inlierCount = 0;
+		int outlierCount = 0;
+
 		CvMat _h = cvMat(3, 3, CV_32F, homography);
 
 		CvMat _intrinsic = cvMat(3, 3, CV_32F, intrinsicMatrix);
@@ -451,7 +462,11 @@ double ModifiedSURFTracker::CalculatePose(bool update)
 		CvMat _pt2 = cvMat(1, n, CV_32FC2, &(matchedScenePoints[0]) );
 
 		homographyError = 0.0;
+#ifdef USING_RANSAC
 		if(cvFindHomography( &_pt1, &_pt2, &_h, CV_RANSAC, ERROR_BOUND))
+#else
+		if(cvFindHomography( &_pt1, &_pt2, &_h, CV_LMEDS))
+#endif
 		{
 #ifdef REMOVE_OUTLIER
 			// calculate homography error & remove outlier
@@ -474,11 +489,15 @@ double ModifiedSURFTracker::CalculatePose(bool update)
 				std::vector<CvPoint2D32f>::iterator it1 = this->matchedReferencePoints.begin();
 				std::vector<CvPoint2D32f>::iterator it2 = this->matchedScenePoints.begin();
 
-				if(abs(matchedScenePoints[i].x - projectionPointX) + abs(matchedScenePoints[i].y - projectionPointY) <= ERROR_BOUND)
+				float dx = abs(matchedScenePoints[i].x - projectionPointX);
+				float dy = abs(matchedScenePoints[i].y - projectionPointY);
+				if(dx + dy <= ERROR_BOUND)
 				{
-					difference += abs(matchedScenePoints[i].x - projectionPointX);
-					difference += abs(matchedScenePoints[i].y - projectionPointY);
+//					difference += abs(matchedScenePoints[i].x - projectionPointX);
+//					difference += abs(matchedScenePoints[i].y - projectionPointY);
 					count++;
+
+					inlierCount++;
 				}
 				else // outlier
 				{
@@ -487,9 +506,13 @@ double ModifiedSURFTracker::CalculatePose(bool update)
 
 					this->matchedReference.erase(this->matchedReference.begin() + count);
 					this->matchedScene.erase(this->matchedScene.begin() + count);
+
+					outlierCount++;
 				}
+
+				difference += (dx + dy);
 			}
-			homographyError = (difference / 2.) / (float)count;
+			homographyError = (difference / 2.) / (float)matchedReferencePoints.size();
 #endif
 			DecomposeHomographyToRT(&_intrinsic, &_h, &_extrinsic);
 
@@ -510,13 +533,15 @@ double ModifiedSURFTracker::CalculatePose(bool update)
 	}
 	else
 	{
-		homographyError = 1.0;
+		homographyError = -1.0;
 	}
+
+	
 
 	return homographyError;
 }
 
-int ModifiedSURFTracker::UpdateCameraPose(IplImage* grayImage)
+double ModifiedSURFTracker::UpdateCameraPose(IplImage* grayImage)
 {
 	bool update = true;
 	if(runOpticalflow)
@@ -527,7 +552,10 @@ int ModifiedSURFTracker::UpdateCameraPose(IplImage* grayImage)
 			{
 	//			update = false;
 				std::vector<CvPoint2D32f> matchedTempPoints;
+
+				if(log) log->updateTickCount();
 				opticalflow->TrackFeature(prevImage, grayImage, &matchedScenePoints, &matchedTempPoints);
+				if(log) log->log("opticalflow", log->calculateProcessTime());
 
 				int index = 0;
 				for(unsigned int i=0; i<matchedTempPoints.size(); i++)
@@ -543,25 +571,39 @@ int ModifiedSURFTracker::UpdateCameraPose(IplImage* grayImage)
 						matchedScene.erase(matchedScene.begin() + index);
 					}
 				}
-
+				
 				// add feature
 				sceneSURF.clear();
 				std::vector<CvPoint> fastCorners;
+
+				if(log) log->updateTickCount();
 				ModifiedSURFTracker::ExtractFASTCorner(&fastCorners, grayImage, featureExtractThreshold);
+				if(log) log->log("FAST", log->calculateProcessTime());
+
+				if(log) log->updateTickCount();
 				int featureCount = ModifiedSURFTracker::ExtractModifiedSURF(grayImage, &fastCorners, &sceneSURF);
+				if(log) log->log("Descriptor", log->calculateProcessTime());
+				
 
 				std::vector<SURFDesciription> tempReferenceSURF;
 				std::vector<SURFDesciription> tempSceneSURF;
 
-				for(unsigned int i=0; i<sceneSURF.size(); i++)
+				if(log) log->updateTickCount();
+
+				#pragma omp parallel for schedule(dynamic)
+				for(int i=0; i<sceneSURF.size(); i++)
 				{
 					int index = FindPairs(sceneSURF[i], referenceFeatureTree);
 					if(index > 0)
 					{
-						tempReferenceSURF.push_back(referenceSURF[index]);
-						tempSceneSURF.push_back(sceneSURF[i]);
+						#pragma omp critical
+						{
+							tempReferenceSURF.push_back(referenceSURF[index]);
+							tempSceneSURF.push_back(sceneSURF[i]);
+						}
 					}
 				}
+				if(log) log->log("Matching", log->calculateProcessTime());
 
 				for(unsigned int i=0; i<tempReferenceSURF.size(); i++)
 				{
@@ -583,11 +625,19 @@ int ModifiedSURFTracker::UpdateCameraPose(IplImage* grayImage)
 				}
 
 				step = 0;
+
+				
 			}
 			else
 			{
 				std::vector<CvPoint2D32f> matchedTempPoints;
+
+				if(log) log->updateTickCount();
 				opticalflow->TrackFeature(prevImage, grayImage, &matchedScenePoints, &matchedTempPoints);
+				if(log) log->log("opticalflow", log->calculateProcessTime());
+				if(log) log->log("FAST", log->calculateProcessTime());
+				if(log) log->log("Descriptor", log->calculateProcessTime());
+				if(log) log->log("Matching", log->calculateProcessTime());
 
 				int index = 0;
 				for(unsigned int i=0; i<matchedTempPoints.size(); i++)
@@ -604,6 +654,8 @@ int ModifiedSURFTracker::UpdateCameraPose(IplImage* grayImage)
 					}
 				}
 			}
+
+
 		}
 		else
 		{
@@ -619,11 +671,18 @@ int ModifiedSURFTracker::UpdateCameraPose(IplImage* grayImage)
 	{
 		sceneSURF.clear();
 		std::vector<CvPoint> fastCorners;
+
+		if(log) log->updateTickCount();
 		ModifiedSURFTracker::ExtractFASTCorner(&fastCorners, grayImage, featureExtractThreshold);
+		if(log) log->log("FAST", log->calculateProcessTime());
+
 		int featureCount = ModifiedSURFTracker::ExtractModifiedSURF(grayImage, &fastCorners, &sceneSURF);
+		if(log) log->log("Descriptor", log->calculateProcessTime());
 
 		matchedReference.clear();
 		matchedScene.clear();
+
+		if(log) log->updateTickCount();
 		for(unsigned int i=0; i<sceneSURF.size(); i++)
 		{
 			int index = FindPairs(sceneSURF[i], referenceFeatureTree);
@@ -633,6 +692,7 @@ int ModifiedSURFTracker::UpdateCameraPose(IplImage* grayImage)
 				matchedScene.push_back(sceneSURF[i]);
 			}
 		}
+		if(log) log->log("Matching", log->calculateProcessTime());
 	}
 
 	matchedReferencePoints.clear();
@@ -642,13 +702,19 @@ int ModifiedSURFTracker::UpdateCameraPose(IplImage* grayImage)
 		matchedReferencePoints.push_back(matchedReference[i].point);
 		matchedScenePoints.push_back(matchedScene[i].point);
 	}
-	this->CalculatePose(update);
 
-	return (int)matchedScenePoints.size();
+	if(log) log->updateTickCount();
+	double homograpyError = this->CalculatePose(update);
+	if(log) log->log("PoseEstimation", log->calculateProcessTime());
+	if(log) log->logNewLine();
+
+	return homograpyError;//(int)matchedScenePoints.size();
 }
 
 void ModifiedSURFTracker::DrawDebugInfo(IplImage* colorImage)
 {
+	
+
 	int pointCount = (int)sceneSURF.size();
 	int r = 255;
 	int g = 0;
@@ -681,9 +747,49 @@ void ModifiedSURFTracker::DrawDebugInfo(IplImage* colorImage)
 
 		cvCircle(colorImage, referencePoint, size, CV_RGB(0, 255, 255), CV_FILLED);
 		cvCircle(colorImage, imagePoint, size, CV_RGB(255, 255, 0), CV_FILLED);
+
+		cvLine(colorImage, referencePoint, imagePoint, CV_RGB(255, 0, 0));
+	}
+/*
+	for(unsigned int i=0; i<sceneSURF.size(); i++)
+	{
+		CvPoint imagePoint = cvPoint(sceneSURF[i].point.x, sceneSURF[i].point.y);
+
+		float dir = sceneSURF[i].dir * CV_PI/180;
+		CvPoint dirPoint = imagePoint;
+		dirPoint.x += 10 * cos(dir);
+		dirPoint.y += 10 * sin(dir);
+
+		cvCircle(colorImage, imagePoint, 10, CV_RGB(255, 0, 0));
+		cvLine(colorImage, imagePoint, dirPoint, CV_RGB(0, 255, 0), 3);
+	}
+//*/
+}
+
+
+void ModifiedSURFTracker::DrawDebugInfo2(IplImage* colorImage)
+{
+	
+
+	int pointCount = (int)sceneSURF.size();
+	int r = 255;
+	int g = 0;
+	int b = 0;
+
+	int size = 4;
+
+	for(unsigned int i=0; i<matchedScene.size(); i++)
+	{
+		CvPoint referencePoint = cvPoint(matchedReference[i].point.x * colorImage->width/realWidth + colorImage->width/2,
+									(colorImage->height/2 - matchedReference[i].point.y * (colorImage->height/2)/realHeight - colorImage->height/4));
+		CvPoint imagePoint = cvPoint(matchedScene[i].point.x, matchedScene[i].point.y + colorImage->height/2);
+
+		cvCircle(colorImage, referencePoint, size, CV_RGB(0, 255, 255), CV_FILLED);
+		cvCircle(colorImage, imagePoint, size, CV_RGB(255, 255, 0), CV_FILLED);
 		cvLine(colorImage, referencePoint, imagePoint, CV_RGB(255, 0, 0));
 	}
 }
+
 
 void ModifiedSURFTracker::DrawOutLine(IplImage* colorImage, bool drawCross)
 {
@@ -709,6 +815,9 @@ void ModifiedSURFTracker::DrawOutLine(IplImage* colorImage, bool drawCross)
 
 	if(drawCross)
 	{
+		cvLine(colorImage, cameraParameter->ConvertWorld2Image(-this->realWidth/2, -this->realHeight/2, 0.0),	cameraParameter->ConvertWorld2Image(+this->realWidth/2, +this->realHeight/2, 0.0),	color2, 6);
+		cvLine(colorImage, cameraParameter->ConvertWorld2Image(-this->realWidth/2, +this->realHeight/2, 0.0),	cameraParameter->ConvertWorld2Image(+this->realWidth/2, -this->realHeight/2, 0.0),	color2, 6);
+
 		cvLine(colorImage, cameraParameter->ConvertWorld2Image(-this->realWidth/2, -this->realHeight/2, 0.0),	cameraParameter->ConvertWorld2Image(+this->realWidth/2, +this->realHeight/2, 0.0),	color, 2);
 		cvLine(colorImage, cameraParameter->ConvertWorld2Image(-this->realWidth/2, +this->realHeight/2, 0.0),	cameraParameter->ConvertWorld2Image(+this->realWidth/2, -this->realHeight/2, 0.0),	color, 2);
 	}
