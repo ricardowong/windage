@@ -12,7 +12,7 @@ CvFeatureTree* CreateReferenceTree(std::vector<SURFDesciription>* referenceSURF,
 			cvSetReal2D(referenceFeatureStorage, y, x, (*referenceSURF)[y].descriptor[x]);
 		}
 	}
-	CvFeatureTree* tree = cvCreateFeatureTree(referenceFeatureStorage);
+	CvFeatureTree* tree = cvCreateKDTree(referenceFeatureStorage);
 	return tree;
 }
 

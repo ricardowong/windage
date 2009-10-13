@@ -67,16 +67,18 @@ namespace windage
 		int size;									///< scale value
 		float dir;
 		float descriptor[DESCRIPTOR_DIMENSION];	///< SURF Descriptor 36-dimension
+		float distance;
 
 		void operator=(struct _SURFDescription oprd)
 		{
 			point = oprd.point;
 			size = oprd.size;
 			dir = oprd.dir;
+			distance = oprd.distance;
 			for(int i=0; i<DESCRIPTOR_DIMENSION; i++)
 				descriptor[i] = oprd.descriptor[i];
 		}
-		float distance(struct _SURFDescription oprd)
+		float getDistance(struct _SURFDescription oprd)
 		{
 			float sum = 0;
 			for(int i=0; i<DESCRIPTOR_DIMENSION; i++)
@@ -111,12 +113,18 @@ namespace windage
 		void Release();
 
 		CvMat* referenceFeatureStorage;			///< reference feature storage
-		CvFeatureTree* referenceFeatureTree;	///< reference feature tree
+		CvFeatureTree* referenceFeatureTree;	///< reference feature tree for k-d tree
+
+		cv::Mat flannFeatureTree;
+		cv::flann::Index* flannIndex;
+
 		int GenerateReferenceFeatureTree(double scaleFactor=4.0, int scaleStep=8);
 		CvFeatureTree* CreateReferenceTree(std::vector<SURFDesciription>* referenceSURF, CvMat* referenceFeatureStorage);
+		bool CreateFlannTree(std::vector<SURFDesciription>* referenceSURF, CvMat* referenceFeatureStorage);
 
-		int FindPairs(SURFDesciription description, CvFeatureTree* tree, double distanceRate=0.7);
+		int FindPairs(SURFDesciription description, CvFeatureTree* tree, double distanceRate=0.7, float* outDistance = NULL);
 		int FindPairs(SURFDesciription description, std::vector<SURFDesciription>* descriptions);
+		int FindPairs(SURFDesciription description, cv::flann::Index* treeIndex, int emax, float distanceRate=0.7);
 
 		/**
 		 * @brief

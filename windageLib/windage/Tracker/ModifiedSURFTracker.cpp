@@ -44,8 +44,16 @@ using namespace windage;
 #include "FAST/wsurf.h"
 #include "FAST/wfastsurf.h"
 
+#include "PoseEstimation/FindPROSACHomography.h"
+
 #define REMOVE_OUTLIER
 #define USING_RANSAC
+//#define USING_PROSAC
+
+#define USING_KDTREE
+//#define USING_FLANN
+
+
 
 ModifiedSURFTracker::ModifiedSURFTracker()
 {
@@ -122,6 +130,7 @@ int ModifiedSURFTracker::ExtractFASTCorner(std::vector<CvPoint>* corners, IplIma
 {
 	int cornerCount = 0;
 	xy* cornertemp = NULL;
+	xy* nonmax = NULL;
 
 	bool isProcessed = true;
 	switch(n)
@@ -146,17 +155,15 @@ int ModifiedSURFTracker::ExtractFASTCorner(std::vector<CvPoint>* corners, IplIma
 	if(isProcessed)
 	{
 		int count = 0;
-		xy* nonmax = NULL;
 		nonmax = fast_nonmax((const byte *)grayImage->imageData, grayImage->width, grayImage->height, cornertemp, cornerCount, threshold, &count);
 
 		for(int i=0; i<count; ++i)
 		{
 			corners->push_back(cvPoint(nonmax[i].x, nonmax[i].y));
 		}
-
-		if(nonmax) delete nonmax;
-		if(cornertemp) delete cornertemp;
 	}
+	if(nonmax) delete nonmax;
+	if(cornertemp) delete cornertemp;
 
 	return (int)corners->size();
 }
@@ -213,7 +220,10 @@ int ModifiedSURFTracker::ExtractModifiedSURF(IplImage* grayImage, std::vector<Cv
 CvFeatureTree* ModifiedSURFTracker::CreateReferenceTree(std::vector<SURFDesciription>* referenceSURF, CvMat* referenceFeatureStorage)
 {
 	int count = (int)referenceSURF->size();
+
+	if(!referenceFeatureStorage) cvReleaseMat(&referenceFeatureStorage);
 	referenceFeatureStorage = cvCreateMat(count, DESCRIPTOR_DIMENSION, CV_32FC1);
+
 	for(int y=0; y<count; y++)
 	{
 		for(int x=0; x<DESCRIPTOR_DIMENSION; x++)
@@ -226,7 +236,29 @@ CvFeatureTree* ModifiedSURFTracker::CreateReferenceTree(std::vector<SURFDescirip
 	return tree;
 }
 
-int ModifiedSURFTracker::FindPairs(SURFDesciription description, CvFeatureTree* tree, double distanceRate)
+bool ModifiedSURFTracker::CreateFlannTree(std::vector<SURFDesciription>* referenceSURF, CvMat* referenceFeatureStorage)
+{
+	int count = (int)referenceSURF->size();
+
+	if(referenceFeatureStorage != NULL) cvReleaseMat(&referenceFeatureStorage);
+	referenceFeatureStorage = cvCreateMat(count, DESCRIPTOR_DIMENSION, CV_32F);
+
+	for(int y=0; y<count; y++)
+	{
+		for(int x=0; x<DESCRIPTOR_DIMENSION; x++)
+		{
+			cvmSet(referenceFeatureStorage, y, x, (*referenceSURF)[y].descriptor[x]);
+		}
+	}
+
+	cv::Mat refer(referenceFeatureStorage, false);
+	flannFeatureTree = refer;
+
+	flannIndex = new cv::flann::Index(flannFeatureTree, cv::flann::KDTreeIndexParams(2));
+	return true;
+}
+
+int ModifiedSURFTracker::FindPairs(SURFDesciription description, CvFeatureTree* tree, double distanceRate, float* outDistance)
 {
 	CvMat* currentFeature = cvCreateMat(1, DESCRIPTOR_DIMENSION, CV_32FC1);
 	CvMat* result = cvCreateMat(1, 2, CV_32SC1);
@@ -257,6 +289,9 @@ int ModifiedSURFTracker::FindPairs(SURFDesciription description, CvFeatureTree* 
 	cvReleaseMat(&result);
 	cvReleaseMat(&distance);
 
+	if(outDistance)
+		(*outDistance) = (float)min2;
+
 	if ( min1 < distanceRate*min2 )
 		return index;
     return -1;
@@ -270,7 +305,7 @@ int ModifiedSURFTracker::FindPairs(SURFDesciription description, std::vector<SUR
 
 	for(unsigned int i=0; i<descriptions->size(); i++)
 	{
-		double d = description.distance((*descriptions)[i]);
+		double d = description.getDistance((*descriptions)[i]);
 		if(d < min1)
 		{
 			min2 = min1;
@@ -285,6 +320,42 @@ int ModifiedSURFTracker::FindPairs(SURFDesciription description, std::vector<SUR
 	
 	if ( min1 < 0.65*min2 )
         return index;
+    return -1;
+}
+
+int ModifiedSURFTracker::FindPairs(SURFDesciription description, cv::flann::Index* treeIndex, int emax, float distanceRate)
+{
+	CvMat* currentFeature = cvCreateMat(1, DESCRIPTOR_DIMENSION, CV_32F);
+	cv::Mat result(1, 2, CV_32S);
+	cv::Mat distance(1, 2, CV_32F);
+
+	for(int x=0; x<DESCRIPTOR_DIMENSION; x++)
+	{
+		cvmSet(currentFeature, 0, x, description.descriptor[x]);
+	}
+
+	cv::Mat object(currentFeature, false);
+	treeIndex->knnSearch(object, result, distance, emax, cv::flann::SearchParams(emax));
+
+	float min2 = distance.ptr<float>(0)[0];
+	float min1 = distance.ptr<float>(0)[1];
+	int index2 = result.ptr<int>(0)[0];
+	int index1 = result.ptr<int>(0)[1];
+	int index = index1;
+//*
+	double temp;
+	if(min2 < min1)
+	{
+		temp = min1;
+		min1 = min2;
+		min2 = temp;
+		index = index2;
+	}
+//*/
+	cvReleaseMat(&currentFeature);
+
+	if ( min1 < distanceRate*min2 )
+		return index;
     return -1;
 }
 
@@ -329,7 +400,12 @@ int ModifiedSURFTracker::GenerateReferenceFeatureTree(double scaleFactor, int sc
 		}
 	}
 
+#ifdef USING_KDTREE
 	this->referenceFeatureTree = CreateReferenceTree(&this->referenceSURF, referenceFeatureStorage);
+#endif
+#ifdef USING_FLANN
+	this->CreateFlannTree(&this->referenceSURF, referenceFeatureStorage);
+#endif
 
 	return 0;
 }
@@ -461,6 +537,23 @@ double ModifiedSURFTracker::CalculatePose(bool update)
 		CvMat _pt1 = cvMat(1, n, CV_32FC2, &(matchedReferencePoints[0]) );
 		CvMat _pt2 = cvMat(1, n, CV_32FC2, &(matchedScenePoints[0]) );
 
+#ifdef USING_PROSAC
+		std::vector<MatchedPoint> prosacMatchedPoints;
+		for(int i=0; i<matchedScene.size(); i++)
+		{
+			MatchedPoint referenceTemp(matchedScene[i].point, matchedReference[i].point, matchedScene[i].distance);
+			prosacMatchedPoints.push_back(referenceTemp);
+		}
+
+		FindPROSACHomography prosac;
+		prosac.AttatchMatchedPoints(&prosacMatchedPoints);
+
+		if(prosac.Calculate())
+		{
+			float* tempHomography = prosac.GetHomography();
+			for(int i=0; i<9; i++)
+				homography[i] = tempHomography[i];
+#else
 		homographyError = 0.0;
 #ifdef USING_RANSAC
 		if(cvFindHomography( &_pt1, &_pt2, &_h, CV_RANSAC, ERROR_BOUND))
@@ -514,6 +607,7 @@ double ModifiedSURFTracker::CalculatePose(bool update)
 			}
 			homographyError = (difference / 2.) / (float)matchedReferencePoints.size();
 #endif
+#endif
 			DecomposeHomographyToRT(&_intrinsic, &_h, &_extrinsic);
 
 //			memset(extrinsicOutMatrix, 0, sizeof(double)*16);
@@ -530,6 +624,7 @@ double ModifiedSURFTracker::CalculatePose(bool update)
 			if(update)
 				cameraParameter->SetExtrinsicMatrix(extrinsicOutMatrix);
 		}
+
 	}
 	else
 	{
@@ -581,6 +676,7 @@ double ModifiedSURFTracker::UpdateCameraPose(IplImage* grayImage)
 				if(log) log->updateTickCount();
 				int featureCount = ModifiedSURFTracker::ExtractModifiedSURF(grayImage, &fastCorners, &sceneSURF);
 				if(log) log->log("Descriptor", log->calculateProcessTime());
+				if(log) log->log("COUNT", featureCount);
 				
 
 				std::vector<SURFDesciription> tempReferenceSURF;
@@ -597,7 +693,6 @@ double ModifiedSURFTracker::UpdateCameraPose(IplImage* grayImage)
 						tempSceneSURF.push_back(sceneSURF[i]);
 					}
 				}
-				if(log) log->log("Matching", log->calculateProcessTime());
 
 				for(unsigned int i=0; i<tempReferenceSURF.size(); i++)
 				{
@@ -618,6 +713,9 @@ double ModifiedSURFTracker::UpdateCameraPose(IplImage* grayImage)
 					}
 				}
 
+				if(log) log->log("Matching", log->calculateProcessTime());
+				if(log) log->log("COUNT", (int)matchedScene.size());
+
 				step = 0;
 
 				
@@ -631,7 +729,9 @@ double ModifiedSURFTracker::UpdateCameraPose(IplImage* grayImage)
 				if(log) log->log("opticalflow", log->calculateProcessTime());
 				if(log) log->log("FAST", log->calculateProcessTime());
 				if(log) log->log("Descriptor", log->calculateProcessTime());
+				if(log) log->log("COUNT", (int)matchedScenePoints.size());
 				if(log) log->log("Matching", log->calculateProcessTime());
+				if(log) log->log("COUNT", (int)matchedScenePoints.size());
 
 				int index = 0;
 				for(unsigned int i=0; i<matchedTempPoints.size(); i++)
@@ -672,6 +772,7 @@ double ModifiedSURFTracker::UpdateCameraPose(IplImage* grayImage)
 
 		int featureCount = ModifiedSURFTracker::ExtractModifiedSURF(grayImage, &fastCorners, &sceneSURF);
 		if(log) log->log("Descriptor", log->calculateProcessTime());
+		if(log) log->log("COUNT", featureCount);
 
 		matchedReference.clear();
 		matchedScene.clear();
@@ -679,14 +780,24 @@ double ModifiedSURFTracker::UpdateCameraPose(IplImage* grayImage)
 		if(log) log->updateTickCount();
 		for(unsigned int i=0; i<sceneSURF.size(); i++)
 		{
-			int index = FindPairs(sceneSURF[i], referenceFeatureTree);
+			float distance;
+#ifdef USING_KDTREE
+			int index = FindPairs(sceneSURF[i], referenceFeatureTree, 0.7, &distance);
+#endif
+#ifdef USING_FLANN
+			int index = FindPairs(sceneSURF[i], this->flannIndex, 5);
+#endif
+
 			if(index > 0)
 			{
+				sceneSURF[i].distance = distance;
+
 				matchedReference.push_back(referenceSURF[index]);
 				matchedScene.push_back(sceneSURF[i]);
 			}
 		}
 		if(log) log->log("Matching", log->calculateProcessTime());
+		if(log) log->log("COUNT", (int)matchedScene.size());
 	}
 
 	matchedReferencePoints.clear();

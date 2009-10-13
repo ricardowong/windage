@@ -97,7 +97,7 @@ double StereoSURFDetector::GetDisparity(std::vector<IplImage*>* images, SpatialS
 
 	double disparity = 0.0;
 	if((int)description.size() == this->cameraNumber)
-		disparity = description[0].distance(description[1]);
+		disparity = description[0].getDistance(description[1]);
 	return disparity;
 }
 
