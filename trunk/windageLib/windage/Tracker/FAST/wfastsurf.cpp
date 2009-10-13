@@ -56,7 +56,6 @@ void wExtractFASTSURF( const CvArr* _img, const CvArr* _mask,
 
 	// constant values
 	const int PATCH_SZ = 15;
-	const float DESC_SIGMA = 3.3f;
 
 	// create descriptor storage
 	int descriptor_size = 36;
@@ -73,6 +72,7 @@ void wExtractFASTSURF( const CvArr* _img, const CvArr* _mask,
 
 	/* Gaussian used to weight descriptor samples */
 /*
+	const float DESC_SIGMA = 3.3f;
 	float DW[PATCH_SZ][PATCH_SZ];
     CvMat _DW = cvMat(PATCH_SZ, PATCH_SZ, CV_32F, DW);
 	double c2 = 1./(DESC_SIGMA*DESC_SIGMA*2);
@@ -90,7 +90,7 @@ void wExtractFASTSURF( const CvArr* _img, const CvArr* _mask,
     cvScale( &_DW, &_DW, 1./gs );
 */
 
-	#pragma omp parallel for schedule(dynamic)
+//	#pragma omp parallel for schedule(dynamic)
     for(int k = 0; k < N; k++ )
     {
 		CvSURFPoint* kp = (CvSURFPoint*)cvGetSeqElem( keypoints, k );
@@ -157,8 +157,8 @@ void wExtractFASTSURF( const CvArr* _img, const CvArr* _mask,
 				float vx = (float)(PATCH[i][j+1] - PATCH[i][j] + PATCH[i+1][j+1] - PATCH[i+1][j])*dw;
 				float vy = (float)(PATCH[i+1][j] - PATCH[i][j] + PATCH[i+1][j+1] - PATCH[i][j+1])*dw;
 //*/
-				DX[i][j] = (PATCH[i][j+1] - PATCH[i][j] + PATCH[i+1][j+1] - PATCH[i+1][j]);
-				DY[i][j] = (PATCH[i+1][j] - PATCH[i][j] + PATCH[i+1][j+1] - PATCH[i][j+1]);
+				DX[i][j] = PATCH[i][j+1] - PATCH[i][j];// + PATCH[i+1][j+1] - PATCH[i+1][j];
+				DY[i][j] = PATCH[i+1][j] - PATCH[i][j];// + PATCH[i+1][j+1] - PATCH[i][j+1];
             }
 		}
 
