@@ -105,7 +105,7 @@ namespace windage
 	public:
 		FindPROSACHomography()
 		{
-			this->maxIteration = 100;
+			this->maxIteration = 2000;
 			this->terminationRatio = 0.7f;
 			this->reprojectionThreshold = 5.0f;
 			for(int i=0; i<9; i++)

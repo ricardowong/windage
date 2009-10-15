@@ -69,7 +69,8 @@ ModifiedSURFTracker::ModifiedSURFTracker()
 	runOpticalflow = false;
 	step = 0;
 
-	log = new Logger("modifiedSURF_Performance", true);
+//	log = new Logger("modifiedSURF_Performance", true);
+	log = NULL;
 }
 
 ModifiedSURFTracker::~ModifiedSURFTracker()
@@ -546,6 +547,8 @@ double ModifiedSURFTracker::CalculatePose(bool update)
 		}
 
 		FindPROSACHomography prosac;
+		prosac.SetReprojectionThreshold(10.0f);
+		prosac.SetTerminationRatio(0.7f);
 		prosac.AttatchMatchedPoints(&prosacMatchedPoints);
 
 		if(prosac.Calculate())
@@ -553,6 +556,27 @@ double ModifiedSURFTracker::CalculatePose(bool update)
 			float* tempHomography = prosac.GetHomography();
 			for(int i=0; i<9; i++)
 				homography[i] = tempHomography[i];
+
+			int count = 0;
+			for(unsigned int i=0; i<prosacMatchedPoints.size(); i++)
+			{
+				if(prosacMatchedPoints[i].isInlier)
+				{
+					count++;
+					inlierCount++;
+				}
+				else
+				{
+					this->matchedReferencePoints.erase(this->matchedReferencePoints.begin() + count);
+					this->matchedScenePoints.erase(this->matchedScenePoints.begin() + count);
+
+					this->matchedReference.erase(this->matchedReference.begin() + count);
+					this->matchedScene.erase(this->matchedScene.begin() + count);
+
+					outlierCount++;
+				}
+
+			}
 #else
 		homographyError = 0.0;
 #ifdef USING_RANSAC
