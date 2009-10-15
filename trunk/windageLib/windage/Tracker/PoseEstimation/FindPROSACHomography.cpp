@@ -43,20 +43,44 @@
 #include <vector>
 #include <time.h>
 
+int PROSACUpdateNumIters(double p, double ep, int model_points, int max_iters)
+{
+	double num, denom;
+	p = MAX(p, 0.);
+    p = MIN(p, 1.);
+    ep = MAX(ep, 0.);
+    ep = MIN(ep, 1.);
+
+    // avoid inf's & nan's
+    num = MAX(1. - p, DBL_MIN);
+    denom = 1. - pow(1. - ep,model_points);
+	num = log(num);
+    denom = log(denom);
+    
+	int result = denom >= 0 || -num >= max_iters*(-denom) ? max_iters : cvRound(num/denom);
+	return result;
+}
+
 using namespace windage;
 bool FindPROSACHomography::Calculate()
 {
+	const double confidence = 0.995;
 	CvMat _h = cvMat(3, 3, CV_32F, homography);
 
 	std::vector<CvPoint2D32f> samplingObject; samplingObject.resize(4);
 	std::vector<CvPoint2D32f> samplingReference; samplingReference.resize(4);
+
+	std::vector<bool> bestSetList;	bestSetList.resize(matchedPoints->size());
+	float bestError = 999999999.0f;
+	int bestCount = 0;
+
+	int count = matchedPoints->size();
 	
 	CvMat samplingObjectPoints = cvMat(1, 4, CV_32FC2, &(samplingObject[0]));
 	CvMat samplingReferencePoints = cvMat(1, 4, CV_32FC2, &(samplingReference[0]));
 
 	// sort
 	sort(matchedPoints->begin(), matchedPoints->end(), CompareDistanceLess());
-	int count = matchedPoints->size();
 
 	bool isProcessing = true;
 	for(int i=0; i<maxIteration&&isProcessing; i++)
@@ -113,7 +137,10 @@ bool FindPROSACHomography::Calculate()
 			}
 		}
 
-		// calculate 
+		maxIteration = PROSACUpdateNumIters(confidence, (double)(count - inlinerCount)/count, 4, maxIteration);
+
+
+		// calculate refine
 		if( (float)inlinerCount / (float)count > this->terminationRatio)
 		{
 			std::vector<CvPoint2D32f> consensusObject;
@@ -131,8 +158,73 @@ bool FindPROSACHomography::Calculate()
 			CvMat consensusReferencePoints = cvMat(1, consensusReference.size(), CV_32FC2, &(consensusReference[0]));
 
 			cvFindHomography(&consensusReferencePoints, &consensusObjectPoints, &_h);
-			return true;
+//			return true;
+
+			// calculate error
+			float error = 0.0f;
+			for(int j=0; j<matchedPoints->size(); j++)
+			{
+				if((*matchedPoints)[j].isInlier)
+				{
+					float pointX = (*matchedPoints)[j].pointReference.x;
+					float pointY = (*matchedPoints)[j].pointReference.y;
+					float pointZ = 1.0;
+
+					float projectionPointX = homography[0] * pointX + homography[1] * pointY + homography[2] * pointZ;
+					float projectionPointY = homography[3] * pointX + homography[4] * pointY + homography[5] * pointZ;
+					float projectionPointZ = homography[6] * pointX + homography[7] * pointY + homography[8] * pointZ;
+					projectionPointX /= projectionPointZ;
+					projectionPointY /= projectionPointZ;
+
+					float dx = abs((*matchedPoints)[j].pointScene.x - projectionPointX);
+					float dy = abs((*matchedPoints)[j].pointScene.y - projectionPointY);
+					error += (dx+dy)/2;
+				}
+			}
+			error /= (float)(inlinerCount);
+
+			if(bestError > error)
+			{
+				bestError = error;
+				bestCount = inlinerCount;
+				for(int j=0; j<matchedPoints->size(); j++)
+				{
+					if((*matchedPoints)[j].isInlier)
+					{
+						bestSetList[j] = true;
+					}
+				}
+			}
 		}
+	}
+
+	// terminate
+	if(bestCount > 4)
+	{
+		for(int j=0; j<matchedPoints->size(); j++)
+		{
+			if(bestSetList[j])
+			{
+				(*matchedPoints)[j].isInlier = true;
+			}
+		}
+
+		std::vector<CvPoint2D32f> consensusObject;
+		std::vector<CvPoint2D32f> consensusReference;
+
+		for(int j=0; j<matchedPoints->size(); j++)
+		{
+			if((*matchedPoints)[j].isInlier)
+			{
+				consensusObject.push_back(cvPoint2D32f((*matchedPoints)[j].pointScene.x, (*matchedPoints)[j].pointScene.y));
+				consensusReference.push_back(cvPoint2D32f((*matchedPoints)[j].pointReference.x, (*matchedPoints)[j].pointReference.y));
+			}
+		}
+		CvMat consensusObjectPoints = cvMat(1, consensusObject.size(), CV_32FC2, &(consensusObject[0]));
+		CvMat consensusReferencePoints = cvMat(1, consensusReference.size(), CV_32FC2, &(consensusReference[0]));
+
+		cvFindHomography(&consensusReferencePoints, &consensusObjectPoints, &_h);
+		return true;
 	}
 
 	return false;

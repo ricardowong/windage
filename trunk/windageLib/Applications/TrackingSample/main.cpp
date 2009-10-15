@@ -58,8 +58,8 @@ void main()
 
 	// connect camera
 	CvCapture* capture = cvCaptureFromCAM(CV_CAP_ANY);
-	cvSetCaptureProperty(capture, CV_CAP_PROP_FRAME_WIDTH, WIDTH);
-	cvSetCaptureProperty(capture, CV_CAP_PROP_FRAME_HEIGHT, HEIGHT);
+//	cvSetCaptureProperty(capture, CV_CAP_PROP_FRAME_WIDTH, WIDTH);
+//	cvSetCaptureProperty(capture, CV_CAP_PROP_FRAME_HEIGHT, HEIGHT);
 
 	cvNamedWindow("result");
 	IplImage* inputImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
@@ -70,11 +70,14 @@ void main()
 
 	windage::ModifiedSURFTracker* tracker = new windage::ModifiedSURFTracker();
 	tracker->Initialize(778.195, 779.430, 324.659, 235.685, -0.333103, 0.173760, 0.000653, 0.001114, 50);
-	tracker->RegistReferenceImage(referenceImage, 26.70, 20.00, 4.0, 8);
-	tracker->InitializeOpticalFlow(WIDTH, HEIGHT, 10, cvSize(15, 15), 3);
-	tracker->SetOpticalFlowRunning(false);
+//	tracker->Initialize(379.097, 379.715, 162.329, 117.842, -0.333103, 0.173760, 0.000653, 0.001114, 50);
+	tracker->RegistReferenceImage(referenceImage, 26.70, 20.00, 3.0, 9);
+	tracker->InitializeOpticalFlow(WIDTH, HEIGHT, 3, cvSize(15, 15), 3);
+	tracker->SetOpticalFlowRunning(true);
 	tracker->GetCameraParameter()->InitUndistortionMap(WIDTH, HEIGHT);
 	tracker->SetFeatureExtractTreshold(50);
+
+	bool isCaptured = true;
 
 	char message[100];
 	fpslog->updateTickCount();
@@ -95,31 +98,37 @@ void main()
 #endif
 
 		cvCvtColor(inputImage, grayImage, CV_BGRA2GRAY);
+		
 //		cvSmooth(grayImage, grayImage);
 
 		log->log("capture", log->calculateProcessTime());
 
 		fpslog->updateTickCount();
-		// call tracking algorithm
-		log->updateTickCount();
-		int result = tracker->UpdateCameraPose(grayImage);
 
-		int featureCount = tracker->GetFeatureCount();
-		int matchedCount = tracker->GetMatchedCount();
+		if(isCaptured)
+		{
+			// call tracking algorithm
+			log->updateTickCount();
+			int result = tracker->UpdateCameraPose(grayImage);
 
-		double fps = fpslog->calculateFPS();
+			int featureCount = tracker->GetFeatureCount();
+			int matchedCount = tracker->GetMatchedCount();
 
-		// draw tracking result
-		tracker->DrawDebugInfo(inputImage);
-		tracker->DrawOutLine(inputImage, true);
-//		tracker->DrawInfomation(inputImage, 10.0);
+			double fps = fpslog->calculateFPS();
+			log->log("tracking", log->calculateProcessTime());
+			log->log("matchedCount", matchedCount);
+			log->logNewLine();
 
-		log->log("tracking", log->calculateProcessTime());
-		log->log("matchedCount", matchedCount);
-		log->logNewLine();
 
-		sprintf(message, "FPS : %03.2f, Feature Count : %03d, Matched Count : %03d", fps, featureCount, matchedCount);
-		windage::Utils::DrawTextToImage(inputImage, cvPoint(10, 20), message);
+			// draw tracking result
+			tracker->DrawDebugInfo(inputImage);
+			tracker->DrawOutLine(inputImage, true);
+	//		tracker->DrawInfomation(inputImage, 10.0);
+
+			
+			sprintf(message, "FPS : %03.2f, Feature Count : %03d, Matched Count : %03d", fps, featureCount, matchedCount);
+			windage::Utils::DrawTextToImage(inputImage, cvPoint(10, 20), message);
+		}
 
 		char ch = cvWaitKey(1);
 		switch(ch)
@@ -130,6 +139,10 @@ void main()
 			break;
 		case ' ':
 			cvWaitKey();
+			break;
+		case 's':
+			tracker->RegistReferenceImage(grayImage, 26.70, 20.00, 2.0, 4);
+			isCaptured = true;
 			break;
 		}
 
