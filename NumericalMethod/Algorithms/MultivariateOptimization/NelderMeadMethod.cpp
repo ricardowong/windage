@@ -231,10 +231,17 @@ bool NelderMeadMethod::Calculate(double* solutionX, double* solutionY)
 		if(trace)
 		{
 			trace->log("step", nextStep);
+			std::vector<double> tempX;
+			tempX.resize(2);
 			for(int i=0; i<point.size(); i++)
 			{
+				tempX[0] = point[i].x;
+				tempX[1] = point[i].y;
+				double z = function(&tempX, 2);
+
 				trace->log("x", point[i].x);
 				trace->log("y", point[i].y);
+				trace->log("z", z);
 			}
 			trace->logNewLine();
 		}

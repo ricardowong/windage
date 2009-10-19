@@ -246,6 +246,22 @@
 			Name="MultivariateOptimization"
 			>
 			<File
+				RelativePath=".\MultivariateOptimization\LinearConjugateGradient.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\MultivariateOptimization\LinearConjugateGradient.h"
+				>
+			</File>
+			<File
+				RelativePath=".\MultivariateOptimization\MultiNewtonMethod.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\MultivariateOptimization\MultiNewtonMethod.h"
+				>
+			</File>
+			<File
 				RelativePath=".\MultivariateOptimization\MultivariateOptimization.h"
 				>
 			</File>
@@ -258,11 +274,35 @@
 				>
 			</File>
 			<File
+				RelativePath=".\MultivariateOptimization\NonlinearConjugateGradient.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\MultivariateOptimization\NonlinearConjugateGradient.h"
+				>
+			</File>
+			<File
 				RelativePath=".\MultivariateOptimization\PowellsMethod.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\MultivariateOptimization\PowellsMethod.h"
+				>
+			</File>
+			<File
+				RelativePath=".\MultivariateOptimization\QuasiNewtonMethod.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\MultivariateOptimization\QuasiNewtonMethod.h"
+				>
+			</File>
+			<File
+				RelativePath=".\MultivariateOptimization\SteepestDescent.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\MultivariateOptimization\SteepestDescent.h"
 				>
 			</File>
 		</Filter>

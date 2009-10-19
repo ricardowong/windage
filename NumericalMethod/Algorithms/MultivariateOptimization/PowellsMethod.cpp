@@ -73,24 +73,67 @@ Vector2 PowellsMethod::FindGradient(Vector2 xk)
 double PowellsMethod::FindSetpLength(Vector2 xk, Vector2 pk)
 {
 	double alpha = 0.0;
-	const double CONSTANT1 = 0.3;
-	const double CONSTANT2 = 0.6;
+	const double CONSTANT1 = 0.6;//1.0e-4;
+	const double CONSTANT2 = 0.9;
 
+	std::vector<double> params;			params.resize(2);
 	pk /= pk.getLength();
 
-	// wolfe conditions
-	bool processing = true;
+	params[0] = xk.x; params[1] = xk.y;
+	double solutionXk = function(&params, 2);
 
-	GoldenSectionSearch2D unimodalSearch;
-	unimodalSearch.AttatchFunction(this->function);
-	unimodalSearch.SetInitialValue(xk, xk + pk*100.0);
+	Vector2 localXMin = xk;
+	Vector2 localXMax = xk + pk * 100.0;
+	Vector2 direction = pk;
 
-	Vector2 solution1, solution2;
-	unimodalSearch.Calculate(&solution1, &solution2);
+	double length = (localXMax - localXMin).getLength();
+	Vector2 x1 = localXMin + direction * ( (1 - TAU) * length );
+	Vector2 x2 = localXMin + direction * ( TAU * length );
+	params[0] = x1.x; params[1] = x1.y;
+	double solutionX1 = function(&params, 2);
+	params[0] = x2.x; params[1] = x2.y;
+	double solutionX2 = function(&params, 2);
 
-	alpha = (xk - solution1).getLength();
+	for(int i=0; i<1000; i++)
+	{
+		// calculate
+		length = (localXMax - localXMin).getLength();
+		Vector2 tempX1 = localXMin + direction * ( (1 - TAU) * length );
+		Vector2 tempX2 = localXMin + direction * ( TAU * length );
 
-	return alpha;
+		if(solutionX1 >= solutionX2)
+		{
+			localXMin = x1;
+		}
+		else if(solutionX1 <= solutionX2)
+		{
+			localXMax = x2;
+		}
+
+		x1 = tempX1;
+		x2 = tempX2;
+
+		params[0] = x1.x;	params[1] = x1.y;
+		solutionX1 = function(&params, 2);
+		params[0] = x2.x;	params[1] = x2.y;
+		solutionX2 = function(&params, 2);
+
+		// wolfe conditions
+		alpha = ((1-TAU) * length);
+		if(solutionX1 - solutionXk <= FindGradient(xk) * pk * CONSTANT1 * alpha &&
+			FindGradient(tempX1) * pk >= FindGradient(xk) * pk * CONSTANT2)
+		{
+			return alpha;
+		}
+		alpha = (TAU * length);
+		if(solutionX2 - solutionXk <= FindGradient(xk) * pk * CONSTANT1 * alpha &&
+			FindGradient(tempX2) * pk >= FindGradient(xk) * pk * CONSTANT2)
+		{
+			return alpha;
+		}
+	}
+
+	return 0.0;
 }
 
 Vector2 SetReturnValue2(std::vector<Vector2>* point)
@@ -124,8 +167,13 @@ bool PowellsMethod::Calculate(double* solutionX, double* solutionY)
 	}
 
 	srand(time(NULL));
-	double x = (double)(rand() - RAND_MAX/2);
-	double y = (double)(rand() - RAND_MAX/2);
+	double x = initialPosition.x;
+	double y = initialPosition.y;
+	if(x == 0 && y == 0)
+	{
+		x = (double)(rand() - RAND_MAX/2);
+		y = (double)(rand() - RAND_MAX/2);
+	}
 	Vector2 xi = Vector2(x, y);
 
 	// processing
@@ -135,7 +183,7 @@ bool PowellsMethod::Calculate(double* solutionX, double* solutionY)
 	{
 		double GAMMA = 1.0;
 
-		// s1
+		// s1Me
 		point[0] = xi;
 
 		// s2
@@ -183,9 +231,15 @@ bool PowellsMethod::Calculate(double* solutionX, double* solutionY)
 		if(trace)
 		{
 			Vector2 temp = SetReturnValue2(&point);
+			std::vector<double> tempX;
+			tempX.push_back(temp.x);
+			tempX.push_back(temp.y);
+			double z = function(&tempX, 2);
+			
 			trace->log("repeat", this->repeat);
 			trace->log("x", temp.x);
 			trace->log("y", temp.y);
+			trace->log("z", z);
 			trace->logNewLine();
 		}
 //*/

@@ -74,7 +74,7 @@ namespace windage
 
 		inline void SetDemesion(int dimension){this->dimension = dimension;};
 		inline void SetThreshold(double alpha=1.0, double beta=2.0, double gamma=0.5){this->ALPHA=alpha; this->BETA=beta; this->GAMMA=gamma;};
-		
+
 		bool Calculate(double* solutionX, double* solutionY);
 	};
 }

@@ -40,19 +40,80 @@
 #include <iostream>
 #include <string.h>
 
-#include "MultivariateOptimization/NelderMeadMethod.h"
-#include "MultivariateOptimization/PowellsMethod.h"
+#include "MultivariateOptimization/LinearConjugateGradient.h"
+#include "MultivariateOptimization/NonlinearConjugateGradient.h"
 #include "Utils/Logger.h"
 
-#define FUNCTION function_example1
+#define FUNCTION		function_example1
+#define FUNCTION_DX		function_example1_dx
+#define FUNCTION_DY		function_example1_dy
+#define INITIAL_POINT windage::Vector2(2.0, -1.0)
+
 // problem set
+windage::Matrix2 function1A(2, 2, 2, 4);
+windage::Vector2 function1b(1, 1);
 double function_example1(std::vector<double>* x, int N=2)
 {
-	double xl = (*x)[0];
-	double yl = (*x)[1];
-	return xl*xl - 2*xl*yl + 2*yl*yl - 6*yl + 9;
+	double x1 = (*x)[0];
+	double y1 = (*x)[1];
+	return x1*x1 + 2*x1*y1 + 2*y1*y1 + x1 + y1;
+}
+double function_example1_dx(std::vector<double>* x, int N=2)
+{
+	double x1 = (*x)[0];
+	double y1 = (*x)[1];
+	return 2*x1 + 2*y1 + 1;
+}
+double function_example1_dy(std::vector<double>* x, int N=2)
+{
+	double x1 = (*x)[0];
+	double y1 = (*x)[1];
+	return 2*x1 + 4*y1 + 1;
 }
 
+double function_example2(std::vector<double>* x, int N=2)
+{
+	double x1 = (*x)[0];
+	double y1 = (*x)[1];
+	return 100 * pow((y1 - x1*x1), 2) + pow((1-x1), 2);
+	//return 100*x1*x1*x1*x1 - 200*x1*x1*y1 + 100*y1*y1 + x1*x1 - 2*x1 + 1;
+}
+double function_example2_dx(std::vector<double>* x, int N=2)
+{
+	double x1 = (*x)[0];
+	double y1 = (*x)[1];
+	return 400*x1*x1*x1 - 400*x1*y1 + 2*x1 - 2;
+}
+double function_example2_dy(std::vector<double>* x, int N=2)
+{
+	double x1 = (*x)[0];
+	double y1 = (*x)[1];
+	return - 200*x1*x1 + 200*y1;
+}
+double function_example2_dx2(std::vector<double>* x, int N=2)
+{
+	double x1 = (*x)[0];
+	double y1 = (*x)[1];
+	return 1200*x1*x1 - 400*y1 + 2;
+}
+double function_example2_dy2(std::vector<double>* x, int N=2)
+{
+	double x1 = (*x)[0];
+	double y1 = (*x)[1];
+	return 200;
+}
+double function_example2_dxdy(std::vector<double>* x, int N=2)
+{
+	double x1 = (*x)[0];
+	double y1 = (*x)[1];
+	return - 400*x1;
+}
+double function_example2_dydx(std::vector<double>* x, int N=2)
+{
+	double x1 = (*x)[0];
+	double y1 = (*x)[1];
+	return - 400*x1;
+}
 
 std::string PrintErrorMessage(double valueX, double valueY)
 {
@@ -60,9 +121,9 @@ std::string PrintErrorMessage(double valueX, double valueY)
 	{
 //	case 0: return std::string("unknown error");break;
 //	case -1:return std::string("time-out (maybe cannot found solution)");break;
-	case -2:return std::string("not initialized function");break;
-	case -3:return std::string("wrong initial value");break;
-	case -9:return std::string("method specific error");break;
+//	case -2:return std::string("not initialized function");break;
+//	case -3:return std::string("wrong initial value");break;
+//	case -9:return std::string("method specific error");break;
 	default:
 		{
 			char message[100];
@@ -79,38 +140,52 @@ std::string PrintErrorMessage(double valueX, double valueY)
 void main()
 {
 	windage::Logger* logger = new windage::Logger(&std::cout);
-	windage::Logger* traceNMM = new windage::Logger("trace_NMM.txt");
-	windage::Logger* tracePM = new windage::Logger("trace_PM.txt");
+	windage::Logger* traceLinearCG = new windage::Logger("trace_Linear_CG", true);
+	windage::Logger* traceNonlinearCG = new windage::Logger("trace_Nonlinear_CG", true);
 
 	double solutionX = 0.0;
 	double solutionY = 0.0;
 
-	windage::NelderMeadMethod* nelderMeadMethod = new windage::NelderMeadMethod();
-	nelderMeadMethod->AttatchFunction(FUNCTION);
-	nelderMeadMethod->AttatchTrace(traceNMM);
-
-	std::cout << "[[ Nelder Mead Method ]]" << std::endl;
-	if(nelderMeadMethod->Calculate(&solutionX, &solutionY))
-		std::cout << "\tcalculate local minmum point : " << solutionX << ", " << solutionY << " (repeat : " << nelderMeadMethod->GetRepatCount() << ")" << std::endl;
+	windage::LinearConjugateGradient* linearCGMethod = new windage::LinearConjugateGradient();
+	linearCGMethod->AttatchFunction(FUNCTION);
+	linearCGMethod->SetMatrixA(function1A);
+	linearCGMethod->SetVectorB(function1b);
+	linearCGMethod->AttatchTrace(traceLinearCG);
+	linearCGMethod->SetInitialPosition(INITIAL_POINT);
+	
+	logger->updateTickCount();
+	std::cout << "[[ Linear Conjugate Gradient Method ]]" << std::endl;
+	if(linearCGMethod->Calculate(&solutionX, &solutionY))
+		std::cout << "\tcalculate local minmum point : " << solutionX << ", " << solutionY << " (repeat : " << linearCGMethod->GetRepatCount() << ")" << std::endl;
 	else
 	{
-		std::cout << "\tfault : can not found local minmum point " << " (repeat : " << nelderMeadMethod->GetRepatCount() << ")" << std::endl;
+		std::cout << "\tfault : can not found local minmum point " << " (repeat : " << linearCGMethod->GetRepatCount() << ")" << std::endl;
 		std::cout << "\t\t( " << PrintErrorMessage(solutionX, solutionY).c_str() << ")" << std::endl;
 	}
+	logger->log("Linear Conjugate Gradient Method", logger->calculateProcessTime());
+	logger->logNewLine();
+	logger->logNewLine();
 
 
-
-	windage::PowellsMethod* powellsMethod = new windage::PowellsMethod();
-	powellsMethod->AttatchFunction(FUNCTION);
-	powellsMethod->AttatchTrace(tracePM);
-
-	std::cout << "[[ Powell's Method ]]" << std::endl;
-	if(powellsMethod->Calculate(&solutionX, &solutionY))
-		std::cout << "\tcalculate local minmum point : " << solutionX << ", " << solutionY << " (repeat : " << powellsMethod->GetRepatCount() << ")" << std::endl;
+	windage::NonlinearConjugateGradient* nonlinearCGMethod = new windage::NonlinearConjugateGradient();
+	nonlinearCGMethod->AttatchFunction(FUNCTION);
+	nonlinearCGMethod->AttatchDerivativeFunctionDx(FUNCTION_DX);
+	nonlinearCGMethod->AttatchDerivativeFunctionDy(FUNCTION_DY);
+	
+	nonlinearCGMethod->AttatchTrace(traceNonlinearCG);
+	nonlinearCGMethod->SetInitialPosition(INITIAL_POINT);
+	
+	logger->updateTickCount();
+	std::cout << "[[ Nonlinear Conjugate Gradient Method ]]" << std::endl;
+	if(nonlinearCGMethod->Calculate(&solutionX, &solutionY))
+		std::cout << "\tcalculate local minmum point : " << solutionX << ", " << solutionY << " (repeat : " << nonlinearCGMethod->GetRepatCount() << ")" << std::endl;
 	else
 	{
-		std::cout << "\tfault : can not found local minmum point " << " (repeat : " << powellsMethod->GetRepatCount() << ")" << std::endl;
+		std::cout << "\tfault : can not found local minmum point " << " (repeat : " << nonlinearCGMethod->GetRepatCount() << ")" << std::endl;
 		std::cout << "\t\t( " << PrintErrorMessage(solutionX, solutionY).c_str() << ")" << std::endl;
 	}
+	logger->log("Nonlinear Conjugate Gradient Method", logger->calculateProcessTime());
+	logger->logNewLine();
+	logger->logNewLine();
 
 }
