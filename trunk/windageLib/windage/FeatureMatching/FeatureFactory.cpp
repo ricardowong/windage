@@ -52,16 +52,16 @@ int FeatureFactory::ExtractFASTCorner(IplImage* grayImage, int threshold, std::v
 	switch(n)
 	{
 	case 9:
-		cornertemp = fast_corner_detect_9((const byte *)grayImage->imageData, grayImage->width, grayImage->height, threshold, &cornerCount);
+		cornertemp = fast9_detect_nonmax((const byte *)grayImage->imageData, grayImage->width, grayImage->height, grayImage->widthStep, threshold, &cornerCount);
 		break;
 	case 10:
-		cornertemp = fast_corner_detect_10((const byte *)grayImage->imageData, grayImage->width, grayImage->height, threshold, &cornerCount);
+		cornertemp = fast10_detect_nonmax((const byte *)grayImage->imageData, grayImage->width, grayImage->height, grayImage->widthStep, threshold, &cornerCount);
 		break;
 	case 11:
-		cornertemp = fast_corner_detect_11((const byte *)grayImage->imageData, grayImage->width, grayImage->height, threshold, &cornerCount);
+		cornertemp = fast11_detect_nonmax((const byte *)grayImage->imageData, grayImage->width, grayImage->height, grayImage->widthStep, threshold, &cornerCount);
 		break;
 	case 12 :
-		cornertemp = fast_corner_detect_12((const byte *)grayImage->imageData, grayImage->width, grayImage->height, threshold, &cornerCount);
+		cornertemp = fast12_detect_nonmax((const byte *)grayImage->imageData, grayImage->width, grayImage->height, grayImage->widthStep, threshold, &cornerCount);
 		break;
 	default:
 		isProcessed = false;
@@ -70,16 +70,11 @@ int FeatureFactory::ExtractFASTCorner(IplImage* grayImage, int threshold, std::v
 
 	if(isProcessed)
 	{
-		int count = 0;
-		xy* nonmax = NULL;
-		nonmax = fast_nonmax((const byte *)grayImage->imageData, grayImage->width, grayImage->height, cornertemp, cornerCount, threshold, &count);
-
-		for(int i=0; i<count; ++i)
+		for(int i=0; i<cornerCount; ++i)
 		{
-			corners->push_back(cvPoint(nonmax[i].x, nonmax[i].y));
+			corners->push_back(cvPoint(cornertemp[i].x, cornertemp[i].y));
 		}
 
-		if(nonmax) delete nonmax;
 		if(cornertemp) delete cornertemp;
 	}
 

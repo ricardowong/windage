@@ -122,7 +122,7 @@ namespace windage
 		CvFeatureTree* CreateReferenceTree(std::vector<SURFDesciription>* referenceSURF, CvMat* referenceFeatureStorage);
 		bool CreateFlannTree(std::vector<SURFDesciription>* referenceSURF, CvMat* referenceFeatureStorage);
 
-		int FindPairs(SURFDesciription description, CvFeatureTree* tree, double distanceRate=0.7, float* outDistance = NULL);
+		int FindPairs(SURFDesciription description, CvFeatureTree* tree, double distanceRate, float* outDistance = NULL);
 		int FindPairs(SURFDesciription description, std::vector<SURFDesciription>* descriptions);
 		int FindPairs(SURFDesciription description, cv::flann::Index* treeIndex, int emax, float distanceRate=0.7);
 

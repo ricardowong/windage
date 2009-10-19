@@ -42,20 +42,29 @@
 
 /** @cond */
 
-typedef struct { int x, y; } xy;
+typedef struct { int x, y; } xy; 
 typedef unsigned char byte;
 
-int corner_score(const byte*  imp, const int *pointer_dir, int barrier);
+int fast9_corner_score(const byte* p, const int pixel[], int bstart);
+int fast10_corner_score(const byte* p, const int pixel[], int bstart);
+int fast11_corner_score(const byte* p, const int pixel[], int bstart);
+int fast12_corner_score(const byte* p, const int pixel[], int bstart);
 
-/*void fast_nonmax(const BasicImage<byte>& im, const vector<ImageRef>& corners, int barrier, vector<ReturnType>& nonmax_corners)*/
-xy*  xfast_nonmax(const byte* im, int xsize, int ysize, xy* corners, int numcorners, int barrier, int* numnx);
+xy* fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, int* ret_num_corners, int stepx=1, int stepy=2);
+xy* fast10_detect(const byte* im, int xsize, int ysize, int stride, int b, int* ret_num_corners, int stepx=1, int stepy=2);
+xy* fast11_detect(const byte* im, int xsize, int ysize, int stride, int b, int* ret_num_corners, int stepx=1, int stepy=2);
+xy* fast12_detect(const byte* im, int xsize, int ysize, int stride, int b, int* ret_num_corners, int stepx=1, int stepy=2);
 
-/*void fast_nonmax(const BasicImage<byte>& im, const vector<ImageRef>& corners, int barrier, vector<ReturnType>& nonmax_corners)*/
-xy*  fast_nonmax(const byte* im, int xsize, int ysize, xy* corners, int numcorners, int barrier, int* numnx);
+int* fast9_score(const byte* i, int stride, xy* corners, int num_corners, int b);
+int* fast10_score(const byte* i, int stride, xy* corners, int num_corners, int b);
+int* fast11_score(const byte* i, int stride, xy* corners, int num_corners, int b);
+int* fast12_score(const byte* i, int stride, xy* corners, int num_corners, int b);
 
-xy* fast_corner_detect_9(const byte* im, int xsize, int ysize, int barrier, int* num);
-xy* fast_corner_detect_10(const byte* im, int xsize, int ysize, int barrier, int* num);
-xy* fast_corner_detect_11(const byte* im, int xsize, int ysize, int barrier, int* num);
-xy* fast_corner_detect_12(const byte* im, int xsize, int ysize, int barrier, int* num);
+xy* fast9_detect_nonmax(const byte* im, int xsize, int ysize, int stride, int b, int* ret_num_corners);
+xy* fast10_detect_nonmax(const byte* im, int xsize, int ysize, int stride, int b, int* ret_num_corners);
+xy* fast11_detect_nonmax(const byte* im, int xsize, int ysize, int stride, int b, int* ret_num_corners);
+xy* fast12_detect_nonmax(const byte* im, int xsize, int ysize, int stride, int b, int* ret_num_corners);
+
+xy* nonmax_suppression(const xy* corners, const int* scores, int num_corners, int* ret_num_nonmax);
 
 #endif
