@@ -69,8 +69,8 @@ ModifiedSURFTracker::ModifiedSURFTracker()
 	runOpticalflow = false;
 	step = 0;
 
-//	log = new Logger("modifiedSURF_Performance", true);
-	log = NULL;
+	log = new Logger("modifiedSURF_Performance", true);
+//	log = NULL;
 }
 
 ModifiedSURFTracker::~ModifiedSURFTracker()
@@ -131,22 +131,21 @@ int ModifiedSURFTracker::ExtractFASTCorner(std::vector<CvPoint>* corners, IplIma
 {
 	int cornerCount = 0;
 	xy* cornertemp = NULL;
-	xy* nonmax = NULL;
 
 	bool isProcessed = true;
 	switch(n)
 	{
 	case 9:
-		cornertemp = fast_corner_detect_9((const byte *)grayImage->imageData, grayImage->width, grayImage->height, threshold, &cornerCount);
+		cornertemp = fast9_detect_nonmax((const byte *)grayImage->imageData, grayImage->width, grayImage->height, grayImage->widthStep, threshold, &cornerCount);
 		break;
 	case 10:
-		cornertemp = fast_corner_detect_10((const byte *)grayImage->imageData, grayImage->width, grayImage->height, threshold, &cornerCount);
+		cornertemp = fast10_detect_nonmax((const byte *)grayImage->imageData, grayImage->width, grayImage->height, grayImage->widthStep, threshold, &cornerCount);
 		break;
 	case 11:
-		cornertemp = fast_corner_detect_11((const byte *)grayImage->imageData, grayImage->width, grayImage->height, threshold, &cornerCount);
+		cornertemp = fast11_detect_nonmax((const byte *)grayImage->imageData, grayImage->width, grayImage->height, grayImage->widthStep, threshold, &cornerCount);
 		break;
 	case 12 :
-		cornertemp = fast_corner_detect_12((const byte *)grayImage->imageData, grayImage->width, grayImage->height, threshold, &cornerCount);
+		cornertemp = fast12_detect_nonmax((const byte *)grayImage->imageData, grayImage->width, grayImage->height, grayImage->widthStep, threshold, &cornerCount);
 		break;
 	default:
 		isProcessed = false;
@@ -155,16 +154,13 @@ int ModifiedSURFTracker::ExtractFASTCorner(std::vector<CvPoint>* corners, IplIma
 
 	if(isProcessed)
 	{
-		int count = 0;
-		nonmax = fast_nonmax((const byte *)grayImage->imageData, grayImage->width, grayImage->height, cornertemp, cornerCount, threshold, &count);
-
-		for(int i=0; i<count; ++i)
+		for(int i=0; i<cornerCount; ++i)
 		{
-			corners->push_back(cvPoint(nonmax[i].x, nonmax[i].y));
+			corners->push_back(cvPoint(cornertemp[i].x, cornertemp[i].y));
 		}
+
+		if(cornertemp) delete cornertemp;
 	}
-	if(nonmax) delete nonmax;
-	if(cornertemp) delete cornertemp;
 
 	return (int)corners->size();
 }
@@ -216,7 +212,6 @@ int ModifiedSURFTracker::ExtractModifiedSURF(IplImage* grayImage, std::vector<Cv
 	cvReleaseMemStorage(&storage);
 	return count;
 }
-
 
 CvFeatureTree* ModifiedSURFTracker::CreateReferenceTree(std::vector<SURFDesciription>* referenceSURF, CvMat* referenceFeatureStorage)
 {
@@ -660,6 +655,8 @@ double ModifiedSURFTracker::CalculatePose(bool update)
 
 double ModifiedSURFTracker::UpdateCameraPose(IplImage* grayImage)
 {
+	const double COMPAIR_RATE = 0.8;
+
 	bool update = true;
 	if(runOpticalflow)
 	{
@@ -710,7 +707,7 @@ double ModifiedSURFTracker::UpdateCameraPose(IplImage* grayImage)
 
 				for(unsigned int i=0; i<sceneSURF.size(); i++)
 				{
-					int index = FindPairs(sceneSURF[i], referenceFeatureTree);
+					int index = FindPairs(sceneSURF[i], referenceFeatureTree, COMPAIR_RATE);
 					if(index > 0)
 					{
 						tempReferenceSURF.push_back(referenceSURF[index]);
@@ -806,7 +803,7 @@ double ModifiedSURFTracker::UpdateCameraPose(IplImage* grayImage)
 		{
 			float distance;
 #ifdef USING_KDTREE
-			int index = FindPairs(sceneSURF[i], referenceFeatureTree, 0.7, &distance);
+			int index = FindPairs(sceneSURF[i], referenceFeatureTree, COMPAIR_RATE, &distance);
 #endif
 #ifdef USING_FLANN
 			int index = FindPairs(sceneSURF[i], this->flannIndex, 5);
