@@ -55,6 +55,7 @@ namespace windage
 		Vector2 FindGradient(Vector2 xk);
 		double FindSetpLength(Vector2 xk, Vector2 pk);
 
+		Vector2 initialPosition;
 		std::vector<double> params;
 
 	public:
@@ -62,6 +63,7 @@ namespace windage
 		inline ~PowellsMethod(){};
 
 		inline void SetDemesion(int dimension){this->dimension = dimension;};
+		inline void SetInitialPosition(Vector2 position){this->initialPosition = position;};
 		bool Calculate(double* solutionX, double* solutionY);
 	};
 }
