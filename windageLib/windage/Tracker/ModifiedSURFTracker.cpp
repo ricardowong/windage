@@ -50,10 +50,13 @@ using namespace windage;
 #define USING_RANSAC
 //#define USING_PROSAC
 
-#define USING_KDTREE
-//#define USING_FLANN
+//#define USING_KDTREE
+#define USING_FLANN
 
-
+const double ERROR_BOUND = 5.0;
+const int FEATURE_COUNT = 10;
+const double COMPAIR_RATE = 0.6;
+const int EMAX = 20;
 
 ModifiedSURFTracker::ModifiedSURFTracker()
 {
@@ -213,12 +216,14 @@ int ModifiedSURFTracker::ExtractModifiedSURF(IplImage* grayImage, std::vector<Cv
 	return count;
 }
 
+#include <iostream>
 CvFeatureTree* ModifiedSURFTracker::CreateReferenceTree(std::vector<SURFDesciription>* referenceSURF, CvMat* referenceFeatureStorage)
 {
 	int count = (int)referenceSURF->size();
+	std::cout << count << std::endl;
 
 	if(!referenceFeatureStorage) cvReleaseMat(&referenceFeatureStorage);
-	referenceFeatureStorage = cvCreateMat(count, DESCRIPTOR_DIMENSION, CV_32FC1);
+	referenceFeatureStorage = cvCreateMat(count, DESCRIPTOR_DIMENSION, DESCRIPTOR_TYPE);
 
 	for(int y=0; y<count; y++)
 	{
@@ -237,7 +242,7 @@ bool ModifiedSURFTracker::CreateFlannTree(std::vector<SURFDesciription>* referen
 	int count = (int)referenceSURF->size();
 
 	if(referenceFeatureStorage != NULL) cvReleaseMat(&referenceFeatureStorage);
-	referenceFeatureStorage = cvCreateMat(count, DESCRIPTOR_DIMENSION, CV_32F);
+	referenceFeatureStorage = cvCreateMat(count, DESCRIPTOR_DIMENSION, DESCRIPTOR_TYPE);
 
 	for(int y=0; y<count; y++)
 	{
@@ -256,15 +261,15 @@ bool ModifiedSURFTracker::CreateFlannTree(std::vector<SURFDesciription>* referen
 
 int ModifiedSURFTracker::FindPairs(SURFDesciription description, CvFeatureTree* tree, double distanceRate, float* outDistance)
 {
-	CvMat* currentFeature = cvCreateMat(1, DESCRIPTOR_DIMENSION, CV_32FC1);
-	CvMat* result = cvCreateMat(1, 2, CV_32SC1);
+	CvMat* currentFeature = cvCreateMat(1, DESCRIPTOR_DIMENSION, DESCRIPTOR_TYPE);
+	CvMat* result = cvCreateMat(1, 2, CV_32S);
 	CvMat* distance = cvCreateMat(1, 2, CV_64FC1);
 	for(int x=0; x<DESCRIPTOR_DIMENSION; x++)
 	{
 		cvSetReal2D(currentFeature, 0, x, description.descriptor[x]);
 	}
 
-	cvFindFeatures(tree, currentFeature, result, distance, 2, 20);
+	cvFindFeatures(tree, currentFeature, result, distance, 2, EMAX);
 
 	double min2 = cvGetReal2D(distance, 0, 0);
 	double min1 = cvGetReal2D(distance, 0, 1);
@@ -319,11 +324,11 @@ int ModifiedSURFTracker::FindPairs(SURFDesciription description, std::vector<SUR
     return -1;
 }
 
-int ModifiedSURFTracker::FindPairs(SURFDesciription description, cv::flann::Index* treeIndex, int emax, float distanceRate)
+int ModifiedSURFTracker::FindPairs(SURFDesciription description, cv::flann::Index* treeIndex, float distanceRate)
 {
-	CvMat* currentFeature = cvCreateMat(1, DESCRIPTOR_DIMENSION, CV_32F);
+	CvMat* currentFeature = cvCreateMat(1, DESCRIPTOR_DIMENSION, DESCRIPTOR_TYPE);
 	cv::Mat result(1, 2, CV_32S);
-	cv::Mat distance(1, 2, CV_32F);
+	cv::Mat distance(1, 2, DESCRIPTOR_TYPE);
 
 	for(int x=0; x<DESCRIPTOR_DIMENSION; x++)
 	{
@@ -331,7 +336,7 @@ int ModifiedSURFTracker::FindPairs(SURFDesciription description, cv::flann::Inde
 	}
 
 	cv::Mat object(currentFeature, false);
-	treeIndex->knnSearch(object, result, distance, emax, cv::flann::SearchParams(emax));
+	treeIndex->knnSearch(object, result, distance, EMAX, cv::flann::SearchParams(EMAX));
 
 	float min2 = distance.ptr<float>(0)[0];
 	float min1 = distance.ptr<float>(0)[1];
@@ -516,11 +521,9 @@ double ModifiedSURFTracker::CalculatePose(bool update)
 		}
 	}
 
-	const double ERROR_BOUND = 5.0;
-
 	float homographyError = 0;
 	int n = (int)matchedReferencePoints.size();
-	if(n >= 5)
+	if(n >= FEATURE_COUNT)
 	{
 		int inlierCount = 0;
 		int outlierCount = 0;
@@ -577,7 +580,7 @@ double ModifiedSURFTracker::CalculatePose(bool update)
 #ifdef USING_RANSAC
 		if(cvFindHomography( &_pt1, &_pt2, &_h, CV_RANSAC, ERROR_BOUND))
 #else
-		if(cvFindHomography( &_pt1, &_pt2, &_h, CV_LMEDS))
+		if(cvFindHomography( &_pt1, &_pt2, &_h));//, CV_LMEDS))
 #endif
 		{
 #ifdef REMOVE_OUTLIER
@@ -655,8 +658,6 @@ double ModifiedSURFTracker::CalculatePose(bool update)
 
 double ModifiedSURFTracker::UpdateCameraPose(IplImage* grayImage)
 {
-	const double COMPAIR_RATE = 0.8;
-
 	bool update = true;
 	if(runOpticalflow)
 	{
@@ -704,10 +705,14 @@ double ModifiedSURFTracker::UpdateCameraPose(IplImage* grayImage)
 				std::vector<SURFDesciription> tempSceneSURF;
 
 				if(log) log->updateTickCount();
-
-				for(unsigned int i=0; i<sceneSURF.size(); i++)
+				for(int i=0; i<sceneSURF.size(); i++)
 				{
-					int index = FindPairs(sceneSURF[i], referenceFeatureTree, COMPAIR_RATE);
+#ifdef USING_KDTREE
+					int index = FindPairs(sceneSURF[i], referenceFeatureTree, COMPAIR_RATE, &distance);
+#endif
+#ifdef USING_FLANN
+					int index = FindPairs(sceneSURF[i], this->flannIndex, COMPAIR_RATE);
+#endif
 					if(index > 0)
 					{
 						tempReferenceSURF.push_back(referenceSURF[index]);
@@ -799,20 +804,18 @@ double ModifiedSURFTracker::UpdateCameraPose(IplImage* grayImage)
 		matchedScene.clear();
 
 		if(log) log->updateTickCount();
-		for(unsigned int i=0; i<sceneSURF.size(); i++)
+		for(int i=0; i<sceneSURF.size(); i++)
 		{
-			float distance;
+			float distance = 0;
 #ifdef USING_KDTREE
 			int index = FindPairs(sceneSURF[i], referenceFeatureTree, COMPAIR_RATE, &distance);
 #endif
 #ifdef USING_FLANN
-			int index = FindPairs(sceneSURF[i], this->flannIndex, 5);
+			int index = FindPairs(sceneSURF[i], this->flannIndex, COMPAIR_RATE);
 #endif
-
 			if(index > 0)
 			{
 				sceneSURF[i].distance = distance;
-
 				matchedReference.push_back(referenceSURF[index]);
 				matchedScene.push_back(sceneSURF[i]);
 			}
@@ -895,14 +898,12 @@ void ModifiedSURFTracker::DrawDebugInfo(IplImage* colorImage)
 
 void ModifiedSURFTracker::DrawDebugInfo2(IplImage* colorImage)
 {
-	
-
 	int pointCount = (int)sceneSURF.size();
 	int r = 255;
 	int g = 0;
 	int b = 0;
 
-	int size = 4;
+	int size = 6;
 
 	for(unsigned int i=0; i<matchedScene.size(); i++)
 	{
@@ -912,7 +913,7 @@ void ModifiedSURFTracker::DrawDebugInfo2(IplImage* colorImage)
 
 		cvCircle(colorImage, referencePoint, size, CV_RGB(0, 255, 255), CV_FILLED);
 		cvCircle(colorImage, imagePoint, size, CV_RGB(255, 255, 0), CV_FILLED);
-		cvLine(colorImage, referencePoint, imagePoint, CV_RGB(255, 0, 0));
+		cvLine(colorImage, referencePoint, imagePoint, CV_RGB(255, 0, 0), 2);
 	}
 }
 

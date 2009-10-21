@@ -48,6 +48,8 @@
 #define FLIP
 #define RECTIFICATION
 
+//#define USE_IMAGE_SEQUENCE
+
 const int WIDTH = 640;
 const int HEIGHT = 480;
 
@@ -77,32 +79,47 @@ void main()
 	IplImage* referenceColor = cvLoadImage("reference_map.png");
 
 	windage::ModifiedSURFTracker* tracker = new windage::ModifiedSURFTracker();
-	tracker->Initialize(778.195, 779.430, 324.659, 235.685, -0.333103, 0.173760, 0.000653, 0.001114, 50);
+	tracker->Initialize(778.195, 779.430, 324.659, 235.685, -0.333103, 0.173760, 0.000653, 0.001114, 30);
 //	tracker->Initialize(379.097, 379.715, 162.329, 117.842, -0.333103, 0.173760, 0.000653, 0.001114, 50);
-	tracker->RegistReferenceImage(referenceImage, 26.70, 20.00, 2.0, 8);
+	tracker->RegistReferenceImage(referenceImage, 26.70, 20.00, 2.0, 4);
 	tracker->InitializeOpticalFlow(WIDTH, HEIGHT, 10, cvSize(15, 15), 3);
 	tracker->SetOpticalFlowRunning(false);
 	tracker->GetCameraParameter()->InitUndistortionMap(WIDTH, HEIGHT);
-	tracker->SetFeatureExtractTreshold(50);
+	tracker->SetFeatureExtractTreshold(70);
 
-	int fastThreshold = 50;
-	const int MAX_FAST_THRESHOLD = 100;
+	int fastThreshold = 70;
+	const int MAX_FAST_THRESHOLD = 130;
 	const int MIN_FAST_THRESHOLD = 30;
 	const int ADAPTIVE_THRESHOLD_VALUE = 200;
-	const int THRESHOLD_STEP = 5;
+	const int THRESHOLD_STEP = 1;
+
+	IplImage* grabFrame = NULL;
 	
 	char message[100];
 	fpslog->updateTickCount();
 	bool processing = true;
+#ifdef USE_IMAGE_SEQUENCE
+	for(int i=0; i<4735; i++)
+	{
+		log->updateTickCount();
+		char* filenameTemplate = "D:\\ImageSequence\\20090912-2\\capture%d.jpg";
+		char filename[300];
+		sprintf(filename, filenameTemplate, i);
+
+		if(grabFrame) cvReleaseImage(&grabFrame);
+		grabFrame = cvLoadImage(filename);
+#else
 	while(processing)
 	{
 		// camera frame grabbing and convert to gray color
 		log->updateTickCount();
-		IplImage* grabFrame = cvQueryFrame(capture);
+		grabFrame = cvQueryFrame(capture);
 #ifdef FLIP
 		cvFlip(grabFrame, grabFrame);
-		cvResize(grabFrame, tempImage);
 #endif
+#endif
+
+		cvResize(grabFrame, tempImage);
 #ifdef RECTIFICATION
 		tracker->GetCameraParameter()->Undistortion(tempImage, inputImage);
 #else
@@ -111,7 +128,7 @@ void main()
 
 		cvCvtColor(inputImage, grayImage, CV_BGRA2GRAY);
 		
-		cvSmooth(grayImage, grayImage, 2, 1, 1);
+//		cvSmooth(grayImage, grayImage, 2, 1, 1);
 
 		log->log("capture", log->calculateProcessTime());
 
@@ -124,11 +141,12 @@ void main()
 		int matchedCount = tracker->GetMatchedCount();
 
 		// for Adaptive threshold
+//*
 		if(featureCount > ADAPTIVE_THRESHOLD_VALUE ) fastThreshold+=THRESHOLD_STEP;
 		else fastThreshold-=THRESHOLD_STEP;
 		if(fastThreshold > MAX_FAST_THRESHOLD) fastThreshold = MAX_FAST_THRESHOLD;
 		if(fastThreshold < MIN_FAST_THRESHOLD) fastThreshold = MIN_FAST_THRESHOLD;
-
+//*/
 		tracker->SetFeatureExtractTreshold(fastThreshold);
 
 		double fps = fpslog->calculateFPS();
@@ -143,14 +161,14 @@ void main()
 		cvResetImageROI(tempImage2);
 		tracker->DrawDebugInfo2(tempImage2);
 
-		cvNamedWindow("temp");
-		cvShowImage("temp", tempImage2);
+//		cvNamedWindow("temp");
+//		cvShowImage("temp", tempImage2);
 //*/
 
 		// draw tracking result
 		//tracker->DrawDebugInfo(inputImage);
 		tracker->DrawOutLine(inputImage, true);
-//		tracker->DrawInfomation(inputImage, 10.0);
+		tracker->DrawInfomation(inputImage, 5.0);
 //*
 		CvRect rect = cvRect(10, HEIGHT-10-HEIGHT/2, WIDTH/4, HEIGHT/2);
 		cvRectangle(inputImage, cvPoint(rect.x, rect.y), cvPoint(rect.x+rect.width, rect.y+rect.height), CV_RGB(255, 255, 255), 5);

@@ -95,6 +95,8 @@ namespace windage
 	class DLLEXPORT FindPROSACHomography
 	{
 	private:
+		float confidence;
+
 		int maxIteration;
 		float terminationRatio;
 		float reprojectionThreshold;
@@ -105,6 +107,8 @@ namespace windage
 	public:
 		FindPROSACHomography()
 		{
+			this->confidence = 0.7; // constant
+
 			this->maxIteration = 2000;
 			this->terminationRatio = 0.7f;
 			this->reprojectionThreshold = 5.0f;

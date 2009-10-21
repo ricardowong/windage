@@ -54,6 +54,7 @@
 namespace windage
 {
 	const int DESCRIPTOR_DIMENSION = 36;	///< Modified SURF Descriptor dimension = 36 (fixed)
+	const int DESCRIPTOR_TYPE = CV_32F;
 
 	/**
 	 * @brief
@@ -124,7 +125,7 @@ namespace windage
 
 		int FindPairs(SURFDesciription description, CvFeatureTree* tree, double distanceRate, float* outDistance = NULL);
 		int FindPairs(SURFDesciription description, std::vector<SURFDesciription>* descriptions);
-		int FindPairs(SURFDesciription description, cv::flann::Index* treeIndex, int emax, float distanceRate=0.7);
+		int FindPairs(SURFDesciription description, cv::flann::Index* treeIndex, float distanceRate=0.7);
 
 		/**
 		 * @brief
