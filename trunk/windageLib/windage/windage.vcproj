@@ -119,6 +119,8 @@
 				Name="VCCLCompilerTool"
 				Optimization="3"
 				EnableIntrinsicFunctions="true"
+				FavorSizeOrSpeed="1"
+				EnableFiberSafeOptimizations="false"
 				AdditionalIncludeDirectories="&quot;$(SolutionDir)windage/&quot;;&quot;$(SolutionDir)../../component/OpenCV 1.2/include/&quot;;&quot;$(SolutionDir)../../component/PGR FlyCapture/include/&quot;;&quot;$(SolutionDir)../../component/GLUT/include/&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;WINDAGE_EXPORTS"
 				RuntimeLibrary="2"

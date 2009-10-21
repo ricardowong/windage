@@ -61,10 +61,18 @@ int PROSACUpdateNumIters(double p, double ep, int model_points, int max_iters)
 	return result;
 }
 
+float ComputeReprojError(CvPoint2D32f point1, CvPoint2D32f point2, float* homography)
+{
+	float projectionPointZ = homography[6] * point1.x + homography[7] * point1.y + homography[8];
+	float projectionPointX = (homography[0] * point1.x + homography[1] * point1.y + homography[2])/projectionPointZ - point2.x;
+	float projectionPointY = (homography[3] * point1.x + homography[4] * point1.y + homography[5])/projectionPointZ - point2.y;
+	
+	return (float)sqrt(projectionPointX*projectionPointX + projectionPointY*projectionPointY);
+}
+
 using namespace windage;
 bool FindPROSACHomography::Calculate()
 {
-	const double confidence = 0.995;
 	CvMat _h = cvMat(3, 3, CV_32F, homography);
 
 	std::vector<CvPoint2D32f> samplingObject; samplingObject.resize(4);
@@ -80,6 +88,7 @@ bool FindPROSACHomography::Calculate()
 	CvMat samplingReferencePoints = cvMat(1, 4, CV_32FC2, &(samplingReference[0]));
 
 	// sort
+	srand(time(NULL));
 	sort(matchedPoints->begin(), matchedPoints->end(), CompareDistanceLess());
 
 	bool isProcessing = true;
@@ -97,7 +106,6 @@ bool FindPROSACHomography::Calculate()
 			int index = 0;
 			if(i > count)
 			{
-				srand(time(NULL));
 				index = rand() % count;
 			}
 			else
@@ -116,21 +124,11 @@ bool FindPROSACHomography::Calculate()
 
 		int inlinerCount = 0;
 		// calculate consensus set
+		#pragma omp parallel for schedule(dynamic)
 		for(int j=0; j<matchedPoints->size(); j++)
 		{
-			float pointX = (*matchedPoints)[j].pointReference.x;
-			float pointY = (*matchedPoints)[j].pointReference.y;
-			float pointZ = 1.0;
-
-			float projectionPointX = homography[0] * pointX + homography[1] * pointY + homography[2] * pointZ;
-			float projectionPointY = homography[3] * pointX + homography[4] * pointY + homography[5] * pointZ;
-			float projectionPointZ = homography[6] * pointX + homography[7] * pointY + homography[8] * pointZ;
-			projectionPointX /= projectionPointZ;
-			projectionPointY /= projectionPointZ;
-
-			float dx = abs((*matchedPoints)[j].pointScene.x - projectionPointX);
-			float dy = abs((*matchedPoints)[j].pointScene.y - projectionPointY);
-			if(dx+dy < this->reprojectionThreshold*2)
+			float error = ComputeReprojError((*matchedPoints)[j].pointReference, (*matchedPoints)[j].pointScene, homography);
+			if(error < this->reprojectionThreshold)
 			{
 				(*matchedPoints)[j].isInlier = true;
 				inlinerCount++;
@@ -138,7 +136,6 @@ bool FindPROSACHomography::Calculate()
 		}
 
 		maxIteration = PROSACUpdateNumIters(confidence, (double)(count - inlinerCount)/count, 4, maxIteration);
-
 
 		// calculate refine
 		if( (float)inlinerCount / (float)count > this->terminationRatio)
@@ -162,23 +159,17 @@ bool FindPROSACHomography::Calculate()
 
 			// calculate error
 			float error = 0.0f;
+
+			#pragma omp parallel for schedule(dynamic)
 			for(int j=0; j<matchedPoints->size(); j++)
 			{
 				if((*matchedPoints)[j].isInlier)
 				{
-					float pointX = (*matchedPoints)[j].pointReference.x;
-					float pointY = (*matchedPoints)[j].pointReference.y;
-					float pointZ = 1.0;
-
-					float projectionPointX = homography[0] * pointX + homography[1] * pointY + homography[2] * pointZ;
-					float projectionPointY = homography[3] * pointX + homography[4] * pointY + homography[5] * pointZ;
-					float projectionPointZ = homography[6] * pointX + homography[7] * pointY + homography[8] * pointZ;
-					projectionPointX /= projectionPointZ;
-					projectionPointY /= projectionPointZ;
-
-					float dx = abs((*matchedPoints)[j].pointScene.x - projectionPointX);
-					float dy = abs((*matchedPoints)[j].pointScene.y - projectionPointY);
-					error += (dx+dy)/2;
+					float temp = ComputeReprojError((*matchedPoints)[j].pointReference, (*matchedPoints)[j].pointScene, homography);
+					#pragma omp critical
+					{
+						error += temp;
+					}
 				}
 			}
 			error /= (float)(inlinerCount);

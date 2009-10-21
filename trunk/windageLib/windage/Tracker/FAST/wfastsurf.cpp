@@ -37,7 +37,7 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#include "wsurf.h"
+#include "wfastsurf.h"
 
 const int dx1[] = {3, 3, 2, 1, 0, -1, -2. -3};
 const int dx2[] = {-3, -3, -2, -1, 0, 1, 2, 3};
@@ -70,45 +70,20 @@ void wExtractFASTSURF( const CvArr* _img, const CvArr* _mask,
         cvSeqPushMulti( descriptors, 0, N );
     }
 
-	/* Gaussian used to weight descriptor samples */
-/*
-	const float DESC_SIGMA = 3.3f;
-	float DW[PATCH_SZ][PATCH_SZ];
-    CvMat _DW = cvMat(PATCH_SZ, PATCH_SZ, CV_32F, DW);
-	double c2 = 1./(DESC_SIGMA*DESC_SIGMA*2);
-    double gs = 0;
-    for(int i = 0; i < PATCH_SZ; i++ )
-    {
-        for(int j = 0; j < PATCH_SZ; j++ )
-        {
-            double x = j - (float)(PATCH_SZ-1)/2, y = i - (float)(PATCH_SZ-1)/2;
-            double val = exp(-(x*x+y*y)*c2);
-            DW[i][j] = (float)val;
-            gs += val;
-        }
-    }
-    cvScale( &_DW, &_DW, 1./gs );
-*/
-
-//	#pragma omp parallel for schedule(dynamic)
+	#pragma omp parallel for schedule(dynamic)
     for(int k = 0; k < N; k++ )
     {
+		int i, j;
 		CvSURFPoint* kp = (CvSURFPoint*)cvGetSeqElem( keypoints, k );
-		CvPoint2D32f point = kp->pt;
-		int x = cvRound(point.x);
-		int y = cvRound(point.y);
+		int x = cvRound(kp->pt.x);
+		int y = cvRound(kp->pt.y);
 
 		// calculate rotation
 		int dx = 0;
 		int dy = 0;
 		for(int i=0; i<8; i++)
 		{
-			CvPoint tempPoint1 = cvPoint(x + dx1[i], y + dy1[i]);
-			CvPoint tempPoint2 = cvPoint(x + dx2[i], y + dy2[i]);
-
-			int intensity1 = (int)(unsigned char)image->imageData[tempPoint1.y * image->widthStep + tempPoint1.x];
-			int intensity2 = (int)(unsigned char)image->imageData[tempPoint2.y * image->widthStep + tempPoint2.x];
-			int difference = intensity1 - intensity2;
+			int difference = (int)((unsigned char)image->imageData[(y + dy1[i]) * image->widthStep + (x + dx1[i])] - (unsigned char)image->imageData[(y + dy2[i]) * image->widthStep + (x + dx2[i])]);
 			dx += dx1[i] * difference;
 			dy += dy1[i] * difference;
 		}
@@ -126,14 +101,13 @@ void wExtractFASTSURF( const CvArr* _img, const CvArr* _mask,
 
         // Nearest neighbour version (faster)
         float win_offset = -(float)(PATCH_SZ-1)/2;
-        float start_x = point.x + win_offset*cos_dir + win_offset*sin_dir;
-        float start_y = point.y - win_offset*sin_dir + win_offset*cos_dir;
-
-        for(int i=0; i<PATCH_SZ+1; i++, start_x+=sin_dir, start_y+=cos_dir )
+        float start_x = kp->pt.x + win_offset*cos_dir + win_offset*sin_dir;
+        float start_y = kp->pt.y - win_offset*sin_dir + win_offset*cos_dir;
+        for( i=0; i<PATCH_SZ+1; i++, start_x+=sin_dir, start_y+=cos_dir )
         {
             float pixel_x = start_x;
             float pixel_y = start_y;
-            for(int j=0; j<PATCH_SZ+1; j++, pixel_x+=cos_dir, pixel_y-=sin_dir )
+            for( j=0; j<PATCH_SZ+1; j++, pixel_x+=cos_dir, pixel_y-=sin_dir )
             {
                 x = cvRound( pixel_x );
                 y = cvRound( pixel_y );
@@ -146,45 +120,40 @@ void wExtractFASTSURF( const CvArr* _img, const CvArr* _mask,
         }
 
         // Calculate gradients in x and y with wavelets of size 2s
-		char DX[PATCH_SZ][PATCH_SZ];
-		char DY[PATCH_SZ][PATCH_SZ];
-        for(int i = 0; i < PATCH_SZ; i++ )
+		int DX[PATCH_SZ][PATCH_SZ];
+		int DY[PATCH_SZ][PATCH_SZ];
+        for( i = 0; i < PATCH_SZ; i++ )
 		{
-            for(int j = 0; j < PATCH_SZ; j++ )
+            for( j = 0; j < PATCH_SZ; j++ )
             {
-/*
-				float dw = DW[i][j];
-				float vx = (float)(PATCH[i][j+1] - PATCH[i][j] + PATCH[i+1][j+1] - PATCH[i+1][j])*dw;
-				float vy = (float)(PATCH[i+1][j] - PATCH[i][j] + PATCH[i+1][j+1] - PATCH[i][j+1])*dw;
-//*/
-				DX[i][j] = PATCH[i][j+1] - PATCH[i][j];// + PATCH[i+1][j+1] - PATCH[i+1][j];
-				DY[i][j] = PATCH[i+1][j] - PATCH[i][j];// + PATCH[i+1][j+1] - PATCH[i][j+1];
+				DX[i][j] = (int)(PATCH[i][j+1] - PATCH[i][j]);// + PATCH[i+1][j+1] - PATCH[i+1][j]);
+				DY[i][j] = (int)(PATCH[i+1][j] - PATCH[i][j]);// + PATCH[i+1][j+1] - PATCH[i][j+1]);
             }
 		}
 
         // Construct the descriptor
 		float* vec = (float*)cvGetSeqElem( descriptors, k );
-        for(int kk = 0; kk < (int)(descriptors->elem_size/sizeof(vec[0])); kk++ )
-            vec[kk] = 0;
+        for(i=0; i<descriptor_size; i++)
+            vec[i] = 0;
 
 		// always 36-bin descriptor
-        for(int i = 0; i < 3; i++ )
-            for(int j = 0; j < 3; j++ )
+        for(i = 0; i < 3; i++)
+		{
+            for(j = 0; j < 3; j++)
             {
-                for( y = i*5; y < i*5+5; y++ )
+                for(y = i*5; y < i*5+5; y++)
                 {
-                    for( x = j*5; x < j*5+5; x++ )
+                    for(x = j*5; x < j*5+5; x++)
                     {
-                        float tx = (float)DX[y][x];
-						float ty = (float)DY[y][x];
-                        vec[0] += tx;
-						vec[1] += ty;
-                        vec[2] += (float)fabs(tx);
-						vec[3] += (float)fabs(ty);
+                        vec[0] += (float)DX[y][x];
+						vec[1] += (float)DY[y][x];
+                        vec[2] += (float)fabs((float)DX[y][x]);
+						vec[3] += (float)fabs((float)DY[y][x]);
                     }
                 }
                 vec+=4;
 			}
+		}
     }
 
 	if( _descriptors )	*_descriptors = descriptors;
