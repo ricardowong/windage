@@ -135,6 +135,9 @@ void ARForOpenGL::DrawBackgroundTexture(IplImage* inputImage)
             glVertex2d(0,0);
     }
     glEnd();
+
+	glDisable(GL_TEXTURE_2D);
+	glEnable(GL_DEPTH_TEST);
 }
 
 void ARForOpenGL::SetProjectionMatrix()

@@ -96,7 +96,7 @@ void wExtractFASTSURF( const CvArr* _img, const CvArr* _mask,
 		float sin_dir = sin(-descriptor_dir);
         float cos_dir = cos(-descriptor_dir) ;
 
-		unsigned char PATCH[PATCH_SZ+1][PATCH_SZ+1];
+		int PATCH[PATCH_SZ+1][PATCH_SZ+1];
 		CvMat _patch = cvMat(PATCH_SZ+1, PATCH_SZ+1, CV_8U, PATCH);
 
         // Nearest neighbour version (faster)
@@ -115,7 +115,7 @@ void wExtractFASTSURF( const CvArr* _img, const CvArr* _mask,
                 y = MAX( y, 0 );
                 x = MIN( x, image->width-1 );
                 y = MIN( y, image->height-1 );
-				PATCH[i][j] = (unsigned char)image->imageData[y*image->widthStep + x];
+				PATCH[i][j] = (int)(unsigned char)image->imageData[y*image->widthStep + x];
              }
         }
 
@@ -126,8 +126,8 @@ void wExtractFASTSURF( const CvArr* _img, const CvArr* _mask,
 		{
             for( j = 0; j < PATCH_SZ; j++ )
             {
-				DX[i][j] = (int)(PATCH[i][j+1] - PATCH[i][j]);// + PATCH[i+1][j+1] - PATCH[i+1][j]);
-				DY[i][j] = (int)(PATCH[i+1][j] - PATCH[i][j]);// + PATCH[i+1][j+1] - PATCH[i][j+1]);
+				DX[i][j] = (PATCH[i][j+1] - PATCH[i][j] + PATCH[i+1][j+1] - PATCH[i+1][j]);
+				DY[i][j] = (PATCH[i+1][j] - PATCH[i][j] + PATCH[i+1][j+1] - PATCH[i][j+1]);
             }
 		}
 

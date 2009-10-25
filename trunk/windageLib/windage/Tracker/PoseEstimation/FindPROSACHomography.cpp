@@ -73,15 +73,15 @@ float ComputeReprojError(CvPoint2D32f point1, CvPoint2D32f point2, float* homogr
 using namespace windage;
 bool FindPROSACHomography::Calculate()
 {
+	float bestHomography[9];
+	CvMat _bestH = cvMat(3, 3, CV_32F, homography);
+
 	CvMat _h = cvMat(3, 3, CV_32F, homography);
 
-	std::vector<CvPoint2D32f> samplingObject; samplingObject.resize(4);
-	std::vector<CvPoint2D32f> samplingReference; samplingReference.resize(4);
+	std::vector<CvPoint2D32f> samplingObject;		samplingObject.resize(4);
+	std::vector<CvPoint2D32f> samplingReference;	samplingReference.resize(4);
 
-	std::vector<bool> bestSetList;	bestSetList.resize(matchedPoints->size());
-	float bestError = 999999999.0f;
 	int bestCount = 0;
-
 	int count = matchedPoints->size();
 	
 	CvMat samplingObjectPoints = cvMat(1, 4, CV_32FC2, &(samplingObject[0]));
@@ -104,7 +104,7 @@ bool FindPROSACHomography::Calculate()
 		for(int j=0; j<4; j++)
 		{
 			int index = 0;
-			if(i > count)
+			if(i > count/2)
 			{
 				index = rand() % count;
 			}
@@ -124,7 +124,6 @@ bool FindPROSACHomography::Calculate()
 
 		int inlinerCount = 0;
 		// calculate consensus set
-		#pragma omp parallel for schedule(dynamic)
 		for(int j=0; j<matchedPoints->size(); j++)
 		{
 			float error = ComputeReprojError((*matchedPoints)[j].pointReference, (*matchedPoints)[j].pointScene, homography);
@@ -135,57 +134,11 @@ bool FindPROSACHomography::Calculate()
 			}
 		}
 
-		maxIteration = PROSACUpdateNumIters(confidence, (double)(count - inlinerCount)/count, 4, maxIteration);
-
-		// calculate refine
-		if( (float)inlinerCount / (float)count > this->terminationRatio)
+		if( inlinerCount > bestCount)
 		{
-			std::vector<CvPoint2D32f> consensusObject;
-			std::vector<CvPoint2D32f> consensusReference;
-
-			for(int j=0; j<matchedPoints->size(); j++)
-			{
-				if((*matchedPoints)[j].isInlier)
-				{
-					consensusObject.push_back(cvPoint2D32f((*matchedPoints)[j].pointScene.x, (*matchedPoints)[j].pointScene.y));
-					consensusReference.push_back(cvPoint2D32f((*matchedPoints)[j].pointReference.x, (*matchedPoints)[j].pointReference.y));
-				}
-			}
-			CvMat consensusObjectPoints = cvMat(1, consensusObject.size(), CV_32FC2, &(consensusObject[0]));
-			CvMat consensusReferencePoints = cvMat(1, consensusReference.size(), CV_32FC2, &(consensusReference[0]));
-
-			cvFindHomography(&consensusReferencePoints, &consensusObjectPoints, &_h);
-//			return true;
-
-			// calculate error
-			float error = 0.0f;
-
-			#pragma omp parallel for schedule(dynamic)
-			for(int j=0; j<matchedPoints->size(); j++)
-			{
-				if((*matchedPoints)[j].isInlier)
-				{
-					float temp = ComputeReprojError((*matchedPoints)[j].pointReference, (*matchedPoints)[j].pointScene, homography);
-					#pragma omp critical
-					{
-						error += temp;
-					}
-				}
-			}
-			error /= (float)(inlinerCount);
-
-			if(bestError > error)
-			{
-				bestError = error;
-				bestCount = inlinerCount;
-				for(int j=0; j<matchedPoints->size(); j++)
-				{
-					if((*matchedPoints)[j].isInlier)
-					{
-						bestSetList[j] = true;
-					}
-				}
-			}
+			bestCount = inlinerCount;
+			for(int k=0; k<9; k++) bestHomography[k] = homography[k];
+			maxIteration = PROSACUpdateNumIters(confidence, (double)(count - inlinerCount)/count, 4, maxIteration);
 		}
 	}
 
@@ -194,26 +147,32 @@ bool FindPROSACHomography::Calculate()
 	{
 		for(int j=0; j<matchedPoints->size(); j++)
 		{
-			if(bestSetList[j])
+			float error = ComputeReprojError((*matchedPoints)[j].pointReference, (*matchedPoints)[j].pointScene, bestHomography);
+			if(error < this->reprojectionThreshold)
 			{
 				(*matchedPoints)[j].isInlier = true;
 			}
+			else
+			{
+				(*matchedPoints)[j].isInlier = false;
+			}
 		}
 
-		std::vector<CvPoint2D32f> consensusObject;
-		std::vector<CvPoint2D32f> consensusReference;
+		std::vector<CvPoint2D32f> consensusObject;		consensusObject.resize(bestCount);
+		std::vector<CvPoint2D32f> consensusReference;	consensusReference.resize(bestCount);
 
+		int index = 0;
 		for(int j=0; j<matchedPoints->size(); j++)
 		{
 			if((*matchedPoints)[j].isInlier)
 			{
-				consensusObject.push_back(cvPoint2D32f((*matchedPoints)[j].pointScene.x, (*matchedPoints)[j].pointScene.y));
-				consensusReference.push_back(cvPoint2D32f((*matchedPoints)[j].pointReference.x, (*matchedPoints)[j].pointReference.y));
+				consensusObject[index]=cvPoint2D32f((*matchedPoints)[j].pointScene.x, (*matchedPoints)[j].pointScene.y);
+				consensusReference[index]=cvPoint2D32f((*matchedPoints)[j].pointReference.x, (*matchedPoints)[j].pointReference.y);
+				index++;
 			}
 		}
 		CvMat consensusObjectPoints = cvMat(1, consensusObject.size(), CV_32FC2, &(consensusObject[0]));
 		CvMat consensusReferencePoints = cvMat(1, consensusReference.size(), CV_32FC2, &(consensusReference[0]));
-
 		cvFindHomography(&consensusReferencePoints, &consensusObjectPoints, &_h);
 		return true;
 	}
