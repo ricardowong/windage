@@ -47,11 +47,13 @@
 
 #define FLIP
 #define RECTIFICATION
+#define ADAPTIVE_THRESHOLD
 
 //#define USE_IMAGE_SEQUENCE
 
 const int WIDTH = 640;
-const int HEIGHT = 480;
+const double RATIO =(double)WIDTH / 640.0;
+const int HEIGHT = 480*RATIO;
 
 void main()
 {
@@ -74,18 +76,40 @@ void main()
 	IplImage* tempImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
 	IplImage* tempImage2 = cvCreateImage(cvSize(WIDTH, HEIGHT*2), IPL_DEPTH_8U, 3);
 
+	IplImage* referenceImage = NULL;
+	IplImage* referenceColor = NULL;
+
 	// Tracker Initialize
-	IplImage* referenceImage = cvLoadImage("reference_map.png", 0);
-	IplImage* referenceColor = cvLoadImage("reference_map.png");
+	if(WIDTH == 640)
+	{
+		referenceImage = cvLoadImage("reference_map.png", 0);
+		referenceColor = cvLoadImage("reference_map.png");
+	}
+	else if(WIDTH == 320)
+	{
+		referenceImage = cvLoadImage("reference_map_320.png", 0);
+		referenceColor = cvLoadImage("reference_map_320.png");
+	}
+	else if(WIDTH == 1024)
+	{
+		referenceImage = cvLoadImage("reference_map_1024.png", 0);
+		referenceColor = cvLoadImage("reference_map_1024.png");
+	}
 
 	windage::ModifiedSURFTracker* tracker = new windage::ModifiedSURFTracker();
-	tracker->Initialize(778.195, 779.430, 324.659, 235.685, -0.333103, 0.173760, 0.000653, 0.001114, 30);
-//	tracker->Initialize(379.097, 379.715, 162.329, 117.842, -0.333103, 0.173760, 0.000653, 0.001114, 50);
-	tracker->RegistReferenceImage(referenceImage, 26.70, 20.00, 2.0, 4);
+	if(WIDTH == 1024)
+	{
+		tracker->Initialize(1330.260, 1328.958, 549.620, 374.955, -0.188632, 0.090592, -0.000546, -0.001740, 50);
+	}
+	else
+	{
+		tracker->Initialize(778.195*RATIO, 779.430*RATIO, 324.659*RATIO, 235.685*RATIO, -0.333103, 0.173760, 0.000653, 0.001114, 50);
+	}
+	tracker->RegistReferenceImage(referenceImage, 26.70, 20.00, 4.0, 8);
 	tracker->InitializeOpticalFlow(WIDTH, HEIGHT, 10, cvSize(15, 15), 3);
 	tracker->SetOpticalFlowRunning(false);
 	tracker->GetCameraParameter()->InitUndistortionMap(WIDTH, HEIGHT);
-	tracker->SetFeatureExtractTreshold(70);
+	tracker->SetFeatureExtractTreshold(130);
 
 	int fastThreshold = 70;
 	const int MAX_FAST_THRESHOLD = 130;
@@ -127,6 +151,9 @@ void main()
 #endif
 
 		cvCvtColor(inputImage, grayImage, CV_BGRA2GRAY);
+
+//		cvCopy(referenceColor, inputImage);
+//		cvCopy(referenceImage, grayImage);
 		
 //		cvSmooth(grayImage, grayImage, 2, 1, 1);
 
@@ -141,18 +168,22 @@ void main()
 		int matchedCount = tracker->GetMatchedCount();
 
 		// for Adaptive threshold
-//*
+#ifdef ADAPTIVE_THRESHOLD
 		if(featureCount > ADAPTIVE_THRESHOLD_VALUE ) fastThreshold+=THRESHOLD_STEP;
 		else fastThreshold-=THRESHOLD_STEP;
 		if(fastThreshold > MAX_FAST_THRESHOLD) fastThreshold = MAX_FAST_THRESHOLD;
 		if(fastThreshold < MIN_FAST_THRESHOLD) fastThreshold = MIN_FAST_THRESHOLD;
-//*/
+#endif
 		tracker->SetFeatureExtractTreshold(fastThreshold);
 
 		double fps = fpslog->calculateFPS();
 		log->log("tracking", log->calculateProcessTime());
 		log->log("matchedCount", matchedCount);
 		log->logNewLine();
+		// draw tracking result
+		//tracker->DrawDebugInfo(inputImage);
+		tracker->DrawOutLine(inputImage, true);
+		tracker->DrawInfomation(inputImage, 5.0);
 //*
 		cvSetImageROI(tempImage2, cvRect(0, 0, WIDTH, HEIGHT));
 		cvCopy(referenceColor, tempImage2);
@@ -161,20 +192,14 @@ void main()
 		cvResetImageROI(tempImage2);
 		tracker->DrawDebugInfo2(tempImage2);
 
-//		cvNamedWindow("temp");
-//		cvShowImage("temp", tempImage2);
-//*/
-
-		// draw tracking result
-		//tracker->DrawDebugInfo(inputImage);
-		tracker->DrawOutLine(inputImage, true);
-		tracker->DrawInfomation(inputImage, 5.0);
-//*
 		CvRect rect = cvRect(10, HEIGHT-10-HEIGHT/2, WIDTH/4, HEIGHT/2);
 		cvRectangle(inputImage, cvPoint(rect.x, rect.y), cvPoint(rect.x+rect.width, rect.y+rect.height), CV_RGB(255, 255, 255), 5);
 		cvSetImageROI(inputImage, rect);
 		cvResize(tempImage2, inputImage);
 		cvResetImageROI(inputImage);
+
+//		cvNamedWindow("temp");
+//		cvShowImage("temp", tempImage2);
 //*/
 		
 		sprintf(message, "FPS : %03.2f", fps);

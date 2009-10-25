@@ -125,7 +125,7 @@ namespace windage
 
 		int FindPairs(SURFDesciription description, CvFeatureTree* tree, double distanceRate, float* outDistance = NULL);
 		int FindPairs(SURFDesciription description, std::vector<SURFDesciription>* descriptions);
-		int FindPairs(SURFDesciription description, cv::flann::Index* treeIndex, float distanceRate=0.7);
+		int FindPairs(SURFDesciription description, cv::flann::Index* treeIndex, float distanceRate=0.7, float* outDistance = NULL);
 
 		/**
 		 * @brief

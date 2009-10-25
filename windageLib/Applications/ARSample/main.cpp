@@ -94,6 +94,7 @@ void display()
 	arTool->SetModelViewMatrix();
 
 	glPushMatrix();
+/*
 		// axis lines
 		glLineWidth(5);
 		glBegin(GL_LINES);
@@ -104,11 +105,14 @@ void display()
 			glColor3d(0.0, 0.0, 1.0);
 			glVertex3d(0.0, 0.0, 0.0);glVertex3d(0.0, 0.0, 10.0);
 		glEnd();
-		glTranslated(10, 10, 5);
+//*/
 
 		// draw virtual object
-		OpenGLRenderer::setMaterial(Vector4(0, 0, 255, 0.5));
-		glutSolidCube(10);
+		OpenGLRenderer::setMaterial(Vector4(255, 255, 255, 0.8));
+		glTranslated(0, 0, 5);
+		glRotatef(90, 1, 0, 0);
+		glutSolidTeapot(5);
+//		glutSolidCube(10);
 	glPopMatrix();
 
 	glutSwapBuffers();
@@ -118,19 +122,18 @@ void main()
 {
 	// connect camera
 	capture = cvCaptureFromCAM(CV_CAP_ANY);
-	cvSetCaptureProperty(capture, CV_CAP_PROP_FRAME_WIDTH, WIDTH);
-	cvSetCaptureProperty(capture, CV_CAP_PROP_FRAME_HEIGHT, HEIGHT);
-
 	input = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
 	gray = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 1);
 
 	// initialize tracker
-	IplImage* referenceImage = cvLoadImage("reference.png", 0);
+	IplImage* referenceImage = cvLoadImage("reference_map.png", 0);
 	tracker = new windage::ModifiedSURFTracker();
-	((windage::ModifiedSURFTracker*)tracker)->Initialize(778.195, 779.430, 324.659, 235.685, -0.333103, 0.173760, 0.000653, 0.001114, 45);
+	((windage::ModifiedSURFTracker*)tracker)->Initialize(778.195, 779.430, 324.659, 235.685, -0.333103, 0.173760, 0.000653, 0.001114, 30);
 	((windage::ModifiedSURFTracker*)tracker)->RegistReferenceImage(referenceImage, 26.70, 20.00, 4.0, 8);
 	((windage::ModifiedSURFTracker*)tracker)->InitializeOpticalFlow(WIDTH, HEIGHT, 10, cvSize(15, 15), 3);
 	((windage::ModifiedSURFTracker*)tracker)->SetOpticalFlowRunning(true);
+	((windage::ModifiedSURFTracker*)tracker)->SetFeatureExtractTreshold(50);
+
 
 	tracker->GetCameraParameter()->InitUndistortionMap(WIDTH, HEIGHT);
 

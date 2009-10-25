@@ -46,16 +46,16 @@ using namespace windage;
 
 #include "PoseEstimation/FindPROSACHomography.h"
 
-#define REMOVE_OUTLIER
+//#define REMOVE_OUTLIER
 #define USING_RANSAC
-//#define USING_PROSAC
+#define USING_PROSAC
 
 //#define USING_KDTREE
 #define USING_FLANN
 
-const double ERROR_BOUND = 5.0;
-const int FEATURE_COUNT = 10;
-const double COMPAIR_RATE = 0.6;
+const double ERROR_BOUND = 10.0;
+const int POSE_POINTS_COUNT = 10;
+const double COMPAIR_RATE = 0.65;
 const int EMAX = 20;
 
 ModifiedSURFTracker::ModifiedSURFTracker()
@@ -139,7 +139,7 @@ int ModifiedSURFTracker::ExtractFASTCorner(std::vector<CvPoint>* corners, IplIma
 	switch(n)
 	{
 	case 9:
-		cornertemp = fast9_detect_nonmax((const byte *)grayImage->imageData, grayImage->width, grayImage->height, grayImage->widthStep, threshold, &cornerCount);
+		cornertemp = fast9_detect((const byte *)grayImage->imageData, grayImage->width, grayImage->height, grayImage->widthStep, threshold, &cornerCount);
 		break;
 	case 10:
 		cornertemp = fast10_detect_nonmax((const byte *)grayImage->imageData, grayImage->width, grayImage->height, grayImage->widthStep, threshold, &cornerCount);
@@ -157,11 +157,11 @@ int ModifiedSURFTracker::ExtractFASTCorner(std::vector<CvPoint>* corners, IplIma
 
 	if(isProcessed)
 	{
+		corners->resize(cornerCount);
 		for(int i=0; i<cornerCount; ++i)
 		{
-			corners->push_back(cvPoint(cornertemp[i].x, cornertemp[i].y));
+			(*corners)[i] = cvPoint(cornertemp[i].x, cornertemp[i].y);
 		}
-
 		if(cornertemp) delete cornertemp;
 	}
 
@@ -324,7 +324,7 @@ int ModifiedSURFTracker::FindPairs(SURFDesciription description, std::vector<SUR
     return -1;
 }
 
-int ModifiedSURFTracker::FindPairs(SURFDesciription description, cv::flann::Index* treeIndex, float distanceRate)
+int ModifiedSURFTracker::FindPairs(SURFDesciription description, cv::flann::Index* treeIndex, float distanceRate, float* outDistance)
 {
 	CvMat* currentFeature = cvCreateMat(1, DESCRIPTOR_DIMENSION, DESCRIPTOR_TYPE);
 	cv::Mat result(1, 2, CV_32S);
@@ -336,7 +336,7 @@ int ModifiedSURFTracker::FindPairs(SURFDesciription description, cv::flann::Inde
 	}
 
 	cv::Mat object(currentFeature, false);
-	treeIndex->knnSearch(object, result, distance, EMAX, cv::flann::SearchParams(EMAX));
+	treeIndex->knnSearch(object, result, distance, 2, cv::flann::SearchParams(EMAX));
 
 	float min2 = distance.ptr<float>(0)[0];
 	float min1 = distance.ptr<float>(0)[1];
@@ -355,11 +355,25 @@ int ModifiedSURFTracker::FindPairs(SURFDesciription description, cv::flann::Inde
 //*/
 	cvReleaseMat(&currentFeature);
 
+	if(outDistance)
+		(*outDistance) = (float)min2;
+
 	if ( min1 < distanceRate*min2 )
 		return index;
     return -1;
 }
 
+void Rotate(IplImage* src, IplImage* dst, float angle)
+{  
+   CvPoint2D32f centre;
+   CvMat *translate = cvCreateMat(2, 3, CV_32FC1);
+   cvSetZero(translate);
+   centre.x = src->width/2;
+   centre.y = src->height/2;
+   cv2DRotationMatrix(centre, angle, 1.0, translate);
+   cvWarpAffine(src, dst, translate, CV_INTER_LINEAR + CV_WARP_FILL_OUTLIERS, cvScalarAll(0));
+   cvReleaseMat(&translate);
+}
 
 int ModifiedSURFTracker::GenerateReferenceFeatureTree(double scaleFactor, int scaleStep)
 {
@@ -367,13 +381,14 @@ int ModifiedSURFTracker::GenerateReferenceFeatureTree(double scaleFactor, int sc
 	int height = (int)((double)referenceImage->height/scaleFactor);
 
 	IplImage* tempReference;
+	IplImage* tempReferenceRotate;
 	for(int y=1; y<=scaleStep; y++)
 	{
 		for(int x=1; x<=scaleStep; x++)
 		{
 			tempReference = cvCreateImage(cvSize(width*x, height*y), IPL_DEPTH_8U, 1);
 			cvResize(referenceImage, tempReference, CV_INTER_AREA);
-			cvSmooth(tempReference, tempReference, CV_GAUSSIAN, 3, 3, 1.5);
+			cvSmooth(tempReference, tempReference, CV_GAUSSIAN, 3, 3, 1.5, 1.5);
 
 			std::vector<SURFDesciription> tempSurf;
 			tempSurf.clear();
@@ -392,7 +407,6 @@ int ModifiedSURFTracker::GenerateReferenceFeatureTree(double scaleFactor, int sc
 
 				tempSurf[i].point.x = tempSurf[i].point.x - (float)this->realWidth/2;
 				tempSurf[i].point.y = tempSurf[i].point.y - (float)this->realHeight/2;
-
 
 				referenceSURF.push_back(tempSurf[i]);
 			}
@@ -523,7 +537,7 @@ double ModifiedSURFTracker::CalculatePose(bool update)
 
 	float homographyError = 0;
 	int n = (int)matchedReferencePoints.size();
-	if(n >= FEATURE_COUNT)
+	if(n >= POSE_POINTS_COUNT)
 	{
 		int inlierCount = 0;
 		int outlierCount = 0;
@@ -545,8 +559,8 @@ double ModifiedSURFTracker::CalculatePose(bool update)
 		}
 
 		FindPROSACHomography prosac;
-		prosac.SetReprojectionThreshold(10.0f);
-		prosac.SetTerminationRatio(0.7f);
+		prosac.SetReprojectionThreshold(ERROR_BOUND);
+//		prosac.SetTerminationRatio(0.7f);
 		prosac.AttatchMatchedPoints(&prosacMatchedPoints);
 
 		if(prosac.Calculate())
@@ -707,14 +721,16 @@ double ModifiedSURFTracker::UpdateCameraPose(IplImage* grayImage)
 				if(log) log->updateTickCount();
 				for(int i=0; i<sceneSURF.size(); i++)
 				{
+					float distance = 0;
 #ifdef USING_KDTREE
 					int index = FindPairs(sceneSURF[i], referenceFeatureTree, COMPAIR_RATE, &distance);
 #endif
 #ifdef USING_FLANN
-					int index = FindPairs(sceneSURF[i], this->flannIndex, COMPAIR_RATE);
+					int index = FindPairs(sceneSURF[i], this->flannIndex, COMPAIR_RATE, &distance);
 #endif
 					if(index > 0)
 					{
+						sceneSURF[i].distance = distance;
 						tempReferenceSURF.push_back(referenceSURF[index]);
 						tempSceneSURF.push_back(sceneSURF[i]);
 					}
@@ -811,7 +827,7 @@ double ModifiedSURFTracker::UpdateCameraPose(IplImage* grayImage)
 			int index = FindPairs(sceneSURF[i], referenceFeatureTree, COMPAIR_RATE, &distance);
 #endif
 #ifdef USING_FLANN
-			int index = FindPairs(sceneSURF[i], this->flannIndex, COMPAIR_RATE);
+			int index = FindPairs(sceneSURF[i], this->flannIndex, COMPAIR_RATE, &distance);
 #endif
 			if(index > 0)
 			{

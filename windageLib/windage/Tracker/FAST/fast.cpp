@@ -3082,17 +3082,19 @@ xy* fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, int* r
 	int rsize=512;
 	int pixel[16];
 	int x, y;
+	int cb, c_b;
 
 	ret_corners = (xy*)malloc(sizeof(xy)*rsize);
 	make_offsets(pixel, stride);
 
 	for(y=3; y < ysize - 3; y+=stepy)
-		for(x=3; x < xsize - 3; x+=stepx)
+	{
+		const byte* p = im + y*stride + 3;
+		for(x=3; x < xsize - 3; x+=stepx, p+=stepx)
 		{
-			const byte* p = im + y*stride + x;
-		
-			int cb = *p + b;
-			int c_b= *p - b;
+			cb = *p + b;
+			c_b= *p - b;
+
         if(p[pixel[0]] > cb)
          if(p[pixel[1]] > cb)
           if(p[pixel[2]] > cb)
@@ -6004,6 +6006,7 @@ xy* fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, int* r
 			num_corners++;
 				
 		}
+	}
 	
 	*ret_num_corners = num_corners;
 	return ret_corners;
