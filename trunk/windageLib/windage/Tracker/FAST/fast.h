@@ -42,6 +42,8 @@
 
 /** @cond */
 
+#define STEP_SIZE 2
+
 typedef struct { int x, y; } xy; 
 typedef unsigned char byte;
 
@@ -50,10 +52,10 @@ int fast10_corner_score(const byte* p, const int pixel[], int bstart);
 int fast11_corner_score(const byte* p, const int pixel[], int bstart);
 int fast12_corner_score(const byte* p, const int pixel[], int bstart);
 
-xy* fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, int* ret_num_corners, int stepx=2, int stepy=2);
-xy* fast10_detect(const byte* im, int xsize, int ysize, int stride, int b, int* ret_num_corners, int stepx=2, int stepy=2);
-xy* fast11_detect(const byte* im, int xsize, int ysize, int stride, int b, int* ret_num_corners, int stepx=2, int stepy=2);
-xy* fast12_detect(const byte* im, int xsize, int ysize, int stride, int b, int* ret_num_corners, int stepx=2, int stepy=2);
+xy* fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, int* ret_num_corners, int stepx=STEP_SIZE, int stepy=STEP_SIZE);
+xy* fast10_detect(const byte* im, int xsize, int ysize, int stride, int b, int* ret_num_corners, int stepx=STEP_SIZE, int stepy=STEP_SIZE);
+xy* fast11_detect(const byte* im, int xsize, int ysize, int stride, int b, int* ret_num_corners, int stepx=STEP_SIZE, int stepy=STEP_SIZE);
+xy* fast12_detect(const byte* im, int xsize, int ysize, int stride, int b, int* ret_num_corners, int stepx=STEP_SIZE, int stepy=STEP_SIZE);
 
 int* fast9_score(const byte* i, int stride, xy* corners, int num_corners, int b);
 int* fast10_score(const byte* i, int stride, xy* corners, int num_corners, int b);

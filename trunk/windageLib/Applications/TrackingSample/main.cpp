@@ -51,7 +51,7 @@
 
 //#define USE_IMAGE_SEQUENCE
 
-const int WIDTH = 640;
+const int WIDTH = 320;
 const double RATIO =(double)WIDTH / 640.0;
 const int HEIGHT = 480*RATIO;
 
@@ -69,7 +69,6 @@ void main()
 	bool saving = false;
 	CvVideoWriter* writer = NULL;
 
-	cvNamedWindow("result");
 	IplImage* inputImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
 	IplImage* grayImage = cvCreateImage(cvGetSize(inputImage), IPL_DEPTH_8U, 1);
 	
@@ -78,22 +77,26 @@ void main()
 
 	IplImage* referenceImage = NULL;
 	IplImage* referenceColor = NULL;
+	IplImage* trainingImage = NULL;
 
 	// Tracker Initialize
 	if(WIDTH == 640)
 	{
 		referenceImage = cvLoadImage("reference_map.png", 0);
 		referenceColor = cvLoadImage("reference_map.png");
+		trainingImage = cvLoadImage("reference_map_320.png", 0);
 	}
 	else if(WIDTH == 320)
 	{
 		referenceImage = cvLoadImage("reference_map_320.png", 0);
 		referenceColor = cvLoadImage("reference_map_320.png");
+		trainingImage = cvLoadImage("reference_map_320.png", 0);
 	}
 	else if(WIDTH == 1024)
 	{
 		referenceImage = cvLoadImage("reference_map_1024.png", 0);
 		referenceColor = cvLoadImage("reference_map_1024.png");
+		trainingImage = cvLoadImage("reference_map_320.png", 0);
 	}
 
 	windage::ModifiedSURFTracker* tracker = new windage::ModifiedSURFTracker();
@@ -105,16 +108,16 @@ void main()
 	{
 		tracker->Initialize(778.195*RATIO, 779.430*RATIO, 324.659*RATIO, 235.685*RATIO, -0.333103, 0.173760, 0.000653, 0.001114, 50);
 	}
-	tracker->RegistReferenceImage(referenceImage, 26.70, 20.00, 4.0, 8);
+	tracker->RegistReferenceImage(trainingImage, 26.70, 20.00, 4.0, 8);
 	tracker->InitializeOpticalFlow(WIDTH, HEIGHT, 10, cvSize(15, 15), 3);
 	tracker->SetOpticalFlowRunning(false);
 	tracker->GetCameraParameter()->InitUndistortionMap(WIDTH, HEIGHT);
-	tracker->SetFeatureExtractTreshold(130);
+	tracker->SetFeatureExtractTreshold(30);
 
 	int fastThreshold = 70;
 	const int MAX_FAST_THRESHOLD = 130;
 	const int MIN_FAST_THRESHOLD = 30;
-	const int ADAPTIVE_THRESHOLD_VALUE = 200;
+	const int ADAPTIVE_THRESHOLD_VALUE = 500;
 	const int THRESHOLD_STEP = 1;
 
 	IplImage* grabFrame = NULL;
@@ -123,6 +126,7 @@ void main()
 	fpslog->updateTickCount();
 	bool processing = true;
 #ifdef USE_IMAGE_SEQUENCE
+	cvNamedWindow("result");
 	for(int i=0; i<4735; i++)
 	{
 		log->updateTickCount();
@@ -133,6 +137,7 @@ void main()
 		if(grabFrame) cvReleaseImage(&grabFrame);
 		grabFrame = cvLoadImage(filename);
 #else
+	cvNamedWindow("result");
 	while(processing)
 	{
 		// camera frame grabbing and convert to gray color
@@ -177,7 +182,8 @@ void main()
 		tracker->SetFeatureExtractTreshold(fastThreshold);
 
 		double fps = fpslog->calculateFPS();
-		log->log("tracking", log->calculateProcessTime());
+		double trackingTime = log->calculateProcessTime();
+		log->log("tracking", trackingTime);
 		log->log("matchedCount", matchedCount);
 		log->logNewLine();
 		// draw tracking result
@@ -202,7 +208,7 @@ void main()
 //		cvShowImage("temp", tempImage2);
 //*/
 		
-		sprintf(message, "FPS : %03.2f", fps);
+		sprintf(message, "FPS : %03.2f, Time : %.2f(ms)", fps, trackingTime);
 		windage::Utils::DrawTextToImage(inputImage, cvPoint(10, 20), message);
 
 		sprintf(message, "Feature : %03d, Matched : %03d", featureCount, matchedCount);

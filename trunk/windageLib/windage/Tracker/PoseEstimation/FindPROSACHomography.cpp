@@ -91,6 +91,7 @@ bool FindPROSACHomography::Calculate()
 	srand(time(NULL));
 	sort(matchedPoints->begin(), matchedPoints->end(), CompareDistanceLess());
 
+	int samplingCount = 4;
 	bool isProcessing = true;
 	for(int i=0; i<maxIteration&&isProcessing; i++)
 	{
@@ -101,22 +102,31 @@ bool FindPROSACHomography::Calculate()
 		}
 
 		// sampling
+		double Tn1 = (double)samplingCount;
+		double Tn = Tn1 * (double)(count + 1) / (double)(count + 1 - samplingCount);
+		samplingCount = samplingCount + (int)(Tn - Tn1 + 1.0);
+		samplingCount = MIN(count-1, samplingCount);
+
+		int index[4] = {-1, -1, -1, -1};
 		for(int j=0; j<4; j++)
 		{
-			int index = 0;
-			if(i > count/2)
+			int tempIndex = rand() % samplingCount;
+			while(index[0] == tempIndex || index[1] == tempIndex || index[2] == tempIndex)
 			{
-				index = rand() % count;
+				tempIndex = rand() % samplingCount;						
 			}
-			else
-			{
-				index= (i+j)%count;
-			}
-			samplingObject[j].x = (*matchedPoints)[index].pointScene.x;
-			samplingObject[j].y = (*matchedPoints)[index].pointScene.y;
+			index[j] = tempIndex;
+		}
 
-			samplingReference[j].x = (*matchedPoints)[index].pointReference.x;
-			samplingReference[j].y = (*matchedPoints)[index].pointReference.y;
+		for(int j=0; j<4; j++)
+		{
+			int tempIndex = index[j];
+
+			samplingObject[j].x = (*matchedPoints)[tempIndex].pointScene.x;
+			samplingObject[j].y = (*matchedPoints)[tempIndex].pointScene.y;
+
+			samplingReference[j].x = (*matchedPoints)[tempIndex].pointReference.x;
+			samplingReference[j].y = (*matchedPoints)[tempIndex].pointReference.y;
 		}
 
 		// calculate homograpy
@@ -134,7 +144,7 @@ bool FindPROSACHomography::Calculate()
 			}
 		}
 
-		if( inlinerCount > bestCount)
+		if(inlinerCount > bestCount)
 		{
 			bestCount = inlinerCount;
 			for(int k=0; k<9; k++) bestHomography[k] = homography[k];
