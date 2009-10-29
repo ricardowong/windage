@@ -46,17 +46,17 @@ using namespace windage;
 
 #include "PoseEstimation/FindPROSACHomography.h"
 
-//#define REMOVE_OUTLIER
-#define USING_RANSAC
-#define USING_PROSAC
+#define REMOVE_OUTLIER
+//#define USING_RANSAC
+//#define USING_PROSAC
 
 //#define USING_KDTREE
 #define USING_FLANN
 
 const double ERROR_BOUND = 10.0;
 const int POSE_POINTS_COUNT = 10;
-const double COMPAIR_RATE = 0.65;
-const int EMAX = 20;
+const double COMPAIR_RATE = 0.60;
+const int EMAX = 15;
 
 ModifiedSURFTracker::ModifiedSURFTracker()
 {
@@ -67,6 +67,7 @@ ModifiedSURFTracker::ModifiedSURFTracker()
 
 	referenceFeatureStorage = NULL;
 	referenceFeatureTree = NULL;
+	flannIndex = NULL;
 
 	opticalflow = NULL;
 	runOpticalflow = false;
@@ -255,6 +256,7 @@ bool ModifiedSURFTracker::CreateFlannTree(std::vector<SURFDesciription>* referen
 	cv::Mat refer(referenceFeatureStorage, false);
 	flannFeatureTree = refer;
 
+	if(flannIndex) delete flannIndex;
 	flannIndex = new cv::flann::Index(flannFeatureTree, cv::flann::KDTreeIndexParams(2));
 	return true;
 }
@@ -379,6 +381,8 @@ int ModifiedSURFTracker::GenerateReferenceFeatureTree(double scaleFactor, int sc
 {
 	int width = (int)((double)referenceImage->width/scaleFactor);
 	int height = (int)((double)referenceImage->height/scaleFactor);
+
+	referenceSURF.clear();
 
 	IplImage* tempReference;
 	IplImage* tempReferenceRotate;
@@ -579,12 +583,13 @@ double ModifiedSURFTracker::CalculatePose(bool update)
 				}
 				else
 				{
+#ifdef REMOVE_OUTLIER
 					this->matchedReferencePoints.erase(this->matchedReferencePoints.begin() + count);
 					this->matchedScenePoints.erase(this->matchedScenePoints.begin() + count);
 
 					this->matchedReference.erase(this->matchedReference.begin() + count);
 					this->matchedScene.erase(this->matchedScene.begin() + count);
-
+#endif
 					outlierCount++;
 				}
 
@@ -594,7 +599,7 @@ double ModifiedSURFTracker::CalculatePose(bool update)
 #ifdef USING_RANSAC
 		if(cvFindHomography( &_pt1, &_pt2, &_h, CV_RANSAC, ERROR_BOUND))
 #else
-		if(cvFindHomography( &_pt1, &_pt2, &_h));//, CV_LMEDS))
+		if(cvFindHomography( &_pt1, &_pt2, &_h, CV_LMEDS))
 #endif
 		{
 #ifdef REMOVE_OUTLIER
@@ -790,7 +795,6 @@ double ModifiedSURFTracker::UpdateCameraPose(IplImage* grayImage)
 					}
 				}
 			}
-
 
 		}
 		else
