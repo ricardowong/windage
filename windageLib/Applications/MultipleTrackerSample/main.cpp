@@ -46,17 +46,23 @@
 #include <windage.h>
 
 #define FLIP
-#define RECTIFICATION
+//#define RECTIFICATION
 #define ADAPTIVE_THRESHOLD
 
 //#define USE_IMAGE_SEQUENCE
 
+const int OBJECT_COUNT = 4;
 const int FIND_FEATURE_COUNT = 10;
 
 const int WIDTH = 640;
 const double RATIO =(double)WIDTH / 640.0;
 const int HEIGHT = 480*RATIO;
-const double intrinsicValues[8] = {778.195*RATIO, 779.430*RATIO, 324.659*RATIO, 235.685*RATIO, -0.333103, 0.173760, 0.000653, 0.001114};
+
+// 4.5mm wide angle
+//const double intrinsicValues[8] = {778.195*RATIO, 779.430*RATIO, 324.659*RATIO, 235.685*RATIO, -0.333103, 0.173760, 0.000653, 0.001114};
+// 6mm standard angle
+const double intrinsicValues[8] = {1029.400*RATIO, 1028.675*RATIO, 316.524*RATIO, 211.395*RATIO, -0.206360, 0.238378, 0.001089, -0.000769};
+
 
 const int PIP_RATIO = 6;
 const int PIP_WIDTH = WIDTH/PIP_RATIO;
@@ -65,6 +71,7 @@ const int PIP_HEIGHT = HEIGHT/PIP_RATIO * 2;
 void main()
 {
 	windage::Logger* log = new windage::Logger(&std::cout);
+	windage::Logger* fpslog = new windage::Logger(&std::cout);
 
 	// connect camera
 	CvCapture* capture = cvCaptureFromCAM(CV_CAP_ANY);
@@ -87,7 +94,7 @@ void main()
 	std::vector<IplImage*> trainingImage;
 
 	// Tracker Initialize
-	for(int i=1; i<=3; i++)
+	for(int i=1; i<=OBJECT_COUNT; i++)
 	{
 		sprintf(message, "reference%d.png", i);
 		referenceImage.push_back(cvLoadImage(message));
@@ -98,6 +105,7 @@ void main()
 	windage::MultipleSURFTracker* multipleTracker = new windage::MultipleSURFTracker();
 	multipleTracker->Initialize(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], intrinsicValues[4], intrinsicValues[5], intrinsicValues[6], intrinsicValues[7]);
 	multipleTracker->InitializeOpticalFlow(WIDTH, HEIGHT, cvSize(10, 10), 3);
+	multipleTracker->SetDetectIntervalTime(2);
 	multipleTracker->SetPoseEstimationMethod(windage::PROSAC);
 	multipleTracker->SetOutlinerRemove(true);
 	for(int i=0; i<trainingImage.size(); i++)
@@ -119,17 +127,18 @@ void main()
 	IplImage* grabFrame = NULL;
 	int featureCount = 0;
 	
+	fpslog->updateTickCount();
 	bool processing = true;
 	cvNamedWindow("result");
 	while(processing)
 	{
 		// camera frame grabbing and convert to gray color
+		fpslog->log("FPS", fpslog->calculateFPS());
+		fpslog->updateTickCount();
+		
 		log->updateTickCount();
 		grabFrame = cvQueryFrame(capture);
-		cvFlip(grabFrame, grabFrame);
-
-		cvResize(grabFrame, tempImage);
-		calibration->Undistortion(tempImage, inputImage);
+		cvFlip(grabFrame, inputImage);
 		cvCvtColor(inputImage, grayImage, CV_BGRA2GRAY);
 		log->log("capture", log->calculateProcessTime());
 
@@ -151,6 +160,7 @@ void main()
 		log->log("tracking", trackingTime);
 		log->logNewLine();
 
+//*
 		// draw tracking result
 		for(int i=0; i<multipleTracker->GetTrackerCount(); i++)
 		{
@@ -169,7 +179,7 @@ void main()
 
 		}
 //		multipleTracker->DrawDebugInfo(inputImage);
-
+//*/
 //*
 		cvZero(resultImage);
 		for(int i=0; i<multipleTracker->GetTrackerCount(); i++)
@@ -192,6 +202,7 @@ void main()
 //		cvShowImage("temp", resultImage);
 		windage::Utils::CompundImmersiveImage(resultImage, inputImage, CV_RGB(0, 0, 0), 0.75);
 //*/
+//*
 		sprintf(message, "Tracking FPS : %03.2f, Time : %.2f(ms)", fps, trackingTime);
 		windage::Utils::DrawTextToImage(inputImage, cvPoint(20, 30), message);
 		sprintf(message, "FAST feature count : %d, threashold : %d", featureCount, fastThreshold);
@@ -200,10 +211,10 @@ void main()
 		windage::Utils::DrawTextToImage(inputImage, cvPoint(20, 70), message);
 		for(int i=0; i<multipleTracker->GetTrackerCount(); i++)
 		{
-			sprintf(message, "#%d : %d ", i, multipleTracker->GetMatchedCount(i));
-			windage::Utils::DrawTextToImage(inputImage, cvPoint(180 + 100*i, 70), message);
+			sprintf(message, "#%d:%d ", i, multipleTracker->GetMatchedCount(i));
+			windage::Utils::DrawTextToImage(inputImage, cvPoint(170 + 90*i, 70), message);
 		}
-
+//*/
 		if(saving)
 		{
 			if(writer)
