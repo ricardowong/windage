@@ -65,6 +65,7 @@ namespace windage
 		bool outlinerRemove;
 
 		int step;
+		int interval;
 		IplImage* prevImage;
 		int referenceCount;
 
@@ -83,6 +84,7 @@ namespace windage
 			outlinerRemove = true;
 
 			step = 0;
+			interval = 1;
 			prevImage = NULL;
 			referenceCount = 0;
 		}
@@ -90,6 +92,8 @@ namespace windage
 		{
 			this->Release();
 		}
+
+		inline void SetDetectIntervalTime(int timeStep=1){this->interval = timeStep;};
 
 		inline int GetTrackerCount(){return referenceCount;};
 		inline void SetFeatureExtractThreshold(int threshold){this->featureExtractThreshold = threshold;};

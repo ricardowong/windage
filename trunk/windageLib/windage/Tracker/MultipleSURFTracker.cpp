@@ -37,6 +37,8 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
+#include <omp.h>
+
 #include "MultipleSURFTracker.h"
 #include "PoseEstimation/FindPROSACHomography.h"
 
@@ -316,41 +318,43 @@ double MultipleSURFTracker::UpdateCameraPose(IplImage* grayImage)
 
 	// detection sequence
 	{
-		std::vector<CvPoint> fastCorners;
-		std::vector<SURFDesciription> tempSceneSURF;
-		this->featureCount = ModifiedSURFTracker::ExtractFASTCorner(&fastCorners, grayImage, featureExtractThreshold);
-		ModifiedSURFTracker::ExtractModifiedSURF(grayImage, &fastCorners, &tempSceneSURF);
-
-		std::vector<int> matchedIndex;
-		matchedIndex.resize(tempSceneSURF.size());
-
 		// selected object detection
-//		for(int i=0; i<referenceCount; i++)
-		int i = step;
+		if(step%interval == 0)
 		{
+			std::vector<CvPoint> fastCorners;
+			std::vector<SURFDesciription> tempSceneSURF;
+			this->featureCount = ModifiedSURFTracker::ExtractFASTCorner(&fastCorners, grayImage, featureExtractThreshold);
+			ModifiedSURFTracker::ExtractModifiedSURF(grayImage, &fastCorners, &tempSceneSURF);
+
+			std::vector<int> matchedIndex;
+			matchedIndex.resize(tempSceneSURF.size());
+
+			int i = step/interval;
 			int matchedCount = DetectObject(&tempSceneSURF, &matchedIndex, i);
-		}
 
-		// attatch scene points
-		for(int t=0; t<tempSceneSURF.size(); t++)
-		{
-			int objectID = tempSceneSURF[t].objectID;
-			if(objectID >= 0)
+			// attatch scene points
+			for(int t=0; t<tempSceneSURF.size(); t++)
 			{
-				bool isFound = false;
-				for(int j=0; j<sceneSURF[objectID].size()&&!isFound; j++)
+				int objectID = tempSceneSURF[t].objectID;
+				if(objectID >= 0)
 				{
-					if(abs(sceneSURF[objectID][j].point.x - tempSceneSURF[t].point.x) + abs(sceneSURF[objectID][j].point.y - tempSceneSURF[t].point.y) <= 2.0f)
-						isFound = true;
-				}
+					bool isFound = false;
+					for(int j=0; j<sceneSURF[objectID].size()&&!isFound; j++)
+					{
+						if(abs(sceneSURF[objectID][j].point.x - tempSceneSURF[t].point.x) + abs(sceneSURF[objectID][j].point.y - tempSceneSURF[t].point.y) <= 2.0f)
+							isFound = true;
+					}
 
-				if(!isFound)
-				{
-					sceneSURF[objectID].push_back(tempSceneSURF[t]);
-					matchedReferenceIndex[objectID].push_back(matchedIndex[t]);
+					if(!isFound)
+					{
+						sceneSURF[objectID].push_back(tempSceneSURF[t]);
+						matchedReferenceIndex[objectID].push_back(matchedIndex[t]);
+					}
 				}
 			}
 		}
+		step++;
+		if(step >= referenceCount*interval) step = 0;
 	}
 
 	// update object pose
@@ -358,9 +362,6 @@ double MultipleSURFTracker::UpdateCameraPose(IplImage* grayImage)
 	{
 		double error = CalculatePose(i);
 	}
-
-	step++;
-	if(step >= referenceCount) step = 0;
 
 	if(prevImage)	cvCopyImage(grayImage, prevImage);
 	else			prevImage = cvCloneImage(grayImage);
