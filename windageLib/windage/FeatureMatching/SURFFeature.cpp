@@ -1,5 +1,5 @@
 #include "SURFFeature.h"
-#include "Tracker/FAST/wsurf.h"
+#include "Tracker/FAST/wfastsurf.h"
 using namespace windage;
 
 SURFFeature::SURFFeature()
@@ -42,7 +42,8 @@ int SURFFeature::ExtractModifiedSURF(IplImage* grayImage, CvPoint center, Descri
 	CvSURFPoint point = cvSURFPoint( cvPoint2D32f(center.x, center.y), 0, 15, 0, 0);
 	cvSeqPush(referenceKeypoints, &point);
 
-	wExtractSURF(grayImage, 0, &referenceKeypoints, &referenceDescriptors, storage, params, 1);
+	wExtractFASTSURF(grayImage, 0, &referenceKeypoints, &referenceDescriptors, storage, params, 1);
+//	wExtractSURF(grayImage, 0, &referenceKeypoints, &referenceDescriptors, storage, params, 1);
 
 	CvSeqReader reader;
 	cvStartReadSeq( referenceDescriptors, &reader, 0 );

@@ -52,7 +52,7 @@ int FeatureFactory::ExtractFASTCorner(IplImage* grayImage, int threshold, std::v
 	switch(n)
 	{
 	case 9:
-		cornertemp = fast9_detect_nonmax((const byte *)grayImage->imageData, grayImage->width, grayImage->height, grayImage->widthStep, threshold, &cornerCount);
+		cornertemp = fast9_detect((const byte *)grayImage->imageData, grayImage->width, grayImage->height, grayImage->widthStep, threshold, &cornerCount);
 		break;
 	case 10:
 		cornertemp = fast10_detect_nonmax((const byte *)grayImage->imageData, grayImage->width, grayImage->height, grayImage->widthStep, threshold, &cornerCount);

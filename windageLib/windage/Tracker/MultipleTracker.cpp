@@ -37,39 +37,67 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#ifndef _UTILS_H_
-#define _UTILS_H_
+#include "MultipleTracker.h"
 
-#define DLLEXPORT __declspec(dllexport)
-#define DLLIMPORT __declspec(dllimport)
+using namespace windage;
 
-#include <cv.h>
-#include "Tracker/Calibration.h"
-#include "FeatureMatching/SURFFeature.h"
-
-namespace windage
+void MultipleTracker::Release()
 {
-	/**
-	 * @brief
-	 *		Utility Class
-	 * @author
-	 *		windage
-	 */
-	class DLLEXPORT Utils
+	while(referenceImageList.size() > 0)
 	{
-	public:
-		/**
-		 * @brief
-		 *		Draw Text To Image
-		 * @remark
-		 *		draw text to image
-		 */
-		static void DrawTextToImage(IplImage* colorImage, CvPoint position, char* message);
-		static bool CompundImmersiveImage(IplImage* src, IplImage* dst, CvScalar maskColor = CV_RGB(0, 0, 0), double alpha=0.5);
-		static void DrawWorldCoordinatePoint(IplImage* colorImage, Calibration* calibration, CvScalar worldPoint, double size=1.0, bool drawText=false);
-		static IplImage* GeneratePatchMap(std::vector<SURFFeature*>* featureList);
-		static bool IsInside(CvPoint point, CvPoint corner1, CvPoint corner2, CvPoint corner3, CvPoint corner4, bool isClockWise=false);
-	};
+		this->DeleteReferenceImage(0);
+	}
+	delete opticalflow;
+}
+/*
+void MultipleTracker::AttatchReferenceImage(IplImage* image)
+{
+	IplImage* temp = cvCloneImage(image);
+	referenceImageList.push_back(temp);
+
+	double* params = GetCameraParameter()->GetParameters();
+	windage::Calibration* tempCalibration = new windage::Calibration();
+	tempCalibration->Initialize(params[0], params[1], params[2], params[3], params[4], params[5], params[6], params[7]);
+	cameraParameterList.push_back(tempCalibration);
 }
 
-#endif
+bool MultipleTracker::DeleteReferenceImage(int index)
+{
+	if(index < referenceImageList.size())
+	{
+		if(referenceImageList[index]) cvReleaseImage(&referenceImageList[index]);
+		referenceImageList.erase(referenceImageList.begin()+index);
+
+		delete cameraParameterList[index];
+		cameraParameterList.erase(cameraParameterList.begin()+index);
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+};
+*/
+Calibration* MultipleTracker::GetCameraParameter(int index)
+{
+	if(index < 0)
+	{
+		return this->cameraParameter;
+	}
+	else if(index < cameraParameterList.size())
+	{
+		return this->cameraParameterList[index];
+	}
+	else
+	{
+		return NULL;
+	}
+};
+
+void MultipleTracker::InitializeOpticalFlow(int width, int height, CvSize windowSize, int pyramidLevel)
+{
+	if(opticalflow) delete opticalflow;
+	opticalflow = new OpticalFlow();
+	opticalflow->Initialize(width, height, windowSize, pyramidLevel);
+	opticalflow->SetRemovePrevPoints(false);
+}

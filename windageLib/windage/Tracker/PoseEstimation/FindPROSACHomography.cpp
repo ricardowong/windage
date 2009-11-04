@@ -61,21 +61,14 @@ int PROSACUpdateNumIters(double p, double ep, int model_points, int max_iters)
 	return result;
 }
 
-float ComputeReprojError(CvPoint2D32f point1, CvPoint2D32f point2, float* homography)
-{
-	float projectionPointZ = homography[6] * point1.x + homography[7] * point1.y + homography[8];
-	float projectionPointX = (homography[0] * point1.x + homography[1] * point1.y + homography[2])/projectionPointZ - point2.x;
-	float projectionPointY = (homography[3] * point1.x + homography[4] * point1.y + homography[5])/projectionPointZ - point2.y;
-	
-	return (float)sqrt(projectionPointX*projectionPointX + projectionPointY*projectionPointY);
-}
 
 using namespace windage;
 bool FindPROSACHomography::Calculate()
 {
-	float bestHomography[9];
-	CvMat _bestH = cvMat(3, 3, CV_32F, homography);
+	double tickcount = cvGetTickCount();
 
+	float bestHomography[9];
+	CvMat _bestH = cvMat(3, 3, CV_32F, bestHomography);
 	CvMat _h = cvMat(3, 3, CV_32F, homography);
 
 	std::vector<CvPoint2D32f> samplingObject;		samplingObject.resize(4);
@@ -149,6 +142,13 @@ bool FindPROSACHomography::Calculate()
 			bestCount = inlinerCount;
 			for(int k=0; k<9; k++) bestHomography[k] = homography[k];
 			maxIteration = PROSACUpdateNumIters(confidence, (double)(count - inlinerCount)/count, 4, maxIteration);
+		}
+
+
+		// find time-out
+		if((cvGetTickCount() - tickcount) > this->timeout)
+		{
+			return false;
 		}
 	}
 

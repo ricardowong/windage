@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="ExtendedTracking"
-	ProjectGUID="{32FB4D9D-ECE1-4D31-B1D5-A381A1FB279C}"
-	RootNamespace="ExtendedTracking"
+	Name="MultipleTrackerSample"
+	ProjectGUID="{EFA67BD2-893D-4E0A-B43E-51C6E8975527}"
+	RootNamespace="MultipleTrackerSample"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
@@ -178,15 +178,7 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\KDTreeWrapper.h"
-				>
-			</File>
-			<File
 				RelativePath=".\main.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\PlaneEstimation.h"
 				>
 			</File>
 		</Filter>

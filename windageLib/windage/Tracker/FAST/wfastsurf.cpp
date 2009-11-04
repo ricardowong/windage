@@ -50,12 +50,10 @@ void wExtractFASTSURF( const CvArr* _img, const CvArr* _mask,
 							CvMemStorage* storage, CvSURFParams params,
 							int useProvidedKeyPts)
 {
+	const int PATCH_SZ = 15;
 	CvSeq *keypoints = *_keypoints;
     int N = keypoints->total;
 	IplImage* image = ((IplImage*)_img);
-
-	// constant values
-	const int PATCH_SZ = 15;
 
 	// create descriptor storage
 	int descriptor_size = 36;

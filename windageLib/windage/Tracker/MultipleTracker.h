@@ -37,72 +37,53 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#ifndef _SURF_FEATURE_H_
-#define _SURF_FEATURE_H_
+#ifndef _MULTIPLE_TRACKER_H_
+#define _MULTIPLE_TRACKER_H_
 
 #define DLLEXPORT __declspec(dllexport)
 #define DLLIMPORT __declspec(dllimport)
 
 #include <vector>
 #include <cv.h>
-#include "Utils/wMatrix.h"
+#include <cvaux.h>
+
+#include "Tracker.h"
+#include "OpticalFlow.h"
+#include "Utils/Logger.h"
 
 namespace windage
 {
-	const int SURF_FEATURE_DESCRIPTOR_DIMENSION = 36;	///< Modified SURF Descriptor dimension = 36 (fixed)
-	typedef struct _Description
+	class DLLEXPORT MultipleTracker : public Tracker
 	{
-		double descriptor[SURF_FEATURE_DESCRIPTOR_DIMENSION];	///< SURF Descriptor 36-dimension
-		struct _Description()
-		{
-			for(int i=0; i<SURF_FEATURE_DESCRIPTOR_DIMENSION; i++)
-				descriptor[i] = 0.0;
-		}
-		void operator=(struct _Description oprd)
-		{
-			for(int i=0; i<SURF_FEATURE_DESCRIPTOR_DIMENSION; i++)
-				descriptor[i] = oprd.descriptor[i];
-		}
-		double distance(struct _Description oprd)
-		{
-			double sum = 0;
-			for(int i=0; i<SURF_FEATURE_DESCRIPTOR_DIMENSION; i++)
-				sum += (double)((descriptor[i] - oprd.descriptor[i]) * (descriptor[i] - oprd.descriptor[i]));
-			return sum;
-		}
-	}Description;
+	protected:
+		std::vector<IplImage*> referenceImageList;
+		std::vector<Calibration*> cameraParameterList;
 
-	class DLLEXPORT SURFFeature
-	{
-	private:
-		const static int PATCH_WIDTH = 45;
-		const static int PATCH_HEIGHT = 45;
+		OpticalFlow* opticalflow;
 
-		Vector3 position;
-		IplImage* patch;
-		std::vector<Description> descriptionList;
-
-		double scaleFactor;
-		int scaleStep;
+		virtual void Release();
 
 	public:
-		SURFFeature();
-		~SURFFeature();
+		MultipleTracker()
+		{
+			opticalflow = NULL;
+		}
+		~MultipleTracker()
+		{
+			this->Release();
+		}
 
-		inline int GetPatchWidth(){return this->PATCH_WIDTH;};
-		inline int GetPatchHeight(){return this->PATCH_HEIGHT;};
-		inline Vector3 GetPosition(){return this->position;};
-		inline void SetPosition(Vector3 position){this->position = position;};
-		inline IplImage* GetPatch(){return this->patch;};
+//		void AttatchReferenceImage(IplImage* image) = 0;
+		virtual bool DeleteReferenceImage(int index) = 0;
+		Calibration* GetCameraParameter(int index = -1);
+		
+		void InitializeOpticalFlow(
+									int width,							///< input image width size
+									int height,							///< input image height size
+									CvSize windowSize=cvSize(10, 10),	///< opticalflow window size
+									int pyramidLevel=3					///< opticalflow pyramid level
+									);
 
-		inline int GetFeatureCount(){return this->descriptionList.size();};
-		inline std::vector<Description>* GetDescriptionList(){return &this->descriptionList;};
-
-		void Release();
-		void initialize(double scaleFactor=3.0, int scaleStep=6);
-		int GenerateDescriptor(IplImage* grayImage, CvPoint point);
-		int ExtractModifiedSURF(IplImage* grayImage, CvPoint center, Description* descriptions);
-		Description GetDescription(int index);
 	};
 }
 

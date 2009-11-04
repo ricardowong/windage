@@ -126,12 +126,13 @@ void main()
 	gray = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 1);
 
 	// initialize tracker
-	IplImage* referenceImage = cvLoadImage("reference_map.png", 0);
+	IplImage* referenceImage = cvLoadImage("reference1_160.png", 0);
 	tracker = new windage::ModifiedSURFTracker();
 	((windage::ModifiedSURFTracker*)tracker)->Initialize(778.195, 779.430, 324.659, 235.685, -0.333103, 0.173760, 0.000653, 0.001114, 30);
 	((windage::ModifiedSURFTracker*)tracker)->RegistReferenceImage(referenceImage, 26.70, 20.00, 4.0, 8);
 	((windage::ModifiedSURFTracker*)tracker)->InitializeOpticalFlow(WIDTH, HEIGHT, 10, cvSize(15, 15), 3);
-	((windage::ModifiedSURFTracker*)tracker)->SetOpticalFlowRunning(true);
+	((windage::ModifiedSURFTracker*)tracker)->SetPoseEstimationMethod(windage::PROSAC);
+	((windage::ModifiedSURFTracker*)tracker)->SetOpticalFlowRunning(false);
 	((windage::ModifiedSURFTracker*)tracker)->SetFeatureExtractTreshold(50);
 
 

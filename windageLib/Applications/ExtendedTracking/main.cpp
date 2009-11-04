@@ -37,6 +37,9 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
+#include <windows.h >
+
+#include <omp.h>
 #include <iostream>
 #include <vector>
 
@@ -53,14 +56,66 @@ const int HEIGHT = 480;
 const double ORIGINAL_WIDTH = 267.0;
 const double ORIGINAL_HEIGHT = 200.0;
 
+IplImage* src;
+IplImage* dst;
+windage::Calibration* calibration;
+
 void AddPanoramaImage(IplImage* src, IplImage* dst, windage::Calibration* calibration)
 {
 	int width = dst->width;
 	int height = dst->height;
 
-	for(int y=0; y<height; y++)
+	int boundLeft = 0;
+	int boundRight = width;
+	int boundTop = 0;
+	int boundDown = height;
+	
+	// find roi range
+	int tx=0;
+	int ty=0;
+	CvPoint2D64f tempPoint[4];
+	
+	tempPoint[0] = calibration->ConvertImage2World(0.0, 0.0, 0.0);
+	tempPoint[0].x += (double)width/2.0;
+	tempPoint[0].y += (double)height/2.0;
+	tempPoint[0].x = MAX(0.0, tempPoint[0].x);
+	tempPoint[0].x = MIN((double)width, tempPoint[0].x);
+	tempPoint[0].y = MAX(0.0, tempPoint[0].y);
+	tempPoint[0].y = MIN((double)height, tempPoint[0].y);
+
+	tempPoint[1] = calibration->ConvertImage2World((double)src->width, 0.0, 0.0);
+	tempPoint[1].x += (double)width/2.0;
+	tempPoint[1].y += (double)height/2.0;
+	tempPoint[1].x = MAX(0.0, tempPoint[1].x);
+	tempPoint[1].x = MIN((double)width, tempPoint[1].x);
+	tempPoint[1].y = MAX(0.0, tempPoint[1].y);
+	tempPoint[1].y = MIN((double)height, tempPoint[1].y);
+
+	tempPoint[2] = calibration->ConvertImage2World(0.0, (double)src->height, 0.0);
+	tempPoint[2].x += (double)width/2.0;
+	tempPoint[2].y += (double)height/2.0;
+	tempPoint[2].x = MAX(0.0, tempPoint[2].x);
+	tempPoint[2].x = MIN((double)width, tempPoint[2].x);
+	tempPoint[2].y = MAX(0.0, tempPoint[2].y);
+	tempPoint[2].y = MIN((double)height, tempPoint[2].y);
+
+	tempPoint[3] = calibration->ConvertImage2World((double)src->width, (double)src->height, 0.0);
+	tempPoint[3].x += (double)width/2.0;
+	tempPoint[3].y += (double)height/2.0;
+	tempPoint[3].x = MAX(0.0, tempPoint[3].x);
+	tempPoint[3].x = MIN((double)width, tempPoint[3].x);
+	tempPoint[3].y = MAX(0.0, tempPoint[3].y);
+	tempPoint[3].y = MIN((double)height, tempPoint[3].y);
+
+	boundLeft	= MIN(MIN((int)tempPoint[0].x, (int)tempPoint[1].x), MIN((int)tempPoint[2].x, (int)tempPoint[3].x));
+	boundRight	= MAX(MAX((int)tempPoint[0].x, (int)tempPoint[1].x), MAX((int)tempPoint[2].x, (int)tempPoint[3].x));
+	boundTop	= MIN(MIN((int)tempPoint[0].y, (int)tempPoint[1].y), MIN((int)tempPoint[2].y, (int)tempPoint[3].y));
+	boundDown	= MAX(MAX((int)tempPoint[0].y, (int)tempPoint[1].y), MAX((int)tempPoint[2].y, (int)tempPoint[3].y));
+
+//	#pragma omp parallel for schedule(dynamic)
+	for(int y=boundTop; y<boundDown; y++)
 	{
-		for(int x=0; x<width; x++)
+		for(int x=boundLeft; x<boundRight; x++)
 		{
 			CvPoint point = calibration->ConvertWorld2Image(x-width/2, y-height/2, 0.0);
 			if( 0 < point.x && point.x < src->width &&
@@ -73,6 +128,13 @@ void AddPanoramaImage(IplImage* src, IplImage* dst, windage::Calibration* calibr
 	}
 }
 
+
+DWORD WINAPI WorkerThread(LPVOID)
+{
+	AddPanoramaImage(src, dst, calibration);
+	return 0;
+} 
+
 void main()
 {
 	Logger* log = new Logger(&std::cout);
@@ -83,25 +145,36 @@ void main()
 
 	// camera capture
 	CvCapture* capture = cvCaptureFromCAM(CV_CAP_ANY);
+	CvVideoWriter* writer = NULL;
 	IplImage* inputImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
 	IplImage* grayImage = cvCreateImage(cvGetSize(inputImage), IPL_DEPTH_8U, 1);
 
 	// default Tracker Initialize
 	IplImage* grabFrame = NULL;
-	IplImage* referenceImage = cvLoadImage("reference_map.png", 0);
-	IplImage* referenceColor = cvLoadImage("reference_map.png");
+	IplImage* referenceImage = cvLoadImage("reference_map_320.png", 0);
+	IplImage* referenceColor = cvLoadImage("reference_map_320.png");
 
 	windage::ModifiedSURFTracker* defaultTracker = new windage::ModifiedSURFTracker();
 	defaultTracker = new windage::ModifiedSURFTracker();
 	defaultTracker->Initialize(778.195, 779.430, 324.659, 235.685, -0.333103, 0.173760, 0.000653, 0.001114, 50);
 	defaultTracker->RegistReferenceImage(referenceImage, ORIGINAL_WIDTH, ORIGINAL_HEIGHT, 4.0, 8);
 	defaultTracker->GetCameraParameter()->InitUndistortionMap(WIDTH, HEIGHT);
-	defaultTracker->InitializeOpticalFlow(WIDTH, HEIGHT, 3, cvSize(15, 15), 3);
+	defaultTracker->SetPoseEstimationMethod(windage::PROSAC);
+	defaultTracker->SetOutlinerRemove(true);
+	defaultTracker->InitializeOpticalFlow(WIDTH, HEIGHT, 10, cvSize(8, 8 ), 3);
 	defaultTracker->SetOpticalFlowRunning(true);
 
 	// panorama reference image
-	IplImage* panoramaImage = cvCreateImage(cvSize(WIDTH*3, HEIGHT*1), IPL_DEPTH_8U, 1);
-	IplImage* panoramaColor = cvCreateImage(cvSize(WIDTH*3, HEIGHT*1), IPL_DEPTH_8U, 3);
+	IplImage* panoramaImage = cvCreateImage(cvSize(WIDTH*2, HEIGHT*2), IPL_DEPTH_8U, 1);
+	IplImage* panoramaColor = cvCreateImage(cvSize(WIDTH*2, HEIGHT*2), IPL_DEPTH_8U, 3);
+	double ratio = WIDTH / (double)panoramaColor->width;
+	IplImage* panoramaResize = cvCreateImage(cvSize(panoramaColor->width * ratio, panoramaColor->height * ratio), IPL_DEPTH_8U, 3);
+
+	// for thread
+	src = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
+	dst = panoramaColor;
+	calibration = new windage::Calibration();
+	calibration->Initialize(778.195, 779.430, 324.659, 235.685, -0.333103, 0.173760, 0.000653, 0.001114);
 
 	// for adaptive threshold
 	int fastThreshold = 70;
@@ -110,7 +183,10 @@ void main()
 	const int ADAPTIVE_THRESHOLD_VALUE = 500;
 	const int THRESHOLD_STEP = 1;
 
+	int index = 0;
+
 	char message[100];
+	bool saving = false;
 	bool processing = true;
 	while(processing)
 	{
@@ -150,17 +226,42 @@ void main()
 		case 'E':
 			cvCvtColor(panoramaColor, panoramaImage, CV_BGR2GRAY);
 			defaultTracker->SetFeatureExtractTreshold(30);
-			defaultTracker->RegistReferenceImage(panoramaImage, panoramaImage->width, panoramaImage->height, 4.0, 8);
+			defaultTracker->RegistReferenceImage(panoramaImage, panoramaImage->width, panoramaImage->height, 2.0, 4);
 			break;
 		case 'c':
 		case 'C':
-			defaultTracker->RegistReferenceImage(grayImage, grayImage->width, grayImage->height, 4.0, 8);
+			defaultTracker->RegistReferenceImage(grayImage, grayImage->width, grayImage->height, 2.0, 4);
 			break;
 		case 's':
 		case 'S':
 			cvSaveImage("panoramaImage.png", panoramaColor);
+			saving = true;
+			break;
+		default:
+			if(matchingCount > 50)
+			{
+				index++; if(index > 30) index = 0;
+				if(index == 15)
+				{
+					cvCopyImage(inputImage, src);
+//					cvCopyImage(panoramaColor, dst);
+					calibration->SetExtrinsicMatrix(defaultTracker->GetCameraParameter()->GetExtrinsicMatrix());
+
+					DWORD dwID;
+					CreateThread(NULL, 0, WorkerThread, NULL, 0, &dwID);
+//					AddPanoramaImage(inputImage, panoramaColor, defaultTracker->GetCameraParameter());
+				}
+			}
 			break;
 		}
+
+		if(saving)
+		{
+			if(writer)
+				cvWriteFrame(writer, panoramaResize);
+			else
+				writer = cvCreateVideoWriter("saveimage\\capture.avi", CV_FOURCC_DEFAULT, 30, cvSize(panoramaResize->width, panoramaResize->height), 1);
+		}		
 
 		// draw result
 		defaultTracker->DrawOutLine(inputImage, true);
@@ -172,12 +273,14 @@ void main()
 		windage::Utils::DrawTextToImage(inputImage, cvPoint(10, 40), message);
 		cvShowImage("result", inputImage);
 
-		cvShowImage("reference", panoramaColor);
+		cvResize(panoramaColor, panoramaResize);
+		cvShowImage("reference", panoramaResize);
 
 		log->logNewLine();
 
 	}
 
+	if(writer) cvReleaseVideoWriter(&writer);
 	cvReleaseCapture(&capture);
 	cvDestroyAllWindows();
 }

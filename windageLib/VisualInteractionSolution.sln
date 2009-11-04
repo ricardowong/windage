@@ -37,6 +37,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RealtimeExtendedTracking", 
 		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B} = {BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MultipleTrackerSample", "Applications\MultipleTrackerSample\MultipleTrackerSample.vcproj", "{EFA67BD2-893D-4E0A-B43E-51C6E8975527}"
+	ProjectSection(ProjectDependencies) = postProject
+		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B} = {BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -71,6 +76,10 @@ Global
 		{B18E52CF-FA76-4E0A-8469-6AE2C77640D1}.Debug|Win32.Build.0 = Debug|Win32
 		{B18E52CF-FA76-4E0A-8469-6AE2C77640D1}.Release|Win32.ActiveCfg = Release|Win32
 		{B18E52CF-FA76-4E0A-8469-6AE2C77640D1}.Release|Win32.Build.0 = Release|Win32
+		{EFA67BD2-893D-4E0A-B43E-51C6E8975527}.Debug|Win32.ActiveCfg = Debug|Win32
+		{EFA67BD2-893D-4E0A-B43E-51C6E8975527}.Debug|Win32.Build.0 = Debug|Win32
+		{EFA67BD2-893D-4E0A-B43E-51C6E8975527}.Release|Win32.ActiveCfg = Release|Win32
+		{EFA67BD2-893D-4E0A-B43E-51C6E8975527}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -83,5 +92,6 @@ Global
 		{7A206DB1-A76F-4EBD-B9F3-38C64AF1B566} = {5C4A8281-0408-4892-A7FE-7337E88AC198}
 		{32FB4D9D-ECE1-4D31-B1D5-A381A1FB279C} = {5C4A8281-0408-4892-A7FE-7337E88AC198}
 		{B18E52CF-FA76-4E0A-8469-6AE2C77640D1} = {5C4A8281-0408-4892-A7FE-7337E88AC198}
+		{EFA67BD2-893D-4E0A-B43E-51C6E8975527} = {5C4A8281-0408-4892-A7FE-7337E88AC198}
 	EndGlobalSection
 EndGlobal

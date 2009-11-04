@@ -56,6 +56,8 @@ namespace windage
 	class DLLEXPORT Calibration
 	{
 	private:
+		double parameter[8];
+
 		CvMat* intrinsicMatrix;			///< intrinsic parameter (Camera coordinate to Image coordinate)
 		CvMat* distortionCoefficients;	///< distortion coefficient
 		CvMat* extrinsicMatrix;			///< extrinsic parameter (World coordinate to Camera coordinate)
@@ -69,6 +71,7 @@ namespace windage
 		Calibration();
 		~Calibration();
 		
+		inline double* GetParameters(){return this->parameter;};
 		inline CvMat* GetIntrinsicMatrix(){return intrinsicMatrix;};
 		inline CvMat* GetDistortionCoefficients(){return distortionCoefficients;};
 		inline CvMat* GetExtrinsicMatrix(){return extrinsicMatrix;};

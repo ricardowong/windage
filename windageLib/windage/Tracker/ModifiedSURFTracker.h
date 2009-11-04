@@ -51,42 +51,12 @@
 #include "OpticalFlow.h"
 #include "Utils/Logger.h"
 
+#include "FAST/fast.h"
+#include "FAST/wsurf.h"
+#include "FAST/wfastsurf.h"
+
 namespace windage
 {
-	const int DESCRIPTOR_DIMENSION = 36;	///< Modified SURF Descriptor dimension = 36 (fixed)
-	const int DESCRIPTOR_TYPE = CV_32F;
-
-	/**
-	 * @brief
-	 *		structor of SURF Description
-	 * @author
-	 *		windage
-	 */
-	typedef struct _SURFDescription
-	{
-		CvPoint2D32f point;							///< extract point
-		int size;									///< scale value
-		float dir;
-		float descriptor[DESCRIPTOR_DIMENSION];	///< SURF Descriptor 36-dimension
-		float distance;
-
-		void operator=(struct _SURFDescription oprd)
-		{
-			point = oprd.point;
-			size = oprd.size;
-			dir = oprd.dir;
-			distance = oprd.distance;
-			for(int i=0; i<DESCRIPTOR_DIMENSION; i++)
-				descriptor[i] = oprd.descriptor[i];
-		}
-		float getDistance(struct _SURFDescription oprd)
-		{
-			float sum = 0;
-			for(int i=0; i<DESCRIPTOR_DIMENSION; i++)
-				sum += (float)((descriptor[i] - oprd.descriptor[i]) * (descriptor[i] - oprd.descriptor[i]));
-			return sum;
-		}
-	}SURFDesciription;
 
 	/**
 	 * @brief
@@ -127,6 +97,9 @@ namespace windage
 		int FindPairs(SURFDesciription description, std::vector<SURFDesciription>* descriptions);
 		int FindPairs(SURFDesciription description, cv::flann::Index* treeIndex, float distanceRate=0.7, float* outDistance = NULL);
 
+		POSE_ESTIMATION_METHOD poseEstimationMethod;
+		bool outlinerRemove; 
+
 		/**
 		 * @brief
 		 *		Calculate Pose
@@ -147,6 +120,8 @@ namespace windage
 		ModifiedSURFTracker();
 		virtual ~ModifiedSURFTracker();
 
+		inline void SetSetpIndex(int index){this->step = index;};
+
 		inline double GetRealWidth(){return this->realWidth;};
 		inline double GetRealHeight(){return this->realHeight;};
 
@@ -156,6 +131,10 @@ namespace windage
 		inline IplImage* GetReferenceImage(){return this->referenceImage;};
 		inline int GetFeatureExtractTreshold(){return this->featureExtractThreshold;};
 		inline void SetFeatureExtractTreshold(int threshold=80){this->featureExtractThreshold = threshold;};
+
+		inline void SetPoseEstimationMethod(POSE_ESTIMATION_METHOD poseEstimationMethod=windage::RANSAC){this->poseEstimationMethod = poseEstimationMethod;};
+		inline POSE_ESTIMATION_METHOD GetPoseEstimationMethod(){return this->poseEstimationMethod;};
+		inline void SetOutlinerRemove(bool remove){this->outlinerRemove = remove;};
 
 		/**
 		 * @brief

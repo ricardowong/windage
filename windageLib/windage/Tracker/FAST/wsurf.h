@@ -46,11 +46,58 @@
 #include <cv.h>
 #include <cxmisc.h>
 
+const int SURF_DESCRIPTOR_DIMENSION = 36;	///< Modified SURF Descriptor dimension = 36 (fixed)
+const int SURF_DESCRIPTOR_TYPE = CV_32F;
+
+/**
+ * @brief
+ *		structor of SURF Description
+ * @author
+ *		windage
+ */
+typedef struct _SURFDescription
+{
+	CvPoint2D32f point;							///< extract point
+	int size;									///< scale value
+	int objectID;
+	float dir;
+	float descriptor[SURF_DESCRIPTOR_DIMENSION];	///< SURF Descriptor 36-dimension
+	float distance;
+
+	struct _SURFDescription()
+	{
+		size = 0;
+		objectID = -1;
+	}
+
+	void operator=(struct _SURFDescription oprd)
+	{
+		point = oprd.point;
+		size = oprd.size;
+		dir = oprd.dir;
+		distance = oprd.distance;
+		objectID = oprd.objectID;
+		for(int i=0; i<SURF_DESCRIPTOR_DIMENSION; i++)
+			descriptor[i] = oprd.descriptor[i];
+	}
+	float getDistance(struct _SURFDescription oprd)
+	{
+		float sum = 0;
+		for(int i=0; i<SURF_DESCRIPTOR_DIMENSION; i++)
+			sum += (float)((descriptor[i] - oprd.descriptor[i]) * (descriptor[i] - oprd.descriptor[i]));
+		return sum;
+	}
+
+}SURFDesciription;
+
+
 struct CvSurfHF
 {
     int p0, p1, p2, p3;
     float w;
 };
+
+
 
 float wCalcHaarPattern( const int* origin, const CvSurfHF* f, int n );
 static void wResizeHaarPattern( const int src[][5], CvSurfHF* dst, int n, int oldSize, int newSize, int widthStep );
