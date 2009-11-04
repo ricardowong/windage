@@ -88,6 +88,11 @@ void Calibration::SetIntrinsicMatirx(double fx, double fy, double cx, double cy)
 	cvmSet(intrinsicMatrix, 0, 2, cx);
 	cvmSet(intrinsicMatrix, 1, 2, cy);
 	cvmSet(intrinsicMatrix, 2, 2, 1);
+
+	this->parameter[0] = fx;
+	this->parameter[1] = fy;
+	this->parameter[2] = cx;
+	this->parameter[3] = cy;
 }
 
 void Calibration::SetDistortionCoefficients(double d1, double d2, double d3, double d4)
@@ -97,6 +102,11 @@ void Calibration::SetDistortionCoefficients(double d1, double d2, double d3, dou
 	cvmSet(distortionCoefficients, 1, 0, d2);
 	cvmSet(distortionCoefficients, 2, 0, d3);
 	cvmSet(distortionCoefficients, 3, 0, d4);
+
+	this->parameter[4] = d1;
+	this->parameter[5] = d2;
+	this->parameter[6] = d3;
+	this->parameter[7] = d4;
 }
 
 void Calibration::SetExtrinsicMatrix(CvMat* matrix)

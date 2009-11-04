@@ -46,43 +46,10 @@
 #include <vector>
 #include <cv.h>
 
+#include "FindHomography.h"
+
 namespace windage
 {
-
-	typedef struct _MatchedPoint
-	{
-		CvPoint2D32f pointScene;
-		CvPoint2D32f pointReference;
-		float distance;
-		bool isInlier;
-
-		struct _MatchedPoint(CvPoint2D32f pointScene, CvPoint2D32f pointReference, float distance = 0.0)
-		{
-			this->pointScene = pointScene;
-			this->pointReference = pointReference;
-
-			this->distance = distance;
-			isInlier = false;
-		}
-
-		void operator=(struct _MatchedPoint oprd)
-		{
-			this->pointScene = oprd.pointScene;
-			this->pointReference = oprd.pointReference;
-			this->distance = oprd.distance;
-			this->isInlier = oprd.isInlier;
-		}
-
-		bool operator==(struct _MatchedPoint oprd)
-		{
-			return this->distance == oprd.distance;
-		}
-		bool operator<(struct _MatchedPoint oprd)
-		{
-			return this->distance < oprd.distance;
-		}
-	}MatchedPoint;
-
 	typedef struct _CompareDistanceLess
 	{
 		bool operator()(const struct _MatchedPoint& p, const struct _MatchedPoint& q) const
@@ -91,26 +58,20 @@ namespace windage
 		}
 	}CompareDistanceLess;
 
-
-	class DLLEXPORT FindPROSACHomography
+	class DLLEXPORT FindPROSACHomography:public FindHomography
 	{
 	private:
 		float confidence;
-
 		int maxIteration;
-		float terminationRatio;
-		float reprojectionThreshold;
-		float homography[9];
-
-		std::vector<MatchedPoint>* matchedPoints;
+		double timeout;
 
 	public:
 		FindPROSACHomography()
 		{
 			this->confidence = 0.7; // constant
+			SetTimeout(5.0);
 
 			this->maxIteration = 2000;
-			this->terminationRatio = 0.7f;
 			this->reprojectionThreshold = 5.0f;
 			for(int i=0; i<9; i++)
 				homography[i] = 0.0f;
@@ -123,11 +84,8 @@ namespace windage
 		}
 
 		inline void SetMaxIteration(int iteration=1000){this->maxIteration = iteration;};
-		inline void SetTerminationRatio(float ratio=0.7f){this->terminationRatio = ratio;};
-		inline void SetReprojectionThreshold(float reprojectionThreshold=5.0f){this->reprojectionThreshold = reprojectionThreshold;};
-
-		inline void AttatchMatchedPoints(std::vector<MatchedPoint>* matchedPoints){this->matchedPoints = matchedPoints;};
-		inline float* GetHomography(){return this->homography;};
+		inline void SetTimeout(double ms){this->timeout = ms * 1000.0 * cvGetTickFrequency();};
+		
 
 		bool Calculate();
 	};

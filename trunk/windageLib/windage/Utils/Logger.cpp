@@ -90,26 +90,26 @@ void Logger::logNewLine()
 
 void Logger::log(char* data)
 {
-	(*logging) << data << " ";
+	(*logging) << data << "\t";
 }
 void Logger::log(char* dataName, char data)
 {
-	(*logging) << dataName << "=" << data << " ";
+	(*logging) << dataName << "=" << data << "\t";
 }
 
 void Logger::log(char* dataName, int data)
 {
-	(*logging) << dataName << "=" << data << " ";
+	(*logging) << dataName << "=" << data << "\t";
 }
 
 void Logger::log(char* dataName, double data)
 {
-	(*logging) << dataName << "=" << data << " ";
+	(*logging) << dataName << "=" << data << "\t";
 }
 
 void Logger::log(char* dataName, float data)
 {
-	(*logging) << dataName << "=" << data << " ";
+	(*logging) << dataName << "=" << data << "\t";
 }
 
 void Logger::updateTickCount()

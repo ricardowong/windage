@@ -7,7 +7,7 @@ CvFeatureTree* CreateReferenceTree(std::vector<SURFDesciription>* referenceSURF,
 	int count = referenceSURF->size();
 	for(int y=0; y<count; y++)
 	{
-		for(int x=0; x<DESCRIPTOR_DIMENSION; x++)
+		for(int x=0; x<SURF_DESCRIPTOR_DIMENSION; x++)
 		{
 			cvSetReal2D(referenceFeatureStorage, y, x, (*referenceSURF)[y].descriptor[x]);
 		}
@@ -18,10 +18,10 @@ CvFeatureTree* CreateReferenceTree(std::vector<SURFDesciription>* referenceSURF,
 
 int FindPairs(SURFDesciription description, CvFeatureTree* tree, double distanceRate)
 {
-	CvMat* currentFeature = cvCreateMat(1, DESCRIPTOR_DIMENSION, CV_32FC1);
+	CvMat* currentFeature = cvCreateMat(1, SURF_DESCRIPTOR_DIMENSION, CV_32FC1);
 	CvMat* result = cvCreateMat(1, 2, CV_32SC1);
 	CvMat* distance = cvCreateMat(1, 2, CV_64FC1);
-	for(int x=0; x<DESCRIPTOR_DIMENSION; x++)
+	for(int x=0; x<SURF_DESCRIPTOR_DIMENSION; x++)
 	{
 		cvSetReal2D(currentFeature, 0, x, description.descriptor[x]);
 	}

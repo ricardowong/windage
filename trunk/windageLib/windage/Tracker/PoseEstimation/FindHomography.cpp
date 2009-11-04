@@ -37,39 +37,14 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#ifndef _UTILS_H_
-#define _UTILS_H_
+#include "FindHomography.h"
 
-#define DLLEXPORT __declspec(dllexport)
-#define DLLIMPORT __declspec(dllimport)
-
-#include <cv.h>
-#include "Tracker/Calibration.h"
-#include "FeatureMatching/SURFFeature.h"
-
-namespace windage
+using namespace windage;
+float FindHomography::ComputeReprojError(CvPoint2D32f point1, CvPoint2D32f point2, float* homography)
 {
-	/**
-	 * @brief
-	 *		Utility Class
-	 * @author
-	 *		windage
-	 */
-	class DLLEXPORT Utils
-	{
-	public:
-		/**
-		 * @brief
-		 *		Draw Text To Image
-		 * @remark
-		 *		draw text to image
-		 */
-		static void DrawTextToImage(IplImage* colorImage, CvPoint position, char* message);
-		static bool CompundImmersiveImage(IplImage* src, IplImage* dst, CvScalar maskColor = CV_RGB(0, 0, 0), double alpha=0.5);
-		static void DrawWorldCoordinatePoint(IplImage* colorImage, Calibration* calibration, CvScalar worldPoint, double size=1.0, bool drawText=false);
-		static IplImage* GeneratePatchMap(std::vector<SURFFeature*>* featureList);
-		static bool IsInside(CvPoint point, CvPoint corner1, CvPoint corner2, CvPoint corner3, CvPoint corner4, bool isClockWise=false);
-	};
-}
-
-#endif
+	float projectionPointZ = homography[6] * point1.x + homography[7] * point1.y + homography[8];
+	float projectionPointX = (homography[0] * point1.x + homography[1] * point1.y + homography[2])/projectionPointZ - point2.x;
+	float projectionPointY = (homography[3] * point1.x + homography[4] * point1.y + homography[5])/projectionPointZ - point2.y;
+	
+	return (float)sqrt(projectionPointX*projectionPointX + projectionPointY*projectionPointY);
+};

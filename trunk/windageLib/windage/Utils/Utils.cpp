@@ -52,6 +52,42 @@ void Utils::DrawTextToImage(IplImage* colorImage, CvPoint position, char* messag
 	cvPutText(colorImage, message, position, &font, CV_RGB(255, 255, 255));
 }
 
+bool IsSameColor(CvScalar color1, CvScalar color2)
+{
+	if( color1.val[0] == color2.val[0] &&
+		color1.val[1] == color2.val[1] &&
+		color1.val[2] == color2.val[2] &&
+		color1.val[3] == color2.val[3])
+		return true;
+	else
+		return false;
+}
+
+bool Utils::CompundImmersiveImage(IplImage* src, IplImage* dst, CvScalar maskColor, double alpha)
+{
+	if(src->width == dst->width && src->height == dst->height && src->depth == dst->depth)
+	{
+		for(int y=0; y<dst->height; y++)
+		{
+			for(int x=0; x<dst->width; x++)
+			{
+				CvScalar color = cvGet2D(src, y, x);
+				if(!IsSameColor(color, maskColor))
+				{
+					CvScalar dstColor = cvGet2D(dst, y, x);
+					for(int i=0; i<4; i++)
+						color.val[i] = color.val[i] * alpha + dstColor.val[i] * (1.0 - alpha);
+					cvSet2D(dst, y, x, color);
+				}
+			}
+		}
+
+		return true;
+	}
+	else
+		return false;
+}
+
 void Utils::DrawWorldCoordinatePoint(IplImage* colorImage, Calibration* calibration, CvScalar worldPoint, double size, bool drawText)
 {
 	if(drawText)

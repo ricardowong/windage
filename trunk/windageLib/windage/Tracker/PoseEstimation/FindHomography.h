@@ -37,73 +37,77 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#ifndef _SURF_FEATURE_H_
-#define _SURF_FEATURE_H_
+#ifndef _FIND_HOMOGRAPY_H_
+#define _FIND_HOMOGRAPY_H_
 
 #define DLLEXPORT __declspec(dllexport)
 #define DLLIMPORT __declspec(dllimport)
 
 #include <vector>
 #include <cv.h>
-#include "Utils/wMatrix.h"
 
 namespace windage
 {
-	const int SURF_FEATURE_DESCRIPTOR_DIMENSION = 36;	///< Modified SURF Descriptor dimension = 36 (fixed)
-	typedef struct _Description
+	typedef struct _MatchedPoint
 	{
-		double descriptor[SURF_FEATURE_DESCRIPTOR_DIMENSION];	///< SURF Descriptor 36-dimension
-		struct _Description()
-		{
-			for(int i=0; i<SURF_FEATURE_DESCRIPTOR_DIMENSION; i++)
-				descriptor[i] = 0.0;
-		}
-		void operator=(struct _Description oprd)
-		{
-			for(int i=0; i<SURF_FEATURE_DESCRIPTOR_DIMENSION; i++)
-				descriptor[i] = oprd.descriptor[i];
-		}
-		double distance(struct _Description oprd)
-		{
-			double sum = 0;
-			for(int i=0; i<SURF_FEATURE_DESCRIPTOR_DIMENSION; i++)
-				sum += (double)((descriptor[i] - oprd.descriptor[i]) * (descriptor[i] - oprd.descriptor[i]));
-			return sum;
-		}
-	}Description;
+		CvPoint2D32f pointScene;
+		CvPoint2D32f pointReference;
+		float distance;
+		bool isInlier;
 
-	class DLLEXPORT SURFFeature
+		struct _MatchedPoint(CvPoint2D32f pointScene, CvPoint2D32f pointReference, float distance = 0.0)
+		{
+			this->pointScene = pointScene;
+			this->pointReference = pointReference;
+
+			this->distance = distance;
+			isInlier = false;
+		}
+
+		void operator=(struct _MatchedPoint oprd)
+		{
+			this->pointScene = oprd.pointScene;
+			this->pointReference = oprd.pointReference;
+			this->distance = oprd.distance;
+			this->isInlier = oprd.isInlier;
+		}
+
+		bool operator==(struct _MatchedPoint oprd)
+		{
+			return this->distance == oprd.distance;
+		}
+		bool operator<(struct _MatchedPoint oprd)
+		{
+			return this->distance < oprd.distance;
+		}
+	}MatchedPoint;
+
+	class DLLEXPORT FindHomography
 	{
-	private:
-		const static int PATCH_WIDTH = 45;
-		const static int PATCH_HEIGHT = 45;
+	protected:
+		float reprojectionThreshold;
+		float homography[9];
 
-		Vector3 position;
-		IplImage* patch;
-		std::vector<Description> descriptionList;
-
-		double scaleFactor;
-		int scaleStep;
-
+		std::vector<MatchedPoint>* matchedPoints;
 	public:
-		SURFFeature();
-		~SURFFeature();
+		FindHomography()
+		{
+			reprojectionThreshold = 5.0;
+			matchedPoints = NULL;
+		}
+		~FindHomography()
+		{
+		}
 
-		inline int GetPatchWidth(){return this->PATCH_WIDTH;};
-		inline int GetPatchHeight(){return this->PATCH_HEIGHT;};
-		inline Vector3 GetPosition(){return this->position;};
-		inline void SetPosition(Vector3 position){this->position = position;};
-		inline IplImage* GetPatch(){return this->patch;};
+		inline void SetReprojectionThreshold(float reprojectionThreshold=5.0f){this->reprojectionThreshold = reprojectionThreshold;};
 
-		inline int GetFeatureCount(){return this->descriptionList.size();};
-		inline std::vector<Description>* GetDescriptionList(){return &this->descriptionList;};
+		inline void AttatchMatchedPoints(std::vector<MatchedPoint>* matchedPoints){this->matchedPoints = matchedPoints;};
+		inline float* GetHomography(){return this->homography;};
 
-		void Release();
-		void initialize(double scaleFactor=3.0, int scaleStep=6);
-		int GenerateDescriptor(IplImage* grayImage, CvPoint point);
-		int ExtractModifiedSURF(IplImage* grayImage, CvPoint center, Description* descriptions);
-		Description GetDescription(int index);
-	};
+		static float ComputeReprojError(CvPoint2D32f point1, CvPoint2D32f point2, float* homography);
+
+		virtual bool Calculate() = NULL;
+	};	
 }
 
 #endif

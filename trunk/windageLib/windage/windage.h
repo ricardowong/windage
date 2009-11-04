@@ -42,6 +42,7 @@
 #include "Tracker/Tracker.h"
 #include "Tracker/ChessboardTracker.h"
 #include "Tracker/ModifiedSURFTracker.h"
+#include "Tracker/MultipleSURFTracker.h"
 
 // header files for feature descriptor
 #include "FeatureMatching/SURFFeature.h"

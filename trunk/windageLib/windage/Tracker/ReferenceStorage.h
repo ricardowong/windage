@@ -37,73 +37,65 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#ifndef _TRACKER_H_
-#define _TRACKER_H_
+#ifndef _REFERENCE_STORAGE_H_
+#define _REFERENCE_STORAGE_H_
 
 #define DLLEXPORT __declspec(dllexport)
 #define DLLIMPORT __declspec(dllimport)
 
 #include <cv.h>
-#include "Calibration.h"
+#include "FAST/wsurf.h"
 
 namespace windage
 {
-	enum POSE_ESTIMATION_METHOD{RANSAC = 0, LMEDS, PROSAC};
-
-	/**
-	 * @brief
-	 *		Abstract Class for Camera Tracker
-	 * @author
-	 *		windage
-	 */
-	class DLLEXPORT Tracker
+	class DLLEXPORT SURFReferenceStorage
 	{
-	protected:
-		Calibration* cameraParameter;	///< camera parameter
-		virtual void Release();
-		void DecomposeHomographyToRT(CvMat *intrinsic, CvMat *Homography, CvMat *RT);
-		
+	private:
+		int realWidth;
+		int realHeight;
+		int featureExtractThreshold;	///< FAST Corner extract threshold value
+		IplImage* referenceImage;
+
+		std::vector<SURFDesciription> descriptor;	///< reference image surf description
+
+		CvMat* referenceFeatureStorage;			///< reference feature storage
+		cv::Mat flannFeatureTree;
+		cv::flann::Index* flannIndex;
+
+		int GenerateReferenceFeatureTree(double scaleFactor=4.0, int scaleStep=8);
+		bool CreateFlannTree(std::vector<SURFDesciription>* referenceSURF, CvMat* referenceFeatureStorage);
+		void Release();
+
 	public:
-		Tracker();
-		virtual ~Tracker();
+		SURFReferenceStorage()
+		{
+			realWidth = 640;
+			realHeight = 480;
+			featureExtractThreshold = 30;
+			flannIndex = NULL;
+			referenceImage = NULL;
+			referenceFeatureStorage = NULL;
+		}
+		~SURFReferenceStorage()
+		{
+			this->Release();
+		}
 
-//		void Initialize(double fx, double fy, double cx, double cy, double d1=0.0, double d2=0.0, double d3=0.0, double d4=0.0);
-		inline windage::Calibration* GetCameraParameter(){return this->cameraParameter;};
-		
-		/**
-		 * @brief
-		 *		Update Camera Pose (extrinsic parameter)
-		 * @remark
-		 *		update extrinsic parameter abstract method using input image
-		 */
-		virtual double UpdateCameraPose(IplImage* grayImage) = 0;
+		inline double GetRealWidth(){return this->realWidth;};
+		inline double GetRealHeight(){return this->realHeight;};
+		inline int GetFeatureExtractTreshold(){return this->featureExtractThreshold;};
+		inline void SetFeatureExtractTreshold(int threshold=30){this->featureExtractThreshold = threshold;};
+		inline std::vector<SURFDesciription>* GetDescriptor(){return &this->descriptor;};
 
-		/**
-		 * @brief
-		 *		Draw Debug Information
-		 * @remark
-		 *		draw debug information abstract method
-		 */
-		virtual void DrawDebugInfo(IplImage* colorImage) = 0;
-
-		/**
-		 * @brief
-		 *		Draw 3-Axis
-		 * @remark
-		 *		draw axis line for confirming tracked object information
-		 */
-		void DrawInfomation(IplImage* colorImage, double size = 10.0);
-
-		void Initialize(double fx, 				///< intrinsic parameter x focal length
-						double fy, 				///< intrinsic parameter y focal length
-						double cx, 				///< intrinsic parameter x principle point
-						double cy, 				///< intrinsic parameter y principle point
-						double d1, 				///< intrinsic parameter distortion factor1
-						double d2, 				///< intrinsic parameter distortion factor2
-						double d3, 				///< intrinsic parameter distortion factor3
-						double d4 				///< intrinsic parameter distortion factor4
-						);
+		int FindPairs(SURFDesciription description, float distanceRate=0.5, int EMAX=20, float* outDistance = NULL);
+		void RegistReferenceImage(	IplImage* referenceImage,	///< reference image
+									double realWidth,			///< image real width size
+									double realHeight,			///< image real width size
+									double scaleFactor=4.0,		///< scale factor for multi-scale
+									int scaleStep=8				///< multi-scale step
+									);
 	};
-
 }
+
+
 #endif
