@@ -68,8 +68,8 @@ ModifiedSURFTracker::ModifiedSURFTracker()
 	this->poseEstimationMethod = windage::RANSAC;
 	this->outlinerRemove = false;
 
-	this->log = new Logger("Log\\modifiedSURF_Performance", true);
-//	log = NULL;
+//	this->log = new Logger("Log\\modifiedSURF_Performance", true);
+	log = NULL;
 }
 
 ModifiedSURFTracker::~ModifiedSURFTracker()
