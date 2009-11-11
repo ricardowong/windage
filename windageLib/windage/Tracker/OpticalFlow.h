@@ -89,7 +89,7 @@ namespace windage
 		inline void SetRemovePrevPoints(bool removePrevPoints=true){this->removePrevPoints=removePrevPoints;};
 		inline void SetImageSize(int width, int height){this->imageWidth=width;this->imageHeight=height;};
 		inline CvSize GetImageSize(){return cvSize(this->imageWidth, this->imageHeight);};
-		inline void SetWindowSize(CvSize size=cvSize(10, 10)){this->windowSize = size;};
+		inline void SetWindowSize(CvSize size=cvSize(8, 8)){this->windowSize = size;};
 		inline CvSize GetWindowSize(){return this->windowSize;};
 		inline void SetPyramidLevel(int level=3){this->pyramidLevel = level;};
 		inline int GetPyramidLevel(){return this->pyramidLevel;};

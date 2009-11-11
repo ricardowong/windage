@@ -47,6 +47,8 @@ const int POSE_POINTS_COUNT = 10;
 const double COMPAIR_RATE = 0.50;
 const int EMAX = 20;
 
+const double PROSAC_TIME_OUT = 3.0;
+
 using namespace windage;
 void MultipleSURFTracker::Release()
 {
@@ -152,7 +154,7 @@ double MultipleSURFTracker::CalculatePose(int index)
 		CvMat _pt2 = cvMat(1, n, CV_32FC2, &(matchedScenePoints[0]) );
 
 		FindPROSACHomography prosac;
-		prosac.SetTimeout(5.0);
+		prosac.SetTimeout(PROSAC_TIME_OUT);
 		std::vector<MatchedPoint> prosacMatchedPoints;
 		
 		bool isCalculate = false;
@@ -301,17 +303,20 @@ double MultipleSURFTracker::UpdateCameraPose(IplImage* grayImage)
 			int index = 0;
 			for(int j=0; j<sceneSURF[i].size(); j++)
 			{
-				if(matchedTempPoints[trackedCount].x >= 0 && matchedTempPoints[trackedCount].y >= 0)
+				if(matchedTempPoints.size() > trackedCount)
 				{
-					sceneSURF[i][index].point = matchedTempPoints[trackedCount];
-					index++;
+					if(matchedTempPoints[trackedCount].x >= 0 && matchedTempPoints[trackedCount].y >= 0)
+					{
+						sceneSURF[i][index].point = matchedTempPoints[trackedCount];
+						index++;
+					}
+					else
+					{
+						sceneSURF[i].erase(sceneSURF[i].begin() + index);
+						matchedReferenceIndex[i].erase(matchedReferenceIndex[i].begin() + index);
+					}
+					trackedCount++;
 				}
-				else
-				{
-					sceneSURF[i].erase(sceneSURF[i].begin() + index);
-					matchedReferenceIndex[i].erase(matchedReferenceIndex[i].begin() + index);
-				}
-				trackedCount++;
 			}
 		}
 	}
@@ -319,7 +324,28 @@ double MultipleSURFTracker::UpdateCameraPose(IplImage* grayImage)
 	// detection sequence
 	{
 		// selected object detection
-		if(step%interval == 0)
+		int start = 0;
+		int end = 0;
+		if(interval >= 1) 
+		{
+			int round = cvRound(interval);
+			if(step%round == 0)
+			{
+				start = step/round;
+				end = MIN(start+1, referenceCount);
+			}
+		}
+		else if(interval == 0)
+		{
+		}
+		else 
+		{
+			int round = cvRound(1 / interval);
+			start = step * round;
+			end = MIN(start+round, referenceCount);
+		}
+
+		for(int i=start; i<end; i++)
 		{
 			std::vector<CvPoint> fastCorners;
 			std::vector<SURFDesciription> tempSceneSURF;
@@ -329,7 +355,7 @@ double MultipleSURFTracker::UpdateCameraPose(IplImage* grayImage)
 			std::vector<int> matchedIndex;
 			matchedIndex.resize(tempSceneSURF.size());
 
-			int i = step/interval;
+			
 			int matchedCount = DetectObject(&tempSceneSURF, &matchedIndex, i);
 
 			// attatch scene points
@@ -449,8 +475,8 @@ void MultipleSURFTracker::DrawOutLine(IplImage* colorImage, int index, bool draw
 	CvScalar color2 = CV_RGB(255, 255, 255);
 
 	Calibration* calibration = this->cameraParameterList[index];
-	double realWidth = this->referenceStorageList[index]->GetRealWidth();
-	double realHeight = this->referenceStorageList[index]->GetRealHeight();
+	double realWidth = this->referenceStorageList[index]->GetRealWidth()/2;
+	double realHeight = this->referenceStorageList[index]->GetRealHeight()/2;
 
 	cvLine(colorImage, calibration->ConvertWorld2Image(-realWidth/2, -realHeight/2, 0.0),	calibration->ConvertWorld2Image(+realWidth/2, -realHeight/2, 0.0),	color2, 6);
 	cvLine(colorImage, calibration->ConvertWorld2Image(+realWidth/2, -realHeight/2, 0.0),	calibration->ConvertWorld2Image(+realWidth/2, +realHeight/2, 0.0),	color2, 6);

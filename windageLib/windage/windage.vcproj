@@ -404,42 +404,6 @@
 				>
 			</Filter>
 		</Filter>
-		<Filter
-			Name="FeatureMatching"
-			>
-			<File
-				RelativePath=".\FeatureMatching\CameraPoseCalculator.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\FeatureMatching\CameraPoseCalculator.h"
-				>
-			</File>
-			<File
-				RelativePath=".\FeatureMatching\FeatureFactory.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\FeatureMatching\FeatureFactory.h"
-				>
-			</File>
-			<File
-				RelativePath=".\FeatureMatching\FeatureTree.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\FeatureMatching\FeatureTree.h"
-				>
-			</File>
-			<File
-				RelativePath=".\FeatureMatching\SURFFeature.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\FeatureMatching\SURFFeature.h"
-				>
-			</File>
-		</Filter>
 		<File
 			RelativePath=".\windage.h"
 			>
