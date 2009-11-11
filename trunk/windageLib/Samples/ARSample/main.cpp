@@ -48,8 +48,21 @@ const int WIDTH = 640;
 const int HEIGHT = 480;
 const double intrinsicValues[8] = {1029.400, 1028.675, 316.524, 211.395, -0.206360, 0.238378, 0.001089, -0.000769};
 
+windage::Logger* logging;
+double fps = 0;
+const int FPS_UPDATE_STEP = 30;
+int fpsStep = 0;
+
+// adaptive threshold
+#define ADAPTIVE_THRESHOLD
+int fastThreshold = 70;
+const int MAX_FAST_THRESHOLD = 80;
+const int MIN_FAST_THRESHOLD = 40;
+const int ADAPTIVE_THRESHOLD_VALUE = 500;
+const int THRESHOLD_STEP = 1;
+
 CvCapture* capture;
-windage::Tracker* tracker;
+windage::ModifiedSURFTracker* tracker;
 windage::AugmentedReality* arTool;
 IplImage* input;
 IplImage* gray;
@@ -61,7 +74,7 @@ windage::ModifiedSURFTracker* CreateTracker(IplImage* refImage, int index)
 	windage::ModifiedSURFTracker* tracker = new windage::ModifiedSURFTracker();
 	tracker->Initialize(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], intrinsicValues[4], intrinsicValues[5], intrinsicValues[6], intrinsicValues[7], 30);
 	tracker->RegistReferenceImage(refImage, 26.70, 20.00, 4.0, 8);
-	tracker->SetPoseEstimationMethod(windage::RANSAC);
+	tracker->SetPoseEstimationMethod(windage::PROSAC);
 	tracker->SetOutlinerRemove(true);
 	tracker->InitializeOpticalFlow(WIDTH, HEIGHT, 10, cvSize(8, 8), 3);
 	tracker->SetOpticalFlowRunning(true);
@@ -87,6 +100,11 @@ void keyboard(unsigned char ch, int x, int y)
 
 void idle(void)
 {
+	glutPostRedisplay();
+}
+
+void display()
+{
 	// camera frame grabbing
 	IplImage* grabFrame = cvQueryFrame(capture);
 	tracker->GetCameraParameter()->Undistortion(grabFrame, input);
@@ -94,15 +112,29 @@ void idle(void)
 	cvCvtColor(input, gray, CV_BGRA2GRAY);
 
 	// call tracking algorithm
+	tracker->SetFeatureExtractTreshold(fastThreshold);
 	tracker->UpdateCameraPose(gray);
 //	tracker->DrawInfomation(input);
 //	tracker->DrawDebugInfo(input);
 
-	glutPostRedisplay();
-}
+#ifdef ADAPTIVE_THRESHOLD
+	int featureCount = tracker->GetFeatureCount();
+	if(featureCount > ADAPTIVE_THRESHOLD_VALUE )	fastThreshold = MIN(MAX_FAST_THRESHOLD, fastThreshold+THRESHOLD_STEP);
+	else											fastThreshold = MAX(MIN_FAST_THRESHOLD, fastThreshold-THRESHOLD_STEP);
+#endif
 
-void display()
-{
+	// calculate fps
+	fpsStep++;
+	if(fpsStep > FPS_UPDATE_STEP)
+	{
+		fps = logging->calculateFPS()*(double)FPS_UPDATE_STEP;
+		logging->updateTickCount();
+		fpsStep = 0;
+	}
+	char message[100];
+	sprintf(message, "FPS : %.2lf", fps);
+	windage::Utils::DrawTextToImage(input, cvPoint(20, 40), message);
+
 	// draw real scene image
 	arTool->DrawBackgroundTexture(input);
 
@@ -111,19 +143,6 @@ void display()
 	arTool->SetModelViewMatrix();
 
 	glPushMatrix();
-/*
-		// axis lines
-		glLineWidth(5);
-		glBegin(GL_LINES);
-			glColor3d(1.0, 0.0, 0.0);
-			glVertex3d(0.0, 0.0, 0.0);glVertex3d(10.0, 0.0, 0.0);
-			glColor3d(0.0, 1.0, 0.0);
-			glVertex3d(0.0, 0.0, 0.0);glVertex3d(0.0, 10.0, 0.0);
-			glColor3d(0.0, 0.0, 1.0);
-			glVertex3d(0.0, 0.0, 0.0);glVertex3d(0.0, 0.0, 10.0);
-		glEnd();
-//*/
-
 		// draw virtual object
 		OpenGLRenderer::setMaterial(Vector4(255, 255, 255, 0.8));
 		glTranslated(0, 0, 5);
@@ -135,6 +154,7 @@ void display()
 	glPopMatrix();
 
 	glutSwapBuffers();
+	glutPostRedisplay();
 }
 
 void main()
@@ -147,9 +167,10 @@ void main()
 	// initialize tracker
 	IplImage* referenceImage = cvLoadImage("reference1_320.png", 0);
 	tracker = CreateTracker(referenceImage, 0);
-
-
 	tracker->GetCameraParameter()->InitUndistortionMap(WIDTH, HEIGHT);
+
+	logging = new windage::Logger(&std::cout);
+	logging->updateTickCount();
 
 	// initialize ar tools
 	arTool = new windage::ARForOpenGL();

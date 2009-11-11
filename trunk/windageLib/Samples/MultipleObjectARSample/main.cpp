@@ -41,10 +41,8 @@
 #include <highgui.h>
 #include <windage.h>
 
-#include "AugmentedReality/ARForOpenGL.h"
+#include <AugmentedReality/ARForOpenGL.h>
 #include "OpenGLRenderer.h"
-
-#define ADAPTIVE_THRESHOLD
 
 const int OBJECT_COUNT = 4;
 const int FIND_FEATURE_COUNT = 10;
@@ -53,7 +51,13 @@ const int WIDTH = 640;
 const int HEIGHT = 480;
 const double intrinsicValues[8] = {1029.400, 1028.675, 316.524, 211.395, -0.206360, 0.238378, 0.001089, -0.000769};
 
+windage::Logger* logging;
+double fps = 0;
+const int FPS_UPDATE_STEP = 30;
+int fpsStep = 0;
+
 // adaptive threshold
+#define ADAPTIVE_THRESHOLD
 int fastThreshold = 70;
 const int MAX_FAST_THRESHOLD = 80;
 const int MIN_FAST_THRESHOLD = 40;
@@ -83,6 +87,11 @@ void keyboard(unsigned char ch, int x, int y)
 
 void idle(void)
 {
+	glutPostRedisplay();
+}
+
+void display()
+{
 	// camera frame grabbing
 	IplImage* grabFrame = cvQueryFrame(capture);
 	calibration->Undistortion(grabFrame, input);
@@ -90,7 +99,9 @@ void idle(void)
 	cvCvtColor(input, gray, CV_BGRA2GRAY);
 
 	// call tracking algorithm
+	multipleTracker->SetFeatureExtractThreshold(fastThreshold);
 	multipleTracker->UpdateCameraPose(gray);
+//	multipleTracker->DrawDebugInfo(input);
 
 #ifdef ADAPTIVE_THRESHOLD
 	int featureCount = multipleTracker->GetFeatureCount();
@@ -98,11 +109,18 @@ void idle(void)
 	else											fastThreshold = MAX(MIN_FAST_THRESHOLD, fastThreshold-THRESHOLD_STEP);
 #endif
 
-	glutPostRedisplay();
-}
+	// calculate fps
+	fpsStep++;
+	if(fpsStep > FPS_UPDATE_STEP)
+	{
+		fps = logging->calculateFPS()*(double)FPS_UPDATE_STEP;
+		logging->updateTickCount();
+		fpsStep = 0;
+	}
+	char message[100];
+	sprintf(message, "FPS : %.2lf", fps);
+	windage::Utils::DrawTextToImage(input, cvPoint(20, 40), message);
 
-void display()
-{
 	// draw real scene image
 	arTool->DrawBackgroundTexture(input);
 
@@ -136,6 +154,7 @@ void display()
 	}
 
 	glutSwapBuffers();
+	glutPostRedisplay();
 }
 
 void main()
@@ -150,9 +169,12 @@ void main()
 	std::vector<IplImage*> trainingImage;
 	for(int i=1; i<=OBJECT_COUNT; i++)
 	{
-		sprintf(message, "reference%d_160.png", i);
+		sprintf(message, "reference%d_320.png", i);
 		trainingImage.push_back(cvLoadImage(message, 0));
 	}
+
+	logging = new windage::Logger(&std::cout);
+	logging->updateTickCount();
 
 	multipleTracker = new windage::MultipleSURFTracker();
 	multipleTracker->Initialize(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], intrinsicValues[4], intrinsicValues[5], intrinsicValues[6], intrinsicValues[7]);
