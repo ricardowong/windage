@@ -37,7 +37,7 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#include "FindPROSACHomography.h"
+#include "Tracker/PoseEstimation/FindPROSACHomography.h"
 
 #include <algorithm>
 #include <vector>

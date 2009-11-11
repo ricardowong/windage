@@ -39,8 +39,8 @@
 
 #include <omp.h>
 
-#include "MultipleSURFTracker.h"
-#include "PoseEstimation/FindPROSACHomography.h"
+#include "Tracker/MultipleSURFTracker.h"
+#include "Tracker/PoseEstimation/FindPROSACHomography.h"
 
 const double ERROR_BOUND = 5.0;
 const int POSE_POINTS_COUNT = 10;
@@ -478,23 +478,23 @@ void MultipleSURFTracker::DrawOutLine(IplImage* colorImage, int index, bool draw
 	double realWidth = this->referenceStorageList[index]->GetRealWidth()/2;
 	double realHeight = this->referenceStorageList[index]->GetRealHeight()/2;
 
-	cvLine(colorImage, calibration->ConvertWorld2Image(-realWidth/2, -realHeight/2, 0.0),	calibration->ConvertWorld2Image(+realWidth/2, -realHeight/2, 0.0),	color2, 6);
-	cvLine(colorImage, calibration->ConvertWorld2Image(+realWidth/2, -realHeight/2, 0.0),	calibration->ConvertWorld2Image(+realWidth/2, +realHeight/2, 0.0),	color2, 6);
-	cvLine(colorImage, calibration->ConvertWorld2Image(+realWidth/2, +realHeight/2, 0.0),	calibration->ConvertWorld2Image(-realWidth/2, +realHeight/2, 0.0),	color2, 6);
-	cvLine(colorImage, calibration->ConvertWorld2Image(-realWidth/2, +realHeight/2, 0.0),	calibration->ConvertWorld2Image(-realWidth/2, -realHeight/2, 0.0),	color2, 6);
+	cvLine(colorImage, calibration->ConvertWorld2Image(-realWidth, -realHeight, 0.0),	calibration->ConvertWorld2Image(+realWidth, -realHeight, 0.0),	color2, 6);
+	cvLine(colorImage, calibration->ConvertWorld2Image(+realWidth, -realHeight, 0.0),	calibration->ConvertWorld2Image(+realWidth, +realHeight, 0.0),	color2, 6);
+	cvLine(colorImage, calibration->ConvertWorld2Image(+realWidth, +realHeight, 0.0),	calibration->ConvertWorld2Image(-realWidth, +realHeight, 0.0),	color2, 6);
+	cvLine(colorImage, calibration->ConvertWorld2Image(-realWidth, +realHeight, 0.0),	calibration->ConvertWorld2Image(-realWidth, -realHeight, 0.0),	color2, 6);
 
-	cvLine(colorImage, calibration->ConvertWorld2Image(-realWidth/2, -realHeight/2, 0.0),	calibration->ConvertWorld2Image(+realWidth/2, -realHeight/2, 0.0),	color, 2);
-	cvLine(colorImage, calibration->ConvertWorld2Image(+realWidth/2, -realHeight/2, 0.0),	calibration->ConvertWorld2Image(+realWidth/2, +realHeight/2, 0.0),	color, 2);
-	cvLine(colorImage, calibration->ConvertWorld2Image(+realWidth/2, +realHeight/2, 0.0),	calibration->ConvertWorld2Image(-realWidth/2, +realHeight/2, 0.0),	color, 2);
-	cvLine(colorImage, calibration->ConvertWorld2Image(-realWidth/2, +realHeight/2, 0.0),	calibration->ConvertWorld2Image(-realWidth/2, -realHeight/2, 0.0),	color, 2);
+	cvLine(colorImage, calibration->ConvertWorld2Image(-realWidth, -realHeight, 0.0),	calibration->ConvertWorld2Image(+realWidth, -realHeight, 0.0),	color, 2);
+	cvLine(colorImage, calibration->ConvertWorld2Image(+realWidth, -realHeight, 0.0),	calibration->ConvertWorld2Image(+realWidth, +realHeight, 0.0),	color, 2);
+	cvLine(colorImage, calibration->ConvertWorld2Image(+realWidth, +realHeight, 0.0),	calibration->ConvertWorld2Image(-realWidth, +realHeight, 0.0),	color, 2);
+	cvLine(colorImage, calibration->ConvertWorld2Image(-realWidth, +realHeight, 0.0),	calibration->ConvertWorld2Image(-realWidth, -realHeight, 0.0),	color, 2);
 
 	if(drawCross)
 	{
-		cvLine(colorImage, calibration->ConvertWorld2Image(-realWidth/2, -realHeight/2, 0.0),	calibration->ConvertWorld2Image(+realWidth/2, +realHeight/2, 0.0),	color2, 6);
-		cvLine(colorImage, calibration->ConvertWorld2Image(-realWidth/2, +realHeight/2, 0.0),	calibration->ConvertWorld2Image(+realWidth/2, -realHeight/2, 0.0),	color2, 6);
+		cvLine(colorImage, calibration->ConvertWorld2Image(-realWidth, -realHeight, 0.0),	calibration->ConvertWorld2Image(+realWidth, +realHeight, 0.0),	color2, 6);
+		cvLine(colorImage, calibration->ConvertWorld2Image(-realWidth, +realHeight, 0.0),	calibration->ConvertWorld2Image(+realWidth, -realHeight, 0.0),	color2, 6);
 
-		cvLine(colorImage, calibration->ConvertWorld2Image(-realWidth/2, -realHeight/2, 0.0),	calibration->ConvertWorld2Image(+realWidth/2, +realHeight/2, 0.0),	color, 2);
-		cvLine(colorImage, calibration->ConvertWorld2Image(-realWidth/2, +realHeight/2, 0.0),	calibration->ConvertWorld2Image(+realWidth/2, -realHeight/2, 0.0),	color, 2);
+		cvLine(colorImage, calibration->ConvertWorld2Image(-realWidth, -realHeight, 0.0),	calibration->ConvertWorld2Image(+realWidth, +realHeight, 0.0),	color, 2);
+		cvLine(colorImage, calibration->ConvertWorld2Image(-realWidth, +realHeight, 0.0),	calibration->ConvertWorld2Image(+realWidth, -realHeight, 0.0),	color, 2);
 	}
 }
 

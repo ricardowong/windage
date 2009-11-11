@@ -37,7 +37,7 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#include "AugmentedReality.h"
+#include "AugmentedReality/AugmentedReality.h"
 using namespace windage;
 
 AugmentedReality::AugmentedReality()

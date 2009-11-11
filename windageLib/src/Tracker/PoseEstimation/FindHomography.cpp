@@ -37,7 +37,7 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#include "FindHomography.h"
+#include "Tracker/PoseEstimation/FindHomography.h"
 
 using namespace windage;
 float FindHomography::ComputeReprojError(CvPoint2D32f point1, CvPoint2D32f point2, float* homography)

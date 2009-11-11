@@ -44,34 +44,30 @@
 #include "AugmentedReality/ARForOpenGL.h"
 #include "OpenGLRenderer.h"
 
+#define ADAPTIVE_THRESHOLD
+
+const int OBJECT_COUNT = 4;
+const int FIND_FEATURE_COUNT = 10;
+
 const int WIDTH = 640;
 const int HEIGHT = 480;
 const double intrinsicValues[8] = {1029.400, 1028.675, 316.524, 211.395, -0.206360, 0.238378, 0.001089, -0.000769};
 
+// adaptive threshold
+int fastThreshold = 70;
+const int MAX_FAST_THRESHOLD = 80;
+const int MIN_FAST_THRESHOLD = 40;
+const int ADAPTIVE_THRESHOLD_VALUE = 500;
+const int THRESHOLD_STEP = 1;
+
 CvCapture* capture;
-windage::Tracker* tracker;
+windage::Calibration* calibration;
+windage::MultipleSURFTracker* multipleTracker;
 windage::AugmentedReality* arTool;
 IplImage* input;
 IplImage* gray;
 
 using namespace windage;
-
-windage::ModifiedSURFTracker* CreateTracker(IplImage* refImage, int index)
-{
-	windage::ModifiedSURFTracker* tracker = new windage::ModifiedSURFTracker();
-	tracker->Initialize(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], intrinsicValues[4], intrinsicValues[5], intrinsicValues[6], intrinsicValues[7], 30);
-	tracker->RegistReferenceImage(refImage, 26.70, 20.00, 4.0, 8);
-	tracker->SetPoseEstimationMethod(windage::RANSAC);
-	tracker->SetOutlinerRemove(true);
-	tracker->InitializeOpticalFlow(WIDTH, HEIGHT, 10, cvSize(8, 8), 3);
-	tracker->SetOpticalFlowRunning(true);
-	tracker->GetCameraParameter()->InitUndistortionMap(WIDTH, HEIGHT);
-	tracker->SetFeatureExtractTreshold(30);
-
-	tracker->SetSetpIndex(index);
-	
-	return tracker;
-}
 
 void keyboard(unsigned char ch, int x, int y)
 {
@@ -89,14 +85,18 @@ void idle(void)
 {
 	// camera frame grabbing
 	IplImage* grabFrame = cvQueryFrame(capture);
-	tracker->GetCameraParameter()->Undistortion(grabFrame, input);
+	calibration->Undistortion(grabFrame, input);
 	cvFlip(input, input);
 	cvCvtColor(input, gray, CV_BGRA2GRAY);
 
 	// call tracking algorithm
-	tracker->UpdateCameraPose(gray);
-//	tracker->DrawInfomation(input);
-//	tracker->DrawDebugInfo(input);
+	multipleTracker->UpdateCameraPose(gray);
+
+#ifdef ADAPTIVE_THRESHOLD
+	int featureCount = multipleTracker->GetFeatureCount();
+	if(featureCount > ADAPTIVE_THRESHOLD_VALUE )	fastThreshold = MIN(MAX_FAST_THRESHOLD, fastThreshold+THRESHOLD_STEP);
+	else											fastThreshold = MAX(MIN_FAST_THRESHOLD, fastThreshold-THRESHOLD_STEP);
+#endif
 
 	glutPostRedisplay();
 }
@@ -107,32 +107,33 @@ void display()
 	arTool->DrawBackgroundTexture(input);
 
 	// apply camera paramter for AR
-	arTool->SetProjectionMatrix();
-	arTool->SetModelViewMatrix();
+	int count = multipleTracker->GetTrackerCount();
+	for(int i=0; i<count; i++)
+	{
+		double ratio = (double)i/(double)(count-1);
+		double increase = ratio * 255.0;
+		double decrease = (1-ratio) * 255.0;
 
-	glPushMatrix();
-/*
-		// axis lines
-		glLineWidth(5);
-		glBegin(GL_LINES);
-			glColor3d(1.0, 0.0, 0.0);
-			glVertex3d(0.0, 0.0, 0.0);glVertex3d(10.0, 0.0, 0.0);
-			glColor3d(0.0, 1.0, 0.0);
-			glVertex3d(0.0, 0.0, 0.0);glVertex3d(0.0, 10.0, 0.0);
-			glColor3d(0.0, 0.0, 1.0);
-			glVertex3d(0.0, 0.0, 0.0);glVertex3d(0.0, 0.0, 10.0);
-		glEnd();
-//*/
+		int matchedCount = multipleTracker->GetMatchedCount(i);
+		if(matchedCount > FIND_FEATURE_COUNT)
+		{
+			windage::Calibration* calibrationPointer = multipleTracker->GetCameraParameter(i);
+			arTool->AttatchCameraParameter(calibrationPointer);
+			arTool->SetProjectionMatrix();
+			arTool->SetModelViewMatrix();
 
-		// draw virtual object
-		OpenGLRenderer::setMaterial(Vector4(255, 255, 255, 0.8));
-		glTranslated(0, 0, 5);
-		glRotatef(90, 1, 0, 0);
+			glPushMatrix();
 
-		glutWireTeapot(5);
-//		glutSolidTeapot(5);
-//		glutSolidCube(10);
-	glPopMatrix();
+			// draw virtual object
+			OpenGLRenderer::setMaterial(Vector4(increase, 255.0, decrease, 0.8));
+			glTranslated(0, 0, 5);
+			glRotatef(90, 1, 0, 0);
+
+			glutSolidTeapot(5);
+
+			glPopMatrix();
+		}
+	}
 
 	glutSwapBuffers();
 }
@@ -144,17 +145,37 @@ void main()
 	input = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
 	gray = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 1);
 
-	// initialize tracker
-	IplImage* referenceImage = cvLoadImage("reference1_320.png", 0);
-	tracker = CreateTracker(referenceImage, 0);
+	// Multipel tracker Initialize
+	char message[100];
+	std::vector<IplImage*> trainingImage;
+	for(int i=1; i<=OBJECT_COUNT; i++)
+	{
+		sprintf(message, "reference%d_160.png", i);
+		trainingImage.push_back(cvLoadImage(message, 0));
+	}
 
+	multipleTracker = new windage::MultipleSURFTracker();
+	multipleTracker->Initialize(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], intrinsicValues[4], intrinsicValues[5], intrinsicValues[6], intrinsicValues[7]);
+	multipleTracker->InitializeOpticalFlow(WIDTH, HEIGHT, cvSize(8, 8), 3);
+	multipleTracker->SetDetectIntervalTime(1.0);
+	multipleTracker->SetPoseEstimationMethod(windage::PROSAC);
+	multipleTracker->SetOutlinerRemove(true);
+	multipleTracker->SetFeatureExtractThreshold(30);
+	for(int i=0; i<trainingImage.size(); i++)
+	{
+		std::cout << "attatch reference image #" << i << std::endl;
+		multipleTracker->AttatchReferenceImage(trainingImage[i], 26.70, 20.00, 4.0, 8);
+	}
 
-	tracker->GetCameraParameter()->InitUndistortionMap(WIDTH, HEIGHT);
+	// for undistortion
+	calibration = new windage::Calibration();
+	calibration->Initialize(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], intrinsicValues[4], intrinsicValues[5], intrinsicValues[6], intrinsicValues[7]);
+	calibration->InitUndistortionMap(WIDTH, HEIGHT);
 
 	// initialize ar tools
 	arTool = new windage::ARForOpenGL();
 	((windage::ARForOpenGL*)arTool)->Initialize(WIDTH, HEIGHT, true);
-	((windage::ARForOpenGL*)arTool)->AttatchCameraParameter(tracker->GetCameraParameter());
+	((windage::ARForOpenGL*)arTool)->AttatchCameraParameter(calibration);
 
 	// initialize rendering engine using GLUT
 	OpenGLRenderer::init(WIDTH, HEIGHT);

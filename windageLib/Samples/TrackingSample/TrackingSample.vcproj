@@ -18,8 +18,8 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(SolutionDir)bin/"
-			IntermediateDirectory="$(SolutionDir)BuildLog/$(ProjectName)/$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)../../bin/"
+			IntermediateDirectory="$(SolutionDir)../../BuildLog/$(ProjectName)/$(ConfigurationName)"
 			ConfigurationType="1"
 			CharacterSet="1"
 			>
@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)windage/&quot;;&quot;$(SolutionDir)../../component/OpenCV 1.2/include/&quot;;&quot;$(SolutionDir)../../component/PGR FlyCapture/include/&quot;;&quot;$(SolutionDir)../../component/GLUT/include/&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../include/&quot;;&quot;$(SolutionDir)../../component/OpenCV 1.2/include/&quot;;&quot;$(SolutionDir)../../component/PGR FlyCapture/include/&quot;;&quot;$(SolutionDir)../../component/GLUT/include/&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -63,7 +63,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="cv120.lib cxcore120.lib highgui120.lib glut.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="&quot;$(SolutionDir)../../component/OpenCV 1.2/lib/&quot;;&quot;$(SolutionDir)../../component/PGR FlyCapture/lib/&quot;;&quot;$(SolutionDir)../../component/GLUT/lib/&quot;"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)../../lib/&quot;;&quot;$(SolutionDir)../../component/OpenCV 1.2/lib/&quot;;&quot;$(SolutionDir)../../component/PGR FlyCapture/lib/&quot;;&quot;$(SolutionDir)../../component/GLUT/lib/&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				TargetMachine="1"
@@ -92,8 +92,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(SolutionDir)bin/"
-			IntermediateDirectory="$(SolutionDir)BuildLog/$(ProjectName)/$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)../../bin/"
+			IntermediateDirectory="$(SolutionDir)../../BuildLog/$(ProjectName)/$(ConfigurationName)"
 			ConfigurationType="1"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
@@ -118,7 +118,7 @@
 				Optimization="3"
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)windage/&quot;;&quot;$(SolutionDir)../../component/OpenCV 1.2/include/&quot;;&quot;$(SolutionDir)../../component/PGR FlyCapture/include/&quot;;&quot;$(SolutionDir)../../component/GLUT/include/&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../include/&quot;;&quot;$(SolutionDir)../../component/OpenCV 1.2/include/&quot;;&quot;$(SolutionDir)../../component/PGR FlyCapture/include/&quot;;&quot;$(SolutionDir)../../component/GLUT/include/&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -140,7 +140,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="cv120.lib cxcore120.lib highgui120.lib glut.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;$(SolutionDir)../../component/OpenCV 1.2/lib/&quot;;&quot;$(SolutionDir)../../component/PGR FlyCapture/lib/&quot;;&quot;$(SolutionDir)../../component/GLUT/lib/&quot;"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)../../lib/&quot;;&quot;$(SolutionDir)../../component/OpenCV 1.2/lib/&quot;;&quot;$(SolutionDir)../../component/PGR FlyCapture/lib/&quot;;&quot;$(SolutionDir)../../component/GLUT/lib/&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"
@@ -180,10 +180,6 @@
 			>
 			<File
 				RelativePath=".\main.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\main2.cpp"
 				>
 			</File>
 		</Filter>

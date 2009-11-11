@@ -39,7 +39,7 @@
 
 #include <time.h>
 
-#include "Logger.h"
+#include "Utils/Logger.h"
 using namespace windage;
 
 Logger::Logger()

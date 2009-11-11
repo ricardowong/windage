@@ -37,7 +37,7 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#include "Reconstructor.h"
+#include "Reconstructor/Reconstructor.h"
 #include "Utils/wMatrix.h"
 using namespace windage;
 

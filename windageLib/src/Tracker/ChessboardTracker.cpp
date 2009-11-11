@@ -37,7 +37,7 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#include "ChessboardTracker.h"
+#include "Tracker/ChessboardTracker.h"
 using namespace windage;
 
 ChessboardTracker::ChessboardTracker()
