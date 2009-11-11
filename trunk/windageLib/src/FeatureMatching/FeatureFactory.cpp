@@ -37,7 +37,7 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#include "FeatureFactory.h"
+#include "FeatureMatching/FeatureFactory.h"
 #include <omp.h>
 
 #include "Tracker/FAST/fast.h"

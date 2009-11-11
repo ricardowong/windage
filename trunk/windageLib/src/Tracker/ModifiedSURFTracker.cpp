@@ -37,10 +37,10 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#include "ModifiedSURFTracker.h"
+#include "Tracker/ModifiedSURFTracker.h"
 using namespace windage;
 
-#include "PoseEstimation/FindPROSACHomography.h"
+#include "Tracker/PoseEstimation/FindPROSACHomography.h"
 
 //#define USING_KDTREE
 #define USING_FLANN
@@ -52,23 +52,23 @@ const int EMAX = 20;
 
 ModifiedSURFTracker::ModifiedSURFTracker()
 {
-	cameraParameter = NULL;
-	prevImage = NULL;
-	referenceImage = NULL;
-	featureExtractThreshold = 50;
+	this->cameraParameter = NULL;
+	this->prevImage = NULL;
+	this->referenceImage = NULL;
+	this->featureExtractThreshold = 50;
 
-	referenceFeatureStorage = NULL;
-	referenceFeatureTree = NULL;
-	flannIndex = NULL;
+	this->referenceFeatureStorage = NULL;
+	this->referenceFeatureTree = NULL;
+	this->flannIndex = NULL;
 
-	opticalflow = NULL;
-	runOpticalflow = false;
-	step = 0;
+	this->opticalflow = NULL;
+	this->runOpticalflow = false;
+	this->step = 0;
 
 	this->poseEstimationMethod = windage::RANSAC;
 	this->outlinerRemove = false;
 
-	log = new Logger("Log\\modifiedSURF_Performance", true);
+	this->log = new Logger("Log\\modifiedSURF_Performance", true);
 //	log = NULL;
 }
 
@@ -108,13 +108,13 @@ void ModifiedSURFTracker::Initialize(double fx, double fy, double cx, double cy,
 void ModifiedSURFTracker::RegistReferenceImage(IplImage* referenceImage, double realWidth, double realHeight, double scaleFactor, int scaleStep)
 {
 	// delete previous reference data
-	if(referenceImage) cvReleaseImage(&this->referenceImage);
+	if(this->referenceImage) cvReleaseImage(&this->referenceImage);
 	this->referenceImage = NULL;
 
-	if(referenceFeatureStorage) cvReleaseMat(&referenceFeatureStorage);
-	referenceFeatureStorage = NULL;
-	if(referenceFeatureTree) cvReleaseFeatureTree(referenceFeatureTree);
-	referenceFeatureTree = NULL;
+	if(this->referenceFeatureStorage) cvReleaseMat(&this->referenceFeatureStorage);
+	this->referenceFeatureStorage = NULL;
+	if(this->referenceFeatureTree) cvReleaseFeatureTree(this->referenceFeatureTree);
+	this->referenceFeatureTree = NULL;
 
 	// registrate
 	this->referenceImage = cvCloneImage(referenceImage);
@@ -387,7 +387,7 @@ int ModifiedSURFTracker::GenerateReferenceFeatureTree(double scaleFactor, int sc
 		for(int x=1; x<=scaleStep; x++)
 		{
 			tempReference = cvCreateImage(cvSize(width*x, height*y), IPL_DEPTH_8U, 1);
-			cvResize(referenceImage, tempReference, CV_INTER_LINEAR);
+			cvResize(this->referenceImage, tempReference, CV_INTER_LINEAR);
 			cvSmooth(tempReference, tempReference, CV_GAUSSIAN, 3, 3);
 
 			std::vector<SURFDesciription> tempSurf;

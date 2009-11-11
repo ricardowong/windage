@@ -37,7 +37,7 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#include "FeatureTree.h"
+#include "FeatureMatching/FeatureTree.h"
 
 using namespace windage;
 FeatureTree::FeatureTree()

@@ -37,7 +37,7 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#include "ARForOpenGL.h"
+#include "AugmentedReality/ARForOpenGL.h"
 using namespace windage;
 
 ARForOpenGL::ARForOpenGL()

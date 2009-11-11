@@ -37,7 +37,7 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#include "wsurf.h"
+#include "Tracker/FAST/wsurf.h"
 
 float wCalcHaarPattern( const int* origin, const CvSurfHF* f, int n )
 {

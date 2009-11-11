@@ -37,8 +37,8 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#include "ReferenceStorage.h"
-#include "ModifiedSURFTracker.h"
+#include "Tracker/ReferenceStorage.h"
+#include "Tracker/ModifiedSURFTracker.h"
 
 using namespace windage;
 

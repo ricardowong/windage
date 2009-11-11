@@ -45,10 +45,12 @@
 #include "Tracker/MultipleSURFTracker.h"
 
 // header files for feature descriptor
+/* currently not support
 #include "FeatureMatching/SURFFeature.h"
 #include "FeatureMatching/FeatureFactory.h"
 #include "FeatureMatching/FeatureTree.h"
 #include "FeatureMatching/CameraPoseCalculator.h"
+//*/
 
 // header files for augmented reality
 #include "AugmentedReality/AugmentedReality.h"

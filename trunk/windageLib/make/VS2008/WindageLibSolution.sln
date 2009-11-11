@@ -7,37 +7,22 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sample Applications", "Samp
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "windage", "windage\windage.vcproj", "{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TrackingSample", "Applications\TrackingSample\TrackingSample.vcproj", "{A21B71BE-DB3F-406F-95F0-174625303EBD}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TrackingSample", "..\..\Samples\TrackingSample\TrackingSample.vcproj", "{A21B71BE-DB3F-406F-95F0-174625303EBD}"
 	ProjectSection(ProjectDependencies) = postProject
 		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B} = {BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ARSample", "Applications\ARSample\ARSample.vcproj", "{C4CD3D39-6AE7-49C0-9208-4C57ED65A792}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ARSample", "..\..\Samples\ARSample\ARSample.vcproj", "{C4CD3D39-6AE7-49C0-9208-4C57ED65A792}"
 	ProjectSection(ProjectDependencies) = postProject
 		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B} = {BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "StereoSpatialInteraction", "Applications\StereoSpatialInteraction\StereoSpatialInteraction.vcproj", "{ACC27A79-C0D3-464E-BA2C-BF938B3C84C4}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MultipleTrackerSample", "..\..\Samples\MultipleTrackerSample\MultipleTrackerSample.vcproj", "{EFA67BD2-893D-4E0A-B43E-51C6E8975527}"
 	ProjectSection(ProjectDependencies) = postProject
 		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B} = {BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "StereoReconstruction", "Applications\StereoReconstruction\StereoReconstruction.vcproj", "{7A206DB1-A76F-4EBD-B9F3-38C64AF1B566}"
-	ProjectSection(ProjectDependencies) = postProject
-		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B} = {BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}
-	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ExtendedTracking", "Applications\ExtendedTracking\ExtendedTracking.vcproj", "{32FB4D9D-ECE1-4D31-B1D5-A381A1FB279C}"
-	ProjectSection(ProjectDependencies) = postProject
-		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B} = {BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}
-	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RealtimeExtendedTracking", "Applications\RealtimeExtendedTracking\RealtimeExtendedTracking.vcproj", "{B18E52CF-FA76-4E0A-8469-6AE2C77640D1}"
-	ProjectSection(ProjectDependencies) = postProject
-		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B} = {BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}
-	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MultipleTrackerSample", "Applications\MultipleTrackerSample\MultipleTrackerSample.vcproj", "{EFA67BD2-893D-4E0A-B43E-51C6E8975527}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MultipleObjectARSample", "..\..\Samples\MultipleObjectARSample\MultipleObjectARSample.vcproj", "{4201EB7B-25CF-4C6D-BDA8-21F19A0E2A91}"
 	ProjectSection(ProjectDependencies) = postProject
 		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B} = {BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}
 	EndProjectSection
@@ -60,26 +45,14 @@ Global
 		{C4CD3D39-6AE7-49C0-9208-4C57ED65A792}.Debug|Win32.Build.0 = Debug|Win32
 		{C4CD3D39-6AE7-49C0-9208-4C57ED65A792}.Release|Win32.ActiveCfg = Release|Win32
 		{C4CD3D39-6AE7-49C0-9208-4C57ED65A792}.Release|Win32.Build.0 = Release|Win32
-		{ACC27A79-C0D3-464E-BA2C-BF938B3C84C4}.Debug|Win32.ActiveCfg = Debug|Win32
-		{ACC27A79-C0D3-464E-BA2C-BF938B3C84C4}.Debug|Win32.Build.0 = Debug|Win32
-		{ACC27A79-C0D3-464E-BA2C-BF938B3C84C4}.Release|Win32.ActiveCfg = Release|Win32
-		{ACC27A79-C0D3-464E-BA2C-BF938B3C84C4}.Release|Win32.Build.0 = Release|Win32
-		{7A206DB1-A76F-4EBD-B9F3-38C64AF1B566}.Debug|Win32.ActiveCfg = Debug|Win32
-		{7A206DB1-A76F-4EBD-B9F3-38C64AF1B566}.Debug|Win32.Build.0 = Debug|Win32
-		{7A206DB1-A76F-4EBD-B9F3-38C64AF1B566}.Release|Win32.ActiveCfg = Release|Win32
-		{7A206DB1-A76F-4EBD-B9F3-38C64AF1B566}.Release|Win32.Build.0 = Release|Win32
-		{32FB4D9D-ECE1-4D31-B1D5-A381A1FB279C}.Debug|Win32.ActiveCfg = Debug|Win32
-		{32FB4D9D-ECE1-4D31-B1D5-A381A1FB279C}.Debug|Win32.Build.0 = Debug|Win32
-		{32FB4D9D-ECE1-4D31-B1D5-A381A1FB279C}.Release|Win32.ActiveCfg = Release|Win32
-		{32FB4D9D-ECE1-4D31-B1D5-A381A1FB279C}.Release|Win32.Build.0 = Release|Win32
-		{B18E52CF-FA76-4E0A-8469-6AE2C77640D1}.Debug|Win32.ActiveCfg = Debug|Win32
-		{B18E52CF-FA76-4E0A-8469-6AE2C77640D1}.Debug|Win32.Build.0 = Debug|Win32
-		{B18E52CF-FA76-4E0A-8469-6AE2C77640D1}.Release|Win32.ActiveCfg = Release|Win32
-		{B18E52CF-FA76-4E0A-8469-6AE2C77640D1}.Release|Win32.Build.0 = Release|Win32
 		{EFA67BD2-893D-4E0A-B43E-51C6E8975527}.Debug|Win32.ActiveCfg = Debug|Win32
 		{EFA67BD2-893D-4E0A-B43E-51C6E8975527}.Debug|Win32.Build.0 = Debug|Win32
 		{EFA67BD2-893D-4E0A-B43E-51C6E8975527}.Release|Win32.ActiveCfg = Release|Win32
 		{EFA67BD2-893D-4E0A-B43E-51C6E8975527}.Release|Win32.Build.0 = Release|Win32
+		{4201EB7B-25CF-4C6D-BDA8-21F19A0E2A91}.Debug|Win32.ActiveCfg = Debug|Win32
+		{4201EB7B-25CF-4C6D-BDA8-21F19A0E2A91}.Debug|Win32.Build.0 = Debug|Win32
+		{4201EB7B-25CF-4C6D-BDA8-21F19A0E2A91}.Release|Win32.ActiveCfg = Release|Win32
+		{4201EB7B-25CF-4C6D-BDA8-21F19A0E2A91}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -88,10 +61,7 @@ Global
 		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B} = {8BF375E3-6F4C-4A37-AC13-05B53622449A}
 		{A21B71BE-DB3F-406F-95F0-174625303EBD} = {5C4A8281-0408-4892-A7FE-7337E88AC198}
 		{C4CD3D39-6AE7-49C0-9208-4C57ED65A792} = {5C4A8281-0408-4892-A7FE-7337E88AC198}
-		{ACC27A79-C0D3-464E-BA2C-BF938B3C84C4} = {5C4A8281-0408-4892-A7FE-7337E88AC198}
-		{7A206DB1-A76F-4EBD-B9F3-38C64AF1B566} = {5C4A8281-0408-4892-A7FE-7337E88AC198}
-		{32FB4D9D-ECE1-4D31-B1D5-A381A1FB279C} = {5C4A8281-0408-4892-A7FE-7337E88AC198}
-		{B18E52CF-FA76-4E0A-8469-6AE2C77640D1} = {5C4A8281-0408-4892-A7FE-7337E88AC198}
 		{EFA67BD2-893D-4E0A-B43E-51C6E8975527} = {5C4A8281-0408-4892-A7FE-7337E88AC198}
+		{4201EB7B-25CF-4C6D-BDA8-21F19A0E2A91} = {5C4A8281-0408-4892-A7FE-7337E88AC198}
 	EndGlobalSection
 EndGlobal

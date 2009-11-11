@@ -37,7 +37,7 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#include "CameraPoseCalculator.h"
+#include "FeatureMatching/CameraPoseCalculator.h"
 
 using namespace windage;
 void CameraPoseCalculator::Update(std::vector<Vector2>* imagePoints, std::vector<Vector3>* objectPoints, Calibration* calibration)

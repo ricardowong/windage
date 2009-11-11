@@ -37,7 +37,7 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#include "wfastsurf.h"
+#include "Tracker/FAST/wfastsurf.h"
 
 const int dx1[] = {3, 3, 2, 1, 0, -1, -2. -3};
 const int dx2[] = {-3, -3, -2, -1, 0, 1, 2, 3};

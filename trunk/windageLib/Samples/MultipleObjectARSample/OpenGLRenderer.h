@@ -37,56 +37,46 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#pragma once
-/**
- * Wrapper class for controlling PGR cameras such as flea, dragonfly..
- *
-*/
+#ifndef OPENGL_RENDERER_H
+#define OPENGL_RENDERER_H
 
-// opencv
-#include "cxcore.h"
-#include "cv.h"
-#include "highgui.h"
+#include <GL/glut.h>
+#include <cv.h>
 
-// pgr
-#include "PGRFlyCapture.h"
-#include "PGRFlyCapturegui.h"
+#include "Utils/wVector.h"
+using namespace windage;
 
-// etc
-#include <string>
+//#define DRAWPIXEL_MODE
 
-class CPGRCamera
+class OpenGLRenderer
 {
 public:
-	CPGRCamera(void);
-	~CPGRCamera(void);
+	static void init(int width = 320, int height = 240);
+//	static void idle();
+//	static void display();
 
-	void open();
-	void close();
-	void start();
-	void stop();
-	void update();
+	static void setLight();
+	static void setMaterial(Vector4 color);
 
-	void releaseImage() {};
+	static void drawClear();
+	static void drawBackground(IplImage* inputImage);
+	static void drawObject(GLfloat* projection, GLfloat* model_view, int markerId, double markerWidth);
 
-	int xsize, ysize, pixelsize, framerate;
-	IplImage *m_Image;
+	static void mouse(int iButton, int iState, int x, int y);
+	static void motion(int x, int y);
 
-	IplImage *GetIPLImage()
-	{
-		return m_Image;
-	}
+	static int cursorX;
+	static int cursorY;
+
+	enum MODE{RENDER=1, CLICKED=2};
+	static MODE mode;
 
 private:
-	void handleError(std::string function);
-	void handleGuiError(std::string function);
-	void reportCameraInfo();
+	static int windowWidth;
+	static int windowHeight;
 
-	FlyCaptureContext _context;
-	FlyCaptureError _error;
-
-	CameraGUIContext _gui_context;
-	CameraGUIError _gui_error;
-
-	unsigned char* _buffer;
+	static int cameraWidth;
+	static int cameraHeight;
 };
+
+#endif

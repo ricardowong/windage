@@ -38,7 +38,7 @@
  * ======================================================================== */
 
 #include <stdlib.h>
-#include "fast.h"
+#include "Tracker/FAST/fast.h"
 
 static void make_offsets(int pixel[], int row_stride)
 {

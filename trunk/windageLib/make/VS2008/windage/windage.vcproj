@@ -18,9 +18,9 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(SolutionDir)bin/"
-			IntermediateDirectory="$(SolutionDir)BuildLog/$(ProjectName)/$(ConfigurationName)"
-			ConfigurationType="2"
+			OutputDirectory="$(SolutionDir)../../bin/"
+			IntermediateDirectory="$(SolutionDir)../../BuildLog/$(ProjectName)/$(ConfigurationName)"
+			ConfigurationType="4"
 			CharacterSet="1"
 			>
 			<Tool
@@ -42,7 +42,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="/MP"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)windage/&quot;;&quot;$(SolutionDir)../../component/OpenCV 1.2/include/&quot;;&quot;$(SolutionDir)../../component/PGR FlyCapture/include/&quot;;&quot;$(SolutionDir)../../component/GLUT/include/&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../include/&quot;;&quot;$(SolutionDir)../../component/OpenCV 1.2/include/&quot;;&quot;$(SolutionDir)../../component/GLUT/include/&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;WINDAGE_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -62,20 +62,11 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLinkerTool"
-				AdditionalDependencies="cv120.lib cxcore120.lib highgui120.lib glut.lib"
-				OutputFile="$(OutDir)\$(ProjectName)d.dll"
-				LinkIncremental="2"
-				AdditionalLibraryDirectories="&quot;$(SolutionDir)../../component/OpenCV 1.2/lib/&quot;;&quot;$(SolutionDir)../../component/PGR FlyCapture/lib/&quot;;&quot;$(SolutionDir)../../component/GLUT/lib/&quot;"
-				GenerateDebugInformation="true"
-				SubSystem="2"
-				TargetMachine="1"
+				Name="VCLibrarianTool"
+				OutputFile="$(OutDir)\$(ProjectName)d.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -87,16 +78,13 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(SolutionDir)bin/"
-			IntermediateDirectory="$(SolutionDir)BuildLog/$(ProjectName)/$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)../../bin/"
+			IntermediateDirectory="$(SolutionDir)../../BuildLog/$(ProjectName)/$(ConfigurationName)"
 			ConfigurationType="4"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
@@ -123,7 +111,7 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				EnableFiberSafeOptimizations="false"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)windage/&quot;;&quot;$(SolutionDir)../../component/OpenCV 1.2/include/&quot;;&quot;$(SolutionDir)../../component/PGR FlyCapture/include/&quot;;&quot;$(SolutionDir)../../component/GLUT/include/&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../include/&quot;;&quot;$(SolutionDir)../../component/OpenCV 1.2/include/&quot;;&quot;$(SolutionDir)../../component/GLUT/include/&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;WINDAGE_EXPORTS"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -168,94 +156,94 @@
 			Name="Tracker"
 			>
 			<File
-				RelativePath=".\Tracker\Calibration.cpp"
+				RelativePath="..\..\..\src\Tracker\Calibration.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Tracker\Calibration.h"
+				RelativePath="..\..\..\include\Tracker\Calibration.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Tracker\ChessboardTracker.cpp"
+				RelativePath="..\..\..\src\Tracker\ChessboardTracker.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Tracker\ChessboardTracker.h"
+				RelativePath="..\..\..\include\Tracker\ChessboardTracker.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Tracker\ModifiedSURFTracker.cpp"
+				RelativePath="..\..\..\src\Tracker\ModifiedSURFTracker.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Tracker\ModifiedSURFTracker.h"
+				RelativePath="..\..\..\include\Tracker\ModifiedSURFTracker.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Tracker\MultipleSURFTracker.cpp"
+				RelativePath="..\..\..\src\Tracker\MultipleSURFTracker.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Tracker\MultipleSURFTracker.h"
+				RelativePath="..\..\..\include\Tracker\MultipleSURFTracker.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Tracker\MultipleTracker.cpp"
+				RelativePath="..\..\..\src\Tracker\MultipleTracker.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Tracker\MultipleTracker.h"
+				RelativePath="..\..\..\include\Tracker\MultipleTracker.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Tracker\OpticalFlow.cpp"
+				RelativePath="..\..\..\src\Tracker\OpticalFlow.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Tracker\OpticalFlow.h"
+				RelativePath="..\..\..\include\Tracker\OpticalFlow.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Tracker\ReferenceStorage.cpp"
+				RelativePath="..\..\..\src\Tracker\ReferenceStorage.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Tracker\ReferenceStorage.h"
+				RelativePath="..\..\..\include\Tracker\ReferenceStorage.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Tracker\Tracker.cpp"
+				RelativePath="..\..\..\src\Tracker\Tracker.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Tracker\Tracker.h"
+				RelativePath="..\..\..\include\Tracker\Tracker.h"
 				>
 			</File>
 			<Filter
 				Name="FAST Feature"
 				>
 				<File
-					RelativePath=".\Tracker\FAST\fast.cpp"
+					RelativePath="..\..\..\src\Tracker\FAST\fast.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\Tracker\FAST\fast.h"
+					RelativePath="..\..\..\include\Tracker\FAST\fast.h"
 					>
 				</File>
 				<File
-					RelativePath=".\Tracker\FAST\wfastsurf.cpp"
+					RelativePath="..\..\..\src\Tracker\FAST\wfastsurf.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\Tracker\FAST\wfastsurf.h"
+					RelativePath="..\..\..\include\Tracker\FAST\wfastsurf.h"
 					>
 				</File>
 				<File
-					RelativePath=".\Tracker\FAST\wsurf.cpp"
+					RelativePath="..\..\..\src\Tracker\FAST\wsurf.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\Tracker\FAST\wsurf.h"
+					RelativePath="..\..\..\include\Tracker\FAST\wsurf.h"
 					>
 				</File>
 			</Filter>
@@ -263,19 +251,19 @@
 				Name="PoseEstimation"
 				>
 				<File
-					RelativePath=".\Tracker\PoseEstimation\FindHomography.cpp"
+					RelativePath="..\..\..\src\Tracker\PoseEstimation\FindHomography.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\Tracker\PoseEstimation\FindHomography.h"
+					RelativePath="..\..\..\include\Tracker\PoseEstimation\FindHomography.h"
 					>
 				</File>
 				<File
-					RelativePath=".\Tracker\PoseEstimation\FindPROSACHomography.cpp"
+					RelativePath="..\..\..\src\Tracker\PoseEstimation\FindPROSACHomography.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\Tracker\PoseEstimation\FindPROSACHomography.h"
+					RelativePath="..\..\..\include\Tracker\PoseEstimation\FindPROSACHomography.h"
 					>
 				</File>
 			</Filter>
@@ -284,11 +272,11 @@
 			Name="Reconstructor"
 			>
 			<File
-				RelativePath=".\Reconstructor\Reconstructor.cpp"
+				RelativePath="..\..\..\src\Reconstructor\Reconstructor.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Reconstructor\Reconstructor.h"
+				RelativePath="..\..\..\include\Reconstructor\Reconstructor.h"
 				>
 			</File>
 		</Filter>
@@ -296,27 +284,27 @@
 			Name="Utils"
 			>
 			<File
-				RelativePath=".\Utils\Logger.cpp"
+				RelativePath="..\..\..\src\Utils\Logger.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Utils\Logger.h"
+				RelativePath="..\..\..\include\Utils\Logger.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Utils\Utils.cpp"
+				RelativePath="..\..\..\src\Utils\Utils.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Utils\Utils.h"
+				RelativePath="..\..\..\include\Utils\Utils.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Utils\wMatrix.h"
+				RelativePath="..\..\..\include\Utils\wMatrix.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Utils\wVector.h"
+				RelativePath="..\..\..\include\Utils\wVector.h"
 				>
 			</File>
 		</Filter>
@@ -324,19 +312,19 @@
 			Name="AugmentedReality"
 			>
 			<File
-				RelativePath=".\AugmentedReality\ARForOpenGL.cpp"
+				RelativePath="..\..\..\src\AugmentedReality\ARForOpenGL.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\AugmentedReality\ARForOpenGL.h"
+				RelativePath="..\..\..\include\AugmentedReality\ARForOpenGL.h"
 				>
 			</File>
 			<File
-				RelativePath=".\AugmentedReality\AugmentedReality.cpp"
+				RelativePath="..\..\..\src\AugmentedReality\AugmentedReality.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\AugmentedReality\AugmentedReality.h"
+				RelativePath="..\..\..\include\AugmentedReality\AugmentedReality.h"
 				>
 			</File>
 		</Filter>
@@ -347,27 +335,27 @@
 				Name="Sensors"
 				>
 				<File
-					RelativePath=".\SpatialInteraction\CubeSensorGroup.cpp"
+					RelativePath="..\..\..\src\SpatialInteraction\CubeSensorGroup.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\SpatialInteraction\CubeSensorGroup.h"
+					RelativePath="..\..\..\include\SpatialInteraction\CubeSensorGroup.h"
 					>
 				</File>
 				<File
-					RelativePath=".\SpatialInteraction\SensorGroup.cpp"
+					RelativePath="..\..\..\src\SpatialInteraction\SensorGroup.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\SpatialInteraction\SensorGroup.h"
+					RelativePath="..\..\..\include\SpatialInteraction\SensorGroup.h"
 					>
 				</File>
 				<File
-					RelativePath=".\SpatialInteraction\SpatialSensor.cpp"
+					RelativePath="..\..\..\src\SpatialInteraction\SpatialSensor.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\SpatialInteraction\SpatialSensor.h"
+					RelativePath="..\..\..\include\SpatialInteraction\SpatialSensor.h"
 					>
 				</File>
 			</Filter>
@@ -375,27 +363,27 @@
 				Name="Detector"
 				>
 				<File
-					RelativePath=".\SpatialInteraction\SensorDetector.cpp"
+					RelativePath="..\..\..\src\SpatialInteraction\SensorDetector.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\SpatialInteraction\SensorDetector.h"
+					RelativePath="..\..\..\include\SpatialInteraction\SensorDetector.h"
 					>
 				</File>
 				<File
-					RelativePath=".\SpatialInteraction\StereoSensorDetector.cpp"
+					RelativePath="..\..\..\src\SpatialInteraction\StereoSensorDetector.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\SpatialInteraction\StereoSensorDetector.h"
+					RelativePath="..\..\..\include\SpatialInteraction\StereoSensorDetector.h"
 					>
 				</File>
 				<File
-					RelativePath=".\SpatialInteraction\StereoSURFDetector.cpp"
+					RelativePath="..\..\..\src\SpatialInteraction\StereoSURFDetector.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\SpatialInteraction\StereoSURFDetector.h"
+					RelativePath="..\..\..\include\SpatialInteraction\StereoSURFDetector.h"
 					>
 				</File>
 			</Filter>
@@ -404,8 +392,52 @@
 				>
 			</Filter>
 		</Filter>
+		<Filter
+			Name="FeatureMatching"
+			>
+			<File
+				RelativePath="..\..\..\src\FeatureMatching\CameraPoseCalculator.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\include\FeatureMatching\CameraPoseCalculator.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\FeatureMatching\FeatureFactory.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\include\FeatureMatching\FeatureFactory.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\FeatureMatching\FeatureTree.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\include\FeatureMatching\FeatureTree.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\FeatureMatching\SURFFeature.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\include\FeatureMatching\SURFFeature.h"
+				>
+			</File>
+			<Filter
+				Name="SURFDescriptor"
+				>
+				<File
+					RelativePath="..\..\..\include\FeatureMatching\SURFDescriptor\wsurf.h"
+					>
+				</File>
+			</Filter>
+		</Filter>
 		<File
-			RelativePath=".\windage.h"
+			RelativePath="..\..\..\include\windage.h"
 			>
 		</File>
 	</Files>

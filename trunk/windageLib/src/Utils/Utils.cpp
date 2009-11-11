@@ -39,7 +39,7 @@
 
 #include <stdio.h>
 
-#include "Utils.h"
+#include "Utils/Utils.h"
 using namespace windage;
 
 void Utils::DrawTextToImage(IplImage* colorImage, CvPoint position, char* message)
