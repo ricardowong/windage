@@ -151,12 +151,13 @@ void main()
 
 	// default Tracker Initialize
 	IplImage* grabFrame = NULL;
-	IplImage* referenceImage = cvLoadImage("reference_map_320.png", 0);
-	IplImage* referenceColor = cvLoadImage("reference_map_320.png");
+	IplImage* referenceImage = cvLoadImage("reference1.png", 0);
+	IplImage* referenceColor = cvLoadImage("reference1_320.png");
 
 	windage::ModifiedSURFTracker* defaultTracker = new windage::ModifiedSURFTracker();
 	defaultTracker = new windage::ModifiedSURFTracker();
-	defaultTracker->Initialize(778.195, 779.430, 324.659, 235.685, -0.333103, 0.173760, 0.000653, 0.001114, 50);
+	defaultTracker->Initialize(1029.400, 1028.675, 316.524, 211.395, -0.206360, 0.238378, 0.001089, -0.000769, 50);
+//	defaultTracker->Initialize(778.195, 779.430, 324.659, 235.685, -0.333103, 0.173760, 0.000653, 0.001114, 50);
 	defaultTracker->RegistReferenceImage(referenceImage, ORIGINAL_WIDTH, ORIGINAL_HEIGHT, 4.0, 8);
 	defaultTracker->GetCameraParameter()->InitUndistortionMap(WIDTH, HEIGHT);
 	defaultTracker->SetPoseEstimationMethod(windage::PROSAC);

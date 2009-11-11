@@ -38,12 +38,11 @@
  * ======================================================================== */
 
 #include <iostream>
+#include <windage.h>
+#include "AugmentedReality/ARForOpenGL.h"
+#include "OpenGLRenderer.h"
 
 #include "PGRCamera.h"
-
-#include "OpenGLRenderer.h"
-#include "AugmentedReality/ARForOpenGL.h"
-#include "Tracker/ModifiedSURFTracker.h"
 
 #define FILP
 
@@ -55,6 +54,8 @@ windage::Tracker* tracker;
 windage::AugmentedReality* arTool;
 IplImage* input;
 IplImage* gray;
+
+using namespace windage;
 
 void keyboard(unsigned char ch, int x, int y)
 {
@@ -80,6 +81,8 @@ void idle(void)
 
 	// call tracking algorithm
 	tracker->UpdateCameraPose(gray);
+//	tracker->DrawInfomation(input);
+	tracker->DrawDebugInfo(input);
 
 	glutPostRedisplay();
 }
@@ -111,7 +114,9 @@ void display()
 		OpenGLRenderer::setMaterial(Vector4(255, 255, 255, 0.8));
 		glTranslated(0, 0, 5);
 		glRotatef(90, 1, 0, 0);
-		glutSolidTeapot(5);
+
+		glutWireTeapot(5);
+//		glutSolidTeapot(5);
 //		glutSolidCube(10);
 	glPopMatrix();
 
@@ -126,13 +131,14 @@ void main()
 	gray = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 1);
 
 	// initialize tracker
-	IplImage* referenceImage = cvLoadImage("reference1_160.png", 0);
+	IplImage* referenceImage = cvLoadImage("reference1_320.png", 0);
 	tracker = new windage::ModifiedSURFTracker();
 	((windage::ModifiedSURFTracker*)tracker)->Initialize(778.195, 779.430, 324.659, 235.685, -0.333103, 0.173760, 0.000653, 0.001114, 30);
 	((windage::ModifiedSURFTracker*)tracker)->RegistReferenceImage(referenceImage, 26.70, 20.00, 4.0, 8);
 	((windage::ModifiedSURFTracker*)tracker)->InitializeOpticalFlow(WIDTH, HEIGHT, 10, cvSize(15, 15), 3);
-	((windage::ModifiedSURFTracker*)tracker)->SetPoseEstimationMethod(windage::PROSAC);
-	((windage::ModifiedSURFTracker*)tracker)->SetOpticalFlowRunning(false);
+	((windage::ModifiedSURFTracker*)tracker)->SetOpticalFlowRunning(true);
+	((windage::ModifiedSURFTracker*)tracker)->SetPoseEstimationMethod(windage::RANSAC);
+	((windage::ModifiedSURFTracker*)tracker)->SetOutlinerRemove(true);
 	((windage::ModifiedSURFTracker*)tracker)->SetFeatureExtractTreshold(50);
 
 

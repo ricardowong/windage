@@ -80,7 +80,7 @@ namespace windage
 		void InitializeOpticalFlow(
 									int width,							///< input image width size
 									int height,							///< input image height size
-									CvSize windowSize=cvSize(10, 10),	///< opticalflow window size
+									CvSize windowSize=cvSize(8, 8),	///< opticalflow window size
 									int pyramidLevel=3					///< opticalflow pyramid level
 									);
 
