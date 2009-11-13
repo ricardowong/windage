@@ -87,7 +87,7 @@ void main()
 	IplImage* grayImage = cvCreateImage(cvGetSize(inputImage), IPL_DEPTH_8U, 1);
 	
 	// Tracker Initialize
-	IplImage* referenceImage = cvLoadImage("reference1_320.png", 0);
+	IplImage* referenceImage = cvLoadImage("reference5_320.png", 0);
 	windage::ModifiedSURFTracker* tracker = CreateTracker(referenceImage, 0);
 
 	// for undistortion
@@ -138,7 +138,6 @@ void main()
 		// draw tracking result
 		if(featureCount > FIND_FEATURE_COUNT)
 		{
-			//tracker->DrawDebugInfo(inputImage);
 			tracker->DrawOutLine(inputImage, true);
 			tracker->DrawInfomation(inputImage, 5.0);
 			tracker->DrawDebugInfo(inputImage);

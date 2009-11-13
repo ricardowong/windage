@@ -74,7 +74,7 @@ windage::ModifiedSURFTracker* CreateTracker(IplImage* refImage, int index)
 	windage::ModifiedSURFTracker* tracker = new windage::ModifiedSURFTracker();
 	tracker->Initialize(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], intrinsicValues[4], intrinsicValues[5], intrinsicValues[6], intrinsicValues[7], 30);
 	tracker->RegistReferenceImage(refImage, 26.70, 20.00, 4.0, 8);
-	tracker->SetPoseEstimationMethod(windage::PROSAC);
+	tracker->SetPoseEstimationMethod(windage::RANSAC);
 	tracker->SetOutlinerRemove(true);
 	tracker->InitializeOpticalFlow(WIDTH, HEIGHT, 10, cvSize(8, 8), 3);
 	tracker->SetOpticalFlowRunning(true);
@@ -115,7 +115,7 @@ void display()
 	tracker->SetFeatureExtractTreshold(fastThreshold);
 	tracker->UpdateCameraPose(gray);
 //	tracker->DrawInfomation(input);
-//	tracker->DrawDebugInfo(input);
+	tracker->DrawDebugInfo(input);
 
 #ifdef ADAPTIVE_THRESHOLD
 	int featureCount = tracker->GetFeatureCount();
