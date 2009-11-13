@@ -44,7 +44,7 @@
 
 #define ADAPTIVE_THRESHOLD
 
-const int OBJECT_COUNT = 4;
+const int OBJECT_COUNT = 7;
 const int FIND_FEATURE_COUNT = 10;
 
 const int WIDTH = 640;
@@ -77,7 +77,7 @@ void main()
 	windage::MultipleSURFTracker* multipleTracker = new windage::MultipleSURFTracker();
 	multipleTracker->Initialize(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], intrinsicValues[4], intrinsicValues[5], intrinsicValues[6], intrinsicValues[7]);
 	multipleTracker->InitializeOpticalFlow(WIDTH, HEIGHT, cvSize(8, 8), 3);
-	multipleTracker->SetDetectIntervalTime(1.0);
+	multipleTracker->SetDetectIntervalTime(2.0);
 	multipleTracker->SetPoseEstimationMethod(windage::PROSAC);
 	multipleTracker->SetOutlinerRemove(true);
 	multipleTracker->SetFeatureExtractThreshold(30);
