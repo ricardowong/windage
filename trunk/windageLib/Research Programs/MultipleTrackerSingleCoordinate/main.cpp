@@ -50,6 +50,9 @@ const int FIND_FEATURE_COUNT = 10;
 const int WIDTH = 640;
 const int HEIGHT = 480;
 
+const double REAL_WIDTH = 26.70;
+const double REAL_HEIGHT = 20.00;
+
 const double intrinsicValues[8] = {1029.400, 1028.675, 316.524, 211.395, -0.206360, 0.238378, 0.001089, -0.000769};
 
 
@@ -179,13 +182,22 @@ void main()
 	for(int i=0; i<trainingImage.size(); i++)
 	{
 		std::cout << "attatch reference image #" << i << std::endl;
-		multipleTracker->AttatchReferenceImage(trainingImage[i], 26.70, 20.00, 4.0, 8);
+		multipleTracker->AttatchReferenceImage(trainingImage[i], REAL_WIDTH, REAL_HEIGHT, 4.0, 8);
 	}
 
-	// for undistortion
+	// for undistortion and calculate coordinate
 	windage::Calibration* calibration = new windage::Calibration();
 	calibration->Initialize(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], intrinsicValues[4], intrinsicValues[5], intrinsicValues[6], intrinsicValues[7]);
 	calibration->InitUndistortionMap(WIDTH, HEIGHT);
+
+	std::vector<windage::Vector3> rotationList;
+	rotationList.resize(OBJECT_COUNT);
+	std::vector<windage::Vector3> translationList;
+	translationList.resize(OBJECT_COUNT);
+	std::vector<bool> foundList;
+	foundList.resize(OBJECT_COUNT);
+	for(int i=0; i<foundList.size(); i++)
+		foundList[i] = false;
 
 	// adaptive threshold
 	int fastThreshold = 70;
@@ -236,6 +248,10 @@ void main()
 				windage::Vector3 translation = GetTranslation(multipleTracker->GetCameraParameter(0), multipleTracker->GetCameraParameter(i));
 				windage::Vector3 rotation = GetRotation(multipleTracker->GetCameraParameter(0), multipleTracker->GetCameraParameter(i));
 
+				foundList[i] = true;
+				translationList[i] = translation;
+				rotationList[i] = rotation;
+
 				windage::Matrix4 extrinsic = CalculateExtrinsicParameter(multipleTracker->GetCameraParameter(0), rotation, translation);
 				calibration->SetExtrinsicMatrix(extrinsic.m1);
 
@@ -258,6 +274,39 @@ void main()
 				sprintf(message, "              (%.1lf, %.1lf, %.1lf)", rotation.x*180.0/CV_PI, rotation.y*180.0/CV_PI, rotation.z*180.0/CV_PI);
 				windage::Utils::DrawTextToImage(inputImage, center, message);
 //*/
+			}
+			else if(foundList[i])
+			{
+				windage::Vector3 translation = translationList[i];
+				windage::Vector3 rotation = rotationList[i];
+
+				windage::Matrix4 extrinsic = CalculateExtrinsicParameter(multipleTracker->GetCameraParameter(0), rotation, translation);
+				calibration->SetExtrinsicMatrix(extrinsic.m1);
+
+				windage::Vector3 temp = windage::Vector3(0.0, 0.0, 0.0);
+				CvPoint center = calibration->ConvertWorld2Image(temp.x, temp.y, temp.z);
+				CvPoint centerX = calibration->ConvertWorld2Image(temp.x + 5.0, temp.y, temp.z);
+				CvPoint centerY = calibration->ConvertWorld2Image(temp.x, temp.y + 5.0, temp.z);
+				CvPoint centerZ = calibration->ConvertWorld2Image(temp.x, temp.y, temp.z + 5.0);
+
+				// draw outline
+				CvScalar color = CV_RGB(255, 255, 0);
+				cvLine(inputImage,  calibration->ConvertWorld2Image(-REAL_WIDTH/2.0, -REAL_HEIGHT/2.0, 0.0), 
+									calibration->ConvertWorld2Image(+REAL_WIDTH/2.0, -REAL_HEIGHT/2.0, 0.0), color, 5);
+				cvLine(inputImage,  calibration->ConvertWorld2Image(+REAL_WIDTH/2.0, -REAL_HEIGHT/2.0, 0.0), 
+									calibration->ConvertWorld2Image(+REAL_WIDTH/2.0, +REAL_HEIGHT/2.0, 0.0), color, 5);
+				cvLine(inputImage,  calibration->ConvertWorld2Image(+REAL_WIDTH/2.0, +REAL_HEIGHT/2.0, 0.0), 
+									calibration->ConvertWorld2Image(-REAL_WIDTH/2.0, +REAL_HEIGHT/2.0, 0.0), color, 5);
+				cvLine(inputImage,  calibration->ConvertWorld2Image(-REAL_WIDTH/2.0, +REAL_HEIGHT/2.0, 0.0), 
+									calibration->ConvertWorld2Image(-REAL_WIDTH/2.0, -REAL_HEIGHT/2.0, 0.0), color, 5);
+
+				cvLine(inputImage, center, centerX, CV_RGB(255, 0, 0), 5);
+				cvLine(inputImage, center, centerY, CV_RGB(0, 255, 0), 5);
+				cvLine(inputImage, center, centerZ, CV_RGB(0, 0, 255), 5);
+			}
+			else
+			{
+				// cannot draw
 			}
 
 		}
