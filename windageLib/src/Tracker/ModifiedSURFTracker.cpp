@@ -101,7 +101,7 @@ void ModifiedSURFTracker::Initialize(double fx, double fy, double cx, double cy,
 	cameraParameter = new Calibration();
 	cameraParameter->Initialize(fx, fy, cx, cy, d1, d2, d3, d4);
 
-	this->SetFeatureExtractTreshold(featureExtractThreshold);
+	this->SetFeatureExtractThreshold(featureExtractThreshold);
 
 }
 
@@ -121,7 +121,7 @@ void ModifiedSURFTracker::RegistReferenceImage(IplImage* referenceImage, double 
 
 	this->realWidth = realWidth;
 	this->realHeight = realHeight;
-	this->SetFeatureExtractTreshold(featureExtractThreshold);
+	this->SetFeatureExtractThreshold(featureExtractThreshold);
 
 	GenerateReferenceFeatureTree(scaleFactor, scaleStep);
 }

@@ -72,7 +72,7 @@ windage::ModifiedSURFTracker* CreateTracker(IplImage* refImage, int index)
 	tracker->InitializeOpticalFlow(WIDTH, HEIGHT, 10, cvSize(8, 8), 3);
 	tracker->SetOpticalFlowRunning(true);
 //	tracker->GetCameraParameter()->InitUndistortionMap(WIDTH, HEIGHT);
-	tracker->SetFeatureExtractTreshold(30);
+	tracker->SetFeatureExtractThreshold(30);
 
 	tracker->SetSetpIndex(index);
 	
@@ -120,7 +120,7 @@ void main()
 		// call tracking algorithm
 		log->updateTickCount();
 
-		tracker->SetFeatureExtractTreshold(fastThreshold);
+		tracker->SetFeatureExtractThreshold(fastThreshold);
 		tracker->UpdateCameraPose(grayImage);
 		int featureCount = tracker->GetFeatureCount();
 		int matchingCount = tracker->GetMatchedCount();

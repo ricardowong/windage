@@ -129,8 +129,8 @@ namespace windage
 		inline int GetMatchedCount(){return matchedScene.size();};
 
 		inline IplImage* GetReferenceImage(){return this->referenceImage;};
-		inline int GetFeatureExtractTreshold(){return this->featureExtractThreshold;};
-		inline void SetFeatureExtractTreshold(int threshold=80){this->featureExtractThreshold = threshold;};
+		inline int GetFeatureExtractThreshold(){return this->featureExtractThreshold;};
+		inline void SetFeatureExtractThreshold(int threshold=80){this->featureExtractThreshold = threshold;};
 
 		inline void SetPoseEstimationMethod(POSE_ESTIMATION_METHOD poseEstimationMethod=windage::RANSAC){this->poseEstimationMethod = poseEstimationMethod;};
 		inline POSE_ESTIMATION_METHOD GetPoseEstimationMethod(){return this->poseEstimationMethod;};
