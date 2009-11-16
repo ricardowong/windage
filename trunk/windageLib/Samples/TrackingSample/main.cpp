@@ -53,6 +53,11 @@
 
 const int FIND_FEATURE_COUNT = 10;
 
+const int MAX_FAST_THRESHOLD = 80;
+const int MIN_FAST_THRESHOLD = 20;
+const int ADAPTIVE_THRESHOLD_VALUE = 1000;
+const int THRESHOLD_STEP = 1;
+
 const int WIDTH = 640;
 const int HEIGHT = 480;
 const double intrinsicValues[8] = {1029.400, 1028.675, 316.524, 211.395, -0.206360, 0.238378, 0.001089, -0.000769};
@@ -87,7 +92,7 @@ void main()
 	IplImage* grayImage = cvCreateImage(cvGetSize(inputImage), IPL_DEPTH_8U, 1);
 	
 	// Tracker Initialize
-	IplImage* referenceImage = cvLoadImage("reference5_320.png", 0);
+	IplImage* referenceImage = cvLoadImage("reference1_320.png", 0);
 	windage::ModifiedSURFTracker* tracker = CreateTracker(referenceImage, 0);
 
 	// for undistortion
@@ -97,11 +102,6 @@ void main()
 
 	// adaptive threshold
 	int fastThreshold = 70;
-	const int MAX_FAST_THRESHOLD = 80;
-	const int MIN_FAST_THRESHOLD = 30;
-	const int ADAPTIVE_THRESHOLD_VALUE = 500;
-	const int THRESHOLD_STEP = 1;
-
 	IplImage* grabFrame = NULL;
 
 	bool processing = true;

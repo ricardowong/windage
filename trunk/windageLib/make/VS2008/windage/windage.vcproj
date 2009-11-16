@@ -292,6 +292,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\include\Utils\Quaternion.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\src\Utils\Utils.cpp"
 				>
 			</File>
