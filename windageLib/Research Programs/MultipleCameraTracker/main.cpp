@@ -55,7 +55,6 @@ const double REAL_HEIGHT = 20.00;
 
 const double intrinsicValues[8] = {1029.400, 1028.675, 316.524, 211.395, -0.206360, 0.238378, 0.001089, -0.000769};
 
-
 windage::Vector3 GetTranslation(windage::Calibration* fromCalibration, windage::Calibration* toCalibration)
 {
 	CvMat* toExtrinsicMatrix = toCalibration->GetExtrinsicMatrix();
@@ -78,14 +77,47 @@ windage::Vector3 GetTranslation(windage::Calibration* fromCalibration, windage::
 	return windage::Vector3(x, y, z);
 }
 
-windage::Vector3 GetRotation(windage::Calibration* fromCalibration, windage::Calibration* toCalibration)
+windage::Vector3 GetExternalTranslation(windage::Calibration* fromCalibration, windage::Calibration* toCalibration)
 {
-	windage::Matrix3 toRotation;
-	windage::Matrix3 fromRotation;
-
 	CvMat* toExtrinsicMatrix = toCalibration->GetExtrinsicMatrix();
 	CvMat* fromExtrinsicMatrix = fromCalibration->GetExtrinsicMatrix();
 
+	windage::Vector3 fromTranslation;
+	fromTranslation.x = cvGetReal2D(fromExtrinsicMatrix, 0, 3);
+	fromTranslation.y = cvGetReal2D(fromExtrinsicMatrix, 1, 3);
+	fromTranslation.z = cvGetReal2D(fromExtrinsicMatrix, 2, 3);
+
+	windage::Matrix3 fromRotation;
+	for(int y=0; y<3; y++)
+	{
+		for(int x=0; x<3; x++)
+		{
+			fromRotation.m[y][x] = cvGetReal2D(fromExtrinsicMatrix, y, x);
+		}
+	}
+	
+	windage::Vector3 toTranslation;
+	toTranslation.x = cvGetReal2D(toExtrinsicMatrix, 0, 3);
+	toTranslation.y = cvGetReal2D(toExtrinsicMatrix, 1, 3);
+	toTranslation.z = cvGetReal2D(toExtrinsicMatrix, 2, 3);
+
+	fromRotation = fromRotation.Inverse();
+	fromTranslation = fromRotation * fromTranslation;
+	toTranslation = fromRotation * toTranslation;
+
+	double x = toTranslation.x - fromTranslation.x;
+	double y = toTranslation.y - fromTranslation.y;
+	double z = toTranslation.z - fromTranslation.z;
+
+	return windage::Vector3(x, y, z);
+}
+
+windage::Vector3 GetRotation(windage::Calibration* fromCalibration, windage::Calibration* toCalibration)
+{
+	CvMat* toExtrinsicMatrix = toCalibration->GetExtrinsicMatrix();
+	CvMat* fromExtrinsicMatrix = fromCalibration->GetExtrinsicMatrix();
+
+	windage::Matrix3 fromRotation;
 	for(int y=0; y<3; y++)
 	{
 		for(int x=0; x<3; x++)
@@ -95,6 +127,7 @@ windage::Vector3 GetRotation(windage::Calibration* fromCalibration, windage::Cal
 	}
 	windage::Vector3 fromEuler = windage::Quaternion::DcmToEuler(fromRotation);
 
+	windage::Matrix3 toRotation;
 	for(int y=0; y<3; y++)
 	{
 		for(int x=0; x<3; x++)

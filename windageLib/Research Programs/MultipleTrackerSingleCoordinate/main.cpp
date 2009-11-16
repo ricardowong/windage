@@ -78,6 +78,41 @@ windage::Vector3 GetTranslation(windage::Calibration* fromCalibration, windage::
 	return windage::Vector3(x, y, z);
 }
 
+windage::Vector3 GetExternalTranslation(windage::Calibration* fromCalibration, windage::Calibration* toCalibration)
+{
+	CvMat* toExtrinsicMatrix = toCalibration->GetExtrinsicMatrix();
+	CvMat* fromExtrinsicMatrix = fromCalibration->GetExtrinsicMatrix();
+
+	windage::Vector3 fromTranslation;
+	fromTranslation.x = cvGetReal2D(fromExtrinsicMatrix, 0, 3);
+	fromTranslation.y = cvGetReal2D(fromExtrinsicMatrix, 1, 3);
+	fromTranslation.z = cvGetReal2D(fromExtrinsicMatrix, 2, 3);
+
+	windage::Matrix3 fromRotation;
+	for(int y=0; y<3; y++)
+	{
+		for(int x=0; x<3; x++)
+		{
+			fromRotation.m[y][x] = cvGetReal2D(fromExtrinsicMatrix, y, x);
+		}
+	}
+	
+	windage::Vector3 toTranslation;
+	toTranslation.x = cvGetReal2D(toExtrinsicMatrix, 0, 3);
+	toTranslation.y = cvGetReal2D(toExtrinsicMatrix, 1, 3);
+	toTranslation.z = cvGetReal2D(toExtrinsicMatrix, 2, 3);
+
+	fromRotation = fromRotation.Inverse();
+	fromTranslation = fromRotation * fromTranslation;
+	toTranslation = fromRotation * toTranslation;
+
+	double x = toTranslation.x - fromTranslation.x;
+	double y = toTranslation.y - fromTranslation.y;
+	double z = toTranslation.z - fromTranslation.z;
+
+	return windage::Vector3(x, y, z);
+}
+
 windage::Vector3 GetRotation(windage::Calibration* fromCalibration, windage::Calibration* toCalibration)
 {
 	windage::Matrix3 toRotation;
@@ -194,6 +229,8 @@ void main()
 	rotationList.resize(OBJECT_COUNT);
 	std::vector<windage::Vector3> translationList;
 	translationList.resize(OBJECT_COUNT);
+	std::vector<windage::Vector3> externalTranslationList;
+	externalTranslationList.resize(OBJECT_COUNT);
 	std::vector<bool> foundList;
 	foundList.resize(OBJECT_COUNT);
 	for(int i=0; i<foundList.size(); i++)
@@ -245,12 +282,14 @@ void main()
 				multipleTracker->DrawOutLine(inputImage, i, true);
 				multipleTracker->DrawInfomation(inputImage, i, 10.0);
 
-				windage::Vector3 translation = GetTranslation(multipleTracker->GetCameraParameter(0), multipleTracker->GetCameraParameter(i));
-				windage::Vector3 rotation = GetRotation(multipleTracker->GetCameraParameter(0), multipleTracker->GetCameraParameter(i));
-
 				foundList[i] = true;
-				translationList[i] = translation;
-				rotationList[i] = rotation;
+				rotationList[i] = GetRotation(multipleTracker->GetCameraParameter(0), multipleTracker->GetCameraParameter(i));
+				translationList[i] = GetTranslation(multipleTracker->GetCameraParameter(0), multipleTracker->GetCameraParameter(i));
+				externalTranslationList[i] = GetExternalTranslation(multipleTracker->GetCameraParameter(0), multipleTracker->GetCameraParameter(i));
+
+				windage::Vector3 rotation = rotationList[i];
+				windage::Vector3 translation = translationList[i];
+				windage::Vector3 externalTransaltion = externalTranslationList[i];
 
 				windage::Matrix4 extrinsic = CalculateExtrinsicParameter(multipleTracker->GetCameraParameter(0), rotation, translation);
 				calibration->SetExtrinsicMatrix(extrinsic.m1);
@@ -264,6 +303,11 @@ void main()
 				cvLine(inputImage, center, centerX, CV_RGB(255, 0, 0), 5);
 				cvLine(inputImage, center, centerY, CV_RGB(0, 255, 0), 5);
 				cvLine(inputImage, center, centerZ, CV_RGB(0, 0, 255), 5);
+
+				// draw center circle
+				center = multipleTracker->GetCameraParameter(0)->ConvertWorld2Image(externalTransaltion.x, externalTransaltion.y, externalTransaltion.z);
+				cvCircle(inputImage, center, 15, CV_RGB(0, 255, 255), 3);
+
 //*
 				center.x += 10;
 				center.y += 30;
@@ -277,8 +321,9 @@ void main()
 			}
 			else if(foundList[i])
 			{
-				windage::Vector3 translation = translationList[i];
 				windage::Vector3 rotation = rotationList[i];
+				windage::Vector3 translation = translationList[i];
+				windage::Vector3 externalTransaltion = externalTranslationList[i];
 
 				windage::Matrix4 extrinsic = CalculateExtrinsicParameter(multipleTracker->GetCameraParameter(0), rotation, translation);
 				calibration->SetExtrinsicMatrix(extrinsic.m1);
@@ -303,6 +348,10 @@ void main()
 				cvLine(inputImage, center, centerX, CV_RGB(255, 0, 0), 5);
 				cvLine(inputImage, center, centerY, CV_RGB(0, 255, 0), 5);
 				cvLine(inputImage, center, centerZ, CV_RGB(0, 0, 255), 5);
+
+				// draw center circle
+				center = multipleTracker->GetCameraParameter(0)->ConvertWorld2Image(externalTransaltion.x, externalTransaltion.y, externalTransaltion.z);
+				cvCircle(inputImage, center, 15, CV_RGB(0, 255, 255), 3);
 			}
 			else
 			{
