@@ -80,10 +80,19 @@ int OpticalFlow::TrackFeature(IplImage* prevGrayImage, IplImage* currGrayImage, 
 	int pointCount = MIN((int)prevPoints->size(), this->maxPointCount);
 	if(pointCount >= 1)
 	{
+		IplImage* tempPrev = cvCloneImage(prevGrayImage);
+		IplImage* tempCurr = cvCloneImage(currGrayImage);
+
+		cvSmooth(tempPrev, tempPrev, CV_GAUSSIAN, 3, 3);
+		cvSmooth(tempCurr, tempCurr, CV_GAUSSIAN, 3, 3);
+
 		for(int i=0; i<pointCount; i++)
 			this->feature1[i] = (*prevPoints)[i];
 
-		cvCalcOpticalFlowPyrLK(prevGrayImage, currGrayImage, pyramid1, pyramid2, feature1, feature2, pointCount, this->windowSize, this->pyramidLevel, foundFeature, errorFeature, terminationCriteria, 0);
+		cvCalcOpticalFlowPyrLK(tempPrev, tempCurr, pyramid1, pyramid2, feature1, feature2, pointCount, this->windowSize, this->pyramidLevel, foundFeature, errorFeature, terminationCriteria, 0);
+
+		cvReleaseImage(&tempPrev);
+		cvReleaseImage(&tempCurr);
 
 		int index = 0;
 		for(int i=0; i<pointCount; i++)

@@ -52,113 +52,30 @@ const int HEIGHT = 480;
 
 const double intrinsicValues[8] = {1029.400, 1028.675, 316.524, 211.395, -0.206360, 0.238378, 0.001089, -0.000769};
 
-windage::Vector3 DcmToEuler(windage::Matrix3 dcm)
-{
-	windage::Vector3 eular;
 
-	eular.x = atan2(dcm.m[2][0], dcm.m[2][1]);
-	eular.y = acos(dcm.m[2][2]);
-	eular.z = -atan2(dcm.m[0][2], dcm.m[1][2]);
-	return eular;
-}
-
-windage::Vector4 EulerToQuaternion(windage::Vector3 euler)
-{
-	windage::Vector4 quaternion;
-
-	quaternion.x = -cos((euler.x - euler.z)/2.0) * sin(euler.y/2.0);
-	quaternion.y = sin((euler.x-euler.z)/2.0) * sin(euler.y/2.0);
-	quaternion.z = -sin((euler.x + euler.z)/2.0) * cos(euler.y/2);
-	quaternion.w = cos((euler.x + euler.z)/2.0) * cos(euler.y/2);
-	return quaternion;
-}
-
-windage::Vector3 EulerToQuaternion(windage::Vector4 quaternion)
-{
-	windage::Vector3 euler;
-
-	euler.x = atan2((quaternion.x*quaternion.z) + (quaternion.y*quaternion.w), (quaternion.y*quaternion.z) - (quaternion.x*quaternion.w));
-	euler.y = acos(-(quaternion.x*quaternion.x)-(quaternion.y*quaternion.y)+(quaternion.z*quaternion.z)+(quaternion.w*quaternion.w));
-	euler.z = -atan2((quaternion.x*quaternion.z) - (quaternion.y*quaternion.w), (quaternion.y*quaternion.z) + (quaternion.x*quaternion.w));
-	return euler;
-}
-
-windage::Matrix3 QuaternionToDcm(windage::Vector4 quaternion)
-{
-	windage::Matrix3 dcm;
-
-	dcm.m[0][0] = 1.0 - 2.0*quaternion.y*quaternion.y - 2.0*quaternion.z*quaternion.z;
-	dcm.m[0][1] = 2.0*(quaternion.x*quaternion.y - quaternion.z*quaternion.w);
-	dcm.m[0][2] = 2.0*(quaternion.x*quaternion.z + quaternion.y*quaternion.w);
-
-	dcm.m[1][0] = 2.0*(quaternion.x*quaternion.y + quaternion.z*quaternion.w);
-	dcm.m[1][1] = 1.0 - 2.0*quaternion.x*quaternion.x - 2.0*quaternion.z*quaternion.z;
-	dcm.m[1][2] = 2.0*(quaternion.y*quaternion.z - quaternion.x*quaternion.w);
-
-	dcm.m[2][0] = 2.0*(quaternion.x*quaternion.z - quaternion.y*quaternion.w);
-	dcm.m[2][1] = 2.0*(quaternion.x*quaternion.w + quaternion.y*quaternion.z);
-	dcm.m[2][2] = 1.0 - 2.0*quaternion.z*quaternion.z - 2.0*quaternion.z*quaternion.z;
-	return dcm;
-}
-
-windage::Vector4 DcmToQuaternion(windage::Matrix3 dcm)
-{
-	windage::Vector4 quaternion;
-
-	quaternion.w = sqrt(1.0 + dcm.m[0][0] + dcm.m[1][1] + dcm.m[2][2]) / 2.0;
-	quaternion.x = (dcm.m[0][1] - dcm.m[2][1]) / (4.0 * quaternion.w);
-	quaternion.y = (dcm.m[2][0] - dcm.m[0][3]) / (4.0 * quaternion.w);
-	quaternion.z = (dcm.m[0][1] - dcm.m[1][0]) / (4.0 * quaternion.w);
-	return quaternion;
-}
-
-
-windage::Vector3 GetTranslation(windage::Calibration* toCalibration, windage::Calibration* fromCalibration)
+windage::Vector3 GetTranslation(windage::Calibration* fromCalibration, windage::Calibration* toCalibration)
 {
 	CvMat* toExtrinsicMatrix = toCalibration->GetExtrinsicMatrix();
 	CvMat* fromExtrinsicMatrix = fromCalibration->GetExtrinsicMatrix();
 
-	CvMat* fromTranslationVectorFinal = cvCreateMat(3, 1, CV_64FC1);
-	CvMat* fromTranslationVector = cvCreateMat(3, 1, CV_64FC1);
-	cvSetReal1D(fromTranslationVector, 0, cvGetReal2D(fromExtrinsicMatrix, 0, 3));
-	cvSetReal1D(fromTranslationVector, 1, cvGetReal2D(fromExtrinsicMatrix, 1, 3));
-	cvSetReal1D(fromTranslationVector, 2, cvGetReal2D(fromExtrinsicMatrix, 2, 3));
+	windage::Vector3 fromTranslation;
+	fromTranslation.x = cvGetReal2D(fromExtrinsicMatrix, 0, 3);
+	fromTranslation.y = cvGetReal2D(fromExtrinsicMatrix, 1, 3);
+	fromTranslation.z = cvGetReal2D(fromExtrinsicMatrix, 2, 3);
+	
+	windage::Vector3 toTranslation;
+	toTranslation.x = cvGetReal2D(toExtrinsicMatrix, 0, 3);
+	toTranslation.y = cvGetReal2D(toExtrinsicMatrix, 1, 3);
+	toTranslation.z = cvGetReal2D(toExtrinsicMatrix, 2, 3);
 
-	CvMat* toTranslationVectorFinal = cvCreateMat(3, 1, CV_64FC1);
-	CvMat* toTranslationVector = cvCreateMat(3, 1, CV_64FC1);
-	cvSetReal1D(toTranslationVector, 0, cvGetReal2D(toExtrinsicMatrix, 0, 3));
-	cvSetReal1D(toTranslationVector, 1, cvGetReal2D(toExtrinsicMatrix, 1, 3));
-	cvSetReal1D(toTranslationVector, 2, cvGetReal2D(toExtrinsicMatrix, 2, 3));
-
-	CvMat* toRotationMatrix = cvCreateMat(3, 3, CV_64FC1);
-	for(int y=0; y<3; y++)
-	{
-		for(int x=0; x<3; x++)
-		{
-			cvSetReal2D(toRotationMatrix, x, y, cvGetReal2D(toExtrinsicMatrix, x, y));
-		}
-	}
-	CvMat* toRotationMatrixInvers = cvCreateMat(3, 3, CV_64FC1);
-	cvInvert(toRotationMatrix, toRotationMatrixInvers);
-	cvMatMul(toRotationMatrixInvers, toTranslationVector, toTranslationVectorFinal);
-	cvMatMul(toRotationMatrixInvers, fromTranslationVector, fromTranslationVectorFinal);
-
-
-	double x = cvGetReal1D(fromTranslationVectorFinal, 0) - cvGetReal1D(toTranslationVectorFinal, 0);
-	double y = cvGetReal1D(fromTranslationVectorFinal, 1) - cvGetReal1D(toTranslationVectorFinal, 1);
-	double z = cvGetReal1D(fromTranslationVectorFinal, 2) - cvGetReal1D(toTranslationVectorFinal, 2);
-
-	cvReleaseMat(&fromTranslationVectorFinal);
-	cvReleaseMat(&fromTranslationVector);
-	cvReleaseMat(&toTranslationVectorFinal);
-	cvReleaseMat(&toTranslationVector);
-	cvReleaseMat(&toRotationMatrix);
-	cvReleaseMat(&toRotationMatrixInvers);
+	double x = toTranslation.x - fromTranslation.x;
+	double y = toTranslation.y - fromTranslation.y;
+	double z = toTranslation.z - fromTranslation.z;
 
 	return windage::Vector3(x, y, z);
 }
 
-windage::Vector3 GetRotation(windage::Calibration* toCalibration, windage::Calibration* fromCalibration)
+windage::Vector3 GetRotation(windage::Calibration* fromCalibration, windage::Calibration* toCalibration)
 {
 	windage::Matrix3 toRotation;
 	windage::Matrix3 fromRotation;
@@ -173,8 +90,7 @@ windage::Vector3 GetRotation(windage::Calibration* toCalibration, windage::Calib
 			fromRotation.m[y][x] = cvGetReal2D(fromExtrinsicMatrix, y, x);
 		}
 	}
-
-	windage::Vector3 fromEuler = DcmToEuler(fromRotation);
+	windage::Vector3 fromEuler = windage::Quaternion::DcmToEuler(fromRotation);
 
 	for(int y=0; y<3; y++)
 	{
@@ -183,45 +99,48 @@ windage::Vector3 GetRotation(windage::Calibration* toCalibration, windage::Calib
 			toRotation.m[y][x] = cvGetReal2D(toExtrinsicMatrix, y, x);
 		}
 	}
-	windage::Vector3 toEuler = DcmToEuler(toRotation);
+	windage::Vector3 toEuler = windage::Quaternion::DcmToEuler(toRotation);
 
-	return fromEuler - toEuler;
+	return toEuler - fromEuler;
 }
 
-windage::Matrix3 ConvertQuaternionMatrix(windage::Vector3 euclidean)
+windage::Matrix4 CalculateExtrinsicParameter(windage::Calibration* fromCalibration, windage::Vector3 toRotation, windage::Vector3 toTranslation)
 {
-	windage::Matrix3 rotation;
+	windage::Matrix3 fromRotation;
+	windage::Vector3 fromTranslation;
+	CvMat* fromExtrinsicMatrix = fromCalibration->GetExtrinsicMatrix();
 
-//	euclidean = -euclidean;
-	euclidean.x = -euclidean.y;
-	euclidean.x = 0;
-//	euclidean.y = 0;
-//	euclidean.z = 0;
+	fromTranslation.v[0] = cvGetReal2D(fromExtrinsicMatrix, 0, 3);
+	fromTranslation.v[1] = cvGetReal2D(fromExtrinsicMatrix, 1, 3);
+	fromTranslation.v[2] = cvGetReal2D(fromExtrinsicMatrix, 2, 3);
 
-	double sinX = sin(euclidean.x);
-	double sinY = sin(euclidean.y);
-	double sinZ = sin(euclidean.z);
-	double cosX = cos(euclidean.x);
-	double cosY = cos(euclidean.y);
-	double cosZ = cos(euclidean.z);
+	for(int y=0; y<3; y++)
+	{
+		for(int x=0; x<3; x++)
+		{
+			fromRotation.m[y][x] = cvGetReal2D(fromExtrinsicMatrix, y, x);
+		}
+	}
 
-	rotation.m[0][0] = cosY*cosZ;
-	rotation.m[0][1] = (-cosX)*sinZ + sinX*sinY*cosZ ;
-	rotation.m[0][2] = sinX*sinZ + cosX*sinY*cosZ;
+	windage::Vector3 rotationEuler = windage::Quaternion::DcmToEuler(fromRotation) + toRotation;
+	windage::Matrix3 rotation = windage::Quaternion::QuaternionToDcm(windage::Quaternion::EulerToQuaternion(rotationEuler));
+	windage::Vector3 translation = fromTranslation + toTranslation;
 
-	rotation.m[1][0] = cosY*sinZ;
-	rotation.m[1][1] = cosX*cosZ+sinX*sinY*sinZ;
-	rotation.m[1][2] = (-sinX)*cosZ + cosX*sinY*sinZ;
+	// set
+	windage::Matrix4 matrix;
+	for(int y=0; y<3; y++)
+	{
+		for(int x=0; x<3; x++)
+		{
+			matrix.m[y][x] = rotation.m[y][x];
+		}
+		matrix.m[y][3] = translation.v[y];
+	}
+	matrix.m[3][0] = matrix.m[3][1] = matrix.m[3][2] = 0.0;
+	matrix.m[3][3] = 1.0;
 
-	rotation.m[2][0] = -sinY;
-	rotation.m[2][1] = sinX*cosY;
-	rotation.m[2][2] = cosX*cosY;
-
-	return rotation;
+	return matrix;
 }
-
-
-
 
 void main()
 {
@@ -305,9 +224,6 @@ void main()
 		else											fastThreshold = MAX(MIN_FAST_THRESHOLD, fastThreshold-THRESHOLD_STEP);
 #endif
 
-		multipleTracker->DrawOutLine(inputImage, 0, true);
-		multipleTracker->DrawInfomation(inputImage, 0, 5.0);
-
 		// draw tracking result
 		for(int i=0; i<multipleTracker->GetTrackerCount(); i++)
 		{
@@ -315,35 +231,33 @@ void main()
 			if(matchedCount > FIND_FEATURE_COUNT)
 			{
 				multipleTracker->DrawOutLine(inputImage, i, true);
-				multipleTracker->DrawInfomation(inputImage, i, 5.0);
+				multipleTracker->DrawInfomation(inputImage, i, 10.0);
 
 				windage::Vector3 translation = GetTranslation(multipleTracker->GetCameraParameter(0), multipleTracker->GetCameraParameter(i));
 				windage::Vector3 rotation = GetRotation(multipleTracker->GetCameraParameter(0), multipleTracker->GetCameraParameter(i));
-				windage::Matrix3 quaternion = QuaternionToDcm(EulerToQuaternion(rotation));
 
-				windage::Vector3 axisX = quaternion * windage::Vector3(5.0, 0.0, 0.0);
-				windage::Vector3 axisY = quaternion * windage::Vector3(0.0, 5.0, 0.0);
-				windage::Vector3 axisZ = quaternion * windage::Vector3(0.0, 0.0, 5.0);
+				windage::Matrix4 extrinsic = CalculateExtrinsicParameter(multipleTracker->GetCameraParameter(0), rotation, translation);
+				calibration->SetExtrinsicMatrix(extrinsic.m1);
 
-				CvPoint center = multipleTracker->GetCameraParameter(0)->ConvertWorld2Image(translation.x, translation.y, translation.z);
-				
-				CvPoint centerP = multipleTracker->GetCameraParameter(0)->ConvertWorld2Image(0.0, 0.0, 0.0);
-				CvPoint centerX = multipleTracker->GetCameraParameter(0)->ConvertWorld2Image(axisX.x, axisX.y, axisX.z);
-				CvPoint centerY = multipleTracker->GetCameraParameter(0)->ConvertWorld2Image(axisY.x, axisY.y, axisY.z);
-				CvPoint centerZ = multipleTracker->GetCameraParameter(0)->ConvertWorld2Image(axisZ.x, axisZ.y, axisZ.z);
+				windage::Vector3 temp = windage::Vector3(0.0, 0.0, 0.0);
+				CvPoint center = calibration->ConvertWorld2Image(temp.x, temp.y, temp.z);
+				CvPoint centerX = calibration->ConvertWorld2Image(temp.x + 5.0, temp.y, temp.z);
+				CvPoint centerY = calibration->ConvertWorld2Image(temp.x, temp.y + 5.0, temp.z);
+				CvPoint centerZ = calibration->ConvertWorld2Image(temp.x, temp.y, temp.z + 5.0);
 
-				cvLine(inputImage, centerP, centerX, CV_RGB(255, 0, 0), 5);
-				cvLine(inputImage, centerP, centerY, CV_RGB(0, 255, 0), 5);
-				cvLine(inputImage, centerP, centerZ, CV_RGB(0, 0, 255), 5);
-				
+				cvLine(inputImage, center, centerX, CV_RGB(255, 0, 0), 5);
+				cvLine(inputImage, center, centerY, CV_RGB(0, 255, 0), 5);
+				cvLine(inputImage, center, centerZ, CV_RGB(0, 0, 255), 5);
+//*
 				center.x += 10;
-				center.y += 10;
+				center.y += 30;
 				sprintf(message, "Reference #%d (%.1lf, %.1lf, %.1lf)", i, translation.x, translation.y, translation.z);
 				windage::Utils::DrawTextToImage(inputImage, center, message);
 
 				center.y += 20;
 				sprintf(message, "              (%.1lf, %.1lf, %.1lf)", rotation.x*180.0/CV_PI, rotation.y*180.0/CV_PI, rotation.z*180.0/CV_PI);
 				windage::Utils::DrawTextToImage(inputImage, center, message);
+//*/
 			}
 
 		}
@@ -360,7 +274,7 @@ void main()
 		}
 
 
-//*
+/*
 		const int PIP_RATIO = 6;
 		const int PIP_WIDTH = WIDTH/PIP_RATIO;
 		const int PIP_HEIGHT = HEIGHT/PIP_RATIO * 2;
@@ -382,11 +296,11 @@ void main()
 			cvResetImageROI(resultImage);
 
 //			cvNamedWindow("temp");
-//			if(multipleTracker->GetMatchedCount(i) > FIND_FEATURE_COUNT)
+//			if(multipleTracker->GetMatchedCount(i) > FIND_FEATURE_COUNT && i==0)
 //				cvShowImage("temp", tempImage2);
 		}
 //*/
-		windage::Utils::CompundImmersiveImage(resultImage, inputImage, CV_RGB(0, 0, 0), 0.30);
+		windage::Utils::CompundImmersiveImage(resultImage, inputImage, CV_RGB(0, 0, 0), 0.70);
 //*/
 
 		char ch = cvWaitKey(1);

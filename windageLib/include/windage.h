@@ -72,6 +72,7 @@
 #include "Utils/wVector.h"
 #include "Utils/wMatrix.h"
 #include "Utils/Utils.h"
+#include "Utils/Quaternion.h"
 
 // for Doxygen Mainpage Documentation
 /**
