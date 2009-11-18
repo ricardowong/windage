@@ -77,3 +77,18 @@ osg::Drawable* CreateAxis(const osg::Vec3& corner,const osg::Vec3& xdir,const os
 
 	return geom;
 }
+
+osg::Node* LoadModel(char* filename)
+{
+	osg::Node* scene = NULL;
+	if (!scene)
+	{
+		// User didn't specify anything, or file(s) didn't exist.
+		// Try to load the cow...
+		if ( !(scene = osgDB::readNodeFile( std::string( filename ) ) ) )
+		{
+			return NULL;
+		}
+	}
+	return scene;
+}
