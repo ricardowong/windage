@@ -1,3 +1,6 @@
+#define RUNNING
+#ifdef RUNNING
+
 /* ========================================================================
  * PROJECT: windage Library
  * ========================================================================
@@ -42,16 +45,39 @@
 #include <highgui.h>
 #include <windage.h>
 
+#define FLIP
+#define RECTIFICATION
 #define ADAPTIVE_THRESHOLD
 
-const int OBJECT_COUNT = 7;
+//#define USE_IMAGE_SEQUENCE
+
 const int FIND_FEATURE_COUNT = 10;
+
+const int MAX_FAST_THRESHOLD = 80;
+const int MIN_FAST_THRESHOLD = 20;
+const int ADAPTIVE_THRESHOLD_VALUE = 500;
+const int THRESHOLD_STEP = 1;
 
 const int WIDTH = 640;
 const int HEIGHT = 480;
-
 const double intrinsicValues[8] = {1029.400, 1028.675, 316.524, 211.395, -0.206360, 0.238378, 0.001089, -0.000769};
 
+windage::ModifiedSURFTracker* CreateTracker(IplImage* refImage, int index=0)
+{
+	windage::ModifiedSURFTracker* tracker = new windage::ModifiedSURFTracker();
+	tracker->Initialize(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], intrinsicValues[4], intrinsicValues[5], intrinsicValues[6], intrinsicValues[7], 30);
+	tracker->RegistReferenceImage(refImage, 26.70, 20.00, 8.0, 8);
+	tracker->SetPoseEstimationMethod(windage::RANSAC);
+	tracker->SetOutlinerRemove(true);
+	tracker->InitializeOpticalFlow(WIDTH, HEIGHT, 10, cvSize(8, 8), 3);
+	tracker->SetOpticalFlowRunning(true);
+//	tracker->GetCameraParameter()->InitUndistortionMap(WIDTH, HEIGHT);
+	tracker->SetFeatureExtractThreshold(30);
+
+	tracker->SetSetpIndex(index);
+	
+	return tracker;
+}
 
 void main()
 {
@@ -62,30 +88,12 @@ void main()
 
 	char message[100];
 	IplImage* inputImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
-	IplImage* undistImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
+	IplImage* tempImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
 	IplImage* grayImage = cvCreateImage(cvGetSize(inputImage), IPL_DEPTH_8U, 1);
-	IplImage* resultImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
-
-	// Multipel tracker Initialize
-	std::vector<IplImage*> trainingImage;
-	for(int i=1; i<=OBJECT_COUNT; i++)
-	{
-		sprintf(message, "reference%d_320.png", i);
-		trainingImage.push_back(cvLoadImage(message, 0));
-	}
-
-	windage::MultipleSURFTracker* multipleTracker = new windage::MultipleSURFTracker();
-	multipleTracker->Initialize(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], intrinsicValues[4], intrinsicValues[5], intrinsicValues[6], intrinsicValues[7]);
-	multipleTracker->InitializeOpticalFlow(WIDTH, HEIGHT, cvSize(8, 8), 3);
-	multipleTracker->SetDetectIntervalTime(2.0);
-	multipleTracker->SetPoseEstimationMethod(windage::PROSAC);
-	multipleTracker->SetOutlinerRemove(true);
-	multipleTracker->SetFeatureExtractThreshold(30);
-	for(int i=0; i<trainingImage.size(); i++)
-	{
-		std::cout << "attatch reference image #" << i << std::endl;
-		multipleTracker->AttatchReferenceImage(trainingImage[i], 267.0, 200.0, 4.0, 8);
-	}
+	
+	// Tracker Initialize
+	IplImage* referenceImage = NULL;//cvLoadImage("reference1_320.png", 0);
+	windage::ModifiedSURFTracker* tracker = NULL;//CreateTracker(referenceImage, 0);
 
 	// for undistortion
 	windage::Calibration* calibration = new windage::Calibration();
@@ -93,75 +101,70 @@ void main()
 	calibration->InitUndistortionMap(WIDTH, HEIGHT);
 
 	// adaptive threshold
-	int fastThreshold = 70;
-	const int MAX_FAST_THRESHOLD = 80;
-	const int MIN_FAST_THRESHOLD = 40;
-	const int ADAPTIVE_THRESHOLD_VALUE = 500;
-	const int THRESHOLD_STEP = 1;
-
+	int fastThreshold = 30;
 	IplImage* grabFrame = NULL;
-	
+
+	bool learning = false;
+
 	bool processing = true;
 	cvNamedWindow("result");
 	while(processing)
 	{
-		// camera frame grabbing and convert to gray color
+		// camera frame grabbing and convert to gray and undistortion
 		log->updateTickCount();
 		grabFrame = cvQueryFrame(capture);
-		cvFlip(grabFrame, undistImage);
-		calibration->Undistortion( undistImage, inputImage);
+		cvFlip(grabFrame, grabFrame);
+		cvResize(grabFrame, tempImage);
+		calibration->Undistortion(tempImage, inputImage);
 		cvCvtColor(inputImage, grayImage, CV_BGRA2GRAY);
 		log->log("capture", log->calculateProcessTime());
 
 		// call tracking algorithm
 		log->updateTickCount();
-		multipleTracker->SetFeatureExtractThreshold(fastThreshold);
-		multipleTracker->UpdateCameraPose(grayImage);
+
+		int featureCount = 0;
+		int matchingCount = 0;
+		if(tracker)
+		{			
+			tracker->SetFeatureExtractThreshold(fastThreshold);
+			tracker->UpdateCameraPose(grayImage);
+			featureCount = tracker->GetFeatureCount();
+			matchingCount = tracker->GetMatchedCount();
+
+		// update fast threshold for Adaptive threshold
+#ifdef ADAPTIVE_THRESHOLD
+			if(featureCount > ADAPTIVE_THRESHOLD_VALUE )	fastThreshold = MIN(MAX_FAST_THRESHOLD, fastThreshold+THRESHOLD_STEP);
+			else											fastThreshold = MAX(MIN_FAST_THRESHOLD, fastThreshold-THRESHOLD_STEP);
+#endif
+		}
 
 		double trackingTime = log->calculateProcessTime();
 		log->log("tracking", trackingTime);
 		log->logNewLine();
-
-		// update fast threshold for Adaptive threshold
-#ifdef ADAPTIVE_THRESHOLD
-		int featureCount = multipleTracker->GetFeatureCount();
-		if(featureCount > ADAPTIVE_THRESHOLD_VALUE )	fastThreshold = MIN(MAX_FAST_THRESHOLD, fastThreshold+THRESHOLD_STEP);
-		else											fastThreshold = MAX(MIN_FAST_THRESHOLD, fastThreshold-THRESHOLD_STEP);
-#endif
-
+			
 		// draw tracking result
-		for(int i=0; i<multipleTracker->GetTrackerCount(); i++)
+		if(featureCount > FIND_FEATURE_COUNT)
 		{
-			int matchedCount = multipleTracker->GetMatchedCount(i);
-			if(matchedCount > FIND_FEATURE_COUNT)
-			{
-				multipleTracker->DrawOutLine(inputImage, i, true);
-				multipleTracker->DrawInfomation(inputImage, i, 50.0);
-
-				CvPoint center = multipleTracker->GetCameraParameter(i)->ConvertWorld2Image(0.0, 0.0, 0.0);
-				
-				center.x += 10;
-				center.y += 10;
-				sprintf(message, "Reference #%d", i);
-				windage::Utils::DrawTextToImage(inputImage, center, message);
-			}
-
+			tracker->DrawOutLine(inputImage, true);
+			tracker->DrawInfomation(inputImage, 5.0);
+//			tracker->DrawDebugInfo(inputImage);
 		}
+
 		sprintf(message, "Tracking Time : %.2f(ms)", trackingTime);
 		windage::Utils::DrawTextToImage(inputImage, cvPoint(20, 30), message);
 		sprintf(message, "FAST feature count : %d, threashold : %d", featureCount, fastThreshold);
 		windage::Utils::DrawTextToImage(inputImage, cvPoint(20, 50), message);
-		sprintf(message, "Match count ");
+		sprintf(message, "Match count : %d", matchingCount);
 		windage::Utils::DrawTextToImage(inputImage, cvPoint(20, 70), message);
-		for(int i=0; i<OBJECT_COUNT; i++)
-		{
-			sprintf(message, "#%d:%d ", i, multipleTracker->GetMatchedCount(i));
-			windage::Utils::DrawTextToImage(inputImage, cvPoint(160 + 65*i, 70), message);
-		}
 
 		char ch = cvWaitKey(1);
 		switch(ch)
 		{
+		case 'l':
+		case 'L':
+			if(tracker) delete tracker;
+			tracker = CreateTracker(grayImage, 0);
+			break;
 		case 'q':
 		case 'Q':
 			processing = false;
@@ -174,3 +177,5 @@ void main()
 	cvReleaseCapture(&capture);
 	cvDestroyAllWindows();
 }
+
+#endif

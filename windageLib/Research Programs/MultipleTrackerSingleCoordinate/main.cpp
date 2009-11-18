@@ -58,13 +58,14 @@ const int FIND_FEATURE_COUNT = 10;
 const int WIDTH = 640;
 const int HEIGHT = 480;
 
-const double REAL_WIDTH = 26.70;
-const double REAL_HEIGHT = 20.00;
+const double SCALE = 10.0;
+const double REAL_WIDTH = 267.0 * SCALE;
+const double REAL_HEIGHT = 200.0 * SCALE;
 
 const double intrinsicValues[8] = {1029.400, 1028.675, 316.524, 211.395, -0.206360, 0.238378, 0.001089, -0.000769};
 
 
-windage::Vector3 GetTranslation(windage::Calibration* fromCalibration, windage::Calibration* toCalibration, windage::Vector3 rotation)
+windage::Vector3 GetTranslation(windage::Calibration* fromCalibration, windage::Calibration* toCalibration)
 {
 	CvMat* toExtrinsicMatrix = toCalibration->GetExtrinsicMatrix();
 	CvMat* fromExtrinsicMatrix = fromCalibration->GetExtrinsicMatrix();
@@ -88,43 +89,6 @@ windage::Vector3 GetTranslation(windage::Calibration* fromCalibration, windage::
 		}
 	}
 
-//*
-	fromRotation = fromRotation.Inverse();
-	fromTranslation = fromRotation * fromTranslation;
-	toTranslation = fromRotation * toTranslation;
-//*/
-
-	double x = toTranslation.x - fromTranslation.x;
-	double y = toTranslation.y - fromTranslation.y;
-	double z = toTranslation.z - fromTranslation.z;
-
-	return windage::Vector3(x, y, z);
-}
-
-windage::Vector3 GetExternalTranslation(windage::Calibration* fromCalibration, windage::Calibration* toCalibration)
-{
-	CvMat* toExtrinsicMatrix = toCalibration->GetExtrinsicMatrix();
-	CvMat* fromExtrinsicMatrix = fromCalibration->GetExtrinsicMatrix();
-
-	windage::Vector3 fromTranslation;
-	fromTranslation.x = cvGetReal2D(fromExtrinsicMatrix, 0, 3);
-	fromTranslation.y = cvGetReal2D(fromExtrinsicMatrix, 1, 3);
-	fromTranslation.z = cvGetReal2D(fromExtrinsicMatrix, 2, 3);
-
-	windage::Matrix3 fromRotation;
-	for(int y=0; y<3; y++)
-	{
-		for(int x=0; x<3; x++)
-		{
-			fromRotation.m[y][x] = cvGetReal2D(fromExtrinsicMatrix, y, x);
-		}
-	}
-
-	windage::Vector3 toTranslation;
-	toTranslation.x = cvGetReal2D(toExtrinsicMatrix, 0, 3);
-	toTranslation.y = cvGetReal2D(toExtrinsicMatrix, 1, 3);
-	toTranslation.z = cvGetReal2D(toExtrinsicMatrix, 2, 3);
-
 	fromRotation = fromRotation.Inverse();
 	fromTranslation = fromRotation * fromTranslation;
 	toTranslation = fromRotation * toTranslation;
@@ -136,7 +100,7 @@ windage::Vector3 GetExternalTranslation(windage::Calibration* fromCalibration, w
 	return windage::Vector3(x, y, z);
 }
 
-windage::Vector3 GetRotation(windage::Calibration* fromCalibration, windage::Calibration* toCalibration)
+windage::Matrix3 GetRotation(windage::Calibration* fromCalibration, windage::Calibration* toCalibration)
 {
 	CvMat* toExtrinsicMatrix = toCalibration->GetExtrinsicMatrix();
 	CvMat* fromExtrinsicMatrix = fromCalibration->GetExtrinsicMatrix();
@@ -149,8 +113,7 @@ windage::Vector3 GetRotation(windage::Calibration* fromCalibration, windage::Cal
 			fromRotation.m[y][x] = cvGetReal2D(fromExtrinsicMatrix, y, x);
 		}
 	}
-	windage::Vector3 fromEuler = windage::Quaternion::DcmToEuler(fromRotation);
-
+	
 	windage::Matrix3 toRotation;
 	for(int y=0; y<3; y++)
 	{
@@ -159,12 +122,11 @@ windage::Vector3 GetRotation(windage::Calibration* fromCalibration, windage::Cal
 			toRotation.m[y][x] = cvGetReal2D(toExtrinsicMatrix, y, x);
 		}
 	}
-	windage::Vector3 toEuler = windage::Quaternion::DcmToEuler(toRotation);
-
-	return toEuler - fromEuler;
+	
+	return toRotation.Transpose() * fromRotation;
 }
 
-windage::Matrix4 CalculateExtrinsicParameter(windage::Calibration* fromCalibration, windage::Vector3 toRotation, windage::Vector3 toTranslation)
+windage::Matrix4 CalculateExtrinsicParameter(windage::Calibration* fromCalibration, windage::Matrix3 toRotation, windage::Vector3 toTranslation)
 {
 	CvMat* fromExtrinsicMatrix = fromCalibration->GetExtrinsicMatrix();
 
@@ -181,11 +143,10 @@ windage::Matrix4 CalculateExtrinsicParameter(windage::Calibration* fromCalibrati
 			fromRotation.m[y][x] = cvGetReal2D(fromExtrinsicMatrix, y, x);
 		}
 	}
-//*
+
 	toTranslation = fromRotation * toTranslation;
-//*/
-	windage::Vector3 rotationEuler = windage::Quaternion::DcmToEuler(fromRotation) + toRotation;
-	windage::Matrix3 rotation = windage::Quaternion::QuaternionToDcm(windage::Quaternion::EulerToQuaternion(rotationEuler));
+
+	windage::Matrix3 rotation = fromRotation * toRotation;
 	windage::Vector3 translation = fromTranslation + toTranslation;
 
 	// set
@@ -203,6 +164,7 @@ windage::Matrix4 CalculateExtrinsicParameter(windage::Calibration* fromCalibrati
 
 	return matrix;
 }
+
 
 void main()
 {
@@ -239,7 +201,7 @@ void main()
 	multipleTracker->Initialize(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], intrinsicValues[4], intrinsicValues[5], intrinsicValues[6], intrinsicValues[7]);
 	multipleTracker->InitializeOpticalFlow(WIDTH, HEIGHT, cvSize(8, 8), 3);
 	multipleTracker->SetDetectIntervalTime(1.0);
-	multipleTracker->SetPoseEstimationMethod(windage::RANSAC);
+	multipleTracker->SetPoseEstimationMethod(windage::PROSAC);
 	multipleTracker->SetOutlinerRemove(true);
 	multipleTracker->SetFeatureExtractThreshold(30);
 	for(int i=0; i<trainingImage.size(); i++)
@@ -253,12 +215,11 @@ void main()
 	calibration->Initialize(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], intrinsicValues[4], intrinsicValues[5], intrinsicValues[6], intrinsicValues[7]);
 	calibration->InitUndistortionMap(WIDTH, HEIGHT);
 
-	std::vector<windage::Vector3> rotationList;
+	std::vector<windage::Matrix3> rotationList;
 	rotationList.resize(trainingImage.size());
 	std::vector<windage::Vector3> translationList;
 	translationList.resize(trainingImage.size());
-	std::vector<windage::Vector3> externalTranslationList;
-	externalTranslationList.resize(trainingImage.size());
+
 	std::vector<bool> foundList;
 	foundList.resize(trainingImage.size());
 	for(int i=0; i<foundList.size(); i++)
@@ -303,66 +264,26 @@ void main()
 			if(matchedCount > FIND_FEATURE_COUNT)
 			{
 				multipleTracker->DrawOutLine(inputImage, i, true);
-				multipleTracker->DrawInfomation(inputImage, i, 10.0);
+				multipleTracker->DrawInfomation(inputImage, i, 100.0 * SCALE);
 
 				if(updating)
 				{
 					foundList[i] = true;
 					rotationList[i] = GetRotation(multipleTracker->GetCameraParameter(0), multipleTracker->GetCameraParameter(i));
-					translationList[i] = GetTranslation(multipleTracker->GetCameraParameter(0), multipleTracker->GetCameraParameter(i), rotationList[i]);
-					externalTranslationList[i] = GetExternalTranslation(multipleTracker->GetCameraParameter(0), multipleTracker->GetCameraParameter(i));
-
-					windage::Vector3 rotation = rotationList[i];
-					windage::Vector3 translation = translationList[i];
-					windage::Vector3 externalTransaltion = externalTranslationList[i];
+					translationList[i] = GetTranslation(multipleTracker->GetCameraParameter(0), multipleTracker->GetCameraParameter(i));
 				}
-/*
-				windage::Matrix4 extrinsic = CalculateExtrinsicParameter(multipleTracker->GetCameraParameter(0), rotation, translation);
-				calibration->SetExtrinsicMatrix(extrinsic.m1);
-
-				windage::Vector3 temp = windage::Vector3(0.0, 0.0, 0.0);
-				CvPoint center = calibration->ConvertWorld2Image(temp.x, temp.y, temp.z);
-				CvPoint centerX = calibration->ConvertWorld2Image(temp.x + 5.0, temp.y, temp.z);
-				CvPoint centerY = calibration->ConvertWorld2Image(temp.x, temp.y + 5.0, temp.z);
-				CvPoint centerZ = calibration->ConvertWorld2Image(temp.x, temp.y, temp.z + 5.0);
-
-				cvLine(inputImage, center, centerX, CV_RGB(255, 0, 0), 5);
-				cvLine(inputImage, center, centerY, CV_RGB(0, 255, 0), 5);
-				cvLine(inputImage, center, centerZ, CV_RGB(0, 0, 255), 5);
-
-				// draw center circle
-				center = multipleTracker->GetCameraParameter(0)->ConvertWorld2Image(externalTransaltion.x, externalTransaltion.y, externalTransaltion.z);
-				cvCircle(inputImage, center, 15, CV_RGB(0, 255, 255), 3);
-
-				center.x += 10;
-				center.y += 30;
-				sprintf(message, "Reference #%d (%.1lf, %.1lf, %.1lf)", i, translation.x, translation.y, translation.z);
-				windage::Utils::DrawTextToImage(inputImage, center, message);
-
-				center.y += 20;
-				sprintf(message, "              (%.1lf, %.1lf, %.1lf)", rotation.x*180.0/CV_PI, rotation.y*180.0/CV_PI, rotation.z*180.0/CV_PI);
-				windage::Utils::DrawTextToImage(inputImage, center, message);
-//*/
 			}
 			
 			if(foundList[i])
 			{
-				windage::Vector3 rotation = rotationList[i];
+				windage::Matrix3 rotation = rotationList[i];
 				windage::Vector3 translation = translationList[i];
-				windage::Vector3 externalTransaltion = externalTranslationList[i];
-//				translation = windage::Vector3(0.0, 0.0, 0.0);
 
 				windage::Matrix4 extrinsic = CalculateExtrinsicParameter(multipleTracker->GetCameraParameter(0), rotation, translation);
 				calibration->SetExtrinsicMatrix(extrinsic.m1);
 
-				windage::Vector3 temp = windage::Vector3(0.0, 0.0, 0.0);
-//				temp = externalTransaltion;
-				CvPoint center = calibration->ConvertWorld2Image(temp.x, temp.y, temp.z);
-				CvPoint centerX = calibration->ConvertWorld2Image(temp.x + 5.0, temp.y, temp.z);
-				CvPoint centerY = calibration->ConvertWorld2Image(temp.x, temp.y + 5.0, temp.z);
-				CvPoint centerZ = calibration->ConvertWorld2Image(temp.x, temp.y, temp.z + 5.0);
-
 				// draw outline
+				windage::Vector3 temp = windage::Vector3(0.0, 0.0, 0.0);
 				CvScalar color = CV_RGB(255, 255, 0);
 				cvLine(inputImage,  calibration->ConvertWorld2Image(temp.x-REAL_WIDTH/2.0, temp.y-REAL_HEIGHT/2.0, temp.z+0.0), 
 									calibration->ConvertWorld2Image(temp.x+REAL_WIDTH/2.0, temp.y-REAL_HEIGHT/2.0, temp.z+0.0), color, 5);
@@ -373,22 +294,25 @@ void main()
 				cvLine(inputImage,  calibration->ConvertWorld2Image(temp.x-REAL_WIDTH/2.0, temp.y+REAL_HEIGHT/2.0, temp.z+0.0), 
 									calibration->ConvertWorld2Image(temp.x-REAL_WIDTH/2.0, temp.y-REAL_HEIGHT/2.0, temp.z+0.0), color, 5);
 
+				// draw axis
+				CvPoint center = calibration->ConvertWorld2Image(temp.x, temp.y, temp.z);
+				CvPoint centerX = calibration->ConvertWorld2Image(temp.x + 50.0 * SCALE, temp.y, temp.z);
+				CvPoint centerY = calibration->ConvertWorld2Image(temp.x, temp.y + 50.0 * SCALE, temp.z);
+				CvPoint centerZ = calibration->ConvertWorld2Image(temp.x, temp.y, temp.z + 50.0 * SCALE);
+
 				cvLine(inputImage, center, centerX, CV_RGB(255, 0, 0), 5);
 				cvLine(inputImage, center, centerY, CV_RGB(0, 255, 0), 5);
 				cvLine(inputImage, center, centerZ, CV_RGB(0, 0, 255), 5);
 
-				// draw center circle
-				center = multipleTracker->GetCameraParameter(0)->ConvertWorld2Image(externalTransaltion.x, externalTransaltion.y, externalTransaltion.z);
-				cvCircle(inputImage, center, 15, CV_RGB(0, 255, 255), 3);
-
 				// draw data
 				center.x += 10;
 				center.y += 30;
-				sprintf(message, "Reference #%d (%.1lf, %.1lf, %.1lf)", i, translation.x, translation.y, translation.z);
+				sprintf(message, "Reference #%d T:(%.1lf, %.1lf, %.1lf)", i, translation.x, translation.y, translation.z);
 				windage::Utils::DrawTextToImage(inputImage, center, message);
 
+				windage::Vector3 euler = windage::Quaternion::DcmToEuler(rotation);
 				center.y += 20;
-				sprintf(message, "              (%.1lf, %.1lf, %.1lf)", rotation.x*180.0/CV_PI, rotation.y*180.0/CV_PI, rotation.z*180.0/CV_PI);
+				sprintf(message, "              R:(%.1lf, %.1lf, %.1lf)", euler.x*180.0/CV_PI, euler.y*180.0/CV_PI, euler.z*180.0/CV_PI);
 				windage::Utils::DrawTextToImage(inputImage, center, message);
 			}
 		}

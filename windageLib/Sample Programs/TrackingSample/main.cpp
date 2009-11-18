@@ -55,7 +55,7 @@ const int FIND_FEATURE_COUNT = 10;
 
 const int MAX_FAST_THRESHOLD = 80;
 const int MIN_FAST_THRESHOLD = 20;
-const int ADAPTIVE_THRESHOLD_VALUE = 1000;
+const int ADAPTIVE_THRESHOLD_VALUE = 500;
 const int THRESHOLD_STEP = 1;
 
 const int WIDTH = 640;
@@ -66,7 +66,7 @@ windage::ModifiedSURFTracker* CreateTracker(IplImage* refImage, int index)
 {
 	windage::ModifiedSURFTracker* tracker = new windage::ModifiedSURFTracker();
 	tracker->Initialize(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], intrinsicValues[4], intrinsicValues[5], intrinsicValues[6], intrinsicValues[7], 30);
-	tracker->RegistReferenceImage(refImage, 26.70, 20.00, 4.0, 8);
+	tracker->RegistReferenceImage(refImage, 267.0, 200.0, 4.0, 8);
 	tracker->SetPoseEstimationMethod(windage::RANSAC);
 	tracker->SetOutlinerRemove(true);
 	tracker->InitializeOpticalFlow(WIDTH, HEIGHT, 10, cvSize(8, 8), 3);
@@ -139,7 +139,7 @@ void main()
 		if(featureCount > FIND_FEATURE_COUNT)
 		{
 			tracker->DrawOutLine(inputImage, true);
-			tracker->DrawInfomation(inputImage, 5.0);
+			tracker->DrawInfomation(inputImage, 50.0);
 			tracker->DrawDebugInfo(inputImage);
 		}
 

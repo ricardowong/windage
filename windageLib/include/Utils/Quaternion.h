@@ -70,11 +70,12 @@ namespace windage
 			/**
 			 * ERROR : z-axis sign error template fix
 			 */
+//*
 			quaternion = windage::Quaternion::EulerToQuaternion(euler);
 			euler.x =  atan2((quaternion.x*quaternion.z) + (quaternion.y*quaternion.w), (quaternion.y*quaternion.z) - (quaternion.x*quaternion.w));
 			euler.y =  acos(-(quaternion.x*quaternion.x) - (quaternion.y*quaternion.y) +(quaternion.z*quaternion.z) + (quaternion.w*quaternion.w));
 			euler.z = -atan2((quaternion.x*quaternion.z) - (quaternion.y*quaternion.w), (quaternion.y*quaternion.z) + (quaternion.x*quaternion.w));
-
+//*/
 			return euler;
 		}
 
