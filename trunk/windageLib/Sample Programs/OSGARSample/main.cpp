@@ -84,12 +84,12 @@ windage::ModifiedSURFTracker* CreateTracker(IplImage* refImage, int index)
 	windage::ModifiedSURFTracker* tracker = new windage::ModifiedSURFTracker();
 	tracker->Initialize(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], intrinsicValues[4], intrinsicValues[5], intrinsicValues[6], intrinsicValues[7], 30);
 	tracker->RegistReferenceImage(refImage, 640, 480, 4.0, 8);
-	tracker->SetPoseEstimationMethod(windage::PROSAC);
+	tracker->SetPoseEstimationMethod(windage::RANSAC);
 	tracker->SetOutlinerRemove(true);
 	tracker->InitializeOpticalFlow(WIDTH, HEIGHT, 5, cvSize(8, 8), 3);
 	tracker->SetOpticalFlowRunning(true);
 	tracker->GetCameraParameter()->InitUndistortionMap(WIDTH, HEIGHT);
-	tracker->SetFeatureExtractTreshold(30);
+	tracker->SetFeatureExtractThreshold(30);
 
 	tracker->SetSetpIndex(index);
 	
@@ -126,91 +126,55 @@ public:
 	}
 };
 
+osg::Matrixd CreateProjectionMatrix(double fx, double fy, double cx, double cy, double width, double height)
+{
+	osg::Matrixd _proj;
+	for(int i=0; i<4; i++)
+	{
+		for(int j=0; j<4; j++) _proj(i, j) = 0.0;
+	}
+	_proj(0,0)  =  2.0 * fx / width;
+	_proj(1,1)  =  2.0 * fy / height;
+	_proj(2,0)  = -2.0 * cx / width + 1.0;
+	_proj(2,1)  =  2.0 * cy / height - 1.0;
+	_proj(2,3)  = -1.0;
+
+	float z_far  = 10000;
+	float z_near = 0.01;
+	_proj(2,2) = (z_far+z_near)/(z_near-z_far);
+	_proj(3,2) = -2.0 * z_far * z_near / (z_far-z_near);
+
+	return _proj;
+}
+
 osg::Matrixd ChangeCalibrationToOSGMatrix(CvMat *_RT)
 {
 	osg::Matrixd RT;
 	double crt[16];
 
-	// rotation
-	for(int y=0; y<3; y++)
-	{
-		for(int x=0; x<3; x++)
-		{
-			crt[4*y + x] = cvmGet(_RT, y, x);
-		}
-	}
+	crt[0] = cvmGet(_RT, 0, 0);
+	crt[4] = cvmGet(_RT, 0, 1);
+	crt[8] = cvmGet(_RT, 0, 2);
+	crt[12]= cvmGet(_RT, 0, 3);
 
-	for(int x=0; x<3; x++)
-	{
-		int y = 3;
-		crt[4*y + x] = cvmGet(_RT, x, y);
-		crt[4*x + y] = 0.0;
-	}
-	crt[15] = 1.0;
-//*
-	crt[0] = -crt[0];
-	crt[5] = -crt[5];
-	crt[6] = -crt[6];
-	crt[8] = -crt[8];
-	crt[13] = -crt[13];
-	crt[14] = -crt[14];
-//*/
+	crt[1] = -cvmGet(_RT, 1, 0);
+	crt[5] = -cvmGet(_RT, 1, 1);
+	crt[9] = -cvmGet(_RT, 1, 2);
+	crt[13]= -cvmGet(_RT, 1, 3);
+
+	crt[2] = -cvmGet(_RT, 2, 0);
+	crt[6] = -cvmGet(_RT, 2, 1);
+	crt[10]= -cvmGet(_RT, 2, 2);
+	crt[14]= -cvmGet(_RT, 2, 3);
+
+	crt[3] = 0;
+	crt[7] = 0;
+	crt[11]= 0;
+	crt[15]= 1;
+
 	RT.set(crt);
 	return RT;
 }
-
-osg::Matrixd GetTestTrackerCoordinate()
-{
-	osg::Matrixd RT;
-	double crt[16];
-	double crtt[16];
-
-	crt[0] = 0.99961918592453003;
-	crt[1] = 0.0057879169471561909;
-	crt[2] = 0.026985179632902145;
-	crt[3] = 0.00000000000000000;
-
-	crt[4] = 0.0093799326568841934;
-	crt[5] = -0.99080830812454224;
-	crt[6] = -0.13494965434074402;
-	crt[7] = 0.00000000000000000;
-
-	crt[8] = 0.025956058874726295;
-	crt[9] = 0.13515129685401917;
-	crt[10] = -0.99048501253128052;
-	crt[11] = 0.00000000000000000;
-
-	crt[12] = 0.099262535572052002;
-	crt[13] = 1.1272794008255005;
-	crt[14] = 208.57212829589844;
-	crt[15] = 1.0000000000000000;
-
-	for(int y=0; y<4; y++)
-	{
-		for(int x=0; x<4; x++)
-		{
-			crtt[4*y + x] = crt[4*y + x];
-		}
-	}
-	for(int y=0; y<3; y++)
-	{
-		for(int x=0; x<3; x++)
-		{
-			crtt[4*y + x] = crt[4*x + y];
-		}
-	}
-//*
-	crt[0] = -crt[0];
-	crt[5] = -crt[5];
-	crt[6] = -crt[6];
-	crt[8] = -crt[8];
-	crtt[13] = -crt[13];
-	crtt[14] = -crt[14];
-//*/
-	RT.set(crtt);
-	return RT;
-}
-
 osg::Matrixd GetTrackerCoordinate()
 {
 	// camera frame grabbing
@@ -220,7 +184,7 @@ osg::Matrixd GetTrackerCoordinate()
 	cvCvtColor(input, gray, CV_BGRA2GRAY);
 
 	// call tracking algorithm
-	tracker->SetFeatureExtractTreshold(fastThreshold);
+	tracker->SetFeatureExtractThreshold(fastThreshold);
 	tracker->UpdateCameraPose(gray);
 	tracker->DrawOutLine(input, true);
 //	tracker->DrawDebugInfo(input);
@@ -310,39 +274,7 @@ int main(int argc, char ** argv )
 
 	// initialize OSG
 	// create projection matrix
-//*
-	double m[16];
-    for(int i=0; i<16; ++i)
-		m[i] = 0;
-	double w = WIDTH;
-    double h = HEIGHT;
-	double f = intrinsicValues[0];
-    double g = intrinsicValues[1];
-    double s = 0;
-    double cx = intrinsicValues[2];
-    double cy = intrinsicValues[3];
-    double _near = f/32.0f;
-    double _far = f*32.0f;
-
-	// original flip...
-    m[0 + 0*4] = 2*f/w;
-    m[0 + 1*4] = 2*s/w;
-    m[0 + 2*4] = (-2*cx/w + 1);
-    m[1 + 1*4] = 2*g/h;
-    m[1 + 2*4] = (-2*cy/h+1);
-    m[2 + 2*4] = -(_far+_near)/(_far-_near);
-    m[2 + 3*4] = -2*_far*_near/(_far-_near);
-    m[3 + 2*4] = -1;
-
-	osg::Matrixd _proj(m);
-//*/
-/*
-	osg::Matrixd _proj;
-	double _fov, _aspect;
-	_fov    = 2.0 * atan(((double)HEIGHT/2.0)/intrinsicValues[0]) * (180.0/CV_PI);
-	_aspect = (double)WIDTH / (double)HEIGHT;
-	_proj.makePerspective(_fov, _aspect, 1.0, 1000.0);
-//*/
+	osg::Matrixd _proj = CreateProjectionMatrix(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], (double)WIDTH, (double)HEIGHT);
 	projectionMatrix = new osg::Projection(_proj);
 	modelViewMatrix  = new osg::MatrixTransform();
 
@@ -379,24 +311,12 @@ int main(int argc, char ** argv )
 
 	osg::ref_ptr<osg::MatrixTransform> objectCoordinate = new osg::MatrixTransform();
 	localCoordinates->addChild(objectCoordinate);
-//*
-	// fix coordinate
-	osg::Matrix axisR, axisS, axisT, axisR2;
-	axisR.makeRotate( osg::DegreesToRadians(180.) ,osg::Vec3f(1.,0.,0.));
-	axisR2.makeRotate( osg::DegreesToRadians(180.) ,osg::Vec3f(0.,0.,1.));
-	axisT.makeTranslate( osg::Vec3f(0.0, 120.0,0.0) );
-	objectCoordinate->postMult( axisR );
-	objectCoordinate->postMult( axisR2 );
-	objectCoordinate->postMult( axisT );
-//*/
+
 	// attatch axis drawable
 	osg::ref_ptr<osg::Geode> geodeAxis = new osg::Geode();
 	osg::Drawable* axis = CreateAxis(osg::Vec3(0, 0, 0), osg::Vec3(300, 0, 0), osg::Vec3(0, 300, 0), osg::Vec3(0, 0, 300));
 	geodeAxis->addDrawable(axis);
 	objectCoordinate->addChild(geodeAxis);
-
-	DWORD dwID;
-	localCoordinates->setMatrix(GetTestTrackerCoordinate());
 
 	while (!viewer->done())
     {
