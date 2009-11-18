@@ -41,6 +41,7 @@
 
 #include "Tracker/MultipleSURFTracker.h"
 #include "Tracker/PoseEstimation/FindPROSACHomography.h"
+#include "Tracker/PoseEstimation/FindEpnpPoseEstimation.h"
 
 const double ERROR_BOUND = 5.0;
 const int POSE_POINTS_COUNT = 10;

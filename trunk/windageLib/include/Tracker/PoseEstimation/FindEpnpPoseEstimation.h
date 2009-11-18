@@ -37,8 +37,8 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#ifndef _FIND_HOMOGRAPY_H_
-#define _FIND_HOMOGRAPY_H_
+#ifndef _FIND_EPNP_POSE_ESTIMATION_H_
+#define _FIND_EPNP_POSE_ESTIMATION_H_
 
 #include <vector>
 #include <cv.h>
@@ -47,66 +47,57 @@
 
 namespace windage
 {
-	typedef struct _MatchedPoint
+	typedef struct _Matched3DPoint
 	{
 		CvPoint2D32f pointScene;
-		CvPoint2D32f pointReference;
-		float distance;
+		CvPoint3D32f pointReference;
 		bool isInlier;
 
-		struct _MatchedPoint(CvPoint2D32f pointScene, CvPoint2D32f pointReference, float distance = 0.0)
+		struct _Matched3DPoint(CvPoint2D32f pointScene, CvPoint3D32f pointReference, double distance = 0.0)
 		{
 			this->pointScene = pointScene;
 			this->pointReference = pointReference;
-
-			this->distance = distance;
 			isInlier = false;
 		}
 
-		void operator=(struct _MatchedPoint oprd)
+		void operator=(struct _Matched3DPoint oprd)
 		{
 			this->pointScene = oprd.pointScene;
 			this->pointReference = oprd.pointReference;
-			this->distance = oprd.distance;
 			this->isInlier = oprd.isInlier;
 		}
+	}Matched3DPoint;
 
-		bool operator==(struct _MatchedPoint oprd)
-		{
-			return this->distance == oprd.distance;
-		}
-		bool operator<(struct _MatchedPoint oprd)
-		{
-			return this->distance < oprd.distance;
-		}
-	}MatchedPoint;
-
-	class DLLEXPORT FindHomography
+	class DLLEXPORT FindEpnpPoseEstimation
 	{
 	protected:
-		float reprojectionThreshold;
-		float homography[9];
+		double reprojectionThreshold;
+		double intrinsic[4];
+		double cameraPose[16];
 
-		std::vector<MatchedPoint>* matchedPoints;
+		std::vector<Matched3DPoint>* matchedPoints;
+		double RunEpnpRANSAC(std::vector<Matched3DPoint>* matchedPoints, double* cameraPose);
 	public:
-		FindHomography()
+		FindEpnpPoseEstimation()
 		{
+			intrinsic[0] = intrinsic[1] = intrinsic[2] = intrinsic[3] = 1.0f;
 			reprojectionThreshold = 5.0;
 			matchedPoints = NULL;
 		}
-		~FindHomography()
+		~FindEpnpPoseEstimation()
 		{
 		}
 
-		inline void SetReprojectionThreshold(float reprojectionThreshold=5.0f){this->reprojectionThreshold = reprojectionThreshold;};
+		inline void SetReprojectionThreshold(double reprojectionThreshold=5.0f){this->reprojectionThreshold = reprojectionThreshold;};
 
-		inline void AttatchMatchedPoints(std::vector<MatchedPoint>* matchedPoints){this->matchedPoints = matchedPoints;};
-		inline float* GetHomography(){return this->homography;};
+		inline void AttatchMatchedPoints(std::vector<Matched3DPoint>* matchedPoints){this->matchedPoints = matchedPoints;};
+		inline void SetIntrinsic(double fx, double fy, double cx, double cy){intrinsic[0]=fx; intrinsic[1]=fy; intrinsic[2]=cx; intrinsic[3]=cy;};
+		inline double* GetCameraPose(){return this->cameraPose;};
 
-		static float ComputeReprojError(CvPoint2D32f point1, CvPoint2D32f point2, float* homography);
-
-		virtual bool Calculate() = NULL;
+		double Calculate();
 	};
+
 }
 
 #endif
+
