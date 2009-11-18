@@ -83,7 +83,6 @@ namespace windage
 
 		inline void SetMaxIteration(int iteration=1000){this->maxIteration = iteration;};
 		inline void SetTimeout(double ms){this->timeout = ms * 1000.0 * cvGetTickFrequency();};
-		
 
 		bool Calculate();
 	};

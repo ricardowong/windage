@@ -251,6 +251,22 @@
 				Name="PoseEstimation"
 				>
 				<File
+					RelativePath="..\..\..\src\Tracker\PoseEstimation\epnp.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\include\Tracker\PoseEstimation\epnp.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\src\Tracker\PoseEstimation\FindEpnpPoseEstimation.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\include\Tracker\PoseEstimation\FindEpnpPoseEstimation.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\..\src\Tracker\PoseEstimation\FindHomography.cpp"
 					>
 				</File>
