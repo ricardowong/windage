@@ -12610,7 +12610,7 @@ xy* fast11_detect(const byte* im, int xsize, int ysize, int stride, int b, int* 
 	make_offsets(pixel, stride);
 
 	for(y=3; y < ysize - 3; y+=stepy)
-		for(x=3; x < xsize - 3; x+stepx)
+		for(x=3; x < xsize - 3; x+=stepx)
 		{
 			const byte* p = im + y*stride + x;
 		

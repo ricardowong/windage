@@ -56,8 +56,7 @@ int SURFReferenceStorage::GenerateReferenceFeatureTree(double scaleFactor, int s
 
 	descriptor.clear();
 
-	IplImage* tempReference;
-	IplImage* tempReferenceRotate;
+	IplImage* tempReference = NULL;
 	for(int y=1; y<=scaleStep; y++)
 	{
 		for(int x=1; x<=scaleStep; x++)
@@ -75,7 +74,7 @@ int SURFReferenceStorage::GenerateReferenceFeatureTree(double scaleFactor, int s
 			float xScaleFactor = (float)this->realWidth / (float)tempReference->width;
 			float yScaleFactor = (float)this->realHeight / (float)tempReference->height;
 
-			for(int i=0; i<tempSurf.size(); i++)
+			for(int i=0; i<(int)tempSurf.size(); i++)
 			{
 				tempSurf[i].point.x *= xScaleFactor;
 				tempSurf[i].point.y *= yScaleFactor;
@@ -122,8 +121,8 @@ void SURFReferenceStorage::RegistReferenceImage(IplImage* referenceImage, double
 {
 	this->Release();
 	this->referenceImage = cvCloneImage(referenceImage);
-	this->realWidth = realWidth;
-	this->realHeight = realHeight;
+	this->realWidth = cvRound(realWidth);
+	this->realHeight = cvRound(realHeight);
 
 	GenerateReferenceFeatureTree(scaleFactor, scaleStep);
 
@@ -149,7 +148,7 @@ int SURFReferenceStorage::FindPairs(SURFDesciription description, float distance
 	int index1 = result.ptr<int>(0)[1];
 	int index = index1;
 //*
-	double temp;
+	float temp;
 	if(min2 < min1)
 	{
 		temp = min1;

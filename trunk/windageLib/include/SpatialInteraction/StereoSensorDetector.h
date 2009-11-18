@@ -83,7 +83,7 @@ namespace windage
 		 * @remark
 		 *		Initialize stereo spatial sensor detector, set activation threshold and kernel size and camera number
 		 */
-		void Initialize(double activationThreshold = 20.0, double kernelSize = 10.0, int cameraNumber = 2);
+		void Initialize(double activationThreshold = 20.0, int kernelSize = 10, int cameraNumber = 2);
 
 		inline double GetActivationThreshold(){return this->activationThreshold;};
 		inline void SetActivationThreshold(double activationThreshold){this->activationThreshold = activationThreshold;};

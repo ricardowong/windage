@@ -453,7 +453,9 @@ void wExtractSURF( const CvArr* _img, const CvArr* _mask,
     for( i = 0; i < nthreads; i++ )
         win_bufs[i] = 0;
 
-#define _OPENMP
+#ifndef _OPENMP
+	#define _OPENMP
+#endif
 #ifdef _OPENMP
 #pragma omp parallel for num_threads(nthreads) schedule(dynamic)
 #endif

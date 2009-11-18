@@ -83,7 +83,7 @@ int FeatureFactory::ExtractFASTCorner(IplImage* grayImage, int threshold, std::v
 
 int FeatureFactory::Create2DPlaneSURFFeatureDescriptor(IplImage* grayImage, std::vector<CvPoint>* pointList, std::vector<SURFFeature*>* featureList, double scaleFactor, int scaleStep)
 {
-	for(int i=0; i<(*pointList).size(); i++)
+	for(int i=0; i<(int)(*pointList).size(); i++)
 	{
 		SURFFeature* feature = new SURFFeature();
 		feature->initialize(scaleFactor, scaleStep);

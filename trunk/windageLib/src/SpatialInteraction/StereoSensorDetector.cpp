@@ -56,7 +56,7 @@ StereoSensorDetector::~StereoSensorDetector()
 
 void StereoSensorDetector::Release()
 {
-	for(int i=0; i<kernelImages.size(); i++)
+	for(unsigned int i=0; i<kernelImages.size(); i++)
 	{
 		cvReleaseImage(&kernelImages[i]);
 		kernelImages[i] = NULL;
@@ -64,7 +64,7 @@ void StereoSensorDetector::Release()
 	kernelImages.clear();
 }
 
-void StereoSensorDetector::Initialize(double activationThreshold, double kernelSize, int cameraNumber)
+void StereoSensorDetector::Initialize(double activationThreshold, int kernelSize, int cameraNumber)
 {
 	this->Release();
 
@@ -88,7 +88,7 @@ void StereoSensorDetector::SetKernelSize(int kernelSize)
 
 void StereoSensorDetector::AttatchCameraParameter(int cameraNumber, Calibration* cameraParameters)
 {
-	if(cameraNumber < this->cameraParameters.size())
+	if(cameraNumber < (int)this->cameraParameters.size())
 	{
 		this->cameraParameters[cameraNumber] = cameraParameters;
 	}
@@ -132,7 +132,7 @@ double StereoSensorDetector::GetDisparity(std::vector<IplImage*>* images, Spatia
 	{
 		CvScalar baseColor;
 		CvScalar compareColor;
-		for(int i=1; i<this->kernelImages.size(); i++)
+		for(int i=1; i<(int)this->kernelImages.size(); i++)
 		{
 			double tempDisparity = 0.0;
 			for(int y=0; y<kernelSize*2; y++)
@@ -166,7 +166,7 @@ double StereoSensorDetector::GetDisparity(std::vector<IplImage*>* images, Spatia
 
 void StereoSensorDetector::CalculateActivation(std::vector<IplImage*>* images)
 {
-	for(int i=0; i<this->spatialSensors->size(); i++)
+	for(int i=0; i<(int)this->spatialSensors->size(); i++)
 	{
 		(*spatialSensors)[i]->SetInactive();
 		double diaparity = this->GetDisparity(images, (*spatialSensors)[i]);

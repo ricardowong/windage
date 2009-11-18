@@ -65,7 +65,7 @@ int PROSACUpdateNumIters(double p, double ep, int model_points, int max_iters)
 using namespace windage;
 bool FindPROSACHomography::Calculate()
 {
-	double tickcount = cvGetTickCount();
+	double tickcount = (double)cvGetTickCount();
 
 	float bestHomography[9];
 	CvMat _bestH = cvMat(3, 3, CV_32F, bestHomography);
@@ -81,7 +81,7 @@ bool FindPROSACHomography::Calculate()
 	CvMat samplingReferencePoints = cvMat(1, 4, CV_32FC2, &(samplingReference[0]));
 
 	// sort
-	srand(time(NULL));
+	srand((unsigned int)time(NULL));
 	sort(matchedPoints->begin(), matchedPoints->end(), CompareDistanceLess());
 
 	int samplingCount = 4;
@@ -89,7 +89,7 @@ bool FindPROSACHomography::Calculate()
 	for(int i=0; i<maxIteration&&isProcessing; i++)
 	{
 		// reset
-		for(int j=0; j<matchedPoints->size(); j++)
+		for(int j=0; j<(int)matchedPoints->size(); j++)
 		{
 			(*matchedPoints)[j].isInlier = false;
 		}
@@ -127,7 +127,7 @@ bool FindPROSACHomography::Calculate()
 
 		int inlinerCount = 0;
 		// calculate consensus set
-		for(int j=0; j<matchedPoints->size(); j++)
+		for(int j=0; j<(int)matchedPoints->size(); j++)
 		{
 			float error = ComputeReprojError((*matchedPoints)[j].pointReference, (*matchedPoints)[j].pointScene, homography);
 			if(error < this->reprojectionThreshold)
@@ -155,7 +155,7 @@ bool FindPROSACHomography::Calculate()
 	// terminate
 	if(bestCount > 4)
 	{
-		for(int j=0; j<matchedPoints->size(); j++)
+		for(int j=0; j<(int)matchedPoints->size(); j++)
 		{
 			float error = ComputeReprojError((*matchedPoints)[j].pointReference, (*matchedPoints)[j].pointScene, bestHomography);
 			if(error < this->reprojectionThreshold)
@@ -172,7 +172,7 @@ bool FindPROSACHomography::Calculate()
 		std::vector<CvPoint2D32f> consensusReference;	consensusReference.resize(bestCount);
 
 		int index = 0;
-		for(int j=0; j<matchedPoints->size(); j++)
+		for(int j=0; j<(int)matchedPoints->size(); j++)
 		{
 			if((*matchedPoints)[j].isInlier)
 			{

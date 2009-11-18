@@ -122,7 +122,7 @@ void CameraPoseCalculator::DecomposeHomographyToRT(CvMat *intrinsic, CvMat *Homo
 		// Search next orthonormal matrix:
 		if( cvNorm( &m_CinvH1, NULL, CV_L2, NULL ) != 0 )
 		{
-			float lambda = 1.00/cvNorm( &m_CinvH1, NULL, CV_L2, NULL );
+			float lambda = 1.0f/cvNorm( &m_CinvH1, NULL, CV_L2, NULL );
 
 			// Create normalized R1 & R2:
 			cvGEMM( invIntrinsic, &m_H1, lambda, NULL, 0, &m_R1, 0 );
@@ -175,7 +175,7 @@ double CameraPoseCalculator::Update(std::vector<Vector2>* imagePoints, std::vect
 
 	std::vector<CvPoint2D32f> pt1;
 	std::vector<CvPoint2D32f> pt2;
-	for(int i=0; i<imagePoints->size(); i++)
+	for(int i=0; i<(int)imagePoints->size(); i++)
 	{
 		pt1.push_back(cvPoint2D32f((*referencePoints)[i].x, (*referencePoints)[i].y));
 		pt2.push_back(cvPoint2D32f((*imagePoints)[i].x, (*imagePoints)[i].y));
@@ -217,9 +217,9 @@ double CameraPoseCalculator::Update(std::vector<Vector2>* imagePoints, std::vect
 				{
 
 					float point[3];
-					point[0] = (*referencePoints)[i].x;
-					point[1] = (*referencePoints)[i].y;
-					point[2] = 1.0;
+					point[0] = (float)(*referencePoints)[i].x;
+					point[1] = (float)(*referencePoints)[i].y;
+					point[2] = 1.0f;
 
 					float projectionPointX = homography[0] * point[0] + homography[1] * point[1] + homography[2] * point[2];
 					float projectionPointY = homography[3] * point[0] + homography[4] * point[1] + homography[5] * point[2];
@@ -229,8 +229,8 @@ double CameraPoseCalculator::Update(std::vector<Vector2>* imagePoints, std::vect
 
 					if(abs((*imagePoints)[i].x - projectionPointX) + abs((*imagePoints)[i].y - projectionPointY) <= ERROR_BOUND)
 					{
-						difference += abs((*imagePoints)[i].x - projectionPointX);
-						difference += abs((*imagePoints)[i].y - projectionPointY);
+						difference += abs((float)(*imagePoints)[i].x - projectionPointX);
+						difference += abs((float)(*imagePoints)[i].y - projectionPointY);
 						count++;
 					}
 					else // outlier
@@ -239,7 +239,7 @@ double CameraPoseCalculator::Update(std::vector<Vector2>* imagePoints, std::vect
 						imagePoints->erase(imagePoints->begin() + count);
 					}
 				}
-				homographyError = (difference / 2.) / (float)count;
+				homographyError = (difference / 2.0f) / (float)count;
 			}
 
 			DecomposeHomographyToRT(&_intrinsic, &_h, &_extrinsic);

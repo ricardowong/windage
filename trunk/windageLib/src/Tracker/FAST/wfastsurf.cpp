@@ -39,7 +39,7 @@
 
 #include "Tracker/FAST/wfastsurf.h"
 
-const int dx1[] = {3, 3, 2, 1, 0, -1, -2. -3};
+const int dx1[] = {3, 3, 2, 1, 0, -1, -2, -3};
 const int dx2[] = {-3, -3, -2, -1, 0, 1, 2, 3};
 const int dy1[] = {0, 1, 2, 3, 3, 3, 2, 1};
 const int dy2[] = {0, -1, -2, -3, -3, -3, -2, -1};

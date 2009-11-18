@@ -69,7 +69,7 @@ void StereoSURFDetector::Initialize(double activationThreshold, int cameraNumber
 
 void StereoSURFDetector::AttatchCameraParameter(int cameraNumber, Calibration* cameraParameters)
 {
-	if(cameraNumber < this->cameraParameters.size())
+	if(cameraNumber < (int)this->cameraParameters.size())
 	{
 		this->cameraParameters[cameraNumber] = cameraParameters;
 	}
@@ -103,7 +103,7 @@ double StereoSURFDetector::GetDisparity(std::vector<IplImage*>* images, SpatialS
 
 void StereoSURFDetector::CalculateActivation(std::vector<IplImage*>* images)
 {
-	for(int i=0; i<this->spatialSensors->size(); i++)
+	for(int i=0; i<(int)this->spatialSensors->size(); i++)
 	{
 		(*spatialSensors)[i]->SetInactive();
 		double diaparity = this->GetDisparity(images, (*spatialSensors)[i]);

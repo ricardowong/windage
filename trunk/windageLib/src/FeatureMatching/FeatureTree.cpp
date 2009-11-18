@@ -71,7 +71,7 @@ void FeatureTree::CreateReferenceTree(std::vector<SURFFeature*>* referenceSURF)
 	referenceFeatureStorage = cvCreateMat(count, SURF_FEATURE_DESCRIPTOR_DIMENSION, CV_32FC1);
 
 	int featureCount = 0;
-	for(int y=0; y<referenceSURF->size(); y++)
+	for(int y=0; y<(int)referenceSURF->size(); y++)
 	{
 		for(int i=0; i<(*referenceSURF)[y]->GetFeatureCount(); i++)
 		{

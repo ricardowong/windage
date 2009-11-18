@@ -134,13 +134,13 @@ IplImage* Utils::GeneratePatchMap(std::vector<SURFFeature*>* featureList)
 	int count = featureList->size();
 	if(count > 0)
 	{
-		int widthCount = sqrt((double)count) + 1;
+		int widthCount = (int)sqrt((double)count) + 1;
 		int width = widthCount * (*featureList)[0]->GetPatchWidth();
 
 		IplImage* temp = cvCreateImage(cvSize(width, width), IPL_DEPTH_8U, 1);
 		cvZero(temp);
 
-		for(int i=0; i<featureList->size(); i++)
+		for(int i=0; i<(int)featureList->size(); i++)
 		{
 			int x = i%widthCount;
 			int y = i/widthCount;

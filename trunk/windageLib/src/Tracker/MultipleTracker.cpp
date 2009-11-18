@@ -84,7 +84,7 @@ Calibration* MultipleTracker::GetCameraParameter(int index)
 	{
 		return this->cameraParameter;
 	}
-	else if(index < cameraParameterList.size())
+	else if(index < (int)cameraParameterList.size())
 	{
 		return this->cameraParameterList[index];
 	}
