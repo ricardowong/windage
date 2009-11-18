@@ -40,11 +40,10 @@
 #ifndef _STEREO_SENSOR_DETECTOR_H_
 #define _STEREO_SENSOR_DETECTOR_H_
 
-#define DLLEXPORT __declspec(dllexport)
-#define DLLIMPORT __declspec(dllimport)
-
 #include <vector>
 #include <cv.h>
+
+#include "base.h"
 #include "SpatialInteraction/SensorDetector.h"
 #include "SpatialInteraction/SpatialSensor.h"
 #include "Tracker/Calibration.h"

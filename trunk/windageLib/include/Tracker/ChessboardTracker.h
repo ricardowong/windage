@@ -40,10 +40,9 @@
 #ifndef _CHESSBOARD_TRACKER_H_
 #define _CHESSBOARD_TRACKER_H_
 
-#define DLLEXPORT __declspec(dllexport)
-#define DLLIMPORT __declspec(dllimport)
-
 #include <cv.h>
+
+#include "base.h"
 #include "Tracker.h"
 
 namespace windage

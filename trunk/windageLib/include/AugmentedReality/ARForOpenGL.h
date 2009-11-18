@@ -40,8 +40,7 @@
 #ifndef _AUGMENTED_REALITY_FOR_OPENGL_H_
 #define _AUGMENTED_REALITY_FOR_OPENGL_H_
 
-#define DLLEXPORT __declspec(dllexport)
-#define DLLIMPORT __declspec(dllimport)
+#include "base.h"
 
 #include <gl/glut.h>
 #include "AugmentedReality.h"

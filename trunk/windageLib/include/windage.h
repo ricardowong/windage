@@ -55,6 +55,7 @@
 // header files for augmented reality
 #include "AugmentedReality/AugmentedReality.h"
 //#include "AugmentedReality/ARForOpenGL.h"
+//#include "AugmentedReality/ARForOSG.h"
 
 // header files for 3d reconstruction
 #include "Reconstructor/Reconstructor.h"

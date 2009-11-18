@@ -37,48 +37,51 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#ifndef _SENSOR_DETECTOR_H_
-#define _SENSOR_DETECTOR_H_
-
-#include <vector>
-#include <cv.h>
+#ifndef _AUGMENTED_REALITY_FOR_OSG_H_
+#define _AUGMENTED_REALITY_FOR_OSG_H_
 
 #include "base.h"
-#include "SpatialInteraction/SpatialSensor.h"
+
+#include "AugmentedReality.h"
+#include "Utils/wMatrix.h"
 
 namespace windage
 {
 	/**
 	 * @brief
-	 *		Abstract Class for Spatial Sensor Detector
+	 *		Class for Augmented Reality Tool at OSG Environment (hidding)
 	 * @author
 	 *		windage
 	 */
-	class DLLEXPORT SensorDetector
+	class DLLEXPORT ARForOSG : public AugmentedReality
 	{
-	protected:
-		std::vector<SpatialSensor*>* spatialSensors;	///< attatched spatial sensor
+	private:
+		void Release();
+		int width;
+		int height;
+		windage::Matrix4 projectionMatrix;
+		windage::Matrix4 modelviewMatrix;
 
 	public:
-		SensorDetector();
-		~SensorDetector();
+		ARForOSG();
+		~ARForOSG();
 
 		/**
 		 * @brief
-		 *		Attatch spatial sensor list
+		 *		Initialize ARTool for OpenGL
 		 * @remark
-		 *		attatch spatial sensor for sensor activation
+		 *		initialize ARTool for OpenGL Environment
 		 */
-		void AttatchSpatialSensors(std::vector<SpatialSensor*>* spatialSensors);
+		void Initialize(int width, int height);
 
-		/**
-		 * @brief
-		 *		abstract method for Calculate Activation
-		 * @remark
-		 *		calculate activation from attatched all spatial sensors
-		 */
-		virtual void CalculateActivation(std::vector<IplImage*>* images) = 0;
+		void SetProjectionMatrix();
+		void SetModelViewMatrix();
+		void DrawBackgroundTexture(IplImage* inputImage);
+
+		inline windage::Matrix4 GetProjectionMatrix(){return this->projectionMatrix;};
+		inline windage::Matrix4 GetModelViewMatrix(){return this->modelviewMatrix;};
 	};
 }
+
 
 #endif

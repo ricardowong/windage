@@ -37,48 +37,43 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#ifndef _SENSOR_DETECTOR_H_
-#define _SENSOR_DETECTOR_H_
-
-#include <vector>
-#include <cv.h>
-
-#include "base.h"
-#include "SpatialInteraction/SpatialSensor.h"
-
-namespace windage
+osg::Drawable* CreateAxis(const osg::Vec3& corner,const osg::Vec3& xdir,const osg::Vec3& ydir,const osg::Vec3& zdir)
 {
-	/**
-	 * @brief
-	 *		Abstract Class for Spatial Sensor Detector
-	 * @author
-	 *		windage
-	 */
-	class DLLEXPORT SensorDetector
-	{
-	protected:
-		std::vector<SpatialSensor*>* spatialSensors;	///< attatched spatial sensor
+	// set up the Geometry.
+	osg::Geometry* geom = new osg::Geometry;
 
-	public:
-		SensorDetector();
-		~SensorDetector();
+	osg::Vec3Array* coords = new osg::Vec3Array(6);
+	(*coords)[0] = corner;
+	(*coords)[1] = corner+xdir;
+	(*coords)[2] = corner;
+	(*coords)[3] = corner+ydir;
+	(*coords)[4] = corner;
+	(*coords)[5] = corner+zdir;
 
-		/**
-		 * @brief
-		 *		Attatch spatial sensor list
-		 * @remark
-		 *		attatch spatial sensor for sensor activation
-		 */
-		void AttatchSpatialSensors(std::vector<SpatialSensor*>* spatialSensors);
+	geom->setVertexArray(coords);
 
-		/**
-		 * @brief
-		 *		abstract method for Calculate Activation
-		 * @remark
-		 *		calculate activation from attatched all spatial sensors
-		 */
-		virtual void CalculateActivation(std::vector<IplImage*>* images) = 0;
-	};
+	osg::Vec4 x_color(1.0f,0.0f,0.0f,1.0f);
+	osg::Vec4 y_color(0.0f,1.0f,0.0f,1.0f);
+	osg::Vec4 z_color(0.0f,0.0f,1.0f,1.0f);
+
+	osg::Vec4Array* color = new osg::Vec4Array(6);
+	(*color)[0] = x_color;
+	(*color)[1] = x_color;
+	(*color)[2] = y_color;
+	(*color)[3] = y_color;
+	(*color)[4] = z_color;
+	(*color)[5] = z_color;
+
+	geom->setColorArray(color);
+	geom->setColorBinding(osg::Geometry::BIND_PER_VERTEX);
+	geom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES,0,6));
+
+	osg::StateSet* stateset = new osg::StateSet;
+	osg::LineWidth* linewidth = new osg::LineWidth();
+	linewidth->setWidth(10.0f);
+	stateset->setAttributeAndModes(linewidth,osg::StateAttribute::ON);
+	stateset->setMode(GL_LIGHTING,osg::StateAttribute::OFF);
+	geom->setStateSet(stateset);
+
+	return geom;
 }
-
-#endif

@@ -40,11 +40,10 @@
 #ifndef _FEATURE_TREE_H_
 #define _FEATURE_TREE_H_
 
-#define DLLEXPORT __declspec(dllexport)
-#define DLLIMPORT __declspec(dllimport)
-
 #include <vector>
 #include <cv.h>
+
+#include "base.h"
 #include "Utils/wMatrix.h"
 
 #include "SURFFeature.h"

@@ -40,13 +40,11 @@
 #ifndef _MULTIPLE_TRACKER_H_
 #define _MULTIPLE_TRACKER_H_
 
-#define DLLEXPORT __declspec(dllexport)
-#define DLLIMPORT __declspec(dllimport)
-
 #include <vector>
 #include <cv.h>
 #include <cvaux.h>
 
+#include "base.h"
 #include "Tracker.h"
 #include "OpticalFlow.h"
 #include "Utils/Logger.h"

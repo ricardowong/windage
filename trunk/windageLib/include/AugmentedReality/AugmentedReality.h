@@ -40,9 +40,7 @@
 #ifndef _AUGMENTED_REALITY_H_
 #define _AUGMENTED_REALITY_H_
 
-#define DLLEXPORT __declspec(dllexport)
-#define DLLIMPORT __declspec(dllimport)
-
+#include "base.h"
 #include "Tracker/Calibration.h"
 
 namespace windage
