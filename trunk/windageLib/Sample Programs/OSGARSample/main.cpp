@@ -59,10 +59,14 @@
 #include <windage.h>
 #include <AugmentedReality/ARForOSG.h>
 
-
 const int WIDTH = 640;
 const int HEIGHT = 480;
 const double intrinsicValues[8] = {1029.400, 1028.675, 316.524, 211.395, -0.206360, 0.238378, 0.001089, -0.000769};
+
+windage::Logger* logging;
+double fps = 0;
+const int FPS_UPDATE_STEP = 30;
+int fpsStep = 0;
 
 // adaptive threshold
 #define ADAPTIVE_THRESHOLD
@@ -111,9 +115,13 @@ public:
 using namespace windage;
 windage::ModifiedSURFTracker* CreateTracker(IplImage* refImage, int index)
 {
+	//set rectangle marker
+	CvRect rectangle = cvRect(refImage->width/2 - refImage->height/2, 0, refImage->height, refImage->height);
+	cvSetImageROI(refImage, rectangle);
+
 	windage::ModifiedSURFTracker* tracker = new windage::ModifiedSURFTracker();
 	tracker->Initialize(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], intrinsicValues[4], intrinsicValues[5], intrinsicValues[6], intrinsicValues[7], 30);
-	tracker->RegistReferenceImage(refImage, 640, 480, 4.0, 8);
+	tracker->RegistReferenceImage(refImage, rectangle.width*2, rectangle.height*2, 4.0, 8);
 	tracker->SetPoseEstimationMethod(windage::RANSAC);
 	tracker->SetOutlinerRemove(true);
 	tracker->InitializeOpticalFlow(WIDTH, HEIGHT, 5, cvSize(8, 8), 3);
@@ -122,6 +130,7 @@ windage::ModifiedSURFTracker* CreateTracker(IplImage* refImage, int index)
 	tracker->SetFeatureExtractThreshold(30);
 
 	tracker->SetSetpIndex(index);
+	cvResetImageROI(refImage);
 	
 	return tracker;
 }
@@ -157,6 +166,18 @@ osg::Matrixd GetTrackerCoordinate()
 	else											fastThreshold = MAX(MIN_FAST_THRESHOLD, fastThreshold-THRESHOLD_STEP);
 #endif
 
+	// calculate fps
+	fpsStep++;
+	if(fpsStep > FPS_UPDATE_STEP)
+	{
+		fps = logging->calculateFPS()*(double)FPS_UPDATE_STEP;
+		logging->updateTickCount();
+		fpsStep = 0;
+	}
+	char message[100];
+	sprintf(message, "FPS : %.2lf", fps);
+	windage::Utils::DrawTextToImage(input, cvPoint(20, 40), message);
+
 	arTool->SetModelViewMatrix();
 	osg::Matrixd modelView = ConvertMatrix(arTool->GetModelViewMatrix());
 	return modelView;
@@ -173,6 +194,10 @@ int main(int argc, char ** argv )
 	osg::ref_ptr<osg::Group>	foregroundGroup = new osg::Group();
 	osg::ref_ptr<CNVideoLayer>	videoBackground;
 	osg::ref_ptr<osg::Image>	cameraImage = new osg::Image();
+
+	// for checking FPS
+	logging = new windage::Logger(&std::cout);
+	logging->updateTickCount();
 	
 	// initialize tracker
 	capture = cvCaptureFromCAM(CV_CAP_ANY);
@@ -229,14 +254,25 @@ int main(int argc, char ** argv )
 	viewer->setThreadingModel(osgViewer::ViewerBase::ThreadingModel::ThreadPerContext);
 	viewer->realize();
 	
+	// attatch axis drawable
+/*
+	osg::ref_ptr<osg::Geode> geodeAxis = new osg::Geode();
+	osg::Drawable* axis = CreateAxis(osg::Vec3(0, 0, 0), osg::Vec3(150, 0, 0), osg::Vec3(0, 150, 0), osg::Vec3(0, 0, 150));
+	geodeAxis->addDrawable(axis);
+	localCoordinates->addChild(geodeAxis);
+//*/
+
+//*
+	// attatch osg model
 	osg::ref_ptr<osg::MatrixTransform> objectCoordinate = new osg::MatrixTransform();
 	localCoordinates->addChild(objectCoordinate);
 
-	// attatch axis drawable
-	osg::ref_ptr<osg::Geode> geodeAxis = new osg::Geode();
-	osg::Drawable* axis = CreateAxis(osg::Vec3(0, 0, 0), osg::Vec3(300, 0, 0), osg::Vec3(0, 300, 0), osg::Vec3(0, 0, 300));
-	geodeAxis->addDrawable(axis);
-	objectCoordinate->addChild(geodeAxis);
+	osg::Matrixd scale;	scale.makeScale(50.0, 50.0, 50.0);
+	osg::Matrixd translate;	translate.makeTranslate(0.0, 0.0, 3.0);
+	objectCoordinate->postMult(translate);
+	objectCoordinate->postMult(scale);
+	objectCoordinate->addChild(LoadModel("model/cow.osg"));
+//*/
 
 	while (!viewer->done())
     {

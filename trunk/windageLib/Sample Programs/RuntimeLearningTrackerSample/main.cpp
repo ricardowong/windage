@@ -51,6 +51,8 @@
 
 //#define USE_IMAGE_SEQUENCE
 
+const int LEANING_SIZE = 400;
+
 const int FIND_FEATURE_COUNT = 10;
 
 const int MAX_FAST_THRESHOLD = 80;
@@ -66,8 +68,8 @@ windage::ModifiedSURFTracker* CreateTracker(IplImage* refImage, int index=0)
 {
 	windage::ModifiedSURFTracker* tracker = new windage::ModifiedSURFTracker();
 	tracker->Initialize(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], intrinsicValues[4], intrinsicValues[5], intrinsicValues[6], intrinsicValues[7], 30);
-	tracker->RegistReferenceImage(refImage, 26.70, 20.00, 8.0, 8);
-	tracker->SetPoseEstimationMethod(windage::RANSAC);
+	tracker->RegistReferenceImage(refImage, (double)LEANING_SIZE, (double)LEANING_SIZE, 8.0, 8);
+	tracker->SetPoseEstimationMethod(windage::PROSAC);
 	tracker->SetOutlinerRemove(true);
 	tracker->InitializeOpticalFlow(WIDTH, HEIGHT, 10, cvSize(8, 8), 3);
 	tracker->SetOpticalFlowRunning(true);
@@ -90,6 +92,8 @@ void main()
 	IplImage* inputImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
 	IplImage* tempImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
 	IplImage* grayImage = cvCreateImage(cvGetSize(inputImage), IPL_DEPTH_8U, 1);
+
+	IplImage* drawImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
 	
 	// Tracker Initialize
 	IplImage* referenceImage = NULL;//cvLoadImage("reference1_320.png", 0);
@@ -146,7 +150,7 @@ void main()
 		if(featureCount > FIND_FEATURE_COUNT)
 		{
 			tracker->DrawOutLine(inputImage, true);
-			tracker->DrawInfomation(inputImage, 5.0);
+			tracker->DrawInfomation(inputImage, LEANING_SIZE/4.0);
 //			tracker->DrawDebugInfo(inputImage);
 		}
 
@@ -162,14 +166,29 @@ void main()
 		{
 		case 'l':
 		case 'L':
+			cvSetImageROI(grayImage, cvRect(grayImage->width/2 - LEANING_SIZE/2, grayImage->height/2 - LEANING_SIZE/2, LEANING_SIZE, LEANING_SIZE));
 			if(tracker) delete tracker;
 			tracker = CreateTracker(grayImage, 0);
+			cvResetImageROI(grayImage);
 			break;
 		case 'q':
 		case 'Q':
 			processing = false;
 			break;
 		}
+
+		cvZero(drawImage);
+		cvLine(drawImage,	cvPoint(grayImage->width/2 - LEANING_SIZE/2, grayImage->height/2 - LEANING_SIZE/2),
+							cvPoint(grayImage->width/2 + LEANING_SIZE/2, grayImage->height/2 - LEANING_SIZE/2), CV_RGB(255, 0, 0), 3); 
+		cvLine(drawImage,	cvPoint(grayImage->width/2 + LEANING_SIZE/2, grayImage->height/2 - LEANING_SIZE/2),
+							cvPoint(grayImage->width/2 + LEANING_SIZE/2, grayImage->height/2 + LEANING_SIZE/2), CV_RGB(255, 0, 0), 3);
+		cvLine(drawImage,	cvPoint(grayImage->width/2 + LEANING_SIZE/2, grayImage->height/2 + LEANING_SIZE/2),
+							cvPoint(grayImage->width/2 - LEANING_SIZE/2, grayImage->height/2 + LEANING_SIZE/2), CV_RGB(255, 0, 0), 3);
+		cvLine(drawImage,	cvPoint(grayImage->width/2 - LEANING_SIZE/2, grayImage->height/2 + LEANING_SIZE/2),
+							cvPoint(grayImage->width/2 - LEANING_SIZE/2, grayImage->height/2 - LEANING_SIZE/2), CV_RGB(255, 0, 0), 3);
+		cvCircle(drawImage, cvPoint(grayImage->width/2, grayImage->height/2), LEANING_SIZE/6.0, CV_RGB(255, 0, 0), 3);
+		windage::Utils::CompundImmersiveImage(drawImage, inputImage, CV_RGB(0, 0, 0), 0.5);
+
 
 		cvShowImage("result", inputImage);
 	}

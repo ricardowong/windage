@@ -51,19 +51,17 @@ const int MIN_FAST_THRESHOLD = 30;
 const int ADAPTIVE_THRESHOLD_VALUE = 500;
 const int THRESHOLD_STEP = 1;
 
-
 const int OBJECT_COUNT = 5;
 const int FIND_FEATURE_COUNT = 10;
 
 const int WIDTH = 640;
 const int HEIGHT = 480;
 
-const double SCALE = 10.0;
+const double SCALE = 2.0;
 const double REAL_WIDTH = 267.0 * SCALE;
 const double REAL_HEIGHT = 200.0 * SCALE;
 
 const double intrinsicValues[8] = {1029.400, 1028.675, 316.524, 211.395, -0.206360, 0.238378, 0.001089, -0.000769};
-
 
 windage::Vector3 GetTranslation(windage::Calibration* fromCalibration, windage::Calibration* toCalibration)
 {
@@ -149,7 +147,7 @@ windage::Matrix4 CalculateExtrinsicParameter(windage::Calibration* fromCalibrati
 	windage::Matrix3 rotation = fromRotation * toRotation;
 	windage::Vector3 translation = fromTranslation + toTranslation;
 
-	// set
+	// set rotatino and translation
 	windage::Matrix4 matrix;
 	for(int y=0; y<3; y++)
 	{
@@ -260,6 +258,9 @@ void main()
 		// draw tracking result
 		for(int i=0; i<multipleTracker->GetTrackerCount(); i++)
 		{
+			if(updating)
+				foundList[i] = false;
+
 			int matchedCount = multipleTracker->GetMatchedCount(i);
 			if(matchedCount > FIND_FEATURE_COUNT)
 			{
