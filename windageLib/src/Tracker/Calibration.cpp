@@ -254,8 +254,8 @@ CvPoint Calibration::ConvertWorld2Image(double x, double y, double z)
 	ConvertWorld2Image(imageCoordinate, worldCoordinate);
 
 	CvPoint point;
-	point.x = cvGetReal1D(imageCoordinate, 0);
-	point.y = cvGetReal1D(imageCoordinate, 1);
+	point.x = cvRound(cvGetReal1D(imageCoordinate, 0));
+	point.y = cvRound(cvGetReal1D(imageCoordinate, 1));
 
 	cvReleaseMat(&imageCoordinate);
 	cvReleaseMat(&worldCoordinate);

@@ -176,7 +176,7 @@ int ModifiedSURFTracker::ExtractModifiedSURF(IplImage* grayImage, std::vector<Cv
 //	ExtractFASTCorner(&fastCorners, grayImage, thresholdFAST);
 
 	referenceKeypoints = cvCreateSeq( 0, sizeof(CvSeq), sizeof(CvSURFPoint), storage );
-	for(int i=0; i<(*corners).size(); i++)
+	for(int i=0; i<(int)(*corners).size(); i++)
 	{
 		CvSURFPoint point = cvSURFPoint( cvPoint2D32f((*corners)[i].x, (*corners)[i].y), 0, 15, 0, 0);
 		cvSeqPush(referenceKeypoints, &point);
@@ -342,7 +342,7 @@ int ModifiedSURFTracker::FindPairs(SURFDesciription description, cv::flann::Inde
 	int index1 = result.ptr<int>(0)[1];
 	int index = index1;
 //*
-	double temp;
+	float temp;
 	if(min2 < min1)
 	{
 		temp = min1;
@@ -366,8 +366,8 @@ void Rotate(IplImage* src, IplImage* dst, float angle)
    CvPoint2D32f centre;
    CvMat *translate = cvCreateMat(2, 3, CV_32FC1);
    cvSetZero(translate);
-   centre.x = src->width/2;
-   centre.y = src->height/2;
+   centre.x = src->width/2.0f;
+   centre.y = src->height/2.0f;
    cv2DRotationMatrix(centre, angle, 1.0, translate);
    cvWarpAffine(src, dst, translate, CV_INTER_LINEAR + CV_WARP_FILL_OUTLIERS, cvScalarAll(0));
    cvReleaseMat(&translate);
@@ -380,8 +380,7 @@ int ModifiedSURFTracker::GenerateReferenceFeatureTree(double scaleFactor, int sc
 
 	referenceSURF.clear();
 
-	IplImage* tempReference;
-	IplImage* tempReferenceRotate;
+	IplImage* tempReference = NULL;
 	for(int y=1; y<=scaleStep; y++)
 	{
 		for(int x=1; x<=scaleStep; x++)
@@ -399,11 +398,11 @@ int ModifiedSURFTracker::GenerateReferenceFeatureTree(double scaleFactor, int sc
 			float xScaleFactor = (float)this->realWidth / (float)tempReference->width;
 			float yScaleFactor = (float)this->realHeight / (float)tempReference->height;
 
-			for(int i=0; i<tempSurf.size(); i++)
+			for(int i=0; i<(int)tempSurf.size(); i++)
 			{
 				tempSurf[i].point.x *= xScaleFactor;
 				tempSurf[i].point.y *= yScaleFactor;
-				tempSurf[i].point.y = this->realHeight - tempSurf[i].point.y;
+				tempSurf[i].point.y = (float)this->realHeight - tempSurf[i].point.y;
 
 				tempSurf[i].point.x = tempSurf[i].point.x - (float)this->realWidth/2;
 				tempSurf[i].point.y = tempSurf[i].point.y - (float)this->realHeight/2;
@@ -476,7 +475,7 @@ void DecomposeHomographyToRT(CvMat *intrinsic, CvMat *Homography, CvMat *RT)
 		// Search next orthonormal matrix:
 		if( cvNorm( &m_CinvH1, NULL, CV_L2, NULL ) != 0 )
 		{
-			float lambda = 1.00/cvNorm( &m_CinvH1, NULL, CV_L2, NULL );
+			float lambda = 1.0f/cvNorm( &m_CinvH1, NULL, CV_L2, NULL );
 
 			// Create normalized R1 & R2:
 			cvGEMM( invIntrinsic, &m_H1, lambda, NULL, 0, &m_R1, 0 );
@@ -560,12 +559,12 @@ double ModifiedSURFTracker::CalculatePose(bool update)
 		{
 		case windage::PROSAC:
 			{
-				for(int i=0; i<matchedScene.size(); i++)
+				for(int i=0; i<(int)matchedScene.size(); i++)
 				{
 					MatchedPoint referenceTemp(matchedScene[i].point, matchedReference[i].point, matchedScene[i].distance);
 					prosacMatchedPoints.push_back(referenceTemp);
 				}
-				prosac.SetReprojectionThreshold(ERROR_BOUND);
+				prosac.SetReprojectionThreshold((float)ERROR_BOUND);
 				prosac.AttatchMatchedPoints(&prosacMatchedPoints);
 
 				isCalculate = prosac.Calculate();
@@ -578,12 +577,18 @@ double ModifiedSURFTracker::CalculatePose(bool update)
 			break;
 		case windage::RANSAC:
 			{				
-				isCalculate = cvFindHomography( &_pt1, &_pt2, &_h, CV_RANSAC, ERROR_BOUND);
+				if(cvFindHomography( &_pt1, &_pt2, &_h, CV_RANSAC, ERROR_BOUND) > 0)
+					isCalculate = true;
+				else
+					isCalculate = false;
 			}
 			break;
 		case windage::LMEDS:
 			{
-				 isCalculate = cvFindHomography( &_pt1, &_pt2, &_h, CV_LMEDS);
+				if(cvFindHomography( &_pt1, &_pt2, &_h, CV_LMEDS) > 0)
+					isCalculate = true;
+				else
+					isCalculate = false;
 			}
 			break;
 		}
@@ -722,7 +727,7 @@ double ModifiedSURFTracker::UpdateCameraPose(IplImage* grayImage)
 				std::vector<SURFDesciription> tempSceneSURF;
 
 				if(log) log->updateTickCount();
-				for(int i=0; i<sceneSURF.size(); i++)
+				for(int i=0; i<(int)sceneSURF.size(); i++)
 				{
 					float distance = 0;
 #ifdef USING_KDTREE
@@ -822,7 +827,7 @@ double ModifiedSURFTracker::UpdateCameraPose(IplImage* grayImage)
 		matchedScene.clear();
 
 		if(log) log->updateTickCount();
-		for(int i=0; i<sceneSURF.size(); i++)
+		for(int i=0; i<(int)sceneSURF.size(); i++)
 		{
 			float distance = 0;
 #ifdef USING_KDTREE
@@ -868,9 +873,9 @@ void ModifiedSURFTracker::DrawDebugInfo(IplImage* colorImage)
 	int size = 4;
 	for(unsigned int i=0; i<matchedScene.size(); i++)
 	{
-		CvPoint referencePoint = cvPoint(matchedReference[i].point.x * colorImage->width/realWidth + colorImage->width/2,
-									(colorImage->height - matchedReference[i].point.y * colorImage->height/realHeight - colorImage->height/2));
-		CvPoint imagePoint = cvPoint(matchedScene[i].point.x, matchedScene[i].point.y);
+		CvPoint referencePoint = cvPoint((int)matchedReference[i].point.x * colorImage->width/realWidth + colorImage->width/2,
+									(int)(colorImage->height - matchedReference[i].point.y * colorImage->height/realHeight - colorImage->height/2));
+		CvPoint imagePoint = cvPoint((int)matchedScene[i].point.x, (int)matchedScene[i].point.y);
 
 		cvCircle(colorImage, referencePoint, size, CV_RGB(0, 255, 255), CV_FILLED);
 		cvCircle(colorImage, imagePoint, size, CV_RGB(255, 255, 0), CV_FILLED);
@@ -891,9 +896,9 @@ void ModifiedSURFTracker::DrawDebugInfo2(IplImage* colorImage)
 
 	for(unsigned int i=0; i<matchedScene.size(); i++)
 	{
-		CvPoint referencePoint = cvPoint(matchedReference[i].point.x * colorImage->width/realWidth + colorImage->width/2,
-									(colorImage->height/2 - matchedReference[i].point.y * (colorImage->height/2)/realHeight - colorImage->height/4));
-		CvPoint imagePoint = cvPoint(matchedScene[i].point.x, matchedScene[i].point.y + colorImage->height/2);
+		CvPoint referencePoint = cvPoint((int)matchedReference[i].point.x * colorImage->width/realWidth + colorImage->width/2,
+									(int)(colorImage->height/2 - matchedReference[i].point.y * (colorImage->height/2)/realHeight - colorImage->height/4));
+		CvPoint imagePoint = cvPoint((int)matchedScene[i].point.x, (int)matchedScene[i].point.y + colorImage->height/2);
 
 		cvCircle(colorImage, referencePoint, size, CV_RGB(0, 255, 255), CV_FILLED);
 		cvCircle(colorImage, imagePoint, size, CV_RGB(255, 255, 0), CV_FILLED);

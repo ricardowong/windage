@@ -85,8 +85,8 @@ void ARForOSG::SetProjectionMatrix()
 	this->projectionMatrix.m[2][1] =  2.0 * cy / dHeight - 1.0;
 	this->projectionMatrix.m[2][3] = -1.0;
 
-	float z_far  = 10000;
-	float z_near = 0.01;
+	double z_far  = 10000.0;
+	double z_near = 0.01;
 	this->projectionMatrix.m[2][2] = (z_far+z_near)/(z_near-z_far);
 	this->projectionMatrix.m[3][2] = -2.0 * z_far * z_near / (z_far-z_near);
 }

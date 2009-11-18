@@ -52,7 +52,7 @@ const double PROSAC_TIME_OUT = 3.0;
 using namespace windage;
 void MultipleSURFTracker::Release()
 {
-	for(int i=0; i<referenceStorageList.size(); i++)
+	for(int i=0; i<(int)referenceStorageList.size(); i++)
 	{
 		delete referenceStorageList[i];
 	}
@@ -83,7 +83,7 @@ void MultipleSURFTracker::AttatchReferenceImage(IplImage* image, double realWidt
 
 bool MultipleSURFTracker::DeleteReferenceImage(int index)
 {
-	if(index < referenceImageList.size())
+	if(index < (int)referenceImageList.size())
 	{
 		if(referenceImageList[index]) cvReleaseImage(&referenceImageList[index]);
 		referenceImageList.erase(referenceImageList.begin()+index);
@@ -128,7 +128,7 @@ double MultipleSURFTracker::CalculatePose(int index)
 
 	SURFReferenceStorage* reference = referenceStorageList[index];
 	std::vector<SURFDesciription>* descriptor = reference->GetDescriptor();
-	for(int j=0; j<sceneSURF[index].size(); j++)
+	for(int j=0; j<(int)sceneSURF[index].size(); j++)
 	{
 		matchedReferencePoints.push_back((*descriptor)[matchedReferenceIndex[index][j]].point);
 		matchedScenePoints.push_back(sceneSURF[index][j].point);
@@ -162,12 +162,12 @@ double MultipleSURFTracker::CalculatePose(int index)
 		{
 		case windage::PROSAC:
 			{
-				for(int i=0; i<matchedScenePoints.size(); i++)
+				for(int i=0; i<(int)matchedScenePoints.size(); i++)
 				{
 					MatchedPoint referenceTemp(matchedScenePoints[i], matchedReferencePoints[i], distanceList[i]);
 					prosacMatchedPoints.push_back(referenceTemp);
 				}
-				prosac.SetReprojectionThreshold(ERROR_BOUND);
+				prosac.SetReprojectionThreshold((float)ERROR_BOUND);
 				prosac.AttatchMatchedPoints(&prosacMatchedPoints);
 
 				isCalculate = prosac.Calculate();
@@ -180,12 +180,18 @@ double MultipleSURFTracker::CalculatePose(int index)
 			break;
 		case windage::RANSAC:
 			{				
-				isCalculate = cvFindHomography( &_pt1, &_pt2, &_h, CV_RANSAC, ERROR_BOUND);
+				if(cvFindHomography( &_pt1, &_pt2, &_h, CV_RANSAC, ERROR_BOUND) > 0)
+					isCalculate = true;
+				else
+					isCalculate = false;
 			}
 			break;
 		case windage::LMEDS:
 			{
-				 isCalculate = cvFindHomography( &_pt1, &_pt2, &_h, CV_LMEDS);
+				if(cvFindHomography( &_pt1, &_pt2, &_h, CV_LMEDS) > 0)
+					isCalculate = true;
+				else
+					isCalculate = false;
 			}
 			break;
 		}
@@ -265,7 +271,7 @@ int MultipleSURFTracker::DetectObject(std::vector<SURFDesciription>* scene, std:
 {
 	int count = 0;
 	SURFReferenceStorage* reference = referenceStorageList[index];
-	for(int i=0; i<(*scene).size(); i++)
+	for(int i=0; i<(int)(*scene).size(); i++)
 	{
 		float distance = 0;
 		int featureIndex = reference->FindPairs((*scene)[i], COMPAIR_RATE, EMAX, &distance);
@@ -287,9 +293,9 @@ double MultipleSURFTracker::UpdateCameraPose(IplImage* grayImage)
 	{
 		std::vector<CvPoint2D32f> matchedScenePoints;
 		std::vector<CvPoint2D32f> matchedTempPoints;
-		for(int i=0; i<sceneSURF.size(); i++)
+		for(int i=0; i<(int)sceneSURF.size(); i++)
 		{
-			for(int j=0; j<sceneSURF[i].size(); j++)
+			for(int j=0; j<(int)sceneSURF[i].size(); j++)
 			{
 				matchedScenePoints.push_back(sceneSURF[i][j].point);
 			}
@@ -298,12 +304,12 @@ double MultipleSURFTracker::UpdateCameraPose(IplImage* grayImage)
 		opticalflow->TrackFeature(prevImage, grayImage, &matchedScenePoints, &matchedTempPoints);
 
 		int trackedCount = 0;
-		for(int i=0; i<sceneSURF.size(); i++)
+		for(int i=0; i<(int)sceneSURF.size(); i++)
 		{
 			int index = 0;
-			for(int j=0; j<sceneSURF[i].size(); j++)
+			for(int j=0; j<(int)sceneSURF[i].size(); j++)
 			{
-				if(matchedTempPoints.size() > trackedCount)
+				if((int)matchedTempPoints.size() > trackedCount)
 				{
 					if(matchedTempPoints[trackedCount].x >= 0 && matchedTempPoints[trackedCount].y >= 0)
 					{
@@ -359,13 +365,13 @@ double MultipleSURFTracker::UpdateCameraPose(IplImage* grayImage)
 			int matchedCount = DetectObject(&tempSceneSURF, &matchedIndex, i);
 
 			// attatch scene points
-			for(int t=0; t<tempSceneSURF.size(); t++)
+			for(int t=0; t<(int)tempSceneSURF.size(); t++)
 			{
 				int objectID = tempSceneSURF[t].objectID;
 				if(objectID >= 0)
 				{
 					bool isFound = false;
-					for(int j=0; j<sceneSURF[objectID].size()&&!isFound; j++)
+					for(int j=0; j<(int)sceneSURF[objectID].size()&&!isFound; j++)
 					{
 						if(abs(sceneSURF[objectID][j].point.x - tempSceneSURF[t].point.x) + abs(sceneSURF[objectID][j].point.y - tempSceneSURF[t].point.y) <= 2.0f)
 							isFound = true;
@@ -400,7 +406,7 @@ void MultipleSURFTracker::DrawDebugInfo(IplImage* colorImage)
 	const int size = 5;
 	const int lineThick = 1;
 	double count = this->referenceCount-1;
-	for(int i=0; i<sceneSURF.size(); i++)
+	for(int i=0; i<(int)sceneSURF.size(); i++)
 	{
 		double ratio = (double)i/count;
 		double increase = ratio * 255.0;
@@ -415,12 +421,12 @@ void MultipleSURFTracker::DrawDebugInfo(IplImage* colorImage)
 		double realHeight = this->referenceStorageList[i]->GetRealHeight();
 		std::vector<SURFDesciription>* descriptor = this->referenceStorageList[i]->GetDescriptor();
 
-		for(int j=0; j<sceneSURF[i].size(); j++)
+		for(int j=0; j<(int)sceneSURF[i].size(); j++)
 		{
 			CvPoint2D32f referPoint = (*descriptor)[this->matchedReferenceIndex[i][j]].point;
-			CvPoint referencePoint = cvPoint(referPoint.x * colorImage->width/realWidth + colorImage->width/2,
-									(colorImage->height - referPoint.y * colorImage->height/realHeight - colorImage->height/2));;
-			CvPoint imagePoint = cvPoint(sceneSURF[i][j].point.x, sceneSURF[i][j].point.y);
+			CvPoint referencePoint = cvPoint((int)referPoint.x * colorImage->width/realWidth + colorImage->width/2,
+									(int)(colorImage->height - referPoint.y * colorImage->height/realHeight - colorImage->height/2));;
+			CvPoint imagePoint = cvPoint((int)sceneSURF[i][j].point.x, (int)sceneSURF[i][j].point.y);
 
 			cvCircle(colorImage, referencePoint, size, referColor, CV_FILLED);
 			cvCircle(colorImage, imagePoint, size, imageColor, CV_FILLED);
@@ -448,12 +454,12 @@ void MultipleSURFTracker::DrawDebugInfo2(IplImage* colorImage, int index)
 	double realHeight = this->referenceStorageList[index]->GetRealHeight();
 	std::vector<SURFDesciription>* descriptor = this->referenceStorageList[index]->GetDescriptor();
 
-	for(int j=0; j<sceneSURF[index].size(); j++)
+	for(int j=0; j<(int)sceneSURF[index].size(); j++)
 	{
 		CvPoint2D32f referPoint = (*descriptor)[this->matchedReferenceIndex[index][j]].point;
-		CvPoint referencePoint = cvPoint(referPoint.x * colorImage->width/realWidth + colorImage->width/2,
-								((colorImage->height/2) - referPoint.y * (colorImage->height/2)/realHeight - colorImage->height/4));;
-		CvPoint imagePoint = cvPoint(sceneSURF[index][j].point.x, sceneSURF[index][j].point.y + colorImage->height/2);
+		CvPoint referencePoint = cvPoint((int)referPoint.x * colorImage->width/realWidth + colorImage->width/2,
+								(int)((colorImage->height/2) - referPoint.y * (colorImage->height/2)/realHeight - colorImage->height/4));
+		CvPoint imagePoint = cvPoint((int)sceneSURF[index][j].point.x, (int)sceneSURF[index][j].point.y + colorImage->height/2);
 
 		cvCircle(colorImage, referencePoint, size, referColor, CV_FILLED);
 		cvCircle(colorImage, imagePoint, size, imageColor, CV_FILLED);

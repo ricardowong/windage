@@ -227,7 +227,7 @@ void main()
 	// Multipel tracker Initialize
 	std::vector<IplImage*> trainingImage;
 	std::vector<IplImage*> referenceImage;
-	for(int i=1; i<=OBJECT_COUNT; i+=(OBJECT_COUNT-1))
+	for(int i=1; i<=OBJECT_COUNT; i++)
 	{
 		sprintf(message, "reference%d_320.png", i);
 		trainingImage.push_back(cvLoadImage(message, 0));

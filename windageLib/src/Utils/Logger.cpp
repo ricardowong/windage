@@ -114,7 +114,7 @@ void Logger::log(char* dataName, float data)
 
 void Logger::updateTickCount()
 {
-	tickCount = cvGetTickCount();
+	tickCount = (double)cvGetTickCount();
 }
 
 double Logger::calculateProcessTime()

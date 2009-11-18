@@ -93,7 +93,7 @@ Vector4 Reconstructor::PlaneEstimation(Vector3 point1, Vector3 point2, Vector3 p
 #include <time.h>
 Vector4 Reconstructor::PlaneEstimationRANSAC(std::vector<Vector3>* points, Vector3& center, std::vector<Vector3>* consensusPoints)
 {
-	srand(time(NULL));
+	srand((unsigned int)time(NULL));
 	Vector4 bestResult;
 
 	Vector3 bestSum;
@@ -101,7 +101,7 @@ Vector4 Reconstructor::PlaneEstimationRANSAC(std::vector<Vector3>* points, Vecto
 	double bestError = 9999999;
 	Vector4 bestPlane;
 
-	for(int i=0; i<points->size() * 100; i++)
+	for(int i=0; i<(int)points->size() * 100; i++)
 	{
 		int index[3];
 		
@@ -127,7 +127,7 @@ Vector4 Reconstructor::PlaneEstimationRANSAC(std::vector<Vector3>* points, Vecto
 		Vector3 sum = Vector3();
 		int count = 0;
 		double error = 0.0;
-		for(int j=0; j<points->size(); j++)
+		for(int j=0; j<(int)points->size(); j++)
 		{
 			double tempError = CalculatePlaneError(plane, (*points)[j]);
 			if(tempError < ERROR_THRESHOLD)
@@ -154,7 +154,7 @@ Vector4 Reconstructor::PlaneEstimationRANSAC(std::vector<Vector3>* points, Vecto
 					if(consensusPoints)
 					{
 						consensusPoints->clear();
-						for(int j=0; j<points->size(); j++)
+						for(int j=0; j<(int)points->size(); j++)
 						{
 							double tempError = CalculatePlaneError(plane, (*points)[j]);
 							if(tempError < ERROR_THRESHOLD)
@@ -175,7 +175,7 @@ Vector4 Reconstructor::PlaneEstimationRANSAC(std::vector<Vector3>* points, Vecto
 				if(consensusPoints)
 				{
 					consensusPoints->clear();
-					for(int j=0; j<points->size(); j++)
+					for(int j=0; j<(int)points->size(); j++)
 					{
 						double tempError = CalculatePlaneError(plane, (*points)[j]);
 						if(tempError < ERROR_THRESHOLD)

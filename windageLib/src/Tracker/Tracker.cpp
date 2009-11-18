@@ -135,7 +135,7 @@ void Tracker::DecomposeHomographyToRT(CvMat *intrinsic, CvMat *Homography, CvMat
 		// Search next orthonormal matrix:
 		if( cvNorm( &m_CinvH1, NULL, CV_L2, NULL ) != 0 )
 		{
-			float lambda = 1.00/cvNorm( &m_CinvH1, NULL, CV_L2, NULL );
+			float lambda = 1.0f/cvNorm( &m_CinvH1, NULL, CV_L2, NULL );
 
 			// Create normalized R1 & R2:
 			cvGEMM( invIntrinsic, &m_H1, lambda, NULL, 0, &m_R1, 0 );

@@ -149,7 +149,7 @@ int SURFFeature::GenerateDescriptor(IplImage* grayImage, CvPoint point)
 
 Description SURFFeature::GetDescription(int index)
 {
-	if(index < this->descriptionList.size())
+	if(index < (int)this->descriptionList.size())
 		return descriptionList[index];
 	else
 		return Description();

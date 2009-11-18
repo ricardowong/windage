@@ -66,7 +66,7 @@ namespace windage
 	public:
 		FindPROSACHomography()
 		{
-			this->confidence = 0.7; // constant
+			this->confidence = 0.7f; // constant
 			SetTimeout(5.0);
 
 			this->maxIteration = 2000;
