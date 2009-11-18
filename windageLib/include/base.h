@@ -37,48 +37,16 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#ifndef _SENSOR_DETECTOR_H_
-#define _SENSOR_DETECTOR_H_
+#ifndef _WINDAGE_BASE_H_
+#define _WINDAGE_BASE_H_
 
-#include <vector>
-#include <cv.h>
-
-#include "base.h"
-#include "SpatialInteraction/SpatialSensor.h"
-
-namespace windage
-{
-	/**
-	 * @brief
-	 *		Abstract Class for Spatial Sensor Detector
-	 * @author
-	 *		windage
-	 */
-	class DLLEXPORT SensorDetector
-	{
-	protected:
-		std::vector<SpatialSensor*>* spatialSensors;	///< attatched spatial sensor
-
-	public:
-		SensorDetector();
-		~SensorDetector();
-
-		/**
-		 * @brief
-		 *		Attatch spatial sensor list
-		 * @remark
-		 *		attatch spatial sensor for sensor activation
-		 */
-		void AttatchSpatialSensors(std::vector<SpatialSensor*>* spatialSensors);
-
-		/**
-		 * @brief
-		 *		abstract method for Calculate Activation
-		 * @remark
-		 *		calculate activation from attatched all spatial sensors
-		 */
-		virtual void CalculateActivation(std::vector<IplImage*>* images) = 0;
-	};
-}
+//#define DYNAMIC_LIBRARY
+#ifdef DYNAMIC_LIBRARY
+	#define DLLEXPORT __declspec(dllexport)   
+	#define DLLIMPORT __declspec(dllimport)
+#else
+	#define DLLEXPORT 
+	#define DLLIMPORT   
+#endif
 
 #endif

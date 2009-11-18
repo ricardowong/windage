@@ -197,6 +197,10 @@
 				RelativePath=".\NVideoLayer.h"
 				>
 			</File>
+			<File
+				RelativePath=".\OSGWrapper.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"

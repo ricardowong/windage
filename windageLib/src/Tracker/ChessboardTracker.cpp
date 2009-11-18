@@ -108,18 +108,18 @@ int ChessboardTracker::FindChessBoardCorner(IplImage* inputImage)
 void ChessboardTracker::DrawDebugInfo(IplImage* inputImage)
 {
 	int pointCount = this->GetPointCount();
-	int r = 255;
-	int g = 0;
-	int b = 0;
+	double r = 255.0;
+	double g = 0.0;
+	double b = 0.0;
 
-	cvCircle(inputImage, cvPoint(chessboardPoints[0].x, chessboardPoints[0].y), 5, CV_RGB(255, 0, 0), CV_FILLED);
+	cvCircle(inputImage, cvPoint((int)chessboardPoints[0].x, (int)chessboardPoints[0].y), 5, CV_RGB(255, 0, 0), CV_FILLED);
 	for(int i=1; i<pointCount; i++)
 	{
-		r = 255 - 255 * (i/(double)pointCount);
-		b = 255 * (i/(double)pointCount);
+		r = 255.0 - 255.0 * (i/(double)pointCount);
+		b = 255.0 * (i/(double)pointCount);
 
-		cvLine(inputImage, cvPoint(chessboardPoints[i-1].x, chessboardPoints[i-1].y), cvPoint(chessboardPoints[i].x, chessboardPoints[i].y), CV_RGB(r, g, b), 2);
-		cvCircle(inputImage, cvPoint(chessboardPoints[i].x, chessboardPoints[i].y), 5, CV_RGB(r, g, b), CV_FILLED);
+		cvLine(inputImage, cvPoint((int)chessboardPoints[i-1].x, (int)chessboardPoints[i-1].y), cvPoint((int)chessboardPoints[i].x, (int)chessboardPoints[i].y), CV_RGB(r, g, b), 2);
+		cvCircle(inputImage, cvPoint((int)chessboardPoints[i].x, (int)chessboardPoints[i].y), 5, CV_RGB(r, g, b), CV_FILLED);
 	}
 }
 
@@ -173,7 +173,7 @@ bool ChessboardTracker::UpdateExtrinsicParams()
 
 double ChessboardTracker::UpdateCameraPose(IplImage* grayImage)
 {
-	if(this->FindChessBoardCorner(grayImage) == true)
+	if(this->FindChessBoardCorner(grayImage) > 0)
 	{
 		this->UpdateExtrinsicParams();
 		return 1;

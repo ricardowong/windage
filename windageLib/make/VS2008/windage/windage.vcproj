@@ -324,6 +324,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\src\AugmentedReality\ARForOSG.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\include\AugmentedReality\ARForOSG.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\src\AugmentedReality\AugmentedReality.cpp"
 				>
 			</File>
@@ -440,6 +448,10 @@
 				</File>
 			</Filter>
 		</Filter>
+		<File
+			RelativePath="..\..\..\include\base.h"
+			>
+		</File>
 		<File
 			RelativePath="..\..\..\include\windage.h"
 			>

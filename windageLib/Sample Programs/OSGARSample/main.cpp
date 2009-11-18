@@ -51,10 +51,13 @@
 #include <osgGA/TrackballManipulator>
 
 #include "NVideoLayer.h"
+#include "OSGWrapper.h"
 
 #include <iostream>
 #include <highgui.h>
+
 #include <windage.h>
+#include <AugmentedReality/ARForOSG.h>
 
 
 const int WIDTH = 640;
@@ -71,30 +74,9 @@ const int THRESHOLD_STEP = 1;
 
 CvCapture* capture;
 windage::ModifiedSURFTracker* tracker;
+windage::ARForOSG* arTool;
 IplImage* input;
 IplImage* gray;
-
-// for OSG
-osgViewer::Viewer* viewer;
-osg::ref_ptr<osg::MatrixTransform>	localCoordinates;
-
-using namespace windage;
-windage::ModifiedSURFTracker* CreateTracker(IplImage* refImage, int index)
-{
-	windage::ModifiedSURFTracker* tracker = new windage::ModifiedSURFTracker();
-	tracker->Initialize(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], intrinsicValues[4], intrinsicValues[5], intrinsicValues[6], intrinsicValues[7], 30);
-	tracker->RegistReferenceImage(refImage, 640, 480, 4.0, 8);
-	tracker->SetPoseEstimationMethod(windage::RANSAC);
-	tracker->SetOutlinerRemove(true);
-	tracker->InitializeOpticalFlow(WIDTH, HEIGHT, 5, cvSize(8, 8), 3);
-	tracker->SetOpticalFlowRunning(true);
-	tracker->GetCameraParameter()->InitUndistortionMap(WIDTH, HEIGHT);
-	tracker->SetFeatureExtractThreshold(30);
-
-	tracker->SetSetpIndex(index);
-	
-	return tracker;
-}
 
 // class to handle events with a pick
 class PickHandler : public osgGA::GUIEventHandler
@@ -126,55 +108,35 @@ public:
 	}
 };
 
-osg::Matrixd CreateProjectionMatrix(double fx, double fy, double cx, double cy, double width, double height)
+using namespace windage;
+windage::ModifiedSURFTracker* CreateTracker(IplImage* refImage, int index)
 {
-	osg::Matrixd _proj;
-	for(int i=0; i<4; i++)
+	windage::ModifiedSURFTracker* tracker = new windage::ModifiedSURFTracker();
+	tracker->Initialize(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], intrinsicValues[4], intrinsicValues[5], intrinsicValues[6], intrinsicValues[7], 30);
+	tracker->RegistReferenceImage(refImage, 640, 480, 4.0, 8);
+	tracker->SetPoseEstimationMethod(windage::RANSAC);
+	tracker->SetOutlinerRemove(true);
+	tracker->InitializeOpticalFlow(WIDTH, HEIGHT, 5, cvSize(8, 8), 3);
+	tracker->SetOpticalFlowRunning(true);
+	tracker->GetCameraParameter()->InitUndistortionMap(WIDTH, HEIGHT);
+	tracker->SetFeatureExtractThreshold(30);
+
+	tracker->SetSetpIndex(index);
+	
+	return tracker;
+}
+
+osg::Matrixd ConvertMatrix(windage::Matrix4 matrix)
+{
+	osg::Matrixd osgMatrix;
+	for(int y=0; y<4; y++)
 	{
-		for(int j=0; j<4; j++) _proj(i, j) = 0.0;
+		for(int x=0; x<4; x++)
+			osgMatrix(y, x) = matrix.m[y][x];
 	}
-	_proj(0,0)  =  2.0 * fx / width;
-	_proj(1,1)  =  2.0 * fy / height;
-	_proj(2,0)  = -2.0 * cx / width + 1.0;
-	_proj(2,1)  =  2.0 * cy / height - 1.0;
-	_proj(2,3)  = -1.0;
-
-	float z_far  = 10000;
-	float z_near = 0.01;
-	_proj(2,2) = (z_far+z_near)/(z_near-z_far);
-	_proj(3,2) = -2.0 * z_far * z_near / (z_far-z_near);
-
-	return _proj;
+	return osgMatrix;
 }
 
-osg::Matrixd ChangeCalibrationToOSGMatrix(CvMat *_RT)
-{
-	osg::Matrixd RT;
-	double crt[16];
-
-	crt[0] = cvmGet(_RT, 0, 0);
-	crt[4] = cvmGet(_RT, 0, 1);
-	crt[8] = cvmGet(_RT, 0, 2);
-	crt[12]= cvmGet(_RT, 0, 3);
-
-	crt[1] = -cvmGet(_RT, 1, 0);
-	crt[5] = -cvmGet(_RT, 1, 1);
-	crt[9] = -cvmGet(_RT, 1, 2);
-	crt[13]= -cvmGet(_RT, 1, 3);
-
-	crt[2] = -cvmGet(_RT, 2, 0);
-	crt[6] = -cvmGet(_RT, 2, 1);
-	crt[10]= -cvmGet(_RT, 2, 2);
-	crt[14]= -cvmGet(_RT, 2, 3);
-
-	crt[3] = 0;
-	crt[7] = 0;
-	crt[11]= 0;
-	crt[15]= 1;
-
-	RT.set(crt);
-	return RT;
-}
 osg::Matrixd GetTrackerCoordinate()
 {
 	// camera frame grabbing
@@ -195,60 +157,9 @@ osg::Matrixd GetTrackerCoordinate()
 	else											fastThreshold = MAX(MIN_FAST_THRESHOLD, fastThreshold-THRESHOLD_STEP);
 #endif
 
-	CvMat* extrinsic = tracker->GetCameraParameter()->GetExtrinsicMatrix();
-	return ChangeCalibrationToOSGMatrix(extrinsic);
-}
-
-osg::Drawable* CreateAxis(const osg::Vec3& corner,const osg::Vec3& xdir,const osg::Vec3& ydir,const osg::Vec3& zdir)
-{
-	// set up the Geometry.
-	osg::Geometry* geom = new osg::Geometry;
-
-	osg::Vec3Array* coords = new osg::Vec3Array(6);
-	(*coords)[0] = corner;
-	(*coords)[1] = corner+xdir;
-	(*coords)[2] = corner;
-	(*coords)[3] = corner+ydir;
-	(*coords)[4] = corner;
-	(*coords)[5] = corner+zdir;
-
-	geom->setVertexArray(coords);
-
-	osg::Vec4 x_color(1.0f,0.0f,0.0f,1.0f);
-	osg::Vec4 y_color(0.0f,1.0f,0.0f,1.0f);
-	osg::Vec4 z_color(0.0f,0.0f,1.0f,1.0f);
-
-	osg::Vec4Array* color = new osg::Vec4Array(6);
-	(*color)[0] = x_color;
-	(*color)[1] = x_color;
-	(*color)[2] = y_color;
-	(*color)[3] = y_color;
-	(*color)[4] = z_color;
-	(*color)[5] = z_color;
-
-	geom->setColorArray(color);
-	geom->setColorBinding(osg::Geometry::BIND_PER_VERTEX);
-	geom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINES,0,6));
-
-	osg::StateSet* stateset = new osg::StateSet;
-	osg::LineWidth* linewidth = new osg::LineWidth();
-	linewidth->setWidth(10.0f);
-	stateset->setAttributeAndModes(linewidth,osg::StateAttribute::ON);
-	stateset->setMode(GL_LIGHTING,osg::StateAttribute::OFF);
-	geom->setStateSet(stateset);
-
-	return geom;
-}
-
-DWORD WINAPI WorkerThread(LPVOID)
-{
-	while (!viewer->done())
-    {
-		localCoordinates->setMatrix(GetTrackerCoordinate());
-		viewer->frame();
-		cvWaitKey(10);
-    }
-	return 0;
+	arTool->SetModelViewMatrix();
+	osg::Matrixd modelView = ConvertMatrix(arTool->GetModelViewMatrix());
+	return modelView;
 }
 
 int main(int argc, char ** argv )
@@ -272,9 +183,15 @@ int main(int argc, char ** argv )
 	tracker = CreateTracker(referenceImage, 0);
 	tracker->GetCameraParameter()->InitUndistortionMap(WIDTH, HEIGHT);
 
+	// initialize ar tool
+	arTool = new windage::ARForOSG();
+	arTool->Initialize(WIDTH, HEIGHT);
+	arTool->AttatchCameraParameter(tracker->GetCameraParameter());
+
 	// initialize OSG
 	// create projection matrix
-	osg::Matrixd _proj = CreateProjectionMatrix(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], (double)WIDTH, (double)HEIGHT);
+	arTool->SetProjectionMatrix();
+	osg::Matrixd _proj = ConvertMatrix(arTool->GetProjectionMatrix());
 	projectionMatrix = new osg::Projection(_proj);
 	modelViewMatrix  = new osg::MatrixTransform();
 
@@ -296,10 +213,13 @@ int main(int argc, char ** argv )
 	sceneGroup->addChild(foregroundGroup.get());
 
 	// tracker transform
+	osg::ref_ptr<osg::MatrixTransform> localCoordinates;
 	localCoordinates = new osg::MatrixTransform();
 	foregroundGroup->addChild(localCoordinates.get());
 	
 	// create viewer
+	// for OSG
+	osgViewer::Viewer* viewer;
 	viewer = new osgViewer::Viewer();
 	viewer->addEventHandler(new osgViewer::StatsHandler);
 
@@ -308,7 +228,7 @@ int main(int argc, char ** argv )
 	viewer->setSceneData(root.get());
 	viewer->setThreadingModel(osgViewer::ViewerBase::ThreadingModel::ThreadPerContext);
 	viewer->realize();
-
+	
 	osg::ref_ptr<osg::MatrixTransform> objectCoordinate = new osg::MatrixTransform();
 	localCoordinates->addChild(objectCoordinate);
 

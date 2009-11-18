@@ -40,10 +40,9 @@
 #ifndef _CALIBRATION_H_
 #define _CALIBRATION_H_
 
-#define DLLEXPORT __declspec(dllexport)
-#define DLLIMPORT __declspec(dllimport)
-
 #include <cv.h>
+
+#include "base.h"
 
 namespace windage
 {

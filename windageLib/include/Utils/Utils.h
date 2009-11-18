@@ -40,10 +40,9 @@
 #ifndef _UTILS_H_
 #define _UTILS_H_
 
-#define DLLEXPORT __declspec(dllexport)
-#define DLLIMPORT __declspec(dllimport)
-
 #include <cv.h>
+
+#include "base.h"
 #include "Tracker/Calibration.h"
 #include "FeatureMatching/SURFFeature.h"
 

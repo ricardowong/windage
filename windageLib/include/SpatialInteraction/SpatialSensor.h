@@ -40,11 +40,10 @@
 #ifndef _SPATIAL_SENSOR_H_
 #define _SPATIAL_SENSOR_H_
 
-#define DLLEXPORT __declspec(dllexport)
-#define DLLIMPORT __declspec(dllimport)
-
 #include <vector>
 #include <cv.h>
+
+#include "base.h"
 #include "Utils/wVector.h"
 
 namespace windage

@@ -40,11 +40,10 @@
 #ifndef _3D_RECONSTRUCTOR_H_
 #define _3D_RECONSTRUCTOR_H_
 
-#define DLLEXPORT __declspec(dllexport)
-#define DLLIMPORT __declspec(dllimport)
-
 #include <vector>
 #include <cv.h>
+
+#include "base.h"
 #include "Tracker/Calibration.h"
 #include "Utils/wVector.h"
 

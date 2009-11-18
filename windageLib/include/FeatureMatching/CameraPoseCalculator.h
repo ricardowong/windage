@@ -40,11 +40,9 @@
 #ifndef _CAMERA_POSE_CALCULATOR_H_
 #define _CAMERA_POSE_CALCULATOR_H_
 
-#define DLLEXPORT __declspec(dllexport)
-#define DLLIMPORT __declspec(dllimport)
-
 #include <vector>
 
+#include "base.h"
 #include "Tracker/Calibration.h"
 #include "Utils/wVector.h"
 
