@@ -73,7 +73,7 @@ windage::ModifiedSURFTracker* CreateTracker(IplImage* refImage, int index)
 {
 	windage::ModifiedSURFTracker* tracker = new windage::ModifiedSURFTracker();
 	tracker->Initialize(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], intrinsicValues[4], intrinsicValues[5], intrinsicValues[6], intrinsicValues[7], 30);
-	tracker->RegistReferenceImage(refImage, 26.70, 20.00, 4.0, 8);
+	tracker->RegistReferenceImage(refImage, 267.0, 200.0, 4.0, 8);
 	tracker->SetPoseEstimationMethod(windage::RANSAC);
 	tracker->SetOutlinerRemove(true);
 	tracker->InitializeOpticalFlow(WIDTH, HEIGHT, 10, cvSize(8, 8), 3);
@@ -148,7 +148,7 @@ void display()
 		glTranslated(0, 0, 5);
 		glRotatef(90, 1, 0, 0);
 
-		glutWireTeapot(5);
+		glutWireTeapot(50);
 //		glutSolidTeapot(5);
 //		glutSolidCube(10);
 	glPopMatrix();

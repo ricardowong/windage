@@ -147,7 +147,7 @@ void display()
 			glTranslated(0, 0, 5);
 			glRotatef(90, 1, 0, 0);
 
-			glutSolidTeapot(5);
+			glutSolidTeapot(50.0);
 
 			glPopMatrix();
 		}
@@ -186,7 +186,7 @@ void main()
 	for(int i=0; i<trainingImage.size(); i++)
 	{
 		std::cout << "attatch reference image #" << i << std::endl;
-		multipleTracker->AttatchReferenceImage(trainingImage[i], 26.70, 20.00, 4.0, 8);
+		multipleTracker->AttatchReferenceImage(trainingImage[i], 267.0, 200.0, 4.0, 8);
 	}
 
 	// for undistortion
