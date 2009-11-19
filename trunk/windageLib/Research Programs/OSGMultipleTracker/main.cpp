@@ -50,14 +50,14 @@
 #include <osgViewer/CompositeViewer>
 #include <osgGA/TrackballManipulator>
 
-#include "NVideoLayer.h"
-#include "OSGWrapper.h"
-
 #include <iostream>
 #include <highgui.h>
 
 #include <windage.h>
 #include <AugmentedReality/ARForOSG.h>
+
+#include "NVideoLayer.h"
+#include "OSGWrapper.h"
 
 const int WIDTH = 640;
 const int HEIGHT = 480;
@@ -76,11 +76,19 @@ const int MIN_FAST_THRESHOLD = 40;
 const int ADAPTIVE_THRESHOLD_VALUE = 500;
 const int THRESHOLD_STEP = 1;
 
+const int OBJECT_COUNT = 2;
+const int FIND_FEATURE_COUNT = 10;
+
 CvCapture* capture;
-windage::ModifiedSURFTracker* tracker;
+windage::MultipleSURFTracker* tracker;
 windage::ARForOSG* arTool;
 IplImage* input;
 IplImage* gray;
+
+// for relation
+std::vector<windage::Matrix3> rotationList;
+std::vector<windage::Vector3> translationList;
+std::vector<osg::MatrixTransform*> osgRelation;
 
 // class to handle events with a pick
 class PickHandler : public osgGA::GUIEventHandler
@@ -113,24 +121,6 @@ public:
 };
 
 using namespace windage;
-windage::ModifiedSURFTracker* CreateTracker(IplImage* refImage, int index)
-{
-	//set rectangle marker
-	windage::ModifiedSURFTracker* tracker = new windage::ModifiedSURFTracker();
-	tracker->Initialize(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], intrinsicValues[4], intrinsicValues[5], intrinsicValues[6], intrinsicValues[7], 30);
-	tracker->RegistReferenceImage(refImage, refImage->width, refImage->height, 8.0, 8);
-	tracker->SetPoseEstimationMethod(windage::LMEDS);
-	tracker->SetOutlinerRemove(true);
-	tracker->InitializeOpticalFlow(WIDTH, HEIGHT, 5, cvSize(8, 8), 3);
-	tracker->SetOpticalFlowRunning(true);
-	tracker->GetCameraParameter()->InitUndistortionMap(WIDTH, HEIGHT);
-	tracker->SetFeatureExtractThreshold(30);
-
-	tracker->SetSetpIndex(index);
-	
-	return tracker;
-}
-
 osg::Matrixd ConvertMatrix(windage::Matrix4 matrix)
 {
 	osg::Matrixd osgMatrix;
@@ -153,11 +143,33 @@ osg::Matrixd GetTrackerCoordinate()
 	// call tracking algorithm
 	tracker->SetFeatureExtractThreshold(fastThreshold);
 	tracker->UpdateCameraPose(gray);
-	tracker->DrawOutLine(input, true);
-//	tracker->DrawDebugInfo(input);
+
+	// draw tracking result
+	int matchingCount = tracker->GetMatchedCount(0);
+	bool updating = false;
+	if(matchingCount > FIND_FEATURE_COUNT)
+		updating = true;
+	for(int i=0; i<tracker->GetTrackerCount(); i++)
+	{
+		int matchedCount = tracker->GetMatchedCount(i);
+		if(matchedCount > FIND_FEATURE_COUNT)
+		{
+			tracker->DrawOutLine(input, i, true);
+//			tracker->DrawInfomation(input, i, 100.0);
+
+			if(updating)
+			{
+				rotationList[i] = GetRotation(tracker->GetCameraParameter(0), tracker->GetCameraParameter(i));
+				translationList[i] = GetTranslation(tracker->GetCameraParameter(0), tracker->GetCameraParameter(i));
+
+				windage::Matrix4 relationExtrinsic = CalculateRelationExtrinsicParameter(tracker->GetCameraParameter(0), rotationList[i], translationList[i]);
+				osg::Matrixd tempMatrix = ConvertMatrix(windage::ARForOSG::CalculateModelViewMatrix(relationExtrinsic));
+				osgRelation[i]->setMatrix(tempMatrix);
+			}
+		}
+	}
 
 	int featureCount = tracker->GetFeatureCount();
-	int matchingCount = tracker->GetMatchedCount();
 #ifdef ADAPTIVE_THRESHOLD
 	
 	if(featureCount > ADAPTIVE_THRESHOLD_VALUE )	fastThreshold = MIN(MAX_FAST_THRESHOLD, fastThreshold+THRESHOLD_STEP);
@@ -206,14 +218,35 @@ int main(int argc, char ** argv )
 	input = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
 	gray = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 1);
 
-	IplImage* referenceImage = cvLoadImage("reference1_320.png", 0);
-	tracker = CreateTracker(referenceImage, 0);
-	tracker->GetCameraParameter()->InitUndistortionMap(WIDTH, HEIGHT);
+	char filename[100];
+	std::vector<IplImage*> trainingImage;
+	for(int i=1; i<=OBJECT_COUNT; i++)
+	{
+		sprintf(filename, "reference%d_320.png", i);
+		trainingImage.push_back(cvLoadImage(filename, 0));
+	}
+
+	tracker = new windage::MultipleSURFTracker();
+	tracker->Initialize(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], intrinsicValues[4], intrinsicValues[5], intrinsicValues[6], intrinsicValues[7]);
+	tracker->InitializeOpticalFlow(WIDTH, HEIGHT, cvSize(8, 8), 3);
+	tracker->SetDetectIntervalTime(1.0);
+	tracker->SetPoseEstimationMethod(windage::LMEDS);
+	tracker->SetOutlinerRemove(true);
+	tracker->SetFeatureExtractThreshold(30);
+	for(int i=0; i<trainingImage.size(); i++)
+	{
+		std::cout << "attatch reference image #" << i << std::endl;
+		tracker->AttatchReferenceImage(trainingImage[i], 640, 480, 8.0, 8);
+	}
+
+	// for relation
+	rotationList.resize(trainingImage.size());
+	translationList.resize(trainingImage.size());
 
 	// initialize ar tool
 	arTool = new windage::ARForOSG();
 	arTool->Initialize(WIDTH, HEIGHT);
-	arTool->AttatchCameraParameter(tracker->GetCameraParameter());
+	arTool->AttatchCameraParameter(tracker->GetCameraParameter(0)); // add base tracker
 
 	// initialize OSG
 	// create projection matrix
@@ -257,7 +290,7 @@ int main(int argc, char ** argv )
 	viewer->realize();
 	
 	// attatch axis drawable
-/*
+//*
 	osg::ref_ptr<osg::Geode> geodeAxis = new osg::Geode();
 	osg::Drawable* axis = CreateAxis(osg::Vec3(0, 0, 0), osg::Vec3(150, 0, 0), osg::Vec3(0, 150, 0), osg::Vec3(0, 0, 150));
 	geodeAxis->addDrawable(axis);
@@ -273,7 +306,17 @@ int main(int argc, char ** argv )
 	osg::Matrixd translate;	translate.makeTranslate(0.0, 0.0, 3.0);
 	objectCoordinate->postMult(translate);
 	objectCoordinate->postMult(scale);
-	objectCoordinate->addChild(LoadModel("model/cow.osg"));
+//	objectCoordinate->addChild(LoadModel("model/cow.osg"));
+
+	for(int i=0; i<OBJECT_COUNT; i++)
+	{
+		osgRelation.push_back(new osg::MatrixTransform());
+		localCoordinates->addChild(osgRelation[i]);
+	}
+	for(int i=1; i<OBJECT_COUNT; i++)
+	{
+		osgRelation[i]->addChild(geodeAxis);
+	}
 //*/
 
 	while (!viewer->done())
