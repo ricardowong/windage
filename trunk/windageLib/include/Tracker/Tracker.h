@@ -47,7 +47,7 @@
 
 namespace windage
 {
-	enum POSE_ESTIMATION_METHOD{RANSAC = 0, LMEDS, PROSAC};
+	enum POSE_ESTIMATION_METHOD{RANSAC = 0, LMEDS, PROSAC, POSE_3D};
 
 	/**
 	 * @brief

@@ -259,6 +259,14 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\..\src\Tracker\PoseEstimation\Find3DPoseEstimation.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\include\Tracker\PoseEstimation\Find3DPoseEstimation.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\..\src\Tracker\PoseEstimation\FindEpnpPoseEstimation.cpp"
 					>
 				</File>

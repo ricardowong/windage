@@ -171,7 +171,6 @@ osg::Matrixd GetTrackerCoordinate()
 
 	int featureCount = tracker->GetFeatureCount();
 #ifdef ADAPTIVE_THRESHOLD
-	
 	if(featureCount > ADAPTIVE_THRESHOLD_VALUE )	fastThreshold = MIN(MAX_FAST_THRESHOLD, fastThreshold+THRESHOLD_STEP);
 	else											fastThreshold = MAX(MIN_FAST_THRESHOLD, fastThreshold-THRESHOLD_STEP);
 #endif
@@ -236,7 +235,7 @@ int main(int argc, char ** argv )
 	for(int i=0; i<trainingImage.size(); i++)
 	{
 		std::cout << "attatch reference image #" << i << std::endl;
-		tracker->AttatchReferenceImage(trainingImage[i], 640, 480, 8.0, 8);
+		tracker->AttatchReferenceImage(trainingImage[i], 640, 480, 4.0, 8);
 	}
 
 	// for relation
@@ -294,7 +293,7 @@ int main(int argc, char ** argv )
 	osg::ref_ptr<osg::Geode> geodeAxis = new osg::Geode();
 	osg::Drawable* axis = CreateAxis(osg::Vec3(0, 0, 0), osg::Vec3(150, 0, 0), osg::Vec3(0, 150, 0), osg::Vec3(0, 0, 150));
 	geodeAxis->addDrawable(axis);
-	localCoordinates->addChild(geodeAxis);
+//	localCoordinates->addChild(geodeAxis);
 //*/
 
 //*
@@ -306,7 +305,7 @@ int main(int argc, char ** argv )
 	osg::Matrixd translate;	translate.makeTranslate(0.0, 0.0, 3.0);
 	objectCoordinate->postMult(translate);
 	objectCoordinate->postMult(scale);
-//	objectCoordinate->addChild(LoadModel("model/cow.osg"));
+	objectCoordinate->addChild(LoadModel("model/cow.osg"));
 
 	for(int i=0; i<OBJECT_COUNT; i++)
 	{

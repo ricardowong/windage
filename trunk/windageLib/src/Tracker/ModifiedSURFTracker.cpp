@@ -41,6 +41,7 @@
 using namespace windage;
 
 #include "Tracker/PoseEstimation/FindPROSACHomography.h"
+#include "Tracker/PoseEstimation/Find3DPoseEstimation.h"
 
 //#define USING_KDTREE
 #define USING_FLANN
@@ -553,14 +554,13 @@ double ModifiedSURFTracker::CalculatePose(bool update)
 		CvMat _pt1 = cvMat(1, n, CV_32FC2, &(matchedReferencePoints[0]) );
 		CvMat _pt2 = cvMat(1, n, CV_32FC2, &(matchedScenePoints[0]) );
 
-		FindPROSACHomography prosac;
-		std::vector<MatchedPoint> prosacMatchedPoints;
-
 		bool isCalculate = false;
 		switch(this->poseEstimationMethod)
 		{
 		case windage::PROSAC:
 			{
+				FindPROSACHomography prosac;
+				std::vector<MatchedPoint> prosacMatchedPoints;
 				for(int i=0; i<(int)matchedScene.size(); i++)
 				{
 					MatchedPoint referenceTemp(matchedScene[i].point, matchedReference[i].point, matchedScene[i].distance);
@@ -593,7 +593,26 @@ double ModifiedSURFTracker::CalculatePose(bool update)
 					isCalculate = false;
 			}
 			break;
+		case windage::POSE_3D:
+			{
+				Find3DPoseEstimation poseEstimator;
+				std::vector<Matched3DPoint> poseEstimatorPoints;
+				for(int i=0; i<(int)matchedScene.size(); i++)
+				{
+					Matched3DPoint referenceTemp(matchedScene[i].point, cvPoint3D32f(matchedReference[i].point.x, matchedReference[i].point.y, 0.0));
+					poseEstimatorPoints.push_back(referenceTemp);
+				}
+				poseEstimator.AttatchMatchedPoints(&poseEstimatorPoints);
+				poseEstimator.AttatchCalibration(this->cameraParameter);
+				poseEstimator.SetReprojectionThreshold(ERROR_BOUND);
+				if(poseEstimator.Calculate() > 0.0)
+					isCalculate = true;
+				else
+					isCalculate = false;
+			}
+			break;
 		}
+
 
 		if(outlinerRemove && isCalculate)
 		{
@@ -602,7 +621,16 @@ double ModifiedSURFTracker::CalculatePose(bool update)
 			int count = 0;
 			for(unsigned int i=0; i<matchedReferencePoints.size(); i++)
 			{
-				float error = FindHomography::ComputeReprojError(matchedReferencePoints[i], matchedScenePoints[i], homography);
+				float error = 0.0f;
+				if(this->poseEstimationMethod == windage::POSE_3D)
+				{
+					error = Find3DPoseEstimation::ComputeReprojError(matchedScenePoints[i], cvPoint3D32f(matchedReferencePoints[i].x, matchedReferencePoints[i].y, 0.0), cameraParameter->GetIntrinsicMatrix(), cameraParameter->GetExtrinsicMatrix());
+				}
+				else
+				{
+					error = FindHomography::ComputeReprojError(matchedReferencePoints[i], matchedScenePoints[i], homography);
+				}
+
 				if(error <= ERROR_BOUND)
 				{
 					this->matchedReference[count].distance /= 10.0;
@@ -627,37 +655,62 @@ double ModifiedSURFTracker::CalculatePose(bool update)
 			homographyError = difference / (float)matchedReferencePoints.size();
 		}
 
-		if(isCalculate)
+		if(this->poseEstimationMethod == windage::POSE_3D)
 		{
-			DecomposeHomographyToRT(&_intrinsic, &_h, &_extrinsic);
-			for(int y=0; y<3; y++)
+			if(isCalculate)
 			{
-				for(int x=0; x<4; x++)
-				{
-					extrinsicOutMatrix[y*4 + x] = extrinsicMatrix[y*4 + x];
-				}
 			}
-			extrinsicOutMatrix[3*4 + 0] = extrinsicOutMatrix[3*4 + 1] = extrinsicOutMatrix[3*4 + 2] = 0;
-			extrinsicOutMatrix[3*4 + 3] = 1;
+			else
+			{
+				// remove all points
+				if(outlinerRemove)
+				{
+					for(unsigned int i=0; i<matchedReferencePoints.size(); i++)
+					{
+						this->matchedReferencePoints.clear();
+						this->matchedScenePoints.clear();
+						this->matchedReference.clear();
+						this->matchedScene.clear();
+					}
+				}
 
-			if(update)
-				cameraParameter->SetExtrinsicMatrix(extrinsicOutMatrix);
+				homographyError = -1.0;
+			}
 		}
 		else
 		{
-			// remove all points
-			if(outlinerRemove)
+			if(isCalculate)
 			{
-				for(unsigned int i=0; i<matchedReferencePoints.size(); i++)
+				DecomposeHomographyToRT(&_intrinsic, &_h, &_extrinsic);
+				for(int y=0; y<3; y++)
 				{
-					this->matchedReferencePoints.clear();
-					this->matchedScenePoints.clear();
-					this->matchedReference.clear();
-					this->matchedScene.clear();
+					for(int x=0; x<4; x++)
+					{
+						extrinsicOutMatrix[y*4 + x] = extrinsicMatrix[y*4 + x];
+					}
 				}
-			}
+				extrinsicOutMatrix[3*4 + 0] = extrinsicOutMatrix[3*4 + 1] = extrinsicOutMatrix[3*4 + 2] = 0;
+				extrinsicOutMatrix[3*4 + 3] = 1;
 
-			homographyError = -1.0;
+				if(update)
+					cameraParameter->SetExtrinsicMatrix(extrinsicOutMatrix);
+			}
+			else
+			{
+				// remove all points
+				if(outlinerRemove)
+				{
+					for(unsigned int i=0; i<matchedReferencePoints.size(); i++)
+					{
+						this->matchedReferencePoints.clear();
+						this->matchedScenePoints.clear();
+						this->matchedReference.clear();
+						this->matchedScene.clear();
+					}
+				}
+
+				homographyError = -1.0;
+			}
 		}
 	}
 	else
