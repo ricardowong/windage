@@ -43,12 +43,12 @@
 #include "Tracker/PoseEstimation/FindPROSACHomography.h"
 #include "Tracker/PoseEstimation/FindEpnpPoseEstimation.h"
 
-const double ERROR_BOUND = 5.0;
+const double ERROR_BOUND = 3.0;
 const int POSE_POINTS_COUNT = 10;
 const double COMPAIR_RATE = 0.50;
 const int EMAX = 20;
 
-const double PROSAC_TIME_OUT = 3.0;
+const double PROSAC_TIME_OUT = 5.0;
 
 using namespace windage;
 void MultipleSURFTracker::Release()

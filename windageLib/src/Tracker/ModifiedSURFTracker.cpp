@@ -45,7 +45,7 @@ using namespace windage;
 //#define USING_KDTREE
 #define USING_FLANN
 
-const double ERROR_BOUND = 5.0;
+const double ERROR_BOUND = 10.0;
 const int POSE_POINTS_COUNT = 10;
 const double COMPAIR_RATE = 0.50;
 const int EMAX = 20;
@@ -401,7 +401,9 @@ int ModifiedSURFTracker::GenerateReferenceFeatureTree(double scaleFactor, int sc
 			for(int i=0; i<(int)tempSurf.size(); i++)
 			{
 				tempSurf[i].point.x *= xScaleFactor;
+				tempSurf[i].point.x += xScaleFactor/2.0f;
 				tempSurf[i].point.y *= yScaleFactor;
+				tempSurf[i].point.y += yScaleFactor/2.0f;
 				tempSurf[i].point.y = (float)this->realHeight - tempSurf[i].point.y;
 
 				tempSurf[i].point.x = tempSurf[i].point.x - (float)this->realWidth/2;

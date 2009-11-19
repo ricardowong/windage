@@ -121,7 +121,7 @@ windage::Matrix3 GetRotation(windage::Calibration* fromCalibration, windage::Cal
 		}
 	}
 	
-	return toRotation.Transpose() * fromRotation;
+	return fromRotation.Transpose() * toRotation;
 }
 
 windage::Matrix4 CalculateExtrinsicParameter(windage::Calibration* fromCalibration, windage::Matrix3 toRotation, windage::Vector3 toTranslation)
@@ -199,13 +199,13 @@ void main()
 	multipleTracker->Initialize(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], intrinsicValues[4], intrinsicValues[5], intrinsicValues[6], intrinsicValues[7]);
 	multipleTracker->InitializeOpticalFlow(WIDTH, HEIGHT, cvSize(8, 8), 3);
 	multipleTracker->SetDetectIntervalTime(1.0);
-	multipleTracker->SetPoseEstimationMethod(windage::PROSAC);
+	multipleTracker->SetPoseEstimationMethod(windage::LMEDS);
 	multipleTracker->SetOutlinerRemove(true);
 	multipleTracker->SetFeatureExtractThreshold(30);
 	for(int i=0; i<trainingImage.size(); i++)
 	{
 		std::cout << "attatch reference image #" << i << std::endl;
-		multipleTracker->AttatchReferenceImage(trainingImage[i], REAL_WIDTH, REAL_HEIGHT, 4.0, 8);
+		multipleTracker->AttatchReferenceImage(trainingImage[i], REAL_WIDTH, REAL_HEIGHT, 8.0, 8);
 	}
 
 	// for undistortion and calculate coordinate

@@ -80,6 +80,7 @@ namespace windage
 
 		inline windage::Matrix4 GetProjectionMatrix(){return this->projectionMatrix;};
 		inline windage::Matrix4 GetModelViewMatrix(){return this->modelviewMatrix;};
+		static windage::Matrix4 CalculateModelViewMatrix(windage::Matrix4 extrinsic);
 	};
 }
 

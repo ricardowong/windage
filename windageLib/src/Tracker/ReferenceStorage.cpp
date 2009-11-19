@@ -77,8 +77,10 @@ int SURFReferenceStorage::GenerateReferenceFeatureTree(double scaleFactor, int s
 			for(int i=0; i<(int)tempSurf.size(); i++)
 			{
 				tempSurf[i].point.x *= xScaleFactor;
+				tempSurf[i].point.x += xScaleFactor/2.0f;
 				tempSurf[i].point.y *= yScaleFactor;
-				tempSurf[i].point.y = this->realHeight - tempSurf[i].point.y;
+				tempSurf[i].point.y += yScaleFactor/2.0f;
+				tempSurf[i].point.y = (float)this->realHeight - tempSurf[i].point.y;
 
 				tempSurf[i].point.x = tempSurf[i].point.x - (float)this->realWidth/2;
 				tempSurf[i].point.y = tempSurf[i].point.y - (float)this->realHeight/2;

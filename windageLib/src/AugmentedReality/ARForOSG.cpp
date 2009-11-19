@@ -115,3 +115,30 @@ void ARForOSG::SetModelViewMatrix()
 	this->modelviewMatrix.m1[11]= 0.0;
 	this->modelviewMatrix.m1[15]= 1.0;
 }
+
+windage::Matrix4 ARForOSG::CalculateModelViewMatrix(windage::Matrix4 extrinsic)
+{
+	windage::Matrix4 localModelView;
+
+	localModelView.m1[0] = extrinsic.m[0][0];
+	localModelView.m1[4] = extrinsic.m[0][1];
+	localModelView.m1[8] = extrinsic.m[0][2];
+	localModelView.m1[12]= extrinsic.m[0][3];
+
+	localModelView.m1[1] = extrinsic.m[1][0];
+	localModelView.m1[5] = extrinsic.m[1][1];
+	localModelView.m1[9] = extrinsic.m[1][2];
+	localModelView.m1[13]= extrinsic.m[1][3];
+
+	localModelView.m1[2] = extrinsic.m[2][0];
+	localModelView.m1[6] = extrinsic.m[2][1];
+	localModelView.m1[10]= extrinsic.m[2][2];
+	localModelView.m1[14]= extrinsic.m[2][3];
+
+	localModelView.m1[3] = 0.0;
+	localModelView.m1[7] = 0.0;
+	localModelView.m1[11]= 0.0;
+	localModelView.m1[15]= 1.0;
+
+	return localModelView;
+}
