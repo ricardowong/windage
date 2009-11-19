@@ -154,15 +154,15 @@ double MultipleSURFTracker::CalculatePose(int index)
 		CvMat _pt1 = cvMat(1, n, CV_32FC2, &(matchedReferencePoints[0]) );
 		CvMat _pt2 = cvMat(1, n, CV_32FC2, &(matchedScenePoints[0]) );
 
-		FindPROSACHomography prosac;
-		prosac.SetTimeout(PROSAC_TIME_OUT);
-		std::vector<MatchedPoint> prosacMatchedPoints;
-		
 		bool isCalculate = false;
 		switch(this->poseEstimationMethod)
 		{
 		case windage::PROSAC:
 			{
+				FindPROSACHomography prosac;
+				prosac.SetTimeout(PROSAC_TIME_OUT);
+
+				std::vector<MatchedPoint> prosacMatchedPoints;
 				for(int i=0; i<(int)matchedScenePoints.size(); i++)
 				{
 					MatchedPoint referenceTemp(matchedScenePoints[i], matchedReferencePoints[i], distanceList[i]);
@@ -195,6 +195,24 @@ double MultipleSURFTracker::CalculatePose(int index)
 					isCalculate = false;
 			}
 			break;
+		case windage::POSE_3D:
+			{
+				Find3DPoseEstimation poseEstimator;
+				std::vector<Matched3DPoint> poseEstimatorPoints;
+				for(int i=0; i<(int)matchedScenePoints.size(); i++)
+				{
+					Matched3DPoint referenceTemp(matchedScenePoints[i], cvPoint3D32f(matchedReferencePoints[i].x, matchedReferencePoints[i].y, 0.0));
+					poseEstimatorPoints.push_back(referenceTemp);
+				}
+				poseEstimator.AttatchMatchedPoints(&poseEstimatorPoints);
+				poseEstimator.AttatchCalibration(this->cameraParameterList[index]);
+				poseEstimator.SetReprojectionThreshold(ERROR_BOUND);
+				if(poseEstimator.Calculate() > 0.0)
+					isCalculate = true;
+				else
+					isCalculate = false;
+			}
+			break;
 		}
 
 		// outlier remove
@@ -205,7 +223,17 @@ double MultipleSURFTracker::CalculatePose(int index)
 			int count = 0;
 			for(unsigned int i=0; i<matchedReferencePoints.size(); i++)
 			{
-				float error = FindHomography::ComputeReprojError(matchedReferencePoints[i], matchedScenePoints[i], homography);
+				float error = 0.0;
+				if(this->poseEstimationMethod == windage::POSE_3D)
+				{
+					error = Find3DPoseEstimation::ComputeReprojError(matchedScenePoints[i], cvPoint3D32f(matchedReferencePoints[i].x, matchedReferencePoints[i].y, 0.0),
+						cameraParameter->GetIntrinsicMatrix(), cameraParameterList[index]->GetExtrinsicMatrix());
+				}
+				else
+				{
+					error = FindHomography::ComputeReprojError(matchedReferencePoints[i], matchedScenePoints[i], homography);
+				}
+
 				if(error <= ERROR_BOUND)
 				{
 					distanceList[count] /= 10.0;
@@ -226,31 +254,51 @@ double MultipleSURFTracker::CalculatePose(int index)
 			homographyError = difference / (float)matchedReferencePoints.size();
 		}
 
-		if(isCalculate)
+		if(this->poseEstimationMethod == windage::POSE_3D)
 		{
-			DecomposeHomographyToRT(&_intrinsic, &_h, &_extrinsic);
-			for(int y=0; y<3; y++)
+			if(isCalculate)
 			{
-				for(int x=0; x<4; x++)
-				{
-					extrinsicOutMatrix[y*4 + x] = extrinsicMatrix[y*4 + x];
-				}
 			}
-			extrinsicOutMatrix[3*4 + 0] = extrinsicOutMatrix[3*4 + 1] = extrinsicOutMatrix[3*4 + 2] = 0;
-			extrinsicOutMatrix[3*4 + 3] = 1;
+			else
+			{
+				// remove all points
+				if(outlinerRemove)
+				{
+					this->matchedReferenceIndex[index].clear();
+					this->sceneSURF[index].clear();
+				}
 
-			cameraParameterList[index]->SetExtrinsicMatrix(extrinsicOutMatrix);
+				homographyError = -1.0;
+			}
 		}
 		else
 		{
-			// remove all points
-			if(outlinerRemove)
+			if(isCalculate)
 			{
-				this->matchedReferenceIndex[index].clear();
-				this->sceneSURF[index].clear();
-			}
+				DecomposeHomographyToRT(&_intrinsic, &_h, &_extrinsic);
+				for(int y=0; y<3; y++)
+				{
+					for(int x=0; x<4; x++)
+					{
+						extrinsicOutMatrix[y*4 + x] = extrinsicMatrix[y*4 + x];
+					}
+				}
+				extrinsicOutMatrix[3*4 + 0] = extrinsicOutMatrix[3*4 + 1] = extrinsicOutMatrix[3*4 + 2] = 0;
+				extrinsicOutMatrix[3*4 + 3] = 1;
 
-			homographyError = -1.0;
+				cameraParameterList[index]->SetExtrinsicMatrix(extrinsicOutMatrix);
+			}
+			else
+			{
+				// remove all points
+				if(outlinerRemove)
+				{
+					this->matchedReferenceIndex[index].clear();
+					this->sceneSURF[index].clear();
+				}
+
+				homographyError = -1.0;
+			}
 		}
 	}
 	else

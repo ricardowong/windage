@@ -118,8 +118,8 @@ windage::ModifiedSURFTracker* CreateTracker(IplImage* refImage, int index)
 	//set rectangle marker
 	windage::ModifiedSURFTracker* tracker = new windage::ModifiedSURFTracker();
 	tracker->Initialize(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], intrinsicValues[4], intrinsicValues[5], intrinsicValues[6], intrinsicValues[7], 30);
-	tracker->RegistReferenceImage(refImage, refImage->width, refImage->height, 8.0, 8);
-	tracker->SetPoseEstimationMethod(windage::LMEDS);
+	tracker->RegistReferenceImage(refImage, refImage->width, refImage->height, 4.0, 8);
+	tracker->SetPoseEstimationMethod(windage::POSE_3D);
 	tracker->SetOutlinerRemove(true);
 	tracker->InitializeOpticalFlow(WIDTH, HEIGHT, 5, cvSize(8, 8), 3);
 	tracker->SetOpticalFlowRunning(true);

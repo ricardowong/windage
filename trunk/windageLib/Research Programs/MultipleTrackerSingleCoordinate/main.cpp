@@ -199,7 +199,7 @@ void main()
 	multipleTracker->Initialize(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], intrinsicValues[4], intrinsicValues[5], intrinsicValues[6], intrinsicValues[7]);
 	multipleTracker->InitializeOpticalFlow(WIDTH, HEIGHT, cvSize(8, 8), 3);
 	multipleTracker->SetDetectIntervalTime(1.0);
-	multipleTracker->SetPoseEstimationMethod(windage::LMEDS);
+	multipleTracker->SetPoseEstimationMethod(windage::PROSAC);
 	multipleTracker->SetOutlinerRemove(true);
 	multipleTracker->SetFeatureExtractThreshold(30);
 	for(int i=0; i<trainingImage.size(); i++)
