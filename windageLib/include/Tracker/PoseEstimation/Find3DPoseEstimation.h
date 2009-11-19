@@ -37,31 +37,62 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#ifndef _FIND_EPNP_POSE_ESTIMATION_H_
-#define _FIND_EPNP_POSE_ESTIMATION_H_
+#ifndef _FIND_3D_POSE_ESTIMATION_H_
+#define _FIND_3D_POSE_ESTIMATION_H_
 
 #include <vector>
 #include <cv.h>
 
 #include "base.h"
-#include "Find3DPoseEstimation.h"
+#include "Tracker/Calibration.h"
 
 namespace windage
 {
-	class DLLEXPORT FindEpnpPoseEstimation:Find3DPoseEstimation
+	typedef struct _Matched3DPoint
+	{
+		CvPoint2D32f pointScene;
+		CvPoint3D32f pointReference;
+		bool isInlier;
+
+		struct _Matched3DPoint(CvPoint2D32f pointScene, CvPoint3D32f pointReference)
+		{
+			this->pointScene = pointScene;
+			this->pointReference = pointReference;
+			isInlier = false;
+		}
+
+		void operator=(struct _Matched3DPoint oprd)
+		{
+			this->pointScene = oprd.pointScene;
+			this->pointReference = oprd.pointReference;
+			this->isInlier = oprd.isInlier;
+		}
+	}Matched3DPoint;
+
+	class DLLEXPORT Find3DPoseEstimation
 	{
 	protected:
-		double RunEpnpRANSAC(std::vector<Matched3DPoint>* matchedPoints, double* cameraPose);
+		double reprojectionThreshold;
+		windage::Calibration* calibration;
+
+		std::vector<Matched3DPoint>* matchedPoints;
+//		double RunPoseEstimateRANSAC(std::vector<Matched3DPoint>* matchedPoints, double* cameraPose);
 	public:
-		FindEpnpPoseEstimation()
+		Find3DPoseEstimation()
 		{
-			reprojectionThreshold = 5.0;
+			reprojectionThreshold = 2.0;
 			calibration = NULL;
 			matchedPoints = NULL;
 		}
-		~FindEpnpPoseEstimation()
+		~Find3DPoseEstimation()
 		{
 		}
+
+		inline void SetReprojectionThreshold(double reprojectionThreshold=5.0f){this->reprojectionThreshold = reprojectionThreshold;};
+		inline void AttatchMatchedPoints(std::vector<Matched3DPoint>* matchedPoints){this->matchedPoints = matchedPoints;};
+		inline void AttatchCalibration(windage::Calibration* calibration){this->calibration = calibration;};
+
+		static double ComputeReprojError(CvPoint2D32f scenePoint, CvPoint3D32f refPoint, CvMat* intrinsicMatrix, CvMat* extrinsicMatrix);
 
 		double Calculate();
 	};

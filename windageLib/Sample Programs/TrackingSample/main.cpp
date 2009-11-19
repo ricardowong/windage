@@ -67,7 +67,7 @@ windage::ModifiedSURFTracker* CreateTracker(IplImage* refImage, int index)
 	windage::ModifiedSURFTracker* tracker = new windage::ModifiedSURFTracker();
 	tracker->Initialize(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], intrinsicValues[4], intrinsicValues[5], intrinsicValues[6], intrinsicValues[7], 30);
 	tracker->RegistReferenceImage(refImage, 267.0, 200.0, 4.0, 8);
-	tracker->SetPoseEstimationMethod(windage::RANSAC);
+	tracker->SetPoseEstimationMethod(windage::POSE_3D);
 	tracker->SetOutlinerRemove(true);
 	tracker->InitializeOpticalFlow(WIDTH, HEIGHT, 10, cvSize(8, 8), 3);
 	tracker->SetOpticalFlowRunning(true);
@@ -139,7 +139,7 @@ void main()
 		if(featureCount > FIND_FEATURE_COUNT)
 		{
 			tracker->DrawOutLine(inputImage, true);
-			tracker->DrawInfomation(inputImage, 50.0);
+			tracker->DrawInfomation(inputImage, 100.0);
 			tracker->DrawDebugInfo(inputImage);
 		}
 
