@@ -235,7 +235,7 @@ int main(int argc, char ** argv )
 	for(int i=0; i<trainingImage.size(); i++)
 	{
 		std::cout << "attatch reference image #" << i << std::endl;
-		tracker->AttatchReferenceImage(trainingImage[i], 640, 480, 4.0, 8);
+		tracker->AttatchReferenceImage(trainingImage[i], 640, 480, 8.0, 8);
 	}
 
 	// for relation

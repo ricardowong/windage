@@ -42,6 +42,9 @@
 #include "Tracker/MultipleSURFTracker.h"
 #include "Tracker/PoseEstimation/FindPROSACHomography.h"
 #include "Tracker/PoseEstimation/FindEpnpPoseEstimation.h"
+#include "Tracker/PoseEstimation/Find3DPoseEstimation.h"
+
+//#define POSE_3D_ESTIMATION
 
 const double ERROR_BOUND = 3.0;
 const int POSE_POINTS_COUNT = 10;
@@ -275,6 +278,7 @@ double MultipleSURFTracker::CalculatePose(int index)
 		{
 			if(isCalculate)
 			{
+#ifndef POSE_3D_ESTIMATION
 				DecomposeHomographyToRT(&_intrinsic, &_h, &_extrinsic);
 				for(int y=0; y<3; y++)
 				{
@@ -286,7 +290,21 @@ double MultipleSURFTracker::CalculatePose(int index)
 				extrinsicOutMatrix[3*4 + 0] = extrinsicOutMatrix[3*4 + 1] = extrinsicOutMatrix[3*4 + 2] = 0;
 				extrinsicOutMatrix[3*4 + 3] = 1;
 
-				cameraParameterList[index]->SetExtrinsicMatrix(extrinsicOutMatrix);
+				this->cameraParameterList[index]->SetExtrinsicMatrix(extrinsicOutMatrix);
+#else
+				Find3DPoseEstimation poseEstimator;
+				std::vector<Matched3DPoint> poseEstimatorPoints;
+				for(int i=0; i<(int)matchedScenePoints.size(); i++)
+				{
+					Matched3DPoint referenceTemp(matchedScenePoints[i], cvPoint3D32f(matchedReferencePoints[i].x, matchedReferencePoints[i].y, 0.0));
+					poseEstimatorPoints.push_back(referenceTemp);
+				}
+				poseEstimator.AttatchMatchedPoints(&poseEstimatorPoints);
+				poseEstimator.AttatchCalibration(this->cameraParameterList[index]);
+				poseEstimator.SetReprojectionThreshold(ERROR_BOUND);
+//				poseEstimator.SetUseRANSAC(false);
+				poseEstimator.Calculate();
+#endif
 			}
 			else
 			{

@@ -130,143 +130,149 @@ bool CalculatePose(CvMat* intrinsic, CvMat* distortion, CvMat* extrinsicMatrix, 
 
 double Find3DPoseEstimation::Calculate()
 {
-//	CalculatePose(this->calibration->GetIntrinsicMatrix(), this->calibration->GetDistortionCoefficients(), this->calibration->GetExtrinsicMatrix(), this->matchedPoints);
-//	return -1.0;
-
-	CvMat* intrinsic = this->calibration->GetIntrinsicMatrix();
-	CvMat* extrinsic = cvCreateMat(4, 4, CV_64FC1);
-	int numpt = (int)matchedPoints->size();
-	if(numpt < 8) return -1.0;
-
-	const int sample_size = 8;
-	int pre_inlier = -1, num_inliers = 0;
-	int max_random_iters = 10, ci = 0;
-	const unsigned rng_seed = 0xffffffff;
-	CvRNG rng = cvRNG(rng_seed);
-
-	int iter = 100;
-	CvMat *tStatus = cvCreateMat(1, numpt, CV_64F);
-	CvMat *bStatus = cvCreateMat(1, numpt, CV_64F);
-
-	while(ci < iter)
+	if(this->useRANSAC == false)
 	{
-		int idx[sample_size];
-		int snum = 0;
-		bool bIn;
-		for(int i = 0; i < sample_size; i++ )
+		CalculatePose(this->calibration->GetIntrinsicMatrix(), this->calibration->GetDistortionCoefficients(), this->calibration->GetExtrinsicMatrix(), this->matchedPoints);
+		return 1.0;
+	}
+	else
+	{
+		CvMat* intrinsic = this->calibration->GetIntrinsicMatrix();
+		CvMat* extrinsic = cvCreateMat(4, 4, CV_64FC1);
+		int numpt = (int)matchedPoints->size();
+
+		const int sample_size = 5;
+		if(numpt < sample_size) return -1.0;
+
+		int pre_inlier = -1, num_inliers = 0;
+		int max_random_iters = 10, ci = 0;
+		const unsigned rng_seed = 0xffffffff;
+		CvRNG rng = cvRNG(rng_seed);
+
+		int iter = 100;
+		CvMat *tStatus = cvCreateMat(1, numpt, CV_64F);
+		CvMat *bStatus = cvCreateMat(1, numpt, CV_64F);
+
+		while(ci < iter)
 		{
-			for(int k = 0; k <max_random_iters; k++ )
+			int idx[sample_size];
+			int snum = 0;
+			bool bIn;
+			for(int i = 0; i < sample_size; i++ )
 			{
-				idx[i] = cvRandInt(&rng) % numpt;
-				bIn = false;
-				for(int j = 0; j < snum; j++)
+				for(int k = 0; k <max_random_iters; k++ )
 				{
-					if(idx[j] == idx[i])
+					idx[i] = cvRandInt(&rng) % numpt;
+					bIn = false;
+					for(int j = 0; j < snum; j++)
 					{
-						bIn = true;
-						break;
+						if(idx[j] == idx[i])
+						{
+							bIn = true;
+							break;
+						}
+					}
+
+					if(!bIn)
+					{
+						snum++;
+						break; 
 					}
 				}
+			} // done
 
-				if(!bIn)
+			std::vector<windage::Matched3DPoint> samplingPoints;
+			for(int i=0; i<sample_size; i++)
+			{
+				samplingPoints.push_back((*this->matchedPoints)[idx[i]]);
+			}
+			
+			// compute pose
+			CalculatePose(this->calibration->GetIntrinsicMatrix(), this->calibration->GetDistortionCoefficients(), extrinsic, &samplingPoints);
+
+			// count inliers
+			for(int i=0; i<(int)matchedPoints->size(); i++)
+			{
+				double err = windage::Find3DPoseEstimation::ComputeReprojError((*matchedPoints)[i].pointScene, (*matchedPoints)[i].pointReference, intrinsic, extrinsic);
+
+				if(err < reprojectionThreshold)
 				{
-					snum++;
-					break; 
+					num_inliers++;
+					tStatus->data.db[i] = 1.0;
+				}
+				else
+				{
+					tStatus->data.db[i] = 0.0;
 				}
 			}
-		} // done
 
-		std::vector<windage::Matched3DPoint> samplingPoints;
-		for(int i=0; i<sample_size; i++)
-		{
-			samplingPoints.push_back((*this->matchedPoints)[idx[i]]);
+			if(num_inliers > pre_inlier)
+			{
+				pre_inlier = num_inliers;
+				cvCopy(tStatus, bStatus);
+
+				if(pre_inlier > (double)numpt*0.9)
+				{
+					// terminate
+					ci = iter;
+				}
+			}
+
+			ci++;
 		}
-		
-		// compute pose
+
+		if(pre_inlier < sample_size)
+		{
+			return -1.0;
+		}
+
+		// recompute RT with inliers
+		std::vector<windage::Matched3DPoint> samplingPoints;
+		for(int i=0; i<numpt; i++)
+		{
+			if(bStatus->data.db[i] > 0.0)
+			{
+				samplingPoints.push_back((*this->matchedPoints)[i]);
+			}
+		}
+		if(samplingPoints.size() < sample_size)
+			return -1.0;
+
 		CalculatePose(this->calibration->GetIntrinsicMatrix(), this->calibration->GetDistortionCoefficients(), extrinsic, &samplingPoints);
 
 		// count inliers
+		double err = 0.0;
 		for(int i=0; i<(int)matchedPoints->size(); i++)
 		{
-			double err = windage::Find3DPoseEstimation::ComputeReprojError((*matchedPoints)[i].pointScene, (*matchedPoints)[i].pointReference, intrinsic, extrinsic);
+			double localError = windage::Find3DPoseEstimation::ComputeReprojError((*this->matchedPoints)[i].pointScene, (*this->matchedPoints)[i].pointReference, intrinsic, extrinsic);
 
-			if(err < reprojectionThreshold)
+			if(localError < reprojectionThreshold)
 			{
 				num_inliers++;
-				tStatus->data.db[i] = 1.0;
+				err += localError;
+				(*matchedPoints)[i].isInlier = true;
 			}
 			else
 			{
-				tStatus->data.db[i] = 0.0;
+				(*matchedPoints)[i].isInlier = false;
 			}
 		}
 
-		if(num_inliers > pre_inlier)
+		// update extrinsic matrix
+		CvMat* external = this->calibration->GetExtrinsicMatrix();
+		for(int y=0; y<4; y++)
 		{
-			pre_inlier = num_inliers;
-			cvCopy(tStatus, bStatus);
-
-			if(pre_inlier > (double)numpt*0.9)
+			for(int x=0; x<4; x++)
 			{
-				// terminate
-				ci = iter;
+				cvmSet(external, y, x, cvmGet(extrinsic, y, x));
 			}
 		}
 
-		ci++;
+		cvReleaseMat(&tStatus);
+		cvReleaseMat(&bStatus);
+
+		cvReleaseMat(&extrinsic);
+		return err/num_inliers;
 	}
-
-	if(pre_inlier < sample_size)
-	{
-		return -1.0;
-	}
-
-	// recompute RT with inliers
-	std::vector<windage::Matched3DPoint> samplingPoints;
-	for(int i=0; i<numpt; i++)
-	{
-		if(bStatus->data.db[i] > 0.0)
-		{
-			samplingPoints.push_back((*this->matchedPoints)[i]);
-		}
-	}
-	if(samplingPoints.size() < sample_size)
-		return -1.0;
-
-	CalculatePose(this->calibration->GetIntrinsicMatrix(), this->calibration->GetDistortionCoefficients(), extrinsic, &samplingPoints);
-
-	// count inliers
-	double err = 0.0;
-	for(int i=0; i<(int)matchedPoints->size(); i++)
-	{
-		double localError = windage::Find3DPoseEstimation::ComputeReprojError((*this->matchedPoints)[i].pointScene, (*this->matchedPoints)[i].pointReference, intrinsic, extrinsic);
-
-		if(localError < reprojectionThreshold)
-		{
-			num_inliers++;
-			err += localError;
-			(*matchedPoints)[i].isInlier = true;
-		}
-		else
-		{
-			(*matchedPoints)[i].isInlier = false;
-		}
-	}
-
-	// update extrinsic matrix
-	CvMat* external = this->calibration->GetExtrinsicMatrix();
-	for(int y=0; y<4; y++)
-	{
-		for(int x=0; x<4; x++)
-		{
-			cvmSet(external, y, x, cvmGet(extrinsic, y, x));
-		}
-	}
-
-	cvReleaseMat(&tStatus);
-	cvReleaseMat(&bStatus);
-
-	cvReleaseMat(&extrinsic);
-	return err/num_inliers;
 }
 

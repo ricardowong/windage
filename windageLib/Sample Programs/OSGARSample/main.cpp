@@ -118,7 +118,7 @@ windage::ModifiedSURFTracker* CreateTracker(IplImage* refImage, int index)
 	//set rectangle marker
 	windage::ModifiedSURFTracker* tracker = new windage::ModifiedSURFTracker();
 	tracker->Initialize(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], intrinsicValues[4], intrinsicValues[5], intrinsicValues[6], intrinsicValues[7], 30);
-	tracker->RegistReferenceImage(refImage, refImage->width, refImage->height, 4.0, 8);
+	tracker->RegistReferenceImage(refImage, refImage->width, refImage->height, 8.0, 8);
 	tracker->SetPoseEstimationMethod(windage::POSE_3D);
 	tracker->SetOutlinerRemove(true);
 	tracker->InitializeOpticalFlow(WIDTH, HEIGHT, 5, cvSize(8, 8), 3);
@@ -269,7 +269,8 @@ int main(int argc, char ** argv )
 	osg::ref_ptr<osg::MatrixTransform> objectCoordinate = new osg::MatrixTransform();
 	localCoordinates->addChild(objectCoordinate);
 
-	osg::Matrixd scale;	scale.makeScale(50.0, 50.0, 50.0);
+	double scaleFactor = 50.0;
+	osg::Matrixd scale;	scale.makeScale(scaleFactor, scaleFactor, scaleFactor);
 	osg::Matrixd translate;	translate.makeTranslate(0.0, 0.0, 3.0);
 	objectCoordinate->postMult(translate);
 	objectCoordinate->postMult(scale);
