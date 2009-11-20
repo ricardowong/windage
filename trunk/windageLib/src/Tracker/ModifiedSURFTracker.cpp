@@ -46,6 +46,8 @@ using namespace windage;
 //#define USING_KDTREE
 #define USING_FLANN
 
+//#define POSE_3D_ESTIMATION
+
 const double ERROR_BOUND = 10.0;
 const int POSE_POINTS_COUNT = 10;
 const double COMPAIR_RATE = 0.50;
@@ -681,6 +683,7 @@ double ModifiedSURFTracker::CalculatePose(bool update)
 		{
 			if(isCalculate)
 			{
+#ifndef POSE_3D_ESTIMATION
 				DecomposeHomographyToRT(&_intrinsic, &_h, &_extrinsic);
 				for(int y=0; y<3; y++)
 				{
@@ -694,6 +697,20 @@ double ModifiedSURFTracker::CalculatePose(bool update)
 
 				if(update)
 					cameraParameter->SetExtrinsicMatrix(extrinsicOutMatrix);
+#else
+				Find3DPoseEstimation poseEstimator;
+				std::vector<Matched3DPoint> poseEstimatorPoints;
+				for(int i=0; i<(int)matchedScene.size(); i++)
+				{
+					Matched3DPoint referenceTemp(matchedScene[i].point, cvPoint3D32f(matchedReference[i].point.x, matchedReference[i].point.y, 0.0));
+					poseEstimatorPoints.push_back(referenceTemp);
+				}
+				poseEstimator.AttatchMatchedPoints(&poseEstimatorPoints);
+				poseEstimator.AttatchCalibration(this->cameraParameter);
+				poseEstimator.SetReprojectionThreshold(ERROR_BOUND);
+				poseEstimator.SetUseRANSAC(false);
+				poseEstimator.Calculate();
+#endif
 			}
 			else
 			{

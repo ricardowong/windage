@@ -55,7 +55,7 @@ const double REAL_HEIGHT = 20.00;
 
 const double intrinsicValues[8] = {1029.400, 1028.675, 316.524, 211.395, -0.206360, 0.238378, 0.001089, -0.000769};
 
-windage::Vector3 GetTranslation(windage::Calibration* fromCalibration, windage::Calibration* toCalibration)
+windage::Vector3 GetCameraTranslation(windage::Calibration* fromCalibration, windage::Calibration* toCalibration)
 {
 	CvMat* toExtrinsicMatrix = toCalibration->GetExtrinsicMatrix();
 	CvMat* fromExtrinsicMatrix = fromCalibration->GetExtrinsicMatrix();
@@ -79,10 +79,21 @@ windage::Vector3 GetTranslation(windage::Calibration* fromCalibration, windage::
 		}
 	}
 
+	windage::Matrix3 toRotation;
+	for(int y=0; y<3; y++)
+	{
+		for(int x=0; x<3; x++)
+		{
+			toRotation.m[y][x] = cvGetReal2D(toExtrinsicMatrix, y, x);
+		}
+	}
+/*
 	fromRotation = fromRotation.Inverse();
-	fromTranslation = fromRotation * fromTranslation;
-	toTranslation = fromRotation * toTranslation;
+	toRotation = toRotation.Inverse();
 
+	fromTranslation = fromRotation * fromTranslation;
+	toTranslation = toRotation * toTranslation;
+//*/
 	double x = toTranslation.x - fromTranslation.x;
 	double y = toTranslation.y - fromTranslation.y;
 	double z = toTranslation.z - fromTranslation.z;
@@ -90,7 +101,7 @@ windage::Vector3 GetTranslation(windage::Calibration* fromCalibration, windage::
 	return windage::Vector3(x, y, z);
 }
 
-windage::Matrix3 GetRotation(windage::Calibration* fromCalibration, windage::Calibration* toCalibration)
+windage::Matrix3 GetCameraRotation(windage::Calibration* fromCalibration, windage::Calibration* toCalibration)
 {
 	CvMat* toExtrinsicMatrix = toCalibration->GetExtrinsicMatrix();
 	CvMat* fromExtrinsicMatrix = fromCalibration->GetExtrinsicMatrix();
@@ -113,10 +124,10 @@ windage::Matrix3 GetRotation(windage::Calibration* fromCalibration, windage::Cal
 		}
 	}
 	
-	return toRotation.Transpose() * fromRotation;
+	return fromRotation * toRotation.Transpose();
 }
 
-windage::Matrix4 CalculateExtrinsicParameter(windage::Calibration* fromCalibration, windage::Matrix3 toRotation, windage::Vector3 toTranslation)
+windage::Matrix4 CalculateCameraExtrinsicParameter(windage::Calibration* fromCalibration, windage::Matrix3 toRotation, windage::Vector3 toTranslation)
 {
 	CvMat* fromExtrinsicMatrix = fromCalibration->GetExtrinsicMatrix();
 
@@ -134,9 +145,9 @@ windage::Matrix4 CalculateExtrinsicParameter(windage::Calibration* fromCalibrati
 		}
 	}
 
-	toTranslation = fromRotation * toTranslation;
+//	fromTranslation = toRotation * fromTranslation;
 
-	windage::Matrix3 rotation = fromRotation * toRotation;
+	windage::Matrix3 rotation = toRotation * fromRotation;
 	windage::Vector3 translation = fromTranslation + toTranslation;
 
 	// set rotatino and translation
@@ -148,7 +159,9 @@ windage::Matrix4 CalculateExtrinsicParameter(windage::Calibration* fromCalibrati
 			matrix.m[y][x] = rotation.m[y][x];
 		}
 		matrix.m[y][3] = translation.v[y];
+	
 	}
+
 	matrix.m[3][0] = matrix.m[3][1] = matrix.m[3][2] = 0.0;
 	matrix.m[3][3] = 1.0;
 
@@ -160,11 +173,11 @@ windage::ModifiedSURFTracker* CreateTracker(IplImage* refImage, int index)
 	windage::ModifiedSURFTracker* tracker = new windage::ModifiedSURFTracker();
 	tracker->Initialize(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], intrinsicValues[4], intrinsicValues[5], intrinsicValues[6], intrinsicValues[7], 30);
 	tracker->RegistReferenceImage(refImage, REAL_WIDTH, REAL_HEIGHT, 8.0, 8);
-	tracker->SetPoseEstimationMethod(windage::LMEDS);
+	tracker->SetPoseEstimationMethod(windage::PROSAC);
 	tracker->SetOutlinerRemove(true);
 	tracker->InitializeOpticalFlow(WIDTH, HEIGHT, 10, cvSize(8, 8), 3);
 	tracker->SetOpticalFlowRunning(true);
-//	tracker->GetCameraParameter()->InitUndistortionMap(WIDTH, HEIGHT);
+	tracker->GetCameraParameter()->InitUndistortionMap(WIDTH, HEIGHT);
 	tracker->SetFeatureExtractThreshold(30);
 
 	tracker->SetSetpIndex(index);
@@ -218,6 +231,8 @@ void main()
 
 	IplImage* grabFrame1 = NULL;
 	IplImage* grabFrame2 = NULL;
+
+	bool updating = false;
 	
 	bool processing = true;
 	cvNamedWindow("result1");
@@ -275,17 +290,19 @@ void main()
 		}
 		
 //*
-		if(matchedCount1 > FIND_FEATURE_COUNT && matchedCount2 > FIND_FEATURE_COUNT)
+		// update
+		if(matchedCount1 > FIND_FEATURE_COUNT && matchedCount2 > FIND_FEATURE_COUNT && updating)
 		{
-			rotation12 = GetRotation(tracker1->GetCameraParameter(), tracker2->GetCameraParameter());
-			translation12 = GetTranslation(tracker1->GetCameraParameter(), tracker2->GetCameraParameter());
-			rotation21 = GetRotation(tracker2->GetCameraParameter(), tracker1->GetCameraParameter());
-			translation21 = GetTranslation(tracker2->GetCameraParameter(), tracker1->GetCameraParameter());
+			rotation12 = GetCameraRotation(tracker1->GetCameraParameter(), tracker2->GetCameraParameter());
+			translation12 = GetCameraTranslation(tracker1->GetCameraParameter(), tracker2->GetCameraParameter());
+			rotation21 = GetCameraRotation(tracker2->GetCameraParameter(), tracker1->GetCameraParameter());
+			translation21 = GetCameraTranslation(tracker2->GetCameraParameter(), tracker1->GetCameraParameter());
+			updating = false;
 		}
 
 		if(matchedCount1 > FIND_FEATURE_COUNT)
 		{
-			windage::Matrix4 extrinsic = CalculateExtrinsicParameter(tracker1->GetCameraParameter(), rotation12.Transpose(), translation12);
+			windage::Matrix4 extrinsic = CalculateCameraExtrinsicParameter(tracker1->GetCameraParameter(), rotation12.Transpose(), translation12);
 			calibration->SetExtrinsicMatrix(extrinsic.m1);
 
 			windage::Vector3 temp = windage::Vector3(0.0, 0.0, 0.0);
@@ -311,7 +328,7 @@ void main()
 		}
 		if(matchedCount2 > FIND_FEATURE_COUNT)
 		{
-			windage::Matrix4 extrinsic = CalculateExtrinsicParameter(tracker2->GetCameraParameter(), rotation21.Transpose(), translation21);
+			windage::Matrix4 extrinsic = CalculateCameraExtrinsicParameter(tracker2->GetCameraParameter(), rotation21.Transpose(), translation21);
 			calibration->SetExtrinsicMatrix(extrinsic.m1);
 
 			windage::Vector3 temp = windage::Vector3(0.0, 0.0, 0.0);
@@ -351,6 +368,10 @@ void main()
 		char ch = cvWaitKey(1);
 		switch(ch)
 		{
+		case 'u':
+		case 'U':
+			updating = true;
+			break;
 		case 'q':
 		case 'Q':
 			processing = false;
