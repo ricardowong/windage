@@ -37,7 +37,7 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#include "Tracker/ModifiedSURFTracker.h"
+#include "Tracker/CubeTracker.h"
 using namespace windage;
 
 #include "Tracker/PoseEstimation/FindPROSACHomography.h"
@@ -46,12 +46,14 @@ using namespace windage;
 //#define USING_KDTREE
 #define USING_FLANN
 
+//#define POSE_3D_ESTIMATION
+
 const double ERROR_BOUND = 10.0;
 const int POSE_POINTS_COUNT = 10;
 const double COMPAIR_RATE = 0.50;
 const int EMAX = 20;
 
-ModifiedSURFTracker::ModifiedSURFTracker()
+CubeTracker::CubeTracker()
 {
 	this->cameraParameter = NULL;
 	this->prevImage = NULL;
@@ -66,20 +68,18 @@ ModifiedSURFTracker::ModifiedSURFTracker()
 	this->runOpticalflow = false;
 	this->step = 0;
 
-	this->poseEstimationMethod = windage::RANSAC;
-	this->outlinerRemove = true;
-	this->refinement = false;
+	this->outlinerRemove = false;
 
 //	this->log = new Logger("Log\\modifiedSURF_Performance", true);
 	log = NULL;
 }
 
-ModifiedSURFTracker::~ModifiedSURFTracker()
+CubeTracker::~CubeTracker()
 {
 	this->Release();
 }
 
-void ModifiedSURFTracker::Release()
+void CubeTracker::Release()
 {
 	if(cameraParameter) delete cameraParameter;
 	cameraParameter = NULL;
@@ -97,7 +97,7 @@ void ModifiedSURFTracker::Release()
 	opticalflow = NULL;
 }
 
-void ModifiedSURFTracker::Initialize(double fx, double fy, double cx, double cy, double d1, double d2, double d3, double d4, int featureExtractThreshold)
+void CubeTracker::Initialize(double fx, double fy, double cx, double cy, double d1, double d2, double d3, double d4, int featureExtractThreshold)
 {
 	this->Release();
 	cameraParameter = new Calibration();
@@ -107,7 +107,7 @@ void ModifiedSURFTracker::Initialize(double fx, double fy, double cx, double cy,
 
 }
 
-void ModifiedSURFTracker::RegistReferenceImage(IplImage* referenceImage, double realWidth, double realHeight, double scaleFactor, int scaleStep)
+void CubeTracker::RegistReferenceImage(IplImage* referenceImage, double realWidth, double realHeight, double realDepth, double scaleFactor, int scaleStep)
 {
 	// delete previous reference data
 	if(this->referenceImage) cvReleaseImage(&this->referenceImage);
@@ -123,12 +123,13 @@ void ModifiedSURFTracker::RegistReferenceImage(IplImage* referenceImage, double 
 
 	this->realWidth = realWidth;
 	this->realHeight = realHeight;
+	this->realDepth = realDepth;
 	this->SetFeatureExtractThreshold(featureExtractThreshold);
 
 	GenerateReferenceFeatureTree(scaleFactor, scaleStep);
 }
 
-int ModifiedSURFTracker::ExtractFASTCorner(std::vector<CvPoint>* corners, IplImage* grayImage, int threshold, int n)
+int CubeTracker::ExtractFASTCorner(std::vector<CvPoint>* corners, IplImage* grayImage, int threshold, int n)
 {
 	int cornerCount = 0;
 	xy* cornertemp = NULL;
@@ -166,7 +167,7 @@ int ModifiedSURFTracker::ExtractFASTCorner(std::vector<CvPoint>* corners, IplIma
 	return (int)corners->size();
 }
 
-int ModifiedSURFTracker::ExtractModifiedSURF(IplImage* grayImage, std::vector<CvPoint>* corners, std::vector<SURFDesciription>* descriptions)
+int CubeTracker::ExtractModifiedSURF(IplImage* grayImage, std::vector<CvPoint>* corners, std::vector<SURF3DDescription>* descriptions)
 {
 	CvSURFParams params = cvSURFParams(500, 0);
 
@@ -193,10 +194,10 @@ int ModifiedSURFTracker::ExtractModifiedSURF(IplImage* grayImage, std::vector<Cv
 	int count = referenceKeypoints->total;
 	for(int i = 0; i<count; i++ )
 	{
-		SURFDesciription description;
+		SURF3DDescription description;
 
 		CvSURFPoint* r = (CvSURFPoint*)cvGetSeqElem( referenceKeypoints, i );
-		description.point = r->pt;
+		description.point = cvPoint3D32f(r->pt.x, r->pt.y, 0.0);
 		description.size = r->size;
 		description.dir = r->dir;
 		description.objectID = -1;
@@ -216,7 +217,7 @@ int ModifiedSURFTracker::ExtractModifiedSURF(IplImage* grayImage, std::vector<Cv
 }
 
 #include <iostream>
-CvFeatureTree* ModifiedSURFTracker::CreateReferenceTree(std::vector<SURFDesciription>* referenceSURF, CvMat* referenceFeatureStorage)
+CvFeatureTree* CubeTracker::CreateReferenceTree(std::vector<SURF3DDescription>* referenceSURF, CvMat* referenceFeatureStorage)
 {
 	int count = (int)referenceSURF->size();
 	std::cout << count << std::endl;
@@ -236,7 +237,7 @@ CvFeatureTree* ModifiedSURFTracker::CreateReferenceTree(std::vector<SURFDescirip
 	return tree;
 }
 
-bool ModifiedSURFTracker::CreateFlannTree(std::vector<SURFDesciription>* referenceSURF, CvMat* referenceFeatureStorage)
+bool CubeTracker::CreateFlannTree(std::vector<SURF3DDescription>* referenceSURF, CvMat* referenceFeatureStorage)
 {
 	int count = (int)referenceSURF->size();
 
@@ -259,7 +260,7 @@ bool ModifiedSURFTracker::CreateFlannTree(std::vector<SURFDesciription>* referen
 	return true;
 }
 
-int ModifiedSURFTracker::FindPairs(SURFDesciription description, CvFeatureTree* tree, double distanceRate, float* outDistance)
+int CubeTracker::FindPairs(SURF3DDescription description, CvFeatureTree* tree, double distanceRate, float* outDistance)
 {
 	CvMat* currentFeature = cvCreateMat(1, SURF_DESCRIPTOR_DIMENSION, SURF_DESCRIPTOR_TYPE);
 	CvMat* result = cvCreateMat(1, 2, CV_32S);
@@ -298,7 +299,7 @@ int ModifiedSURFTracker::FindPairs(SURFDesciription description, CvFeatureTree* 
     return -1;
 }
 
-int ModifiedSURFTracker::FindPairs(SURFDesciription description, std::vector<SURFDesciription>* descriptions)
+int CubeTracker::FindPairs(SURF3DDescription description, std::vector<SURF3DDescription>* descriptions)
 {
 	double min1 = 1e6;
 	double min2 = 1e6;
@@ -324,7 +325,7 @@ int ModifiedSURFTracker::FindPairs(SURFDesciription description, std::vector<SUR
     return -1;
 }
 
-int ModifiedSURFTracker::FindPairs(SURFDesciription description, cv::flann::Index* treeIndex, float distanceRate, float* outDistance)
+int CubeTracker::FindPairs(SURF3DDescription description, cv::flann::Index* treeIndex, float distanceRate, float* outDistance)
 {
 	CvMat* currentFeature = cvCreateMat(1, SURF_DESCRIPTOR_DIMENSION, SURF_DESCRIPTOR_TYPE);
 	cv::Mat result(1, 2, CV_32S);
@@ -363,19 +364,101 @@ int ModifiedSURFTracker::FindPairs(SURFDesciription description, cv::flann::Inde
     return -1;
 }
 
-void Rotate(IplImage* src, IplImage* dst, float angle)
-{  
-   CvPoint2D32f centre;
-   CvMat *translate = cvCreateMat(2, 3, CV_32FC1);
-   cvSetZero(translate);
-   centre.x = src->width/2.0f;
-   centre.y = src->height/2.0f;
-   cv2DRotationMatrix(centre, angle, 1.0, translate);
-   cvWarpAffine(src, dst, translate, CV_INTER_LINEAR + CV_WARP_FILL_OUTLIERS, cvScalarAll(0));
-   cvReleaseMat(&translate);
+
+int GetPlaneNumber(CvPoint3D32f point2D, int width, int height)
+{
+	//   1
+	// 2 3 4 5
+	//   6
+
+	double xStep = width/4.0;
+	double yStep = height/3.0;
+
+	// 2
+	if(yStep <= point2D.y && point2D.y < yStep*2)
+	{
+		if(point2D.x < xStep)
+			return 2;
+		else if(xStep*1 <= point2D.x && point2D.x < xStep*2)
+			return 3;
+		else if(xStep*2 <= point2D.x && point2D.x < xStep*3)
+			return 4;
+		else if(xStep*3 <= point2D.x && point2D.x < xStep*4)
+			return 5;
+	}
+	else
+	{
+		if(xStep*1 <= point2D.x && point2D.x < xStep*2)
+		{
+			if(point2D.y < yStep)
+				return 1;
+			else if(yStep*2 < point2D.y)
+				return 6;
+			else
+				return -1;
+		}
+		else
+			return -1;
+	}
 }
 
-int ModifiedSURFTracker::GenerateReferenceFeatureTree(double scaleFactor, int scaleStep)
+CvPoint3D32f ConvertCubeCoordinate(CvPoint3D32f point2D, int width, int height, int depth)
+{
+	CvPoint3D32f point3D;
+
+	// check cube plane
+	//   1
+	// 2 3 4 5
+	//   6
+	int planId = GetPlaneNumber(point2D, width, height);
+
+	double xStep = width/4.0;
+	double yStep = height/3.0;
+	double hWidth = width/2.0;
+	double hHeight = height/2.0;
+	double hDepth = depth/2.0;
+
+	if(planId > 0)
+	{
+		switch(planId)
+		{
+		case 1:
+			point3D.x = (point2D.x - xStep*1.5);
+			point3D.y = yStep/2.0;
+			point3D.z = (point2D.y - yStep*1.5);
+			break;
+		case 2:
+			point3D.x = -xStep/2.0;
+			point3D.y = (point2D.y - yStep*1.5);
+			point3D.z = -(point2D.x - xStep*0.5);
+			break;
+		case 3:
+			point3D.x = (point2D.x - xStep*1.5);
+			point3D.y = (point2D.y - yStep*1.5);
+			point3D.z = hDepth;
+			break;
+		case 4:
+			point3D.x = +xStep/2.0;
+			point3D.y = (point2D.y - yStep*1.5);
+			point3D.z = (point2D.x - xStep*2.5);
+			break;
+		case 5:
+			point3D.x = -(point2D.x - xStep*3.5);
+			point3D.y = (point2D.y - yStep*1.5);
+			point3D.z = -hDepth;
+			break;
+		case 6:
+			point3D.x = (point2D.x - xStep*1.5);
+			point3D.y = -yStep/2.0;
+			point3D.z = (point2D.y - yStep*1.5);
+			break;
+		}
+	}
+
+	return point3D;
+}
+
+int CubeTracker::GenerateReferenceFeatureTree(double scaleFactor, int scaleStep)
 {
 	int width = (int)((double)referenceImage->width/scaleFactor);
 	int height = (int)((double)referenceImage->height/scaleFactor);
@@ -391,26 +474,29 @@ int ModifiedSURFTracker::GenerateReferenceFeatureTree(double scaleFactor, int sc
 			cvResize(this->referenceImage, tempReference, CV_INTER_LINEAR);
 			cvSmooth(tempReference, tempReference, CV_GAUSSIAN, 3, 3);
 
-			std::vector<SURFDesciription> tempSurf;
+			std::vector<SURF3DDescription> tempSurf;
 			tempSurf.clear();
 
 			std::vector<CvPoint> fastCorners;
-			ModifiedSURFTracker::ExtractFASTCorner(&fastCorners, tempReference, featureExtractThreshold);
-			ModifiedSURFTracker::ExtractModifiedSURF(tempReference, &fastCorners, &tempSurf);
+			CubeTracker::ExtractFASTCorner(&fastCorners, tempReference, featureExtractThreshold);
+			CubeTracker::ExtractModifiedSURF(tempReference, &fastCorners, &tempSurf);
 			float xScaleFactor = (float)this->realWidth / (float)tempReference->width;
 			float yScaleFactor = (float)this->realHeight / (float)tempReference->height;
 
 			for(int i=0; i<(int)tempSurf.size(); i++)
 			{
-				tempSurf[i].point.x *= xScaleFactor;
-				tempSurf[i].point.x += xScaleFactor/2.0f;
-				tempSurf[i].point.y *= yScaleFactor;
-				tempSurf[i].point.y += yScaleFactor/2.0f;
-				tempSurf[i].point.y = (float)this->realHeight - tempSurf[i].point.y;
+				CvPoint3D32f point2D;
+				point2D.x *= xScaleFactor;
+				point2D.x += xScaleFactor/2.0f;
+				point2D.y *= yScaleFactor;
+				point2D.y += yScaleFactor/2.0f;
+				point2D.y = (float)this->realHeight - tempSurf[i].point.y;
 
-				tempSurf[i].point.x = tempSurf[i].point.x - (float)this->realWidth/2;
-				tempSurf[i].point.y = tempSurf[i].point.y - (float)this->realHeight/2;
+				point2D.x = tempSurf[i].point.x - (float)this->realWidth/2;
+				point2D.y = tempSurf[i].point.y - (float)this->realHeight/2;
+				point2D.z = 0.0;
 
+				tempSurf[i].point = ConvertCubeCoordinate(point2D, this->realWidth, this->realHeight, this->realDepth);
 				referenceSURF.push_back(tempSurf[i]);
 			}
 
@@ -428,115 +514,9 @@ int ModifiedSURFTracker::GenerateReferenceFeatureTree(double scaleFactor, int sc
 	return 0;
 }
 
-
-/** borrowed code from bazAR */
-void DecomposeHomographyToRT(CvMat *intrinsic, CvMat *Homography, CvMat *RT)
+double CubeTracker::CalculatePose(bool update)
 {
-	int i, j;
-
-	if(Homography != NULL)
-	{
-		CvMat *invIntrinsic = cvCloneMat(intrinsic);
-		cvInv(intrinsic, invIntrinsic);
-
-		// Vectors holding columns of H and R:
-		float a_H1[3];
-		CvMat  m_H1 = cvMat( 3, 1, CV_32FC1, a_H1 );
-		for( i = 0; i < 3; i++ ) cvmSet( &m_H1, i, 0, cvmGet( Homography, i, 0 ) );
-
-		float a_H2[3];
-		CvMat  m_H2 = cvMat( 3, 1, CV_32FC1, a_H2 );
-		for( i = 0; i < 3; i++ ) cvmSet( &m_H2, i, 0, cvmGet( Homography, i, 1 ) );
-
-		float a_H3[3];
-		CvMat  m_H3 = cvMat( 3, 1, CV_32FC1, a_H3 );
-		for( i = 0; i < 3; i++ ) cvmSet( &m_H3, i, 0, cvmGet( Homography, i, 2 ) );
-
-		float a_CinvH1[3];
-		CvMat  m_CinvH1 = cvMat( 3, 1, CV_32FC1, a_CinvH1 );
-
-		float a_R1[3];
-		CvMat  m_R1 = cvMat( 3, 1, CV_32FC1, a_R1 );
-
-		float a_R2[3];
-		CvMat  m_R2 = cvMat( 3, 1, CV_32FC1, a_R2 );
-
-		float a_R3[3];
-		CvMat  m_R3 = cvMat( 3, 1, CV_32FC1, a_R3 );
-
-		// The rotation matrix:
-		float a_R[9];
-		CvMat  m_R = cvMat( 3, 3, CV_32FC1, a_R );
-
-		// The translation vector:
-		float a_T[3];
-		CvMat  m_T = cvMat( 3, 1, CV_32FC1, a_T );
-
-		////////////////////////////////////////////////////////
-		// Create norming factor lambda:
-		cvGEMM(invIntrinsic, &m_H1, 1, NULL, 0, &m_CinvH1, 0 );
-
-		// Search next orthonormal matrix:
-		if( cvNorm( &m_CinvH1, NULL, CV_L2, NULL ) != 0 )
-		{
-			float lambda = 1.0f/cvNorm( &m_CinvH1, NULL, CV_L2, NULL );
-
-			// Create normalized R1 & R2:
-			cvGEMM( invIntrinsic, &m_H1, lambda, NULL, 0, &m_R1, 0 );
-			cvGEMM( invIntrinsic, &m_H2, lambda, NULL, 0, &m_R2, 0 );
-
-			// Get R3 orthonormal to R1 and R2:
-			cvCrossProduct( &m_R1, &m_R2, &m_R3 );
-
-			// Put the rotation column vectors in the rotation matrix:
-			for( i = 0; i < 3; i++ )
-			{
-				cvmSet( &m_R, i, 0,  cvmGet( &m_R1, i, 0 ) );
-				cvmSet( &m_R, i, 1,  cvmGet( &m_R2, i, 0 ) );
-				cvmSet( &m_R, i, 2,  cvmGet( &m_R3, i, 0 ) );
-			}
-
-			// Calculate Translation Vector T (- because of its definition):
-			cvGEMM( invIntrinsic, &m_H3, lambda, NULL, 0, &m_T, 0 );
-
-			// Transformation of R into - in Frobenius sense - next orthonormal matrix:
-			float a_W[9]; CvMat  m_W  = cvMat( 3, 3, CV_32FC1, a_W  );
-			float a_U[9]; CvMat  m_U  = cvMat( 3, 3, CV_32FC1, a_U  );
-			float a_Vt[9]; CvMat  m_Vt = cvMat( 3, 3, CV_32FC1, a_Vt );
-			cvSVD( &m_R, &m_W, &m_U, &m_Vt, CV_SVD_MODIFY_A | CV_SVD_V_T );
-			cvMatMul( &m_U, &m_Vt, &m_R );
-
-			cvReleaseMat(&invIntrinsic);
-
-			cvSetIdentity(RT);
-			for(i=0; i<3; i++)
-			{
-			for(j=0; j<3; j++)
-			{
-				cvmSet(RT, i, j, cvmGet(&m_R, i, j));
-			}
-			cvmSet(RT, i, 3, cvmGet(&m_T, i, 0));
-			}
-		}
-
-	}
-}
-
-double ModifiedSURFTracker::CalculatePose(bool update)
-{
-	float homography[9];
-	float intrinsicMatrix[9];
-	float extrinsicMatrix[12];
-	float extrinsicOutMatrix[16];
-
 	CvMat* intrinsic = cameraParameter->GetIntrinsicMatrix();
-	for(int y=0; y<3; y++)
-	{
-		for(int x=0; x<3; x++)
-		{
-			intrinsicMatrix[y*3+x] = (float)cvGetReal2D(intrinsic, y, x);
-		}
-	}
 
 	float homographyError = 0;
 	int n = (int)matchedReferencePoints.size();
@@ -545,75 +525,26 @@ double ModifiedSURFTracker::CalculatePose(bool update)
 		int inlierCount = 0;
 		int outlierCount = 0;
 
-		CvMat _h = cvMat(3, 3, CV_32F, homography);
-
-		CvMat _intrinsic = cvMat(3, 3, CV_32F, intrinsicMatrix);
-		CvMat _extrinsic = cvMat(3, 4, CV_32FC1, extrinsicMatrix);
-
 		homographyError = 0.0;
 
 		CvMat _pt1 = cvMat(1, n, CV_32FC2, &(matchedReferencePoints[0]) );
 		CvMat _pt2 = cvMat(1, n, CV_32FC2, &(matchedScenePoints[0]) );
 
 		bool isCalculate = false;
-		switch(this->poseEstimationMethod)
+		Find3DPoseEstimation poseEstimator;
+		std::vector<Matched3DPoint> poseEstimatorPoints;
+		for(int i=0; i<(int)matchedScene.size(); i++)
 		{
-		case windage::PROSAC:
-			{
-				FindPROSACHomography prosac;
-				std::vector<MatchedPoint> prosacMatchedPoints;
-				for(int i=0; i<(int)matchedScene.size(); i++)
-				{
-					MatchedPoint referenceTemp(matchedScene[i].point, matchedReference[i].point, matchedScene[i].distance);
-					prosacMatchedPoints.push_back(referenceTemp);
-				}
-				prosac.SetReprojectionThreshold((float)ERROR_BOUND);
-				prosac.AttatchMatchedPoints(&prosacMatchedPoints);
-
-				isCalculate = prosac.Calculate();
-				if(isCalculate)
-				{
-					float* tempHomography = prosac.GetHomography();
-					for(int i=0; i<9; i++) homography[i] = tempHomography[i];
-				}
-			}
-			break;
-		case windage::RANSAC:
-			{				
-				if(cvFindHomography( &_pt1, &_pt2, &_h, CV_RANSAC, ERROR_BOUND) > 0)
-					isCalculate = true;
-				else
-					isCalculate = false;
-			}
-			break;
-		case windage::LMEDS:
-			{
-				if(cvFindHomography( &_pt1, &_pt2, &_h, CV_LMEDS) > 0)
-					isCalculate = true;
-				else
-					isCalculate = false;
-			}
-			break;
-		case windage::POSE_3D:
-			{
-				Find3DPoseEstimation poseEstimator;
-				std::vector<Matched3DPoint> poseEstimatorPoints;
-				for(int i=0; i<(int)matchedScene.size(); i++)
-				{
-					Matched3DPoint referenceTemp(matchedScene[i].point, cvPoint3D32f(matchedReference[i].point.x, matchedReference[i].point.y, 0.0));
-					poseEstimatorPoints.push_back(referenceTemp);
-				}
-				poseEstimator.AttatchMatchedPoints(&poseEstimatorPoints);
-				poseEstimator.AttatchCalibration(this->cameraParameter);
-				poseEstimator.SetReprojectionThreshold(ERROR_BOUND);
-				if(poseEstimator.Calculate() > 0.0)
-					isCalculate = true;
-				else
-					isCalculate = false;
-			}
-			break;
+			Matched3DPoint referenceTemp(cvPoint2D32f(matchedScene[i].point.x, matchedScene[i].point.y), cvPoint3D32f(matchedReference[i].point.x, matchedReference[i].point.y, matchedReference[i].point.z));
+			poseEstimatorPoints.push_back(referenceTemp);
 		}
-
+		poseEstimator.AttatchMatchedPoints(&poseEstimatorPoints);
+		poseEstimator.AttatchCalibration(this->cameraParameter);
+		poseEstimator.SetReprojectionThreshold(ERROR_BOUND);
+		if(poseEstimator.Calculate() > 0.0)
+			isCalculate = true;
+		else
+			isCalculate = false;
 
 		if(outlinerRemove && isCalculate)
 		{
@@ -623,14 +554,7 @@ double ModifiedSURFTracker::CalculatePose(bool update)
 			for(unsigned int i=0; i<matchedReferencePoints.size(); i++)
 			{
 				float error = 0.0f;
-				if(this->poseEstimationMethod == windage::POSE_3D)
-				{
-					error = Find3DPoseEstimation::ComputeReprojError(matchedScenePoints[i], cvPoint3D32f(matchedReferencePoints[i].x, matchedReferencePoints[i].y, 0.0), cameraParameter->GetIntrinsicMatrix(), cameraParameter->GetExtrinsicMatrix());
-				}
-				else
-				{
-					error = FindHomography::ComputeReprojError(matchedReferencePoints[i], matchedScenePoints[i], homography);
-				}
+				error = Find3DPoseEstimation::ComputeReprojError(cvPoint2D32f(matchedScene[i].point.x, matchedScene[i].point.y), cvPoint3D32f(matchedReferencePoints[i].x, matchedReferencePoints[i].y, matchedReferencePoints[i].z), cameraParameter->GetIntrinsicMatrix(), cameraParameter->GetExtrinsicMatrix());
 
 				if(error <= ERROR_BOUND)
 				{
@@ -656,81 +580,24 @@ double ModifiedSURFTracker::CalculatePose(bool update)
 			homographyError = difference / (float)matchedReferencePoints.size();
 		}
 
-		if(this->poseEstimationMethod == windage::POSE_3D)
+		if(isCalculate)
 		{
-			if(isCalculate)
-			{
-			}
-			else
-			{
-				// remove all points
-				if(outlinerRemove)
-				{
-					for(unsigned int i=0; i<matchedReferencePoints.size(); i++)
-					{
-						this->matchedReferencePoints.clear();
-						this->matchedScenePoints.clear();
-						this->matchedReference.clear();
-						this->matchedScene.clear();
-					}
-				}
-
-				homographyError = -1.0;
-			}
 		}
 		else
 		{
-			if(isCalculate)
+			// remove all points
+			if(outlinerRemove)
 			{
-				if(this->refinement)
+				for(unsigned int i=0; i<matchedReferencePoints.size(); i++)
 				{
-					Find3DPoseEstimation poseEstimator;
-					std::vector<Matched3DPoint> poseEstimatorPoints;
-					for(int i=0; i<(int)matchedScene.size(); i++)
-					{
-						Matched3DPoint referenceTemp(matchedScene[i].point, cvPoint3D32f(matchedReference[i].point.x, matchedReference[i].point.y, 0.0));
-						poseEstimatorPoints.push_back(referenceTemp);
-					}
-					poseEstimator.AttatchMatchedPoints(&poseEstimatorPoints);
-					poseEstimator.AttatchCalibration(this->cameraParameter);
-					poseEstimator.SetReprojectionThreshold(ERROR_BOUND);
-					poseEstimator.SetUseRANSAC(true);
-					poseEstimator.Calculate();
+					this->matchedReferencePoints.clear();
+					this->matchedScenePoints.clear();
+					this->matchedReference.clear();
+					this->matchedScene.clear();
 				}
-				else
-				{
-					DecomposeHomographyToRT(&_intrinsic, &_h, &_extrinsic);
-					for(int y=0; y<3; y++)
-					{
-						for(int x=0; x<4; x++)
-						{
-							extrinsicOutMatrix[y*4 + x] = extrinsicMatrix[y*4 + x];
-						}
-					}
-					extrinsicOutMatrix[3*4 + 0] = extrinsicOutMatrix[3*4 + 1] = extrinsicOutMatrix[3*4 + 2] = 0;
-					extrinsicOutMatrix[3*4 + 3] = 1;
-
-					if(update)
-						cameraParameter->SetExtrinsicMatrix(extrinsicOutMatrix);
-				}
-
 			}
-			else
-			{
-				// remove all points
-				if(outlinerRemove)
-				{
-					for(unsigned int i=0; i<matchedReferencePoints.size(); i++)
-					{
-						this->matchedReferencePoints.clear();
-						this->matchedScenePoints.clear();
-						this->matchedReference.clear();
-						this->matchedScene.clear();
-					}
-				}
 
-				homographyError = -1.0;
-			}
+			homographyError = -1.0;
 		}
 	}
 	else
@@ -753,7 +620,7 @@ double ModifiedSURFTracker::CalculatePose(bool update)
 	return homographyError;
 }
 
-double ModifiedSURFTracker::UpdateCameraPose(IplImage* grayImage)
+double CubeTracker::UpdateCameraPose(IplImage* grayImage)
 {
 	bool update = true;
 	if(runOpticalflow)
@@ -774,7 +641,7 @@ double ModifiedSURFTracker::UpdateCameraPose(IplImage* grayImage)
 				{
 					if(matchedTempPoints[i].x >= 0 && matchedTempPoints[i].y >= 0)
 					{
-						matchedScene[index].point = matchedTempPoints[i];
+						matchedScene[index].point = cvPoint3D32f(matchedTempPoints[i].x, matchedTempPoints[i].y, 0.0);
 						index++;
 					}
 					else
@@ -789,17 +656,17 @@ double ModifiedSURFTracker::UpdateCameraPose(IplImage* grayImage)
 				std::vector<CvPoint> fastCorners;
 
 				if(log) log->updateTickCount();
-				ModifiedSURFTracker::ExtractFASTCorner(&fastCorners, grayImage, featureExtractThreshold, 9);
+				CubeTracker::ExtractFASTCorner(&fastCorners, grayImage, featureExtractThreshold, 9);
 				if(log) log->log("FAST", log->calculateProcessTime());
 
 				if(log) log->updateTickCount();
-				int featureCount = ModifiedSURFTracker::ExtractModifiedSURF(grayImage, &fastCorners, &sceneSURF);
+				int featureCount = CubeTracker::ExtractModifiedSURF(grayImage, &fastCorners, &sceneSURF);
 				if(log) log->log("Descriptor", log->calculateProcessTime());
 				if(log) log->log("COUNT", featureCount);
 				
 
-				std::vector<SURFDesciription> tempReferenceSURF;
-				std::vector<SURFDesciription> tempSceneSURF;
+				std::vector<SURF3DDescription> tempReferenceSURF;
+				std::vector<SURF3DDescription> tempSceneSURF;
 
 				if(log) log->updateTickCount();
 				for(int i=0; i<(int)sceneSURF.size(); i++)
@@ -863,7 +730,7 @@ double ModifiedSURFTracker::UpdateCameraPose(IplImage* grayImage)
 				{
 					if(matchedTempPoints[i].x >= 0 && matchedTempPoints[i].y >= 0)
 					{
-						matchedScene[index].point = matchedTempPoints[i];
+						matchedScene[index].point = cvPoint3D32f(matchedTempPoints[i].x, matchedTempPoints[i].y, 0.0);
 						index++;
 					}
 					else
@@ -891,10 +758,10 @@ double ModifiedSURFTracker::UpdateCameraPose(IplImage* grayImage)
 		std::vector<CvPoint> fastCorners;
 
 		if(log) log->updateTickCount();
-		ModifiedSURFTracker::ExtractFASTCorner(&fastCorners, grayImage, featureExtractThreshold);
+		CubeTracker::ExtractFASTCorner(&fastCorners, grayImage, featureExtractThreshold);
 		if(log) log->log("FAST", log->calculateProcessTime());
 
-		int featureCount = ModifiedSURFTracker::ExtractModifiedSURF(grayImage, &fastCorners, &sceneSURF);
+		int featureCount = CubeTracker::ExtractModifiedSURF(grayImage, &fastCorners, &sceneSURF);
 		if(log) log->log("Descriptor", log->calculateProcessTime());
 		if(log) log->log("COUNT", featureCount);
 
@@ -927,7 +794,7 @@ double ModifiedSURFTracker::UpdateCameraPose(IplImage* grayImage)
 	for(unsigned int i=0; i<matchedScene.size(); i++)
 	{
 		matchedReferencePoints.push_back(matchedReference[i].point);
-		matchedScenePoints.push_back(matchedScene[i].point);
+		matchedScenePoints.push_back(cvPoint2D32f(matchedScene[i].point.x, matchedScene[i].point.y));
 	}
 
 	if(log) log->updateTickCount();
@@ -938,7 +805,7 @@ double ModifiedSURFTracker::UpdateCameraPose(IplImage* grayImage)
 	return homograpyError;//(int)matchedScenePoints.size();
 }
 
-void ModifiedSURFTracker::DrawDebugInfo(IplImage* colorImage)
+void CubeTracker::DrawDebugInfo(IplImage* colorImage)
 {
 	int pointCount = (int)sceneSURF.size();
 	int r = 255;
@@ -960,7 +827,7 @@ void ModifiedSURFTracker::DrawDebugInfo(IplImage* colorImage)
 }
 
 
-void ModifiedSURFTracker::DrawDebugInfo2(IplImage* colorImage)
+void CubeTracker::DrawDebugInfo2(IplImage* colorImage)
 {
 	int pointCount = (int)sceneSURF.size();
 	int r = 255;
@@ -982,7 +849,7 @@ void ModifiedSURFTracker::DrawDebugInfo2(IplImage* colorImage)
 }
 
 
-void ModifiedSURFTracker::DrawOutLine(IplImage* colorImage, bool drawCross)
+void CubeTracker::DrawOutLine(IplImage* colorImage, bool drawCross)
 {
 	int pointCount = (int)sceneSURF.size();
 	int r = 255;
@@ -1015,7 +882,7 @@ void ModifiedSURFTracker::DrawOutLine(IplImage* colorImage, bool drawCross)
 }
 
 
-void ModifiedSURFTracker::InitializeOpticalFlow(int width, int height, int stepSize, CvSize windowSize, int pyramidLevel)
+void CubeTracker::InitializeOpticalFlow(int width, int height, int stepSize, CvSize windowSize, int pyramidLevel)
 {
 	if(opticalflow) delete opticalflow;
 	opticalflow = new OpticalFlow();

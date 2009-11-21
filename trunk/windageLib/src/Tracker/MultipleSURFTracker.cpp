@@ -44,9 +44,9 @@
 #include "Tracker/PoseEstimation/FindEpnpPoseEstimation.h"
 #include "Tracker/PoseEstimation/Find3DPoseEstimation.h"
 
-//#define POSE_3D_ESTIMATION
+#define POSE_3D_ESTIMATION
 
-const double ERROR_BOUND = 3.0;
+const double ERROR_BOUND = 10.0;
 const int POSE_POINTS_COUNT = 10;
 const double COMPAIR_RATE = 0.50;
 const int EMAX = 20;
@@ -278,33 +278,36 @@ double MultipleSURFTracker::CalculatePose(int index)
 		{
 			if(isCalculate)
 			{
-#ifndef POSE_3D_ESTIMATION
-				DecomposeHomographyToRT(&_intrinsic, &_h, &_extrinsic);
-				for(int y=0; y<3; y++)
+				if(this->refinement)
 				{
-					for(int x=0; x<4; x++)
+					Find3DPoseEstimation poseEstimator;
+					std::vector<Matched3DPoint> poseEstimatorPoints;
+					for(int i=0; i<(int)matchedScenePoints.size(); i++)
 					{
-						extrinsicOutMatrix[y*4 + x] = extrinsicMatrix[y*4 + x];
+						Matched3DPoint referenceTemp(matchedScenePoints[i], cvPoint3D32f(matchedReferencePoints[i].x, matchedReferencePoints[i].y, 0.0));
+						poseEstimatorPoints.push_back(referenceTemp);
 					}
+					poseEstimator.AttatchMatchedPoints(&poseEstimatorPoints);
+					poseEstimator.AttatchCalibration(this->cameraParameterList[index]);
+					poseEstimator.SetReprojectionThreshold(ERROR_BOUND);
+					poseEstimator.SetUseRANSAC(true);
+					poseEstimator.Calculate();
 				}
-				extrinsicOutMatrix[3*4 + 0] = extrinsicOutMatrix[3*4 + 1] = extrinsicOutMatrix[3*4 + 2] = 0;
-				extrinsicOutMatrix[3*4 + 3] = 1;
-
-				this->cameraParameterList[index]->SetExtrinsicMatrix(extrinsicOutMatrix);
-#else
-				Find3DPoseEstimation poseEstimator;
-				std::vector<Matched3DPoint> poseEstimatorPoints;
-				for(int i=0; i<(int)matchedScenePoints.size(); i++)
+				else
 				{
-					Matched3DPoint referenceTemp(matchedScenePoints[i], cvPoint3D32f(matchedReferencePoints[i].x, matchedReferencePoints[i].y, 0.0));
-					poseEstimatorPoints.push_back(referenceTemp);
+					DecomposeHomographyToRT(&_intrinsic, &_h, &_extrinsic);
+					for(int y=0; y<3; y++)
+					{
+						for(int x=0; x<4; x++)
+						{
+							extrinsicOutMatrix[y*4 + x] = extrinsicMatrix[y*4 + x];
+						}
+					}
+					extrinsicOutMatrix[3*4 + 0] = extrinsicOutMatrix[3*4 + 1] = extrinsicOutMatrix[3*4 + 2] = 0;
+					extrinsicOutMatrix[3*4 + 3] = 1;
+
+					this->cameraParameterList[index]->SetExtrinsicMatrix(extrinsicOutMatrix);
 				}
-				poseEstimator.AttatchMatchedPoints(&poseEstimatorPoints);
-				poseEstimator.AttatchCalibration(this->cameraParameterList[index]);
-				poseEstimator.SetReprojectionThreshold(ERROR_BOUND);
-//				poseEstimator.SetUseRANSAC(false);
-				poseEstimator.Calculate();
-#endif
 			}
 			else
 			{

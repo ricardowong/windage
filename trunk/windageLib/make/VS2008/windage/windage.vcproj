@@ -172,6 +172,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\src\Tracker\CubeTracker.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\include\Tracker\CubeTracker.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\src\Tracker\ModifiedSURFTracker.cpp"
 				>
 			</File>

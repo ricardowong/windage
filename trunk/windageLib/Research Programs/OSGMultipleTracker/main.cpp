@@ -76,7 +76,7 @@ const int MIN_FAST_THRESHOLD = 40;
 const int ADAPTIVE_THRESHOLD_VALUE = 500;
 const int THRESHOLD_STEP = 1;
 
-const int OBJECT_COUNT = 2;
+const int OBJECT_COUNT = 5;
 const int FIND_FEATURE_COUNT = 10;
 
 CvCapture* capture;
@@ -229,7 +229,7 @@ int main(int argc, char ** argv )
 	tracker->Initialize(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], intrinsicValues[4], intrinsicValues[5], intrinsicValues[6], intrinsicValues[7]);
 	tracker->InitializeOpticalFlow(WIDTH, HEIGHT, cvSize(8, 8), 3);
 	tracker->SetDetectIntervalTime(1.0);
-	tracker->SetPoseEstimationMethod(windage::LMEDS);
+	tracker->SetPoseEstimationMethod(windage::POSE_3D);
 	tracker->SetOutlinerRemove(true);
 	tracker->SetFeatureExtractThreshold(30);
 	for(int i=0; i<trainingImage.size(); i++)
