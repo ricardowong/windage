@@ -51,7 +51,7 @@ const int POSE_POINTS_COUNT = 10;
 const double COMPAIR_RATE = 0.50;
 const int EMAX = 20;
 
-const double PROSAC_TIME_OUT = 5.0;
+const double PROSAC_TIME_OUT = 10.0;
 
 using namespace windage;
 void MultipleSURFTracker::Release()

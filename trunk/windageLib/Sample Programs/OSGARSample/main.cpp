@@ -72,8 +72,8 @@ int fpsStep = 0;
 #define ADAPTIVE_THRESHOLD
 int fastThreshold = 70;
 const int MAX_FAST_THRESHOLD = 80;
-const int MIN_FAST_THRESHOLD = 40;
-const int ADAPTIVE_THRESHOLD_VALUE = 500;
+const int MIN_FAST_THRESHOLD = 30;
+const int ADAPTIVE_THRESHOLD_VALUE = 750;
 const int THRESHOLD_STEP = 1;
 
 CvCapture* capture;
@@ -270,9 +270,9 @@ int main(int argc, char ** argv )
 	osg::ref_ptr<osg::MatrixTransform> objectCoordinate = new osg::MatrixTransform();
 	localCoordinates->addChild(objectCoordinate);
 
-	double scaleFactor = 50.0;
+	double scaleFactor = 25.0;
 	osg::Matrixd scale;	scale.makeScale(scaleFactor, scaleFactor, scaleFactor);
-	osg::Matrixd translate;	translate.makeTranslate(0.0, 0.0, 3.0);
+	osg::Matrixd translate;	translate.makeTranslate(-1.0, 0.0, 3.0);
 	objectCoordinate->postMult(translate);
 	objectCoordinate->postMult(scale);
 	objectCoordinate->addChild(LoadModel("model/cow.osg"));

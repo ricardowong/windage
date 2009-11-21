@@ -141,7 +141,7 @@ double Find3DPoseEstimation::Calculate()
 		CvMat* extrinsic = cvCreateMat(4, 4, CV_64FC1);
 		int numpt = (int)matchedPoints->size();
 
-		const int sample_size = 10;
+		const int sample_size = 8;
 		if(numpt < sample_size) return -1.0;
 
 		int pre_inlier = -1, num_inliers = 0;

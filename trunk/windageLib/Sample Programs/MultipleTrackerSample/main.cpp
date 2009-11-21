@@ -70,14 +70,14 @@ void main()
 	std::vector<IplImage*> trainingImage;
 	for(int i=1; i<=OBJECT_COUNT; i++)
 	{
-		sprintf(message, "reference%d_320.png", i);
+		sprintf(message, "reference%d.png", i);
 		trainingImage.push_back(cvLoadImage(message, 0));
 	}
 
 	windage::MultipleSURFTracker* multipleTracker = new windage::MultipleSURFTracker();
 	multipleTracker->Initialize(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], intrinsicValues[4], intrinsicValues[5], intrinsicValues[6], intrinsicValues[7]);
 	multipleTracker->InitializeOpticalFlow(WIDTH, HEIGHT, cvSize(8, 8), 3);
-	multipleTracker->SetDetectIntervalTime(2.0);
+	multipleTracker->SetDetectIntervalTime(1.0);
 	multipleTracker->SetPoseEstimationMethod(windage::PROSAC);
 	multipleTracker->SetOutlinerRemove(true);
 	multipleTracker->SetRefinement(true);
@@ -138,6 +138,7 @@ void main()
 			{
 				multipleTracker->DrawOutLine(inputImage, i, true);
 				multipleTracker->DrawInfomation(inputImage, i, 50.0);
+//				multipleTracker->DrawDebugInfo(inputImage);
 
 				CvPoint center = multipleTracker->GetCameraParameter(i)->ConvertWorld2Image(0.0, 0.0, 0.0);
 				
