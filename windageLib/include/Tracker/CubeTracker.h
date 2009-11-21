@@ -37,8 +37,8 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#ifndef _MODIFIED_SURF_TRACKER_H_
-#define _MODIFIED_SURF_TRACKER_H_
+#ifndef _CUBE_TRACKER_H_
+#define _CUBE_TRACKER_H_
 
 #include <vector>
 #include <cv.h>
@@ -56,6 +56,40 @@
 
 namespace windage
 {
+	typedef struct _SURF3DDescription
+	{
+		CvPoint3D32f point;							///< extract point
+		int size;									///< scale value
+		int objectID;
+		float dir;
+		float descriptor[SURF_DESCRIPTOR_DIMENSION];	///< SURF Descriptor 36-dimension
+		float distance;
+
+		struct _SURF3DDescription()
+		{
+			size = 0;
+			objectID = -1;
+		}
+
+		void operator=(struct _SURF3DDescription oprd)
+		{
+			point = oprd.point;
+			size = oprd.size;
+			dir = oprd.dir;
+			distance = oprd.distance;
+			objectID = oprd.objectID;
+			for(int i=0; i<SURF_DESCRIPTOR_DIMENSION; i++)
+				descriptor[i] = oprd.descriptor[i];
+		}
+		float getDistance(struct _SURF3DDescription oprd)
+		{
+			float sum = 0;
+			for(int i=0; i<SURF_DESCRIPTOR_DIMENSION; i++)
+				sum += (float)((descriptor[i] - oprd.descriptor[i]) * (descriptor[i] - oprd.descriptor[i]));
+			return sum;
+		}
+
+	}SURF3DDescription;
 
 	/**
 	 * @brief
@@ -63,21 +97,22 @@ namespace windage
 	 * @author
 	 *		windage
 	 */
-	class DLLEXPORT ModifiedSURFTracker : public Tracker
+	class DLLEXPORT CubeTracker : public Tracker
 	{
 	private:
 		double realWidth;	///< reference image information
 		double realHeight;	///< reference image information
+		double realDepth;
 		int featureExtractThreshold;	///< FAST Corner extract threshold value
 
 		IplImage* referenceImage;	///< attatched reference image
 		IplImage* prevImage;
-		std::vector<SURFDesciription> referenceSURF;	///< reference image surf description
-		std::vector<SURFDesciription> sceneSURF;		///< input image surf description
+		std::vector<SURF3DDescription> referenceSURF;	///< reference image surf description
+		std::vector<SURF3DDescription> sceneSURF;		///< input image surf description
 
-		std::vector<SURFDesciription> matchedReference;		///< optical flow matched reference point
-		std::vector<SURFDesciription> matchedScene;			///< optical flow matched scene point
-		std::vector<CvPoint2D32f> matchedReferencePoints;
+		std::vector<SURF3DDescription> matchedReference;		///< optical flow matched reference point
+		std::vector<SURF3DDescription> matchedScene;			///< optical flow matched scene point
+		std::vector<CvPoint3D32f> matchedReferencePoints;
 		std::vector<CvPoint2D32f> matchedScenePoints;
 
 		void Release();
@@ -89,16 +124,14 @@ namespace windage
 		cv::flann::Index* flannIndex;
 
 		int GenerateReferenceFeatureTree(double scaleFactor=4.0, int scaleStep=8);
-		CvFeatureTree* CreateReferenceTree(std::vector<SURFDesciription>* referenceSURF, CvMat* referenceFeatureStorage);
-		bool CreateFlannTree(std::vector<SURFDesciription>* referenceSURF, CvMat* referenceFeatureStorage);
+		CvFeatureTree* CreateReferenceTree(std::vector<SURF3DDescription>* referenceSURF, CvMat* referenceFeatureStorage);
+		bool CreateFlannTree(std::vector<SURF3DDescription>* referenceSURF, CvMat* referenceFeatureStorage);
 
-		int FindPairs(SURFDesciription description, CvFeatureTree* tree, double distanceRate, float* outDistance = NULL);
-		int FindPairs(SURFDesciription description, std::vector<SURFDesciription>* descriptions);
-		int FindPairs(SURFDesciription description, cv::flann::Index* treeIndex, float distanceRate=0.7, float* outDistance = NULL);
+		int FindPairs(SURF3DDescription description, CvFeatureTree* tree, double distanceRate, float* outDistance = NULL);
+		int FindPairs(SURF3DDescription description, std::vector<SURF3DDescription>* descriptions);
+		int FindPairs(SURF3DDescription description, cv::flann::Index* treeIndex, float distanceRate=0.7, float* outDistance = NULL);
 
-		POSE_ESTIMATION_METHOD poseEstimationMethod;
-		bool outlinerRemove;
-		bool refinement;
+		bool outlinerRemove; 
 
 		/**
 		 * @brief
@@ -117,8 +150,8 @@ namespace windage
 		OpticalFlow* opticalflow;
 
 	public:
-		ModifiedSURFTracker();
-		virtual ~ModifiedSURFTracker();
+		CubeTracker();
+		virtual ~CubeTracker();
 
 		inline void SetSetpIndex(int index){this->step = index;};
 
@@ -132,10 +165,8 @@ namespace windage
 		inline int GetFeatureExtractThreshold(){return this->featureExtractThreshold;};
 		inline void SetFeatureExtractThreshold(int threshold=80){this->featureExtractThreshold = threshold;};
 
-		inline void SetPoseEstimationMethod(POSE_ESTIMATION_METHOD poseEstimationMethod=windage::RANSAC){this->poseEstimationMethod = poseEstimationMethod;};
-		inline POSE_ESTIMATION_METHOD GetPoseEstimationMethod(){return this->poseEstimationMethod;};
+
 		inline void SetOutlinerRemove(bool remove){this->outlinerRemove = remove;};
-		inline void SetRefinement(bool refine){this->refinement = refine;};
 
 		/**
 		 * @brief
@@ -163,6 +194,7 @@ namespace windage
 		void RegistReferenceImage(	IplImage* referenceImage,	///< reference image
 									double realWidth,			///< image real width size
 									double realHeight,			///< image real width size
+									double realDepth,
 									double scaleFactor=4.0,		///< scale factor for multi-scale
 									int scaleStep=8				///< multi-scale step
 									);
@@ -189,7 +221,7 @@ namespace windage
 		static int ExtractModifiedSURF(
 										IplImage* grayImage,						///< input image
 										std::vector<CvPoint>* corners,				///< input corners
-										std::vector<SURFDesciription>* descriptions	///< output descriptors
+										std::vector<SURF3DDescription>* descriptions	///< output descriptors
 										);
 
 		/**

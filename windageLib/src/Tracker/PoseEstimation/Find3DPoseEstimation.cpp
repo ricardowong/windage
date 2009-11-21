@@ -141,7 +141,7 @@ double Find3DPoseEstimation::Calculate()
 		CvMat* extrinsic = cvCreateMat(4, 4, CV_64FC1);
 		int numpt = (int)matchedPoints->size();
 
-		const int sample_size = 5;
+		const int sample_size = 10;
 		if(numpt < sample_size) return -1.0;
 
 		int pre_inlier = -1, num_inliers = 0;
@@ -211,7 +211,7 @@ double Find3DPoseEstimation::Calculate()
 				pre_inlier = num_inliers;
 				cvCopy(tStatus, bStatus);
 
-				if(pre_inlier > (double)numpt*0.9)
+				if(pre_inlier > (double)numpt*0.80)
 				{
 					// terminate
 					ci = iter;

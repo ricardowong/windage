@@ -80,6 +80,7 @@ void main()
 	multipleTracker->SetDetectIntervalTime(2.0);
 	multipleTracker->SetPoseEstimationMethod(windage::PROSAC);
 	multipleTracker->SetOutlinerRemove(true);
+	multipleTracker->SetRefinement(true);
 	multipleTracker->SetFeatureExtractThreshold(30);
 	for(int i=0; i<trainingImage.size(); i++)
 	{

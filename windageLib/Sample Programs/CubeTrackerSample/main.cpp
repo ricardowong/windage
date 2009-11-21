@@ -62,12 +62,11 @@ const int WIDTH = 640;
 const int HEIGHT = 480;
 const double intrinsicValues[8] = {1029.400, 1028.675, 316.524, 211.395, -0.206360, 0.238378, 0.001089, -0.000769};
 
-windage::ModifiedSURFTracker* CreateTracker(IplImage* refImage, int index)
+windage::CubeTracker* CreateTracker(IplImage* refImage, int index)
 {
-	windage::ModifiedSURFTracker* tracker = new windage::ModifiedSURFTracker();
+	windage::CubeTracker* tracker = new windage::CubeTracker();
 	tracker->Initialize(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], intrinsicValues[4], intrinsicValues[5], intrinsicValues[6], intrinsicValues[7], 30);
-	tracker->RegistReferenceImage(refImage, 267.0, 200.0, 4.0, 8);
-	tracker->SetPoseEstimationMethod(windage::POSE_3D);
+	tracker->RegistReferenceImage(refImage, 640, 480, 160, 4.0, 8);
 	tracker->SetOutlinerRemove(true);
 	tracker->InitializeOpticalFlow(WIDTH, HEIGHT, 10, cvSize(8, 8), 3);
 	tracker->SetOpticalFlowRunning(true);
@@ -93,7 +92,7 @@ void main()
 	
 	// Tracker Initialize
 	IplImage* referenceImage = cvLoadImage("CUBEreference_320.png", 0);
-	windage::ModifiedSURFTracker* tracker = CreateTracker(referenceImage, 0);
+	windage::CubeTracker* tracker = CreateTracker(referenceImage, 0);
 
 	// for undistortion
 	windage::Calibration* calibration = new windage::Calibration();

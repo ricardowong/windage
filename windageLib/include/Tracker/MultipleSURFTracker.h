@@ -62,6 +62,7 @@ namespace windage
 		int featureCount;
 		POSE_ESTIMATION_METHOD poseEstimationMethod;
 		bool outlinerRemove;
+		bool refinement;
 
 		int step;
 		double interval;
@@ -81,6 +82,7 @@ namespace windage
 			featureExtractThreshold = 30;
 			poseEstimationMethod = windage::RANSAC;
 			outlinerRemove = true;
+			refinement = false;
 
 			step = 0;
 			interval = 1.0;
@@ -101,6 +103,7 @@ namespace windage
 		inline void SetPoseEstimationMethod(POSE_ESTIMATION_METHOD poseEstimationMethod=windage::RANSAC){this->poseEstimationMethod = poseEstimationMethod;};
 		inline POSE_ESTIMATION_METHOD GetPoseEstimationMethod(){return this->poseEstimationMethod;};
 		inline void SetOutlinerRemove(bool remove){this->outlinerRemove = remove;};
+		inline void SetRefinement(bool refine){this->refinement = refine;};
 
 		void AttatchReferenceImage(IplImage* image, double realWidth, double realHeight, double scaleFactor=4.0, int scaleStep=8);
 		bool DeleteReferenceImage(int index);
