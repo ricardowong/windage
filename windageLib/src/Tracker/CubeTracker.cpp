@@ -49,7 +49,7 @@ using namespace windage;
 //#define POSE_3D_ESTIMATION
 
 const double ERROR_BOUND = 10.0;
-const int POSE_POINTS_COUNT = 10;
+const int POSE_POINTS_COUNT = 20;
 const double COMPAIR_RATE = 0.50;
 const int EMAX = 20;
 
@@ -375,7 +375,7 @@ int GetPlaneNumber(CvPoint3D32f point2D, int width, int height)
 	double yStep = height/3.0;
 
 	// 2
-	if(yStep <= point2D.y && point2D.y < yStep*2)
+	if(yStep*1 <= point2D.y && point2D.y < yStep*2)
 	{
 		if(point2D.x < xStep)
 			return 2;
@@ -392,13 +392,13 @@ int GetPlaneNumber(CvPoint3D32f point2D, int width, int height)
 		{
 			if(point2D.y < yStep)
 				return 1;
-			else if(yStep*2 < point2D.y)
+			else if(yStep*2 <= point2D.y)
 				return 6;
 			else
 				return -1;
 		}
 		else
-			return -1;
+			return -2;
 	}
 }
 
@@ -414,45 +414,45 @@ CvPoint3D32f ConvertCubeCoordinate(CvPoint3D32f point2D, int width, int height, 
 
 	double xStep = width/4.0;
 	double yStep = height/3.0;
-	double hWidth = width/2.0;
-	double hHeight = height/2.0;
 	double hDepth = depth/2.0;
 
-	if(planId > 0)
+	switch(planId)
 	{
-		switch(planId)
-		{
-		case 1:
-			point3D.x = (point2D.x - xStep*1.5);
-			point3D.y = yStep/2.0;
-			point3D.z = (point2D.y - yStep*1.5);
-			break;
-		case 2:
-			point3D.x = -xStep/2.0;
-			point3D.y = (point2D.y - yStep*1.5);
-			point3D.z = -(point2D.x - xStep*0.5);
-			break;
-		case 3:
-			point3D.x = (point2D.x - xStep*1.5);
-			point3D.y = (point2D.y - yStep*1.5);
-			point3D.z = hDepth;
-			break;
-		case 4:
-			point3D.x = +xStep/2.0;
-			point3D.y = (point2D.y - yStep*1.5);
-			point3D.z = (point2D.x - xStep*2.5);
-			break;
-		case 5:
-			point3D.x = -(point2D.x - xStep*3.5);
-			point3D.y = (point2D.y - yStep*1.5);
-			point3D.z = -hDepth;
-			break;
-		case 6:
-			point3D.x = (point2D.x - xStep*1.5);
-			point3D.y = -yStep/2.0;
-			point3D.z = (point2D.y - yStep*1.5);
-			break;
-		}
+	case 1:
+		point3D.x = (point2D.x - xStep*1.5);
+		point3D.y = -yStep/2.0;
+		point3D.z = (point2D.y - yStep*0.5);
+		break;
+	case 2:
+		point3D.x = -xStep/2.0;
+		point3D.y = (point2D.y - yStep*1.5);
+		point3D.z = (point2D.x - xStep*0.5);
+		break;
+	case 3:
+		point3D.x = (point2D.x - xStep*1.5);
+		point3D.y = (point2D.y - yStep*1.5);
+		point3D.z = hDepth;
+		break;
+	case 4:
+		point3D.x = +xStep/2.0;
+		point3D.y = (point2D.y - yStep*1.5);
+		point3D.z = -(point2D.x - xStep*2.5);
+		break;
+	case 5:
+		point3D.x = -(point2D.x - xStep*3.5);
+		point3D.y = (point2D.y - yStep*1.5);
+		point3D.z = -hDepth;
+		break;
+	case 6:
+		point3D.x = (point2D.x - xStep*1.5);
+		point3D.y = yStep/2.0;
+		point3D.z = -(point2D.y - yStep*2.5);
+		break;
+	default:
+		point3D.x = 0.0;
+		point3D.y = 0.0;
+		point3D.z = 0.0;
+		break;
 	}
 
 	return point3D;
@@ -485,15 +485,13 @@ int CubeTracker::GenerateReferenceFeatureTree(double scaleFactor, int scaleStep)
 
 			for(int i=0; i<(int)tempSurf.size(); i++)
 			{
-				CvPoint3D32f point2D;
+				CvPoint3D32f point2D = cvPoint3D32f(tempSurf[i].point.x, tempSurf[i].point.y, 0.0);
 				point2D.x *= xScaleFactor;
-				point2D.x += xScaleFactor/2.0f;
 				point2D.y *= yScaleFactor;
-				point2D.y += yScaleFactor/2.0f;
 				point2D.y = (float)this->realHeight - tempSurf[i].point.y;
 
-				point2D.x = tempSurf[i].point.x - (float)this->realWidth/2;
-				point2D.y = tempSurf[i].point.y - (float)this->realHeight/2;
+//				point2D.x = point2D.x - (float)this->realWidth/2;
+//				point2D.y = point2D.y - (float)this->realHeight/2;
 				point2D.z = 0.0;
 
 				tempSurf[i].point = ConvertCubeCoordinate(point2D, this->realWidth, this->realHeight, this->realDepth);
@@ -856,29 +854,45 @@ void CubeTracker::DrawOutLine(IplImage* colorImage, bool drawCross)
 	int g = 0;
 	int b = 0;
 
+	double width = this->realWidth/8.0;
+	double height = this->realHeight/6.0;
+	double depth = this->realDepth/2.0;
+
 	int size = 4;
 
 	CvScalar color = CV_RGB(255, 0, 255);
 	CvScalar color2 = CV_RGB(255, 255, 255);
 
-	cvLine(colorImage, cameraParameter->ConvertWorld2Image(-this->realWidth/2, -this->realHeight/2, 0.0),	cameraParameter->ConvertWorld2Image(+this->realWidth/2, -this->realHeight/2, 0.0),	color2, 6);
-	cvLine(colorImage, cameraParameter->ConvertWorld2Image(+this->realWidth/2, -this->realHeight/2, 0.0),	cameraParameter->ConvertWorld2Image(+this->realWidth/2, +this->realHeight/2, 0.0),	color2, 6);
-	cvLine(colorImage, cameraParameter->ConvertWorld2Image(+this->realWidth/2, +this->realHeight/2, 0.0),	cameraParameter->ConvertWorld2Image(-this->realWidth/2, +this->realHeight/2, 0.0),	color2, 6);
-	cvLine(colorImage, cameraParameter->ConvertWorld2Image(-this->realWidth/2, +this->realHeight/2, 0.0),	cameraParameter->ConvertWorld2Image(-this->realWidth/2, -this->realHeight/2, 0.0),	color2, 6);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(-width, -height, +depth),	cameraParameter->ConvertWorld2Image(+width, -height, +depth),	color2, 6);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(+width, -height, +depth),	cameraParameter->ConvertWorld2Image(+width, +height, +depth),	color2, 6);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(+width, +height, +depth),	cameraParameter->ConvertWorld2Image(-width, +height, +depth),	color2, 6);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(-width, +height, +depth),	cameraParameter->ConvertWorld2Image(-width, -height, +depth),	color2, 6);
 
-	cvLine(colorImage, cameraParameter->ConvertWorld2Image(-this->realWidth/2, -this->realHeight/2, 0.0),	cameraParameter->ConvertWorld2Image(+this->realWidth/2, -this->realHeight/2, 0.0),	color, 2);
-	cvLine(colorImage, cameraParameter->ConvertWorld2Image(+this->realWidth/2, -this->realHeight/2, 0.0),	cameraParameter->ConvertWorld2Image(+this->realWidth/2, +this->realHeight/2, 0.0),	color, 2);
-	cvLine(colorImage, cameraParameter->ConvertWorld2Image(+this->realWidth/2, +this->realHeight/2, 0.0),	cameraParameter->ConvertWorld2Image(-this->realWidth/2, +this->realHeight/2, 0.0),	color, 2);
-	cvLine(colorImage, cameraParameter->ConvertWorld2Image(-this->realWidth/2, +this->realHeight/2, 0.0),	cameraParameter->ConvertWorld2Image(-this->realWidth/2, -this->realHeight/2, 0.0),	color, 2);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(-width, -height, -depth),	cameraParameter->ConvertWorld2Image(+width, -height, -depth),	color2, 6);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(+width, -height, -depth),	cameraParameter->ConvertWorld2Image(+width, +height, -depth),	color2, 6);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(+width, +height, -depth),	cameraParameter->ConvertWorld2Image(-width, +height, -depth),	color2, 6);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(-width, +height, -depth),	cameraParameter->ConvertWorld2Image(-width, -height, -depth),	color2, 6);
 
-	if(drawCross)
-	{
-		cvLine(colorImage, cameraParameter->ConvertWorld2Image(-this->realWidth/2, -this->realHeight/2, 0.0),	cameraParameter->ConvertWorld2Image(+this->realWidth/2, +this->realHeight/2, 0.0),	color2, 6);
-		cvLine(colorImage, cameraParameter->ConvertWorld2Image(-this->realWidth/2, +this->realHeight/2, 0.0),	cameraParameter->ConvertWorld2Image(+this->realWidth/2, -this->realHeight/2, 0.0),	color2, 6);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(-width, -height, -depth),	cameraParameter->ConvertWorld2Image(-width, -height, +depth),	color2, 6);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(+width, -height, -depth),	cameraParameter->ConvertWorld2Image(+width, -height, +depth),	color2, 6);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(+width, +height, -depth),	cameraParameter->ConvertWorld2Image(+width, +height, +depth),	color2, 6);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(-width, +height, -depth),	cameraParameter->ConvertWorld2Image(-width, +height, +depth),	color2, 6);
 
-		cvLine(colorImage, cameraParameter->ConvertWorld2Image(-this->realWidth/2, -this->realHeight/2, 0.0),	cameraParameter->ConvertWorld2Image(+this->realWidth/2, +this->realHeight/2, 0.0),	color, 2);
-		cvLine(colorImage, cameraParameter->ConvertWorld2Image(-this->realWidth/2, +this->realHeight/2, 0.0),	cameraParameter->ConvertWorld2Image(+this->realWidth/2, -this->realHeight/2, 0.0),	color, 2);
-	}
+
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(-width, -height, +depth),	cameraParameter->ConvertWorld2Image(+width, -height, +depth),	color, 2);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(+width, -height, +depth),	cameraParameter->ConvertWorld2Image(+width, +height, +depth),	color, 2);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(+width, +height, +depth),	cameraParameter->ConvertWorld2Image(-width, +height, +depth),	color, 2);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(-width, +height, +depth),	cameraParameter->ConvertWorld2Image(-width, -height, +depth),	color, 2);
+
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(-width, -height, -depth),	cameraParameter->ConvertWorld2Image(+width, -height, -depth),	color, 2);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(+width, -height, -depth),	cameraParameter->ConvertWorld2Image(+width, +height, -depth),	color, 2);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(+width, +height, -depth),	cameraParameter->ConvertWorld2Image(-width, +height, -depth),	color, 2);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(-width, +height, -depth),	cameraParameter->ConvertWorld2Image(-width, -height, -depth),	color, 2);
+
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(-width, -height, -depth),	cameraParameter->ConvertWorld2Image(-width, -height, +depth),	color, 2);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(+width, -height, -depth),	cameraParameter->ConvertWorld2Image(+width, -height, +depth),	color, 2);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(+width, +height, -depth),	cameraParameter->ConvertWorld2Image(+width, +height, +depth),	color, 2);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(-width, +height, -depth),	cameraParameter->ConvertWorld2Image(-width, +height, +depth),	color, 2);
 }
 
 
