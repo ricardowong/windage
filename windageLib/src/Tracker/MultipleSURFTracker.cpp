@@ -47,7 +47,6 @@
 #define POSE_3D_ESTIMATION
 
 const double ERROR_BOUND = 10.0;
-const int POSE_POINTS_COUNT = 10;
 const double COMPAIR_RATE = 0.50;
 const int EMAX = 20;
 
@@ -290,6 +289,7 @@ double MultipleSURFTracker::CalculatePose(int index)
 					poseEstimator.AttatchMatchedPoints(&poseEstimatorPoints);
 					poseEstimator.AttatchCalibration(this->cameraParameterList[index]);
 					poseEstimator.SetReprojectionThreshold(ERROR_BOUND);
+					poseEstimator.SetItrationTime(5);
 					poseEstimator.SetUseRANSAC(true);
 					poseEstimator.Calculate();
 				}

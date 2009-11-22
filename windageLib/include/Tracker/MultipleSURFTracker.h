@@ -53,6 +53,8 @@
 
 #include "ReferenceStorage.h"
 
+const int POSE_POINTS_COUNT = 10;
+
 namespace windage
 {
 	class DLLEXPORT MultipleSURFTracker : public MultipleTracker
@@ -63,6 +65,7 @@ namespace windage
 		POSE_ESTIMATION_METHOD poseEstimationMethod;
 		bool outlinerRemove;
 		bool refinement;
+		int POSE_POINTS_COUNT;
 
 		int step;
 		double interval;
@@ -88,6 +91,7 @@ namespace windage
 			interval = 1.0;
 			prevImage = NULL;
 			referenceCount = 0;
+			POSE_POINTS_COUNT = 10;
 		}
 		~MultipleSURFTracker()
 		{
@@ -104,6 +108,7 @@ namespace windage
 		inline POSE_ESTIMATION_METHOD GetPoseEstimationMethod(){return this->poseEstimationMethod;};
 		inline void SetOutlinerRemove(bool remove){this->outlinerRemove = remove;};
 		inline void SetRefinement(bool refine){this->refinement = refine;};
+		inline void SetPosePointCount(int count){this->POSE_POINTS_COUNT = count;};
 
 		void AttatchReferenceImage(IplImage* image, double realWidth, double realHeight, double scaleFactor=4.0, int scaleStep=8);
 		bool DeleteReferenceImage(int index);

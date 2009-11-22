@@ -861,7 +861,6 @@ void CubeTracker::DrawDebugInfo2(IplImage* colorImage)
 	}
 }
 
-
 void CubeTracker::DrawOutLine(IplImage* colorImage, bool drawCross)
 {
 	int pointCount = (int)sceneSURF.size();
