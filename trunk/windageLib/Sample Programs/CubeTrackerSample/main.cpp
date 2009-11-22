@@ -55,7 +55,7 @@ const int FIND_FEATURE_COUNT = 20;
 
 const int MAX_FAST_THRESHOLD = 80;
 const int MIN_FAST_THRESHOLD = 20;
-const int ADAPTIVE_THRESHOLD_VALUE = 1000;
+const int ADAPTIVE_THRESHOLD_VALUE = 800;
 const int THRESHOLD_STEP = 1;
 
 const int WIDTH = 640;
@@ -66,7 +66,7 @@ windage::CubeTracker* CreateTracker(IplImage* refImage, int index)
 {
 	windage::CubeTracker* tracker = new windage::CubeTracker();
 	tracker->Initialize(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], intrinsicValues[4], intrinsicValues[5], intrinsicValues[6], intrinsicValues[7], 30);
-	tracker->RegistReferenceImage(refImage, 640, 480, 160, 4.0, 8);
+	tracker->RegistReferenceImage(refImage, 640, 480, 160, 2.0, 4);
 	tracker->SetOutlinerRemove(true);
 	tracker->InitializeOpticalFlow(WIDTH, HEIGHT, 5, cvSize(8, 8), 3);
 	tracker->SetOpticalFlowRunning(true);
@@ -84,6 +84,10 @@ void main()
 
 	// connect camera
 	CvCapture* capture = cvCaptureFromCAM(CV_CAP_ANY);
+
+	// saving
+	bool saving = false;
+	CvVideoWriter* writer = NULL;
 
 	char message[100];
 	IplImage* inputImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
@@ -148,10 +152,26 @@ void main()
 		windage::Utils::DrawTextToImage(inputImage, cvPoint(20, 50), message);
 		sprintf(message, "Match count : %d", matchingCount);
 		windage::Utils::DrawTextToImage(inputImage, cvPoint(20, 70), message);
+		for(int i=0; i<6; i++)
+		{
+			sprintf(message, "#%d:%d ", i, tracker->GetMatchedCount(i));
+			windage::Utils::DrawTextToImage(inputImage, cvPoint(220 + 65*i, 70), message);
+		}
+
+		if(saving)
+		{
+			if(writer) cvWriteFrame(writer, inputImage);
+		}
 
 		char ch = cvWaitKey(1);
 		switch(ch)
 		{
+		case 's':
+		case 'S':
+			saving = true;
+			if(writer) cvReleaseVideoWriter(&writer);
+			writer = cvCreateVideoWriter("saveimage\\capture.avi", CV_FOURCC_DEFAULT, 30, cvSize(inputImage->width, inputImage->height), 1);
+			break;
 		case 'q':
 		case 'Q':
 			processing = false;
@@ -161,6 +181,7 @@ void main()
 		cvShowImage("result", inputImage);
 	}
 
+	if(writer) cvReleaseVideoWriter(&writer);
 	cvReleaseCapture(&capture);
 	cvDestroyAllWindows();
 }

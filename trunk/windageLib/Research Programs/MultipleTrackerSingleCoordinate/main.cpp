@@ -374,6 +374,7 @@ void main()
 			updating = true;
 			break;
 		case 's':
+		case 'S':
 			saving = true;
 			if(writer) cvReleaseVideoWriter(&writer);
 			writer = cvCreateVideoWriter("saveimage\\capture.avi", CV_FOURCC_DEFAULT, 30, cvSize(inputImage->width, inputImage->height), 1);
