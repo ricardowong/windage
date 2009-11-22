@@ -149,7 +149,7 @@ double Find3DPoseEstimation::Calculate()
 		const unsigned rng_seed = 0xffffffff;
 		CvRNG rng = cvRNG(rng_seed);
 
-		int iter = 100;
+		int iter = this->iteration;
 		CvMat *tStatus = cvCreateMat(1, numpt, CV_64F);
 		CvMat *bStatus = cvCreateMat(1, numpt, CV_64F);
 
@@ -211,7 +211,7 @@ double Find3DPoseEstimation::Calculate()
 				pre_inlier = num_inliers;
 				cvCopy(tStatus, bStatus);
 
-				if(pre_inlier > (double)numpt*0.80)
+				if(pre_inlier > (double)numpt*this->terminationRatio)
 				{
 					// terminate
 					ci = iter;

@@ -44,7 +44,7 @@
 
 #define ADAPTIVE_THRESHOLD
 
-const int OBJECT_COUNT = 7;
+const int OBJECT_COUNT = 6;
 const int FIND_FEATURE_COUNT = 10;
 
 const int WIDTH = 640;
@@ -70,7 +70,7 @@ void main()
 	std::vector<IplImage*> trainingImage;
 	for(int i=1; i<=OBJECT_COUNT; i++)
 	{
-		sprintf(message, "reference%d.png", i);
+		sprintf(message, "reference%d_320.png", i);
 		trainingImage.push_back(cvLoadImage(message, 0));
 	}
 
@@ -85,7 +85,7 @@ void main()
 	for(int i=0; i<trainingImage.size(); i++)
 	{
 		std::cout << "attatch reference image #" << i << std::endl;
-		multipleTracker->AttatchReferenceImage(trainingImage[i], 267.0, 200.0, 4.0, 8);
+		multipleTracker->AttatchReferenceImage(trainingImage[i], trainingImage[i]->width, trainingImage[i]->height, 8.0, 8);
 	}
 
 	// for undistortion

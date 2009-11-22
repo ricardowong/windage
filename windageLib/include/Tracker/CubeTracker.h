@@ -160,11 +160,11 @@ namespace windage
 
 		inline int GetFeatureCount(){return sceneSURF.size();};
 		inline int GetMatchedCount(){return matchedScene.size();};
+		int GetMatchedCount(int index);
 
 		inline IplImage* GetReferenceImage(){return this->referenceImage;};
 		inline int GetFeatureExtractThreshold(){return this->featureExtractThreshold;};
 		inline void SetFeatureExtractThreshold(int threshold=80){this->featureExtractThreshold = threshold;};
-
 
 		inline void SetOutlinerRemove(bool remove){this->outlinerRemove = remove;};
 

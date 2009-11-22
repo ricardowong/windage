@@ -55,7 +55,7 @@ const int FIND_FEATURE_COUNT = 10;
 
 const int MAX_FAST_THRESHOLD = 80;
 const int MIN_FAST_THRESHOLD = 20;
-const int ADAPTIVE_THRESHOLD_VALUE = 1000;
+const int ADAPTIVE_THRESHOLD_VALUE = 500;
 const int THRESHOLD_STEP = 1;
 
 const int WIDTH = 640;
@@ -67,10 +67,11 @@ windage::ModifiedSURFTracker* CreateTracker(IplImage* refImage, int index)
 	windage::ModifiedSURFTracker* tracker = new windage::ModifiedSURFTracker();
 	tracker->Initialize(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], intrinsicValues[4], intrinsicValues[5], intrinsicValues[6], intrinsicValues[7], 30);
 	tracker->RegistReferenceImage(refImage, 267.0, 200.0, 4.0, 8);
-	tracker->SetPoseEstimationMethod(windage::POSE_3D);
+	tracker->SetPoseEstimationMethod(windage::LMEDS);
 	tracker->SetOutlinerRemove(true);
 	tracker->InitializeOpticalFlow(WIDTH, HEIGHT, 10, cvSize(8, 8), 3);
-	tracker->SetOpticalFlowRunning(false);
+	tracker->SetOpticalFlowRunning(true);
+	tracker->SetRefinement(true);
 //	tracker->GetCameraParameter()->InitUndistortionMap(WIDTH, HEIGHT);
 	tracker->SetFeatureExtractThreshold(30);
 
@@ -92,7 +93,7 @@ void main()
 	IplImage* grayImage = cvCreateImage(cvGetSize(inputImage), IPL_DEPTH_8U, 1);
 	
 	// Tracker Initialize
-	IplImage* referenceImage = cvLoadImage("reference1_320.png", 0);
+	IplImage* referenceImage = cvLoadImage("CUBEreference_320.png", 0);
 	windage::ModifiedSURFTracker* tracker = CreateTracker(referenceImage, 0);
 
 	// for undistortion

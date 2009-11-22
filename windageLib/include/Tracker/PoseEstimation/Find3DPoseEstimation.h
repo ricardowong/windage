@@ -75,21 +75,28 @@ namespace windage
 		double reprojectionThreshold;
 		windage::Calibration* calibration;
 		bool useRANSAC;
+		int iteration;
+		double terminationRatio;
 
 		std::vector<Matched3DPoint>* matchedPoints;
 //		double RunPoseEstimateRANSAC(std::vector<Matched3DPoint>* matchedPoints, double* cameraPose);
 	public:
 		Find3DPoseEstimation()
 		{
-			useRANSAC = true;
 			reprojectionThreshold = 2.0;
 			calibration = NULL;
 			matchedPoints = NULL;
+
+			useRANSAC = true;
+			iteration = 100;
+			terminationRatio = 0.80;
 		}
 		~Find3DPoseEstimation()
 		{
 		}
 
+		inline void SetItrationTime(int iteration){this->iteration = iteration;};
+		inline void SetTerminationRatio(double ratio){this->terminationRatio = ratio;};
 		inline void SetUseRANSAC(bool use){this->useRANSAC = use;};
 		inline void SetReprojectionThreshold(double reprojectionThreshold=5.0f){this->reprojectionThreshold = reprojectionThreshold;};
 		inline void AttatchMatchedPoints(std::vector<Matched3DPoint>* matchedPoints){this->matchedPoints = matchedPoints;};

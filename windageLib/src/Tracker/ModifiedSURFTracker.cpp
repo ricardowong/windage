@@ -604,6 +604,8 @@ double ModifiedSURFTracker::CalculatePose(bool update)
 				poseEstimator.AttatchMatchedPoints(&poseEstimatorPoints);
 				poseEstimator.AttatchCalibration(this->cameraParameter);
 				poseEstimator.SetReprojectionThreshold(ERROR_BOUND);
+				poseEstimator.SetUseRANSAC(true);
+				poseEstimator.SetItrationTime(300);
 				if(poseEstimator.Calculate() > 0.0)
 					isCalculate = true;
 				else

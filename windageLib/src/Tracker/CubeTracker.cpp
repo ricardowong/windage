@@ -46,12 +46,10 @@ using namespace windage;
 //#define USING_KDTREE
 #define USING_FLANN
 
-//#define POSE_3D_ESTIMATION
-
-const double ERROR_BOUND = 10.0;
+const double ERROR_BOUND = 15.0;
 const int POSE_POINTS_COUNT = 20;
-const double COMPAIR_RATE = 0.50;
-const int EMAX = 20;
+const double COMPAIR_RATE = 0.40;
+const int EMAX = 50;
 
 CubeTracker::CubeTracker()
 {
@@ -184,8 +182,8 @@ int CubeTracker::ExtractModifiedSURF(IplImage* grayImage, std::vector<CvPoint>* 
 		CvSURFPoint point = cvSURFPoint( cvPoint2D32f((*corners)[i].x, (*corners)[i].y), 0, 15, 0, 0);
 		cvSeqPush(referenceKeypoints, &point);
 	}
-//	wExtractSURF(grayImage, 0, &referenceKeypoints, &referenceDescriptors, storage, params, 1);
-	wExtractFASTSURF(grayImage, 0, &referenceKeypoints, &referenceDescriptors, storage, params, 1);
+	wExtractSURF(grayImage, 0, &referenceKeypoints, &referenceDescriptors, storage, params, 1);
+//	wExtractFASTSURF(grayImage, 0, &referenceKeypoints, &referenceDescriptors, storage, params, 1);
 //	cvExtractSURF(grayImage, 0, &referenceKeypoints, &referenceDescriptors, storage, params, 1);
 
 	CvSeqReader reader;
@@ -402,7 +400,7 @@ int GetPlaneNumber(CvPoint3D32f point2D, int width, int height)
 	}
 }
 
-CvPoint3D32f ConvertCubeCoordinate(CvPoint3D32f point2D, int width, int height, int depth)
+CvPoint3D32f ConvertCubeCoordinate(CvPoint3D32f point2D, int width, int height, int depth, int* id=NULL)
 {
 	CvPoint3D32f point3D;
 
@@ -455,6 +453,7 @@ CvPoint3D32f ConvertCubeCoordinate(CvPoint3D32f point2D, int width, int height, 
 		break;
 	}
 
+	if(id) *id = planId;
 	return point3D;
 }
 
@@ -494,7 +493,9 @@ int CubeTracker::GenerateReferenceFeatureTree(double scaleFactor, int scaleStep)
 //				point2D.y = point2D.y - (float)this->realHeight/2;
 				point2D.z = 0.0;
 
-				tempSurf[i].point = ConvertCubeCoordinate(point2D, this->realWidth, this->realHeight, this->realDepth);
+				int id;
+				tempSurf[i].point = ConvertCubeCoordinate(point2D, this->realWidth, this->realHeight, this->realDepth, &id);
+				tempSurf[i].objectID = id;
 				referenceSURF.push_back(tempSurf[i]);
 			}
 
@@ -539,6 +540,9 @@ double CubeTracker::CalculatePose(bool update)
 		poseEstimator.AttatchMatchedPoints(&poseEstimatorPoints);
 		poseEstimator.AttatchCalibration(this->cameraParameter);
 		poseEstimator.SetReprojectionThreshold(ERROR_BOUND);
+		poseEstimator.SetUseRANSAC(true);
+		poseEstimator.SetItrationTime(500);
+		poseEstimator.SetTerminationRatio(0.9);
 		if(poseEstimator.Calculate() > 0.0)
 			isCalculate = true;
 		else
@@ -801,6 +805,17 @@ double CubeTracker::UpdateCameraPose(IplImage* grayImage)
 	if(log) log->logNewLine();
 
 	return homograpyError;//(int)matchedScenePoints.size();
+}
+
+int CubeTracker::GetMatchedCount(int index)
+{
+	int count = 0;
+	for(int i=0; i<this->matchedScene.size(); i++)
+	{
+		if(matchedReference[i].objectID == index)
+			count++;
+	}
+	return count;
 }
 
 void CubeTracker::DrawDebugInfo(IplImage* colorImage)
