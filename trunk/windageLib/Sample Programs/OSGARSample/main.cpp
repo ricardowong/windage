@@ -59,6 +59,8 @@
 #include <windage.h>
 #include <AugmentedReality/ARForOSG.h>
 
+#define SAVE_RENDERING_IMAGE
+
 const int WIDTH = 640;
 const int HEIGHT = 480;
 const double intrinsicValues[8] = {1029.400, 1028.675, 316.524, 211.395, -0.206360, 0.238378, 0.001089, -0.000769};
@@ -154,7 +156,6 @@ osg::Matrixd GetTrackerCoordinate()
 	// call tracking algorithm
 	tracker->SetFeatureExtractThreshold(fastThreshold);
 	tracker->UpdateCameraPose(gray);
-	tracker->DrawOutLine(input, true);
 //	tracker->DrawDebugInfo(input);
 
 	int featureCount = tracker->GetFeatureCount();
@@ -182,7 +183,13 @@ osg::Matrixd GetTrackerCoordinate()
 	windage::Utils::DrawTextToImage(input, cvPoint(20, 80), message);
 
 	arTool->SetModelViewMatrix();
-	osg::Matrixd modelView = ConvertMatrix(arTool->GetModelViewMatrix());
+
+	osg::Matrixd modelView;
+	if(matchingCount > 10)
+	{
+		tracker->DrawOutLine(input, true);
+		modelView = ConvertMatrix(arTool->GetModelViewMatrix());
+	}
 	return modelView;
 }
 
@@ -201,7 +208,15 @@ int main(int argc, char ** argv )
 	// for checking FPS
 	logging = new windage::Logger(&std::cout);
 	logging->updateTickCount();
-	
+
+	// saving
+#ifdef SAVE_RENDERING_IMAGE
+	IplImage* saveImage = cvCreateImage(cvSize(640, 480), IPL_DEPTH_8U, 3);
+	IplImage* saveTempImage = cvCreateImage(cvSize(640, 480), IPL_DEPTH_8U, 4);
+	bool saving = false;
+	CvVideoWriter* writer = cvCreateVideoWriter("saveimage\\capture.avi", CV_FOURCC_DEFAULT, 30, cvSize(saveImage->width, saveImage->height), 1);
+#endif
+
 	// initialize tracker
 	capture = cvCaptureFromCAM(CV_CAP_ANY);
 	input = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
@@ -270,18 +285,41 @@ int main(int argc, char ** argv )
 	osg::ref_ptr<osg::MatrixTransform> objectCoordinate = new osg::MatrixTransform();
 	localCoordinates->addChild(objectCoordinate);
 
-	double scaleFactor = 25.0;
+	double scaleFactor = 8.0;
+	double x = 80.0;
+	double y = 34.0;
+	double z = 0.0;
+
 	osg::Matrixd scale;	scale.makeScale(scaleFactor, scaleFactor, scaleFactor);
-	osg::Matrixd translate;	translate.makeTranslate(-1.0, 0.0, 3.0);
+	osg::Matrixd translate;	translate.makeTranslate(x, y, z);
 	objectCoordinate->postMult(translate);
 	objectCoordinate->postMult(scale);
-	objectCoordinate->addChild(LoadModel("model/cow.osg"));
+	objectCoordinate->addChild(LoadModel("model/gist/oh.obj"));
 //*/
+
+#ifdef SAVE_RENDERING_IMAGE
+//	cvNamedWindow("test");
+	osg::Image* osgImage = new osg::Image();
+	osgImage->allocateImage(saveImage->width, saveImage->height, 1, GL_RGBA, GL_UNSIGNED_BYTE);
+	viewer->getCamera()->attach(osg::Camera::COLOR_BUFFER, osgImage);
+#endif
 
 	while (!viewer->done())
     {
 		localCoordinates->setMatrix(GetTrackerCoordinate());
 		viewer->frame();
+
+#ifdef SAVE_RENDERING_IMAGE
+		std::cout << "read buffer" << std::endl;
+		osgImage->readPixels(0, 0, saveImage->width, saveImage->height, GL_RGBA, GL_UNSIGNED_BYTE);
+		memcpy(saveTempImage->imageData, osgImage->data(), sizeof(char)*saveImage->width*saveImage->height*4);
+		cvCvtColor(saveTempImage, saveImage, CV_RGBA2BGR);
+		cvFlip(saveImage, saveImage);
+		
+		if(writer) cvWriteFrame(writer, saveImage);
+//		cvShowImage("test", saveImage);
+//		cvWaitKey(1);
+#endif
     }
 
 	cvReleaseCapture(&capture);

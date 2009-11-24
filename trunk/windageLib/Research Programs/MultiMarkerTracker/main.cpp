@@ -45,7 +45,7 @@
 #define ADAPTIVE_THRESHOLD
 
 const int OBJECT_COUNT = 6;
-const int FIND_FEATURE_COUNT = 30;
+const int FIND_FEATURE_COUNT = 10;
 
 const int WIDTH = 640;
 const int HEIGHT = 480;
@@ -193,6 +193,22 @@ windage::Matrix4 CalculateMarkerExtrinsicParameter(windage::Calibration* fromCal
 	return matrix;
 }
 
+double CalcReprojectionArea(windage::Calibration* cameraParameter)
+{
+	double width = CUBE_SIZE/2.0;
+	double height = CUBE_SIZE/2.0;
+
+	CvPoint point1 = cameraParameter->ConvertWorld2Image(-width, -height, 0.0);
+	CvPoint point2 = cameraParameter->ConvertWorld2Image(+width, -height, 0.0);
+	CvPoint point3 = cameraParameter->ConvertWorld2Image(+width, +height, 0.0);
+	CvPoint point4 = cameraParameter->ConvertWorld2Image(-width, +height, 0.0);
+
+	double area1 = abs((point2.x - point1.x) * (point3.y - point1.y) - (point2.y - point1.y) * (point3.x - point1.x)) / 2.0;
+	double area2 = abs((point2.x - point4.x) * (point3.y - point4.y) - (point2.y - point1.y) * (point3.x - point4.x)) / 2.0;
+
+	return area1 + area2;
+}
+
 void DrawOutLine(windage::Calibration* cameraParameter, IplImage* colorImage, bool drawCross)
 {
 	int r = 255;
@@ -269,7 +285,7 @@ void main()
 	multipleTracker->Initialize(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], intrinsicValues[4], intrinsicValues[5], intrinsicValues[6], intrinsicValues[7]);
 	multipleTracker->InitializeOpticalFlow(WIDTH, HEIGHT, cvSize(8, 8), 3);
 	multipleTracker->SetDetectIntervalTime(1.0/2.0);
-	multipleTracker->SetPoseEstimationMethod(windage::PROSAC);
+	multipleTracker->SetPoseEstimationMethod(windage::LMEDS);
 	multipleTracker->SetOutlinerRemove(true);
 	multipleTracker->SetRefinement(true);
 	multipleTracker->SetPosePointCount(FIND_FEATURE_COUNT);
@@ -277,7 +293,7 @@ void main()
 	for(int i=0; i<trainingImage.size(); i++)
 	{
 		std::cout << "attatch reference image #" << i << std::endl;
-		multipleTracker->AttatchReferenceImage(trainingImage[i], CUBE_SIZE, CUBE_SIZE, 8.0, 8);
+		multipleTracker->AttatchReferenceImage(trainingImage[i], CUBE_SIZE, CUBE_SIZE, 4.0, 8);
 	}
 
 	// for undistortion
@@ -324,9 +340,20 @@ void main()
 		// find max matched plane
 		int maxIndex = -1;
 		int maxCount = 0;
+		int maxAreaIndex = -1;
+		double maxArea = 0.0;
 		for(int i=0; i<multipleTracker->GetTrackerCount(); i++)
 		{
+			double area = CalcReprojectionArea(multipleTracker->GetCameraParameter(i));
+			std::cout << "#" << i << " : " << area << std::endl;
 			int matchedCount = multipleTracker->GetMatchedCount(i);
+
+			if(area > maxArea)
+			{
+				maxArea = area;
+				maxAreaIndex = i;
+			}
+
 			if(matchedCount > maxCount)
 			{
 				maxCount = matchedCount;
