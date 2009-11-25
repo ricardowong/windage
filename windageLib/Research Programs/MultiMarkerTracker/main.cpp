@@ -50,7 +50,7 @@ const int FIND_FEATURE_COUNT = 10;
 const int WIDTH = 640;
 const int HEIGHT = 480;
 
-const double CUBE_SIZE = 500.0;
+const double CUBE_SIZE = 1000.0;
 
 const double intrinsicValues[8] = {1029.400, 1028.675, 316.524, 211.395, -0.206360, 0.238378, 0.001089, -0.000769};
 
@@ -203,8 +203,8 @@ double CalcReprojectionArea(windage::Calibration* cameraParameter)
 	CvPoint point3 = cameraParameter->ConvertWorld2Image(+width, +height, 0.0);
 	CvPoint point4 = cameraParameter->ConvertWorld2Image(-width, +height, 0.0);
 
-	double area1 = abs((point2.x - point1.x) * (point3.y - point1.y) - (point2.y - point1.y) * (point3.x - point1.x)) / 2.0;
-	double area2 = abs((point2.x - point4.x) * (point3.y - point4.y) - (point2.y - point1.y) * (point3.x - point4.x)) / 2.0;
+	double area1 = abs((point2.x - point1.x) * (point4.y - point1.y) - (point2.y - point1.y) * (point4.x - point1.x)) / 2.0;
+	double area2 = abs((point2.x - point3.x) * (point4.y - point3.y) - (point2.y - point3.y) * (point4.x - point3.x)) / 2.0;
 
 	return area1 + area2;
 }
@@ -284,8 +284,8 @@ void main()
 	windage::MultipleSURFTracker* multipleTracker = new windage::MultipleSURFTracker();
 	multipleTracker->Initialize(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], intrinsicValues[4], intrinsicValues[5], intrinsicValues[6], intrinsicValues[7]);
 	multipleTracker->InitializeOpticalFlow(WIDTH, HEIGHT, cvSize(8, 8), 3);
-	multipleTracker->SetDetectIntervalTime(1.0/2.0);
-	multipleTracker->SetPoseEstimationMethod(windage::LMEDS);
+	multipleTracker->SetDetectIntervalTime(1.0/3.0);
+	multipleTracker->SetPoseEstimationMethod(windage::PROSAC);
 	multipleTracker->SetOutlinerRemove(true);
 	multipleTracker->SetRefinement(true);
 	multipleTracker->SetPosePointCount(FIND_FEATURE_COUNT);
@@ -338,33 +338,27 @@ void main()
 		else											fastThreshold = MAX(MIN_FAST_THRESHOLD, fastThreshold-THRESHOLD_STEP);
 #endif
 		// find max matched plane
-		int maxIndex = -1;
-		int maxCount = 0;
+		std::vector<int> matcingCountList; matcingCountList.resize(multipleTracker->GetTrackerCount());
 		int maxAreaIndex = -1;
 		double maxArea = 0.0;
 		for(int i=0; i<multipleTracker->GetTrackerCount(); i++)
 		{
 			double area = CalcReprojectionArea(multipleTracker->GetCameraParameter(i));
-			std::cout << "#" << i << " : " << area << std::endl;
 			int matchedCount = multipleTracker->GetMatchedCount(i);
-
-			if(area > maxArea)
+			
+			matcingCountList[i] = matchedCount;
+			if(area > maxArea && matchedCount > FIND_FEATURE_COUNT*1.5)
 			{
 				maxArea = area;
 				maxAreaIndex = i;
 			}
-
-			if(matchedCount > maxCount)
-			{
-				maxCount = matchedCount;
-				maxIndex = i;
-			}
 		}
 
 		// draw tracking result
-		if(maxCount > FIND_FEATURE_COUNT)
+		if(maxAreaIndex >= 0)
+		if(matcingCountList[maxAreaIndex] > FIND_FEATURE_COUNT)
 		{
-			int i = maxIndex;
+			int i = maxAreaIndex;
 			windage::Matrix4 extrinsic = CalculateMarkerExtrinsicParameter(multipleTracker->GetCameraParameter(i), GetRotation(i+1), GetTranslation(i+1));
 			calibration->SetExtrinsicMatrix(extrinsic.m1);
 

@@ -289,7 +289,7 @@ double MultipleSURFTracker::CalculatePose(int index)
 					poseEstimator.AttatchMatchedPoints(&poseEstimatorPoints);
 					poseEstimator.AttatchCalibration(this->cameraParameterList[index]);
 					poseEstimator.SetReprojectionThreshold(ERROR_BOUND);
-					poseEstimator.SetItrationTime(5);
+					poseEstimator.SetItrationTime(10);
 					poseEstimator.SetUseRANSAC(true);
 					poseEstimator.Calculate();
 				}

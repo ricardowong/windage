@@ -93,8 +93,10 @@ void main()
 	IplImage* grayImage = cvCreateImage(cvGetSize(inputImage), IPL_DEPTH_8U, 1);
 	
 	// Tracker Initialize
-	IplImage* referenceImage = cvLoadImage("CUBEreference_320.png", 0);
-	windage::ModifiedSURFTracker* tracker = CreateTracker(referenceImage, 0);
+	IplImage* trainingImage = cvLoadImage("reference1_320.png", 0);
+	IplImage* referenceImage = cvLoadImage("reference1.png");
+	IplImage* resultImage = cvCreateImage(cvSize(WIDTH, HEIGHT*2), IPL_DEPTH_8U, 3);
+	windage::ModifiedSURFTracker* tracker = CreateTracker(trainingImage, 0);
 
 	// for undistortion
 	windage::Calibration* calibration = new windage::Calibration();
@@ -105,8 +107,10 @@ void main()
 	int fastThreshold = 70;
 	IplImage* grabFrame = NULL;
 
+	bool saving = false;
 	bool processing = true;
 	cvNamedWindow("result");
+	cvNamedWindow("matching");
 	while(processing)
 	{
 		// camera frame grabbing and convert to gray and undistortion
@@ -141,7 +145,7 @@ void main()
 		{
 			tracker->DrawOutLine(inputImage, true);
 			tracker->DrawInfomation(inputImage, 100.0);
-			tracker->DrawDebugInfo(inputImage);
+//			tracker->DrawDebugInfo(inputImage);
 		}
 
 		sprintf(message, "Tracking Time : %.2f(ms)", trackingTime);
@@ -154,13 +158,33 @@ void main()
 		char ch = cvWaitKey(1);
 		switch(ch)
 		{
+		case 's':
+		case 'S':
+			saving = true;
+			break;
 		case 'q':
 		case 'Q':
 			processing = false;
 			break;
 		}
 
+		cvZero(resultImage);
+		cvSetImageROI(resultImage, cvRect(0, 0, WIDTH, HEIGHT));
+		cvCopy(referenceImage, resultImage);
+		cvSetImageROI(resultImage, cvRect(0, HEIGHT, WIDTH, HEIGHT));
+		cvCopy(inputImage, resultImage);
+		cvResetImageROI(resultImage);
+		tracker->DrawDebugInfo2(resultImage);
+
 		cvShowImage("result", inputImage);
+		cvShowImage("matching", resultImage);
+
+		if(saving)
+		{
+			cvSaveImage("matching.png", resultImage);
+			cvSaveImage("result.png", inputImage);
+			saving = false;
+		}
 	}
 
 	cvReleaseCapture(&capture);
