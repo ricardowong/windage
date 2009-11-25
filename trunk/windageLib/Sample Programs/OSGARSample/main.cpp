@@ -84,6 +84,8 @@ windage::ARForOSG* arTool;
 IplImage* input;
 IplImage* gray;
 
+CvVideoWriter* writer;
+
 // class to handle events with a pick
 class PickHandler : public osgGA::GUIEventHandler
 {
@@ -101,7 +103,8 @@ public:
 				{
 				case 'q':
 				case 'Q':
-					cvReleaseCapture(&capture);
+					if(writer) cvReleaseVideoWriter(&writer);
+					if(capture) cvReleaseCapture(&capture);
 					exit(0);
 					break;
 				}
@@ -120,7 +123,7 @@ windage::ModifiedSURFTracker* CreateTracker(IplImage* refImage, int index)
 	//set rectangle marker
 	windage::ModifiedSURFTracker* tracker = new windage::ModifiedSURFTracker();
 	tracker->Initialize(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], intrinsicValues[4], intrinsicValues[5], intrinsicValues[6], intrinsicValues[7], 30);
-	tracker->RegistReferenceImage(refImage, refImage->width, refImage->height, 4.0, 8);
+	tracker->RegistReferenceImage(refImage, refImage->width, refImage->height, 4.0, 12);
 	tracker->SetPoseEstimationMethod(windage::PROSAC);
 	tracker->SetOutlinerRemove(true);
 	tracker->SetRefinement(true);
@@ -214,7 +217,7 @@ int main(int argc, char ** argv )
 	IplImage* saveImage = cvCreateImage(cvSize(640, 480), IPL_DEPTH_8U, 3);
 	IplImage* saveTempImage = cvCreateImage(cvSize(640, 480), IPL_DEPTH_8U, 4);
 	bool saving = false;
-	CvVideoWriter* writer = cvCreateVideoWriter("saveimage\\capture.avi", CV_FOURCC_DEFAULT, 30, cvSize(saveImage->width, saveImage->height), 1);
+	writer = cvCreateVideoWriter("saveimage\\capture2.avi", CV_FOURCC_DEFAULT, 30, cvSize(saveImage->width, saveImage->height), 1);
 #endif
 
 	// initialize tracker

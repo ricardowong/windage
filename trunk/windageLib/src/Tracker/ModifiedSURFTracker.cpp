@@ -978,7 +978,7 @@ void ModifiedSURFTracker::DrawDebugInfo2(IplImage* colorImage)
 
 		cvCircle(colorImage, referencePoint, size, CV_RGB(0, 255, 255), CV_FILLED);
 		cvCircle(colorImage, imagePoint, size, CV_RGB(255, 255, 0), CV_FILLED);
-		cvLine(colorImage, referencePoint, imagePoint, CV_RGB(255, 0, 0), 2);
+		cvLine(colorImage, referencePoint, imagePoint, CV_RGB(255, 0, 0), 1);
 	}
 }
 
