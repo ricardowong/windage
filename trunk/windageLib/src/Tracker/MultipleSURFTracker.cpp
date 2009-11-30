@@ -337,6 +337,12 @@ double MultipleSURFTracker::CalculatePose(int index)
 	return homographyError;
 }
 
+void MultipleSURFTracker::DeleteTrackingPoints(int index)
+{
+	this->matchedReferenceIndex[index].clear();
+	this->sceneSURF[index].clear();
+}
+
 int MultipleSURFTracker::DetectObject(std::vector<SURFDesciription>* scene, std::vector<int>* matchedIndex, int index)
 {
 	int count = 0;
@@ -502,6 +508,75 @@ void MultipleSURFTracker::DrawDebugInfo(IplImage* colorImage)
 			cvCircle(colorImage, imagePoint, size, imageColor, CV_FILLED);
 
 			cvLine(colorImage, referencePoint, imagePoint, lineColor, lineThick);
+		}
+	}
+}
+
+void MultipleSURFTracker::DrawDebugInfo(IplImage* colorImage, int index)
+{
+	const int size = 5;
+	const int lineThick = 1;
+	double count = this->referenceCount-1;
+	if(index < 0)
+	{
+		for(int i=0; i<(int)sceneSURF.size(); i++)
+		{
+			double ratio = (double)i/count;
+			double increase = ratio * 255.0;
+			double decrease = (1-ratio) * 255.0;
+
+			CvScalar imageColor = CV_RGB(increase, 255.0, decrease);
+			CvScalar referColor = CV_RGB(decrease, 255.0, increase);
+			CvScalar lineColor = CV_RGB(decrease, 0.0, increase);
+
+			Calibration* calibration = this->cameraParameterList[i];
+			double realWidth = this->referenceStorageList[i]->GetRealWidth();
+			double realHeight = this->referenceStorageList[i]->GetRealHeight();
+			std::vector<SURFDesciription>* descriptor = this->referenceStorageList[i]->GetDescriptor();
+
+			for(int j=0; j<(int)sceneSURF[i].size(); j++)
+			{
+				CvPoint2D32f referPoint = (*descriptor)[this->matchedReferenceIndex[i][j]].point;
+				CvPoint referencePoint = cvPoint((int)referPoint.x * colorImage->width/realWidth + colorImage->width/2,
+										(int)(colorImage->height - referPoint.y * colorImage->height/realHeight - colorImage->height/2));;
+				CvPoint imagePoint = cvPoint((int)sceneSURF[i][j].point.x, (int)sceneSURF[i][j].point.y);
+
+				cvCircle(colorImage, referencePoint, size, referColor, CV_FILLED);
+				cvCircle(colorImage, imagePoint, size, imageColor, CV_FILLED);
+
+				cvLine(colorImage, referencePoint, imagePoint, lineColor, lineThick);
+			}
+		}
+	}
+	else
+	{
+		int i=index;
+		{
+			double ratio = (double)i/count;
+			double increase = ratio * 255.0;
+			double decrease = (1-ratio) * 255.0;
+
+			CvScalar imageColor = CV_RGB(increase, 255.0, decrease);
+			CvScalar referColor = CV_RGB(decrease, 255.0, increase);
+			CvScalar lineColor = CV_RGB(decrease, 0.0, increase);
+
+			Calibration* calibration = this->cameraParameterList[i];
+			double realWidth = this->referenceStorageList[i]->GetRealWidth();
+			double realHeight = this->referenceStorageList[i]->GetRealHeight();
+			std::vector<SURFDesciription>* descriptor = this->referenceStorageList[i]->GetDescriptor();
+
+			for(int j=0; j<(int)sceneSURF[i].size(); j++)
+			{
+				CvPoint2D32f referPoint = (*descriptor)[this->matchedReferenceIndex[i][j]].point;
+				CvPoint referencePoint = cvPoint((int)referPoint.x * colorImage->width/realWidth + colorImage->width/2,
+										(int)(colorImage->height - referPoint.y * colorImage->height/realHeight - colorImage->height/2));;
+				CvPoint imagePoint = cvPoint((int)sceneSURF[i][j].point.x, (int)sceneSURF[i][j].point.y);
+
+				cvCircle(colorImage, referencePoint, size, referColor, CV_FILLED);
+				cvCircle(colorImage, imagePoint, size, imageColor, CV_FILLED);
+
+				cvLine(colorImage, referencePoint, imagePoint, lineColor, lineThick);
+			}
 		}
 	}
 }

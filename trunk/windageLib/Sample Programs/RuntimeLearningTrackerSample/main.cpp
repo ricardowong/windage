@@ -151,7 +151,7 @@ void main()
 		{
 			tracker->DrawOutLine(inputImage, true);
 			tracker->DrawInfomation(inputImage, LEANING_SIZE/4.0);
-//			tracker->DrawDebugInfo(inputImage);
+			tracker->DrawDebugInfo(inputImage);
 		}
 
 		sprintf(message, "Tracking Time : %.2f(ms)", trackingTime);

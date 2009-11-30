@@ -154,6 +154,21 @@ windage::Vector3 GetTranslation(int index)
 	return translation;
 }
 
+windage::Vector3 GetMarkerRotation(windage::Calibration* calibration)
+{
+	CvMat* toExtrinsicMatrix = calibration->GetExtrinsicMatrix();
+	
+	windage::Matrix3 toRotation;
+	for(int y=0; y<3; y++)
+	{
+		for(int x=0; x<3; x++)
+		{
+			toRotation.m[y][x] = cvGetReal2D(toExtrinsicMatrix, y, x);
+		}
+	}
+	return windage::Quaternion::DcmToEuler(toRotation);
+}
+
 windage::Matrix4 CalculateMarkerExtrinsicParameter(windage::Calibration* fromCalibration, windage::Matrix3 toRotation, windage::Vector3 toTranslation)
 {
 	CvMat* fromExtrinsicMatrix = fromCalibration->GetExtrinsicMatrix();
@@ -203,10 +218,23 @@ double CalcReprojectionArea(windage::Calibration* cameraParameter)
 	CvPoint point3 = cameraParameter->ConvertWorld2Image(+width, +height, 0.0);
 	CvPoint point4 = cameraParameter->ConvertWorld2Image(-width, +height, 0.0);
 
+	CvScalar cameraPoint = cameraParameter->GetCameraPosition();
+	double distance =	cameraPoint.val[0]*cameraPoint.val[0] + 
+						cameraPoint.val[1]*cameraPoint.val[1] + 
+						cameraPoint.val[2]*cameraPoint.val[2];
+
 	double area1 = abs((point2.x - point1.x) * (point4.y - point1.y) - (point2.y - point1.y) * (point4.x - point1.x)) / 2.0;
 	double area2 = abs((point2.x - point3.x) * (point4.y - point3.y) - (point2.y - point3.y) * (point4.x - point3.x)) / 2.0;
 
-	return area1 + area2;
+	// scale (about) : 0.0 ~ 10.0
+	return ((area1 + area2) * (distance)) / 100000000000.0;
+}
+
+double Scoring(double area, int matchingCount)
+{
+	if(matchingCount < FIND_FEATURE_COUNT)
+		return 0.0;
+	return area + ((double)matchingCount/10.0);
 }
 
 void DrawOutLine(windage::Calibration* cameraParameter, IplImage* colorImage, bool drawCross)
@@ -277,15 +305,15 @@ void main()
 	std::vector<IplImage*> trainingImage;
 	for(int i=1; i<=OBJECT_COUNT; i++)
 	{
-		sprintf(message, "cube/reference%d_320.png", i);
+		sprintf(message, "cube/reference%d.png", i);
 		trainingImage.push_back(cvLoadImage(message, 0));
 	}
 
 	windage::MultipleSURFTracker* multipleTracker = new windage::MultipleSURFTracker();
 	multipleTracker->Initialize(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], intrinsicValues[4], intrinsicValues[5], intrinsicValues[6], intrinsicValues[7]);
 	multipleTracker->InitializeOpticalFlow(WIDTH, HEIGHT, cvSize(8, 8), 3);
-	multipleTracker->SetDetectIntervalTime(1.0/3.0);
-	multipleTracker->SetPoseEstimationMethod(windage::PROSAC);
+	multipleTracker->SetDetectIntervalTime(1.0/2.0);
+	multipleTracker->SetPoseEstimationMethod(windage::LMEDS);
 	multipleTracker->SetOutlinerRemove(true);
 	multipleTracker->SetRefinement(true);
 	multipleTracker->SetPosePointCount(FIND_FEATURE_COUNT);
@@ -339,26 +367,36 @@ void main()
 #endif
 		// find max matched plane
 		std::vector<int> matcingCountList; matcingCountList.resize(multipleTracker->GetTrackerCount());
-		int maxAreaIndex = -1;
-		double maxArea = 0.0;
+		int maxScoreIndex = -1;
+		double maxScore = 0.0;
 		for(int i=0; i<multipleTracker->GetTrackerCount(); i++)
 		{
 			double area = CalcReprojectionArea(multipleTracker->GetCameraParameter(i));
 			int matchedCount = multipleTracker->GetMatchedCount(i);
-			
 			matcingCountList[i] = matchedCount;
-			if(area > maxArea && matchedCount > FIND_FEATURE_COUNT*1.5)
+
+			double score = Scoring(area, matchedCount);
+			if(score > maxScore)
 			{
-				maxArea = area;
-				maxAreaIndex = i;
+				maxScore = area;
+				maxScoreIndex = i;
 			}
+
+			// delete tracking points when too small space
+			if(area < 2.0)
+			{
+				multipleTracker->DeleteTrackingPoints(i);
+			}
+
+//			std::cout << area << " : " << matchedCount << " : " << score << std::endl;
 		}
 
 		// draw tracking result
-		if(maxAreaIndex >= 0)
-		if(matcingCountList[maxAreaIndex] > FIND_FEATURE_COUNT)
+		windage::Vector3 eulerRotation;
+		if(maxScoreIndex >= 0)
+		if(matcingCountList[maxScoreIndex] > FIND_FEATURE_COUNT)
 		{
-			int i = maxAreaIndex;
+			int i = maxScoreIndex;
 			windage::Matrix4 extrinsic = CalculateMarkerExtrinsicParameter(multipleTracker->GetCameraParameter(i), GetRotation(i+1), GetTranslation(i+1));
 			calibration->SetExtrinsicMatrix(extrinsic.m1);
 
@@ -371,6 +409,10 @@ void main()
 			center.y += 10;
 			sprintf(message, "Reference #%d", i);
 			windage::Utils::DrawTextToImage(inputImage, center, message);
+
+			eulerRotation = GetMarkerRotation(calibration);
+
+//			multipleTracker->DrawDebugInfo(inputImage, maxScoreIndex);
 		}
 
 		sprintf(message, "Tracking Time : %.2f(ms)", trackingTime);
@@ -384,6 +426,11 @@ void main()
 			sprintf(message, "#%d:%d ", i, multipleTracker->GetMatchedCount(i));
 			windage::Utils::DrawTextToImage(inputImage, cvPoint(160 + 65*i, 70), message);
 		}
+
+		eulerRotation *= 180.0/CV_PI;
+		sprintf(message, "Rotation : %.2lf, %.2lf, %.2lf", eulerRotation.x, eulerRotation.y, eulerRotation.z);
+		windage::Utils::DrawTextToImage(inputImage, cvPoint(20, 90), message); 
+
 
 		if(saving)
 		{
