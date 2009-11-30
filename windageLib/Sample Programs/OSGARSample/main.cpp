@@ -59,7 +59,7 @@
 #include <windage.h>
 #include <AugmentedReality/ARForOSG.h>
 
-#define SAVE_RENDERING_IMAGE
+//#define SAVE_RENDERING_IMAGE
 
 const int WIDTH = 640;
 const int HEIGHT = 480;
@@ -123,7 +123,7 @@ windage::ModifiedSURFTracker* CreateTracker(IplImage* refImage, int index)
 	//set rectangle marker
 	windage::ModifiedSURFTracker* tracker = new windage::ModifiedSURFTracker();
 	tracker->Initialize(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], intrinsicValues[4], intrinsicValues[5], intrinsicValues[6], intrinsicValues[7], 30);
-	tracker->RegistReferenceImage(refImage, refImage->width, refImage->height, 4.0, 12);
+	tracker->RegistReferenceImage(refImage, 407.0, 283.0, 4.0, 8);
 	tracker->SetPoseEstimationMethod(windage::PROSAC);
 	tracker->SetOutlinerRemove(true);
 	tracker->SetRefinement(true);
@@ -159,7 +159,7 @@ osg::Matrixd GetTrackerCoordinate()
 	// call tracking algorithm
 	tracker->SetFeatureExtractThreshold(fastThreshold);
 	tracker->UpdateCameraPose(gray);
-//	tracker->DrawDebugInfo(input);
+	tracker->DrawDebugInfo(input);
 
 	int featureCount = tracker->GetFeatureCount();
 	int matchingCount = tracker->GetMatchedCount();
@@ -225,7 +225,7 @@ int main(int argc, char ** argv )
 	input = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
 	gray = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 1);
 
-	IplImage* referenceImage = cvLoadImage("reference1_320.png", 0);
+	IplImage* referenceImage = cvLoadImage("HCIreference_320.png", 0);
 	tracker = CreateTracker(referenceImage, 0);
 	tracker->GetCameraParameter()->InitUndistortionMap(WIDTH, HEIGHT);
 
@@ -288,16 +288,20 @@ int main(int argc, char ** argv )
 	osg::ref_ptr<osg::MatrixTransform> objectCoordinate = new osg::MatrixTransform();
 	localCoordinates->addChild(objectCoordinate);
 
-	double scaleFactor = 8.0;
-	double x = 80.0;
-	double y = 34.0;
+	//double scaleFactor = 8.0;
+	//double x = 80.0;
+	//double y = 34.0;
+	//double z = 0.0;
+	double scaleFactor = 1.0;
+	double x = 0.0;
+	double y = 0.0;
 	double z = 0.0;
 
 	osg::Matrixd scale;	scale.makeScale(scaleFactor, scaleFactor, scaleFactor);
 	osg::Matrixd translate;	translate.makeTranslate(x, y, z);
 	objectCoordinate->postMult(translate);
 	objectCoordinate->postMult(scale);
-	objectCoordinate->addChild(LoadModel("model/gist/oh.obj"));
+	objectCoordinate->addChild(LoadModel("model/GongPo/GongPo.obj"));
 //*/
 
 #ifdef SAVE_RENDERING_IMAGE

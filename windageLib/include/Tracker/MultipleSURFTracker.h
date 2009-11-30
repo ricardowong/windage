@@ -114,9 +114,11 @@ namespace windage
 		bool DeleteReferenceImage(int index);
 
 		int DetectObject(std::vector<SURFDesciription>* scene, std::vector<int>* matchedIndex, int index);
+		void DeleteTrackingPoints(int index);
 		double CalculatePose(int index);
 		double UpdateCameraPose(IplImage* grayImage);
 		void DrawDebugInfo(IplImage* colorImage);
+		void DrawDebugInfo(IplImage* colorImage, int index);
 		void DrawDebugInfo2(IplImage* colorImage, int index);
 		void DrawOutLine(IplImage* colorImage, int index, bool drawCross = false);
 		void DrawInfomation(IplImage* colorImage, int index, double size = 10.0);
