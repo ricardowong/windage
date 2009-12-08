@@ -137,6 +137,10 @@ namespace windage
 		inline void SetOutlinerRemove(bool remove){this->outlinerRemove = remove;};
 		inline void SetRefinement(bool refine){this->refinement = refine;};
 
+
+		inline std::vector<SURFDesciription>* GetMatchedReferencePoints(){return &this->matchedReference;};
+		inline std::vector<SURFDesciription>* GetMatchedScenePoints(){return &this->matchedScene;};
+
 		/**
 		 * @brief
 		 *		Initialize ModifiedSURF Tracker
