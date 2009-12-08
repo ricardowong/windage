@@ -59,7 +59,7 @@
 #include <windage.h>
 #include <AugmentedReality/ARForOSG.h>
 
-//#define SAVE_RENDERING_IMAGE
+#define SAVE_RENDERING_IMAGE
 
 const int WIDTH = 640;
 const int HEIGHT = 480;
@@ -124,7 +124,7 @@ windage::ModifiedSURFTracker* CreateTracker(IplImage* refImage, int index)
 	windage::ModifiedSURFTracker* tracker = new windage::ModifiedSURFTracker();
 	tracker->Initialize(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], intrinsicValues[4], intrinsicValues[5], intrinsicValues[6], intrinsicValues[7], 30);
 	tracker->RegistReferenceImage(refImage, 407.0, 283.0, 4.0, 8);
-	tracker->SetPoseEstimationMethod(windage::PROSAC);
+	tracker->SetPoseEstimationMethod(windage::LMEDS);
 	tracker->SetOutlinerRemove(true);
 	tracker->SetRefinement(true);
 	tracker->InitializeOpticalFlow(WIDTH, HEIGHT, 5, cvSize(8, 8), 3);
@@ -225,7 +225,7 @@ int main(int argc, char ** argv )
 	input = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
 	gray = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 1);
 
-	IplImage* referenceImage = cvLoadImage("HCIreference_320.png", 0);
+	IplImage* referenceImage = cvLoadImage("reference1_320.png", 0);
 	tracker = CreateTracker(referenceImage, 0);
 	tracker->GetCameraParameter()->InitUndistortionMap(WIDTH, HEIGHT);
 
@@ -292,7 +292,7 @@ int main(int argc, char ** argv )
 	//double x = 80.0;
 	//double y = 34.0;
 	//double z = 0.0;
-	double scaleFactor = 1.0;
+	double scaleFactor = 0.5;
 	double x = 0.0;
 	double y = 0.0;
 	double z = 0.0;
