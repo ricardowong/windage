@@ -52,13 +52,14 @@ const int FIND_FEATURE_COUNT = 10;
 
 const int MAX_FAST_THRESHOLD = 80;
 const int MIN_FAST_THRESHOLD = 20;
-const int ADAPTIVE_THRESHOLD_VALUE = 500;
+const int ADAPTIVE_THRESHOLD_VALUE = 300;
 const int THRESHOLD_STEP = 1;
 
 const int WIDTH = 640;
 const int HEIGHT = 480;
 const double intrinsicValues[8] = {1029.400, 1028.675, 316.524, 211.395, -0.206360, 0.238378, 0.001089, -0.000769};
 
+double ratio = 0.0;
 bool setTarget = false;
 int state = 0;
 CvPoint mousePosition;
@@ -81,6 +82,17 @@ windage::ModifiedSURFTracker* CreateTracker(IplImage* refImage, int index)
 	tracker->SetSetpIndex(index);
 	
 	return tracker;
+}
+
+CvPoint CalucateCurrentPosition(windage::Calibration* calibration)
+{
+	CvPoint2D64f point1 = calibration->ConvertImage2World(0.0,	0.0,	0.0);
+	CvPoint2D64f point3 = calibration->ConvertImage2World(WIDTH,HEIGHT, 0.0);
+
+	CvPoint point;
+	point.x = (point1.x + point3.x)/2;
+	point.y = (point1.y + point3.y)/2;
+	return point;
 }
 
 void DrawTarget(IplImage* image, windage::Calibration* calibration, double ratio=0.5)
@@ -153,29 +165,17 @@ bool CompundImmersiveImage(IplImage* src, IplImage* dst, CvScalar maskColor, dou
 
 void MouseEvent(int event, int x, int y, int flags, void* param)
 {
+	const int W = 1920/ratio;
+	const int H = 720/ratio;
 	switch(event)
 	{
 	case CV_EVENT_LBUTTONDOWN:
+		setTarget = true;
 		mousePosition.x = x;
 		mousePosition.y = y;
 
-		setTarget = true;
-		if( x < WIDTH / 3)
-		{
-			state = 1;
-			targetPosition.x = WIDTH /2;
-		}
-		else if(WIDTH / 3 <= x && x < WIDTH * 2 / 3)
-		{
-			state = 2;
-			targetPosition.x = WIDTH /2 + WIDTH;
-		}
-		else
-		{
-			state = 3;
-			targetPosition.x = WIDTH /2 + WIDTH * 2;
-		}
-		targetPosition.y = HEIGHT/2 - 10;
+		targetPosition.x = (mousePosition.x - (WIDTH - W)/2) * ratio;
+		targetPosition.y = (mousePosition.y - (HEIGHT - H)) * ratio;
 		break;
 	}
 }
@@ -217,94 +217,55 @@ void DrawCrossHair(IplImage* image, CvPoint position, windage::Calibration* cali
 	}
 }
 
-void DrawArrow(IplImage* image, CvPoint position, windage::Calibration* calibration, bool isLeft, CvScalar color = CV_RGB(255, 0, 0))
+void DrawArrow(IplImage* image, CvPoint cur, CvPoint tar, windage::Calibration* calibration, CvScalar color = CV_RGB(255, 0, 0))
 {
 	int ARROW_WIDTH = 20;
 	int BOARDER = 5;
-	if(isLeft)
+
+	double dx = tar.x - cur.x;
+	double dy = tar.y - cur.y;
+	double length = sqrt(dx*dx + dy*dy);
+
+	if(length > 100)
 	{
-		CvPoint pos0 = calibration->ConvertWorld2Image(position.x-40, position.y, 0.0);
-		CvPoint pos1 = calibration->ConvertWorld2Image(position.x+40, position.y, 0.0);
-		CvPoint pos2 = calibration->ConvertWorld2Image(position.x-20, position.y+20, 0.0);
-		CvPoint pos3 = calibration->ConvertWorld2Image(position.x-20, position.y-20, 0.0);
+		dx /= length;
+		dy /= length;
+
+		// fix right up
+		tar.x = cur.x + dx * 100;
+		tar.y = cur.y + dy * 100;
+
+		double dir = atan2((double)tar.y - cur.y, (double)tar.x - cur.x);
+		
+		CvPoint pos0 = calibration->ConvertWorld2Image(cur.x, cur.y, 0.0);
+		CvPoint pos1 = calibration->ConvertWorld2Image(tar.x, tar.y, 0.0);
+
+		CvPoint pos2 = calibration->ConvertWorld2Image(tar.x + cos(120*CV_PI/180 +dir)*40, tar.y + sin(120*CV_PI/180 +dir)*40, 0.0);
+		CvPoint pos3 = calibration->ConvertWorld2Image(tar.x + cos(240*CV_PI/180 +dir)*40, tar.y + sin(240*CV_PI/180 +dir)*40, 0.0);
+
+		dx = (WIDTH/2) - pos0.x;
+		dy = (HEIGHT/2) - pos0.y;
+
+		pos0.x += dx;
+		pos1.x += dx;
+		pos2.x += dx;
+		pos3.x += dx;
+
+		pos0.y += dy;
+		pos1.y += dy;
+		pos2.y += dy;
+		pos3.y += dy;	
 
 		cvLine(image, pos0, pos1, CV_RGB(255, 255, 255), ARROW_WIDTH + BOARDER);
-		cvLine(image, pos0, pos2, CV_RGB(255, 255, 255), ARROW_WIDTH + BOARDER);
-		cvLine(image, pos0, pos3, CV_RGB(255, 255, 255), ARROW_WIDTH + BOARDER);
+		cvLine(image, pos1, pos2, CV_RGB(255, 255, 255), ARROW_WIDTH + BOARDER);
+		cvLine(image, pos1, pos3, CV_RGB(255, 255, 255), ARROW_WIDTH + BOARDER);
 
 		cvLine(image, pos0, pos1, color, ARROW_WIDTH);
-		cvLine(image, pos0, pos2, color, ARROW_WIDTH);
-		cvLine(image, pos0, pos3, color, ARROW_WIDTH);
-	}
-	else
-	{
-		CvPoint pos0 = calibration->ConvertWorld2Image(position.x+40, position.y, 0.0);
-		CvPoint pos1 = calibration->ConvertWorld2Image(position.x-40, position.y, 0.0);
-		CvPoint pos2 = calibration->ConvertWorld2Image(position.x+20, position.y+20, 0.0);
-		CvPoint pos3 = calibration->ConvertWorld2Image(position.x+20, position.y-20, 0.0);
-
-		cvLine(image, pos0, pos1, CV_RGB(255, 255, 255), ARROW_WIDTH + BOARDER);
-		cvLine(image, pos0, pos2, CV_RGB(255, 255, 255), ARROW_WIDTH + BOARDER);
-		cvLine(image, pos0, pos3, CV_RGB(255, 255, 255), ARROW_WIDTH + BOARDER);
-
-		cvLine(image, pos0, pos1, color, ARROW_WIDTH);
-		cvLine(image, pos0, pos2, color, ARROW_WIDTH);
-		cvLine(image, pos0, pos3, color, ARROW_WIDTH);
+		cvLine(image, pos1, pos2, color, ARROW_WIDTH);
+		cvLine(image, pos1, pos3, color, ARROW_WIDTH);
 	}
 }
 
-void DrawArrowAll(IplImage* image, windage::Calibration* calibration, CvScalar color = CV_RGB(255, 0, 0))
-{
-	CvPoint pos;
-	pos.y = HEIGHT/2 - 10 - (HEIGHT/4);
-
-	for(int y=0; y<3; y++)
-	{
-		pos.y = HEIGHT/2 - 10 - (HEIGHT/4) * y;
-		switch(state)
-		{
-		case 1:
-			pos.x = WIDTH/2 + WIDTH*1 - (WIDTH*3/2);
-			DrawArrow(image, pos, calibration, true, color);
-
-			pos.x = WIDTH/2 + WIDTH*1.5 - (WIDTH*3/2);
-			DrawArrow(image, pos, calibration, true, color);
-
-			pos.x = WIDTH/2 + WIDTH*2 - (WIDTH*3/2);
-			DrawArrow(image, pos, calibration, true, color);
-
-			pos.x = WIDTH/2 + WIDTH*2.5 - (WIDTH*3/2);
-			DrawArrow(image, pos, calibration, true, color);
-			break;
-		case 2:
-			pos.x = WIDTH/2 + WIDTH*0 - (WIDTH*3/2);
-			DrawArrow(image, pos, calibration, false, color);
-
-			pos.x = WIDTH/2 + WIDTH*0.5 - (WIDTH*3/2);
-			DrawArrow(image, pos, calibration, false, color);
-
-			pos.x = WIDTH/2 + WIDTH*1.5 - (WIDTH*3/2);
-			DrawArrow(image, pos, calibration, true, color);
-
-			pos.x = WIDTH/2 + WIDTH*2 - (WIDTH*3/2);
-			DrawArrow(image, pos, calibration, true, color);
-			break;
-		case 3:
-			pos.x = WIDTH/2 + WIDTH*0 - (WIDTH*3/2);
-			DrawArrow(image, pos, calibration, false, color);
-
-			pos.x = WIDTH/2 + WIDTH*0.5 - (WIDTH*3/2);
-			DrawArrow(image, pos, calibration, false, color);
-
-			pos.x = WIDTH/2 + WIDTH*1 - (WIDTH*3/2);
-			DrawArrow(image, pos, calibration, false, color);
-
-			pos.x = WIDTH/2 + WIDTH*1.5 - (WIDTH*3/2);
-			DrawArrow(image, pos, calibration, false, color);
-			break;
-		}
-	}
-}
 
 void main()
 {
@@ -312,6 +273,10 @@ void main()
 
 	// connect camera
 	CvCapture* capture = cvCaptureFromCAM(CV_CAP_ANY);
+
+	// saving
+	bool saving = false;
+	CvVideoWriter* writer = NULL;
 
 	char message[100];
 	IplImage* inputImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
@@ -324,7 +289,7 @@ void main()
 	IplImage* annotation = cvLoadImage("annotation.png");
 	CompundImmersiveImage(annotation, referenceImage, CV_RGB(255, 0, 0), 1.0);
 
-	double ratio = (double)referenceImage->width / (double)inputImage->width + 0.2;
+	ratio = (double)referenceImage->width / (double)inputImage->width + 0.5;
 	IplImage* resultImage = cvCreateImage(cvSize(referenceImage->width/ratio, referenceImage->height/ratio), IPL_DEPTH_8U, 3);
 	windage::ModifiedSURFTracker* tracker = CreateTracker(trainingImage, 0);
 
@@ -390,15 +355,25 @@ void main()
 			DrawCrossHair(resultImage, position, NULL, CV_RGB(0, 255, 0));
 
 			position.x = targetPosition.x - referenceImage->width / 2.0;
-			position.y = targetPosition.y - referenceImage->height / 6.0;
+			position.y = (referenceImage->height - targetPosition.y) - referenceImage->height / 2.0;
 			DrawCrossHair(inputImage, position, tracker->GetCameraParameter(), CV_RGB(0, 255, 0));
 
-			DrawArrowAll(inputImage, tracker->GetCameraParameter(), CV_RGB(255, 0, 0));
 		}
 
-		cvSetImageROI(inputImage, cvRect((inputImage->width - resultImage->width)/2.0, inputImage->height - resultImage->height, resultImage->width, resultImage->height));
+		CvRect rect = cvRect((inputImage->width - resultImage->width)/2.0, inputImage->height - resultImage->height, resultImage->width, resultImage->height);
+		cvSetImageROI(inputImage, rect);
 		CompundImmersiveImage(resultImage, inputImage, CV_RGB(-1, -1, -1), 0.75);
 		cvResetImageROI(inputImage);
+		cvRectangle(inputImage, cvPoint(rect.x, rect.y), cvPoint(rect.x+rect.width, rect.y+rect.height), CV_RGB(0, 0, 255), 3);
+
+		if(setTarget)
+		{
+			CvPoint target;
+			target.x = targetPosition.x - referenceImage->width / 2.0;
+			target.y = (referenceImage->height - targetPosition.y) - referenceImage->height / 2.0;
+			currentPosition = CalucateCurrentPosition(tracker->GetCameraParameter());
+			DrawArrow(inputImage, currentPosition, target, tracker->GetCameraParameter(), CV_RGB(255, 0, 0));
+		}
 
 		sprintf(message, "Tracking Time : %.2f(ms)", trackingTime);
 		windage::Utils::DrawTextToImage(inputImage, cvPoint(20, 30), message);
@@ -407,13 +382,15 @@ void main()
 		sprintf(message, "Match count : %d", matchingCount);
 		windage::Utils::DrawTextToImage(inputImage, cvPoint(20, 70), message);
 
+
 		char ch = cvWaitKey(1);
 		switch(ch)
 		{
 		case 's':
 		case 'S':
-			cvSaveImage("matching.png", resultImage);
-			cvSaveImage("result.png", inputImage);
+			saving = true;
+			if(writer) cvReleaseVideoWriter(&writer);
+			writer = cvCreateVideoWriter("saveimage\\capture.avi", CV_FOURCC_DEFAULT, 30, cvSize(inputImage->width, inputImage->height), 1);
 			break;
 		case 'q':
 		case 'Q':
@@ -421,10 +398,15 @@ void main()
 			break;
 		}
 
+		if(saving)
+		{
+			if(writer) cvWriteFrame(writer, inputImage);
+		}
 		
 		cvShowImage("result", inputImage);
 	}
 
+	if(writer) cvReleaseVideoWriter(&writer);
 	cvReleaseCapture(&capture);
 	cvDestroyAllWindows();
 }

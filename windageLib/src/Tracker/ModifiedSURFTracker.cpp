@@ -649,6 +649,7 @@ double ModifiedSURFTracker::CalculatePose(bool update)
 					this->matchedScene.erase(this->matchedScene.begin() + count);
 
 					outlierCount++;
+					i--;
 				}
 
 				difference += (error);

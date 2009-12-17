@@ -51,7 +51,7 @@ const int MIN_FAST_THRESHOLD = 30;
 const int ADAPTIVE_THRESHOLD_VALUE = 500;
 const int THRESHOLD_STEP = 1;
 
-const int OBJECT_COUNT = 5;
+const int OBJECT_COUNT = 1;
 const int FIND_FEATURE_COUNT = 10;
 
 const int WIDTH = 640;
@@ -198,9 +198,10 @@ void main()
 	windage::MultipleSURFTracker* multipleTracker = new windage::MultipleSURFTracker();
 	multipleTracker->Initialize(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], intrinsicValues[4], intrinsicValues[5], intrinsicValues[6], intrinsicValues[7]);
 	multipleTracker->InitializeOpticalFlow(WIDTH, HEIGHT, cvSize(8, 8), 3);
-	multipleTracker->SetDetectIntervalTime(1.0);
-	multipleTracker->SetPoseEstimationMethod(windage::POSE_3D);
+	multipleTracker->SetDetectIntervalTime(2.0);
+	multipleTracker->SetPoseEstimationMethod(windage::RANSAC);
 	multipleTracker->SetOutlinerRemove(true);
+	multipleTracker->SetRefinement(true);
 	multipleTracker->SetFeatureExtractThreshold(30);
 	for(int i=0; i<trainingImage.size(); i++)
 	{
@@ -266,6 +267,7 @@ void main()
 			{
 				multipleTracker->DrawOutLine(inputImage, i, true);
 				multipleTracker->DrawInfomation(inputImage, i, 100.0 * SCALE);
+				multipleTracker->DrawDebugInfo(inputImage);
 
 				if(updating)
 				{

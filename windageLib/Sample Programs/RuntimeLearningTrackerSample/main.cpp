@@ -68,8 +68,8 @@ windage::ModifiedSURFTracker* CreateTracker(IplImage* refImage, int index=0)
 {
 	windage::ModifiedSURFTracker* tracker = new windage::ModifiedSURFTracker();
 	tracker->Initialize(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], intrinsicValues[4], intrinsicValues[5], intrinsicValues[6], intrinsicValues[7], 30);
-	tracker->RegistReferenceImage(refImage, (double)LEANING_SIZE, (double)LEANING_SIZE, 8.0, 8);
-	tracker->SetPoseEstimationMethod(windage::PROSAC);
+	tracker->RegistReferenceImage(refImage, (double)LEANING_SIZE, (double)LEANING_SIZE, 4.0, 8);
+	tracker->SetPoseEstimationMethod(windage::RANSAC);
 	tracker->SetOutlinerRemove(true);
 	tracker->InitializeOpticalFlow(WIDTH, HEIGHT, 10, cvSize(8, 8), 3);
 	tracker->SetOpticalFlowRunning(true);
@@ -79,6 +79,27 @@ windage::ModifiedSURFTracker* CreateTracker(IplImage* refImage, int index=0)
 	tracker->SetSetpIndex(index);
 	
 	return tracker;
+}
+
+void DrawFeatureInformation(IplImage* image, std::vector<SURFDesciription>* featureList)
+{
+	int count = featureList->size();
+	for(int i=0; i<count; i++)
+	{
+		CvPoint2D32f point = (*featureList)[i].point;
+		double size = (*featureList)[i].size;
+		double ori = (*featureList)[i].dir;
+
+		CvPoint pos1 = cvPoint(cos(ori)*(-size) - sin(ori)*(-size), sin(ori)*(-size) + cos(ori)*(-size));
+		CvPoint pos2 = cvPoint(cos(ori)*(+size) - sin(ori)*(-size), sin(ori)*(+size) + cos(ori)*(-size));
+		CvPoint pos3 = cvPoint(cos(ori)*(+size) - sin(ori)*(+size), sin(ori)*(+size) + cos(ori)*(+size));
+		CvPoint pos4 = cvPoint(cos(ori)*(-size) - sin(ori)*(+size), sin(ori)*(-size) + cos(ori)*(+size));
+
+		cvLine(image, cvPoint(point.x + pos1.x, point.y + pos1.y), cvPoint(point.x + pos2.x, point.y + pos2.y), CV_RGB(255, 0, 0), 2);
+		cvLine(image, cvPoint(point.x + pos2.x, point.y + pos2.y), cvPoint(point.x + pos3.x, point.y + pos3.y), CV_RGB(255, 0, 0), 2);
+		cvLine(image, cvPoint(point.x + pos3.x, point.y + pos3.y), cvPoint(point.x + pos4.x, point.y + pos4.y), CV_RGB(255, 0, 0), 2);
+		cvLine(image, cvPoint(point.x + pos4.x, point.y + pos4.y), cvPoint(point.x + pos1.x, point.y + pos1.y), CV_RGB(255, 0, 0), 2);
+	}
 }
 
 void main()
@@ -94,9 +115,10 @@ void main()
 	IplImage* grayImage = cvCreateImage(cvGetSize(inputImage), IPL_DEPTH_8U, 1);
 
 	IplImage* drawImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
+	IplImage* resultImage = cvCreateImage(cvSize(WIDTH, HEIGHT*2), IPL_DEPTH_8U, 3);
 	
 	// Tracker Initialize
-	IplImage* referenceImage = NULL;//cvLoadImage("reference1_320.png", 0);
+	IplImage* referenceImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
 	windage::ModifiedSURFTracker* tracker = NULL;//CreateTracker(referenceImage, 0);
 
 	// for undistortion
@@ -145,31 +167,53 @@ void main()
 		double trackingTime = log->calculateProcessTime();
 		log->log("tracking", trackingTime);
 		log->logNewLine();
-			
+
+
 		// draw tracking result
 		if(featureCount > FIND_FEATURE_COUNT)
 		{
 			tracker->DrawOutLine(inputImage, true);
 			tracker->DrawInfomation(inputImage, LEANING_SIZE/4.0);
-			tracker->DrawDebugInfo(inputImage);
+//			tracker->DrawDebugInfo(inputImage);
+
+			//cvSetImageROI(resultImage, cvRect(0, 0, WIDTH, HEIGHT));
+			//cvCopyImage(referenceImage, resultImage);
+			//cvSetImageROI(resultImage, cvRect(0, HEIGHT, WIDTH, HEIGHT));
+			//cvCopyImage(inputImage, resultImage);
+			//cvResetImageROI(resultImage);
+			//tracker->DrawDebugInfo2(resultImage);
+
+			DrawFeatureInformation(inputImage, tracker->GetMatchedScenePoints());
 		}
 
+		
+/*
 		sprintf(message, "Tracking Time : %.2f(ms)", trackingTime);
 		windage::Utils::DrawTextToImage(inputImage, cvPoint(20, 30), message);
 		sprintf(message, "FAST feature count : %d, threashold : %d", featureCount, fastThreshold);
 		windage::Utils::DrawTextToImage(inputImage, cvPoint(20, 50), message);
 		sprintf(message, "Match count : %d", matchingCount);
 		windage::Utils::DrawTextToImage(inputImage, cvPoint(20, 70), message);
-
+//*/
 		char ch = cvWaitKey(1);
 		switch(ch)
 		{
 		case 'l':
 		case 'L':
+			cvSetImageROI(inputImage, cvRect(grayImage->width/2 - LEANING_SIZE/2, grayImage->height/2 - LEANING_SIZE/2, LEANING_SIZE, LEANING_SIZE));
+			cvSetImageROI(referenceImage, cvRect(grayImage->width/2 - LEANING_SIZE/2, grayImage->height/2 - LEANING_SIZE/2, LEANING_SIZE, LEANING_SIZE));
+			cvCopyImage(inputImage, referenceImage);
+			cvResetImageROI(inputImage);
+			cvResetImageROI(referenceImage);
+
 			cvSetImageROI(grayImage, cvRect(grayImage->width/2 - LEANING_SIZE/2, grayImage->height/2 - LEANING_SIZE/2, LEANING_SIZE, LEANING_SIZE));
 			if(tracker) delete tracker;
 			tracker = CreateTracker(grayImage, 0);
 			cvResetImageROI(grayImage);
+			break;
+		case 's':
+		case 'S':
+			cvSaveImage("tracking.png", inputImage);
 			break;
 		case 'q':
 		case 'Q':
@@ -191,6 +235,8 @@ void main()
 
 
 		cvShowImage("result", inputImage);
+//		cvNamedWindow("test");
+//		cvShowImage("test", resultImage);
 	}
 
 	cvReleaseCapture(&capture);

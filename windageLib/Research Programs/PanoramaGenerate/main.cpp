@@ -234,7 +234,7 @@ void main()
 			break;
 		case 's':
 		case 'S':
-			cvSaveImage("panoramaImage.png", panoramaColor);
+			cvSaveImage("panoramaImageRef.png", panoramaColor);
 //			saving = true;
 			break;
 		default:
@@ -271,6 +271,14 @@ void main()
 		windage::Utils::DrawTextToImage(inputImage, cvPoint(10, 20), message);
 		sprintf(message, "feature : %d (%d), matching : %d", featureCount, fastThreshold, matchingCount);
 		windage::Utils::DrawTextToImage(inputImage, cvPoint(10, 40), message);
+
+		sprintf(message, "press 'c' : start generating panorama image");
+		windage::Utils::DrawTextToImage(inputImage, cvPoint(10, 70), message);
+		sprintf(message, "press 'e' : re-training panorama image");
+		windage::Utils::DrawTextToImage(inputImage, cvPoint(10, 90), message);
+		sprintf(message, "press 's' : save panorama image");
+		windage::Utils::DrawTextToImage(inputImage, cvPoint(10, 110), message);
+
 		cvShowImage("result", inputImage);
 
 		cvResize(panoramaColor, panoramaResize);

@@ -46,7 +46,7 @@
 
 #define POSE_3D_ESTIMATION
 
-const double ERROR_BOUND = 10.0;
+const double ERROR_BOUND = 5.0;
 const double COMPAIR_RATE = 0.50;
 const int EMAX = 20;
 
@@ -248,7 +248,12 @@ double MultipleSURFTracker::CalculatePose(int index)
 				{
 					this->matchedReferenceIndex[index].erase(matchedReferenceIndex[index].begin() + count);
 					this->sceneSURF[index].erase(sceneSURF[index].begin() + count);
+
+					matchedReferencePoints.erase(matchedReferencePoints.begin() + count);
+					matchedScenePoints.erase(matchedScenePoints.begin() + count);
+
 					outlierCount++;
+					i--;
 				}
 
 				difference += (error);
@@ -290,7 +295,7 @@ double MultipleSURFTracker::CalculatePose(int index)
 					poseEstimator.AttatchCalibration(this->cameraParameterList[index]);
 					poseEstimator.SetReprojectionThreshold(ERROR_BOUND);
 					poseEstimator.SetItrationTime(10);
-					poseEstimator.SetUseRANSAC(true);
+					poseEstimator.SetUseRANSAC(false);
 					poseEstimator.Calculate();
 				}
 				else
