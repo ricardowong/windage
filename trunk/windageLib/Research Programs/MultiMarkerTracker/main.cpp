@@ -312,8 +312,8 @@ void main()
 	windage::MultipleSURFTracker* multipleTracker = new windage::MultipleSURFTracker();
 	multipleTracker->Initialize(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], intrinsicValues[4], intrinsicValues[5], intrinsicValues[6], intrinsicValues[7]);
 	multipleTracker->InitializeOpticalFlow(WIDTH, HEIGHT, cvSize(8, 8), 3);
-	multipleTracker->SetDetectIntervalTime(1.0/2.0);
-	multipleTracker->SetPoseEstimationMethod(windage::LMEDS);
+	multipleTracker->SetDetectIntervalTime(1.0/1.0);
+	multipleTracker->SetPoseEstimationMethod(windage::RANSAC);
 	multipleTracker->SetOutlinerRemove(true);
 	multipleTracker->SetRefinement(true);
 	multipleTracker->SetPosePointCount(FIND_FEATURE_COUNT);
@@ -333,7 +333,7 @@ void main()
 	int fastThreshold = 70;
 	const int MAX_FAST_THRESHOLD = 80;
 	const int MIN_FAST_THRESHOLD = 40;
-	const int ADAPTIVE_THRESHOLD_VALUE = 500;
+	const int ADAPTIVE_THRESHOLD_VALUE = 1000;
 	const int THRESHOLD_STEP = 1;
 
 	IplImage* grabFrame = NULL;
