@@ -588,8 +588,8 @@ void MultipleSURFTracker::DrawDebugInfo(IplImage* colorImage, int index)
 
 void MultipleSURFTracker::DrawDebugInfo2(IplImage* colorImage, int index)
 {
-	const int size = 10;
-	const int lineThick = 3;
+	const int size = 7;
+	const int lineThick = 2;
 	double count = this->referenceCount-1;
 	double ratio = (double)index/count;
 	double increase = 0.0;//ratio * 255.0;

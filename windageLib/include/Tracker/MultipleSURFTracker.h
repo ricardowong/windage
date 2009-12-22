@@ -110,6 +110,8 @@ namespace windage
 		inline void SetRefinement(bool refine){this->refinement = refine;};
 		inline void SetPosePointCount(int count){this->POSE_POINTS_COUNT = count;};
 
+		inline std::vector<std::vector<SURFDesciription>>* GetSeneSurfInformation(){return &this->sceneSURF;};
+
 		void AttatchReferenceImage(IplImage* image, double realWidth, double realHeight, double scaleFactor=4.0, int scaleStep=8);
 		bool DeleteReferenceImage(int index);
 

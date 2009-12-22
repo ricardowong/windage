@@ -42,37 +42,254 @@
 #include <highgui.h>
 #include <windage.h>
 
-#define FLIP
-//#define RECTIFICATION
 #define ADAPTIVE_THRESHOLD
 
-//#define USE_IMAGE_SEQUENCE
-
-const int OBJECT_COUNT = 4;
+const int OBJECT_COUNT = 6;
 const int FIND_FEATURE_COUNT = 10;
 
 const int WIDTH = 640;
-const double RATIO =(double)WIDTH / 640.0;
-const int HEIGHT = 480*RATIO;
+const int HEIGHT = 480;
 
-// 4.5mm wide angle
-//const double intrinsicValues[8] = {778.195*RATIO, 779.430*RATIO, 324.659*RATIO, 235.685*RATIO, -0.333103, 0.173760, 0.000653, 0.001114};
-// 6mm standard angle
-const double intrinsicValues[8] = {1029.400*RATIO, 1028.675*RATIO, 316.524*RATIO, 211.395*RATIO, -0.206360, 0.238378, 0.001089, -0.000769};
+const double CUBE_SIZE = 1000.0;
 
-const int PIP_RATIO = 6;
-const int PIP_WIDTH = WIDTH/PIP_RATIO;
-const int PIP_HEIGHT = HEIGHT/PIP_RATIO * 2;
+const double intrinsicValues[8] = {1029.400, 1028.675, 316.524, 211.395, -0.206360, 0.238378, 0.001089, -0.000769};
+
+// check cube plane
+//   1
+// 2 3 4 5
+//   6
+windage::Matrix3 GetRotation(int index)
+{
+	windage::Matrix3 rotation;
+	rotation.m[0][0] = 1.0;
+	rotation.m[0][1] = 0.0;
+	rotation.m[0][2] = 0.0;
+
+	rotation.m[1][0] = 0.0;
+	rotation.m[1][1] = 1.0;
+	rotation.m[1][2] = 0.0;
+
+	rotation.m[2][0] = 0.0;
+	rotation.m[2][1] = 0.0;
+	rotation.m[2][2] = 1.0;
+
+	double orthoRadian = 90 * CV_PI/180.0;
+	switch(index)
+	{
+	case 1: // x-axis
+		rotation.m[1][1] = cos(-orthoRadian);
+		rotation.m[1][2] = sin(-orthoRadian);
+
+		rotation.m[2][1] = -sin(-orthoRadian);
+		rotation.m[2][2] = cos(-orthoRadian);
+		break;
+	case 2: // y-axis
+		rotation.m[0][0] = cos(-orthoRadian);
+		rotation.m[0][2] = -sin(-orthoRadian);
+
+		rotation.m[2][0] = sin(-orthoRadian);
+		rotation.m[2][2] = cos(-orthoRadian);
+		break;
+	case 3:
+		// main oriantation
+		break;
+	case 4: // y-axis
+		rotation.m[0][0] = cos(orthoRadian);
+		rotation.m[0][2] = -sin(orthoRadian);
+
+		rotation.m[2][0] = sin(orthoRadian);
+		rotation.m[2][2] = cos(orthoRadian);
+		break;
+	case 5: // y-axis
+		rotation.m[0][0] = cos(orthoRadian*2);
+		rotation.m[0][2] = -sin(orthoRadian*2);
+
+		rotation.m[2][0] = sin(orthoRadian*2);
+		rotation.m[2][2] = cos(orthoRadian*2);
+		break;
+	case 6: // x-axis
+		rotation.m[1][1] = cos(-orthoRadian);
+		rotation.m[1][2] = -sin(-orthoRadian);
+
+		rotation.m[2][1] = sin(-orthoRadian);
+		rotation.m[2][2] = cos(-orthoRadian);
+		break;
+	}
+
+	return rotation;
+}
+
+//   1
+// 2 3 4 5
+//   6
+windage::Vector3 GetTranslation(int index)
+{
+	windage::Vector3 translation;
+	translation.x = 0.0;
+	translation.y = 0.0;
+	translation.z = 0.0;
+
+	switch(index)
+	{
+	case 1:
+		translation.z = -CUBE_SIZE/2.0;
+		break;
+	case 2:
+		translation.z = -CUBE_SIZE/2.0;
+		break;
+	case 3: // main
+		translation.z = -CUBE_SIZE/2.0;
+		break;
+	case 4:
+		translation.z = -CUBE_SIZE/2.0;
+		break;
+	case 5:
+		translation.z = -CUBE_SIZE/2.0;
+		break;
+	case 6:
+		translation.z = -CUBE_SIZE/2.0;
+		break;
+	}
+
+	return translation;
+}
+
+windage::Vector3 GetMarkerRotation(windage::Calibration* calibration)
+{
+	CvMat* toExtrinsicMatrix = calibration->GetExtrinsicMatrix();
+	
+	windage::Matrix3 toRotation;
+	for(int y=0; y<3; y++)
+	{
+		for(int x=0; x<3; x++)
+		{
+			toRotation.m[y][x] = cvGetReal2D(toExtrinsicMatrix, y, x);
+		}
+	}
+	return windage::Quaternion::DcmToEuler(toRotation);
+}
+
+windage::Matrix4 CalculateMarkerExtrinsicParameter(windage::Calibration* fromCalibration, windage::Matrix3 toRotation, windage::Vector3 toTranslation)
+{
+	CvMat* fromExtrinsicMatrix = fromCalibration->GetExtrinsicMatrix();
+
+	windage::Vector3 fromTranslation;
+	fromTranslation.v[0] = cvGetReal2D(fromExtrinsicMatrix, 0, 3);
+	fromTranslation.v[1] = cvGetReal2D(fromExtrinsicMatrix, 1, 3);
+	fromTranslation.v[2] = cvGetReal2D(fromExtrinsicMatrix, 2, 3);
+
+	windage::Matrix3 fromRotation;
+	for(int y=0; y<3; y++)
+	{
+		for(int x=0; x<3; x++)
+		{
+			fromRotation.m[y][x] = cvGetReal2D(fromExtrinsicMatrix, y, x);
+		}
+	}
+
+	toTranslation = fromRotation * toTranslation;
+
+	windage::Matrix3 rotation = fromRotation * toRotation;
+	windage::Vector3 translation = fromTranslation + toTranslation;
+
+	// set rotatino and translation
+	windage::Matrix4 matrix;
+	for(int y=0; y<3; y++)
+	{
+		for(int x=0; x<3; x++)
+		{
+			matrix.m[y][x] = rotation.m[y][x];
+		}
+		matrix.m[y][3] = translation.v[y];
+	}
+	matrix.m[3][0] = matrix.m[3][1] = matrix.m[3][2] = 0.0;
+	matrix.m[3][3] = 1.0;
+
+	return matrix;
+}
+
+double CalcReprojectionArea(windage::Calibration* cameraParameter)
+{
+	double width = CUBE_SIZE/2.0;
+	double height = CUBE_SIZE/2.0;
+
+	CvPoint point1 = cameraParameter->ConvertWorld2Image(-width, -height, 0.0);
+	CvPoint point2 = cameraParameter->ConvertWorld2Image(+width, -height, 0.0);
+	CvPoint point3 = cameraParameter->ConvertWorld2Image(+width, +height, 0.0);
+	CvPoint point4 = cameraParameter->ConvertWorld2Image(-width, +height, 0.0);
+
+	CvScalar cameraPoint = cameraParameter->GetCameraPosition();
+	double distance =	cameraPoint.val[0]*cameraPoint.val[0] + 
+						cameraPoint.val[1]*cameraPoint.val[1] + 
+						cameraPoint.val[2]*cameraPoint.val[2];
+
+	double area1 = abs((point2.x - point1.x) * (point4.y - point1.y) - (point2.y - point1.y) * (point4.x - point1.x)) / 2.0;
+	double area2 = abs((point2.x - point3.x) * (point4.y - point3.y) - (point2.y - point3.y) * (point4.x - point3.x)) / 2.0;
+
+	// scale (about) : 0.0 ~ 10.0
+	return ((area1 + area2) * (distance)) / 100000000000.0;
+}
+
+double Scoring(double area, int matchingCount)
+{
+	if(matchingCount < FIND_FEATURE_COUNT)
+		return 0.0;
+	return area + ((double)matchingCount/10.0);
+}
+
+void DrawOutLine(windage::Calibration* cameraParameter, IplImage* colorImage, bool drawCross)
+{
+	int r = 255;
+	int g = 0;
+	int b = 0;
+
+	double width = CUBE_SIZE/2.0;
+	double height = CUBE_SIZE/2.0;
+	double depth = CUBE_SIZE/2.0;
+
+	int size = 4;
+
+	CvScalar color = CV_RGB(255, 0, 255);
+	CvScalar color2 = CV_RGB(255, 255, 255);
+
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(-width, -height, +depth),	cameraParameter->ConvertWorld2Image(+width, -height, +depth),	color2, 6);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(+width, -height, +depth),	cameraParameter->ConvertWorld2Image(+width, +height, +depth),	color2, 6);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(+width, +height, +depth),	cameraParameter->ConvertWorld2Image(-width, +height, +depth),	color2, 6);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(-width, +height, +depth),	cameraParameter->ConvertWorld2Image(-width, -height, +depth),	color2, 6);
+
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(-width, -height, -depth),	cameraParameter->ConvertWorld2Image(+width, -height, -depth),	color2, 6);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(+width, -height, -depth),	cameraParameter->ConvertWorld2Image(+width, +height, -depth),	color2, 6);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(+width, +height, -depth),	cameraParameter->ConvertWorld2Image(-width, +height, -depth),	color2, 6);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(-width, +height, -depth),	cameraParameter->ConvertWorld2Image(-width, -height, -depth),	color2, 6);
+
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(-width, -height, -depth),	cameraParameter->ConvertWorld2Image(-width, -height, +depth),	color2, 6);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(+width, -height, -depth),	cameraParameter->ConvertWorld2Image(+width, -height, +depth),	color2, 6);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(+width, +height, -depth),	cameraParameter->ConvertWorld2Image(+width, +height, +depth),	color2, 6);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(-width, +height, -depth),	cameraParameter->ConvertWorld2Image(-width, +height, +depth),	color2, 6);
+
+
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(-width, -height, +depth),	cameraParameter->ConvertWorld2Image(+width, -height, +depth),	color, 2);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(+width, -height, +depth),	cameraParameter->ConvertWorld2Image(+width, +height, +depth),	color, 2);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(+width, +height, +depth),	cameraParameter->ConvertWorld2Image(-width, +height, +depth),	color, 2);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(-width, +height, +depth),	cameraParameter->ConvertWorld2Image(-width, -height, +depth),	color, 2);
+
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(-width, -height, -depth),	cameraParameter->ConvertWorld2Image(+width, -height, -depth),	color, 2);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(+width, -height, -depth),	cameraParameter->ConvertWorld2Image(+width, +height, -depth),	color, 2);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(+width, +height, -depth),	cameraParameter->ConvertWorld2Image(-width, +height, -depth),	color, 2);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(-width, +height, -depth),	cameraParameter->ConvertWorld2Image(-width, -height, -depth),	color, 2);
+
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(-width, -height, -depth),	cameraParameter->ConvertWorld2Image(-width, -height, +depth),	color, 2);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(+width, -height, -depth),	cameraParameter->ConvertWorld2Image(+width, -height, +depth),	color, 2);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(+width, +height, -depth),	cameraParameter->ConvertWorld2Image(+width, +height, +depth),	color, 2);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(-width, +height, -depth),	cameraParameter->ConvertWorld2Image(-width, +height, +depth),	color, 2);
+}
 
 void main()
 {
 	windage::Logger* log = new windage::Logger(&std::cout);
-	windage::Logger* fpslog = new windage::Logger(&std::cout);
 
 	// connect camera
 	CvCapture* capture = cvCaptureFromCAM(CV_CAP_ANY);
-//	cvSetCaptureProperty(capture, CV_CAP_PROP_FRAME_WIDTH, WIDTH);
-//	cvSetCaptureProperty(capture, CV_CAP_PROP_FRAME_HEIGHT, HEIGHT);
 
 	// saving
 	bool saving = false;
@@ -83,19 +300,12 @@ void main()
 	IplImage* undistImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
 	IplImage* grayImage = cvCreateImage(cvGetSize(inputImage), IPL_DEPTH_8U, 1);
 	IplImage* resultImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
-	
-	IplImage* tempImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
-	IplImage* tempImage2 = cvCreateImage(cvSize(WIDTH, HEIGHT*2), IPL_DEPTH_8U, 3);
 
-	std::vector<IplImage*> referenceImage;
+	// Multipel tracker Initialize
 	std::vector<IplImage*> trainingImage;
-
-	// Tracker Initialize
 	for(int i=1; i<=OBJECT_COUNT; i++)
 	{
-		sprintf(message, "reference%d.png", i);
-		referenceImage.push_back(cvLoadImage(message));
-		sprintf(message, "reference%d_160.png", i);
+		sprintf(message, "cube/reference%d.png", i);
 		trainingImage.push_back(cvLoadImage(message, 0));
 	}
 
@@ -103,51 +313,41 @@ void main()
 	multipleTracker->Initialize(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], intrinsicValues[4], intrinsicValues[5], intrinsicValues[6], intrinsicValues[7]);
 	multipleTracker->InitializeOpticalFlow(WIDTH, HEIGHT, cvSize(8, 8), 3);
 	multipleTracker->SetDetectIntervalTime(1.0/1.0);
-	multipleTracker->SetPoseEstimationMethod(windage::PROSAC);
+	multipleTracker->SetPoseEstimationMethod(windage::RANSAC);
 	multipleTracker->SetOutlinerRemove(true);
-	multipleTracker->SetFeatureExtractThreshold(20);
+	multipleTracker->SetRefinement(true);
+	multipleTracker->SetPosePointCount(FIND_FEATURE_COUNT);
+	multipleTracker->SetFeatureExtractThreshold(30);
 	for(int i=0; i<trainingImage.size(); i++)
 	{
 		std::cout << "attatch reference image #" << i << std::endl;
-		multipleTracker->AttatchReferenceImage(trainingImage[i], 267.0, 200.0, 4.0, 8);
+		multipleTracker->AttatchReferenceImage(trainingImage[i], CUBE_SIZE, CUBE_SIZE, 4.0, 8);
 	}
-	//dummmy
-/*
-	for(int i=0; i<26; i++)
-	{		
-		multipleTracker->AttatchReferenceImage(trainingImage[OBJECT_COUNT-1], 26.70, 20.00, 4.0, 8);
-		std::cout << "attatch dummy reference image #" << i << std::endl;
-	}
-//*/
 
+	// for undistortion
 	windage::Calibration* calibration = new windage::Calibration();
 	calibration->Initialize(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], intrinsicValues[4], intrinsicValues[5], intrinsicValues[6], intrinsicValues[7]);
 	calibration->InitUndistortionMap(WIDTH, HEIGHT);
 
-	int fastThreshold = 80;
+	// adaptive threshold
+	int fastThreshold = 70;
 	const int MAX_FAST_THRESHOLD = 80;
 	const int MIN_FAST_THRESHOLD = 40;
-	const int ADAPTIVE_THRESHOLD_VALUE = 500;
+	const int ADAPTIVE_THRESHOLD_VALUE = 1000;
 	const int THRESHOLD_STEP = 1;
 
 	IplImage* grabFrame = NULL;
-	int featureCount = 0;
 	
-	fpslog->updateTickCount();
 	bool processing = true;
 	cvNamedWindow("result");
 	while(processing)
 	{
 		// camera frame grabbing and convert to gray color
-		fpslog->log("FPS", fpslog->calculateFPS());
-		fpslog->updateTickCount();
-		
 		log->updateTickCount();
 		grabFrame = cvQueryFrame(capture);
 		cvFlip(grabFrame, undistImage);
 		calibration->Undistortion( undistImage, inputImage);
 		cvCvtColor(inputImage, grayImage, CV_BGRA2GRAY);
-		cvSmooth(grayImage, grayImage, CV_GAUSSIAN, 3, 3);
 		log->log("capture", log->calculateProcessTime());
 
 		// call tracking algorithm
@@ -155,66 +355,67 @@ void main()
 		multipleTracker->SetFeatureExtractThreshold(fastThreshold);
 		multipleTracker->UpdateCameraPose(grayImage);
 
-		double fps = log->calculateFPS();
 		double trackingTime = log->calculateProcessTime();
-
-		// update fast threshold for Adaptive threshold
-#ifdef ADAPTIVE_THRESHOLD
-		featureCount = multipleTracker->GetFeatureCount();
-		if(featureCount > ADAPTIVE_THRESHOLD_VALUE )	fastThreshold = MIN(MAX_FAST_THRESHOLD, fastThreshold+THRESHOLD_STEP);
-		else											fastThreshold = MAX(MIN_FAST_THRESHOLD, fastThreshold-THRESHOLD_STEP);
-#endif
-		
 		log->log("tracking", trackingTime);
 		log->logNewLine();
 
-//*
-		// draw tracking result
+		// update fast threshold for Adaptive threshold
+#ifdef ADAPTIVE_THRESHOLD
+		int featureCount = multipleTracker->GetFeatureCount();
+		if(featureCount > ADAPTIVE_THRESHOLD_VALUE )	fastThreshold = MIN(MAX_FAST_THRESHOLD, fastThreshold+THRESHOLD_STEP);
+		else											fastThreshold = MAX(MIN_FAST_THRESHOLD, fastThreshold-THRESHOLD_STEP);
+#endif
+		// find max matched plane
+		std::vector<int> matcingCountList; matcingCountList.resize(multipleTracker->GetTrackerCount());
+		int maxScoreIndex = -1;
+		double maxScore = 0.0;
 		for(int i=0; i<multipleTracker->GetTrackerCount(); i++)
 		{
+			double area = CalcReprojectionArea(multipleTracker->GetCameraParameter(i));
 			int matchedCount = multipleTracker->GetMatchedCount(i);
-			if(matchedCount > FIND_FEATURE_COUNT)
-			{
-				multipleTracker->DrawOutLine(inputImage, i, true);
-				multipleTracker->DrawInfomation(inputImage, i, 5.0);
+			matcingCountList[i] = matchedCount;
 
-				CvPoint center = multipleTracker->GetCameraParameter(i)->ConvertWorld2Image(0.0, 0.0, 0.0);
-				
-				center.x += 10;
-				center.y += 10;
-				sprintf(message, "Reference #%d", i);
-				windage::Utils::DrawTextToImage(inputImage, center, message);
+			double score = Scoring(area, matchedCount);
+			if(score > maxScore)
+			{
+				maxScore = area;
+				maxScoreIndex = i;
 			}
 
+			// delete tracking points when too small space
+			if(area < 2.0)
+			{
+				multipleTracker->DeleteTrackingPoints(i);
+			}
+
+//			std::cout << area << " : " << matchedCount << " : " << score << std::endl;
 		}
-//		multipleTracker->DrawDebugInfo(inputImage);
-//*/
-//*
-		cvZero(resultImage);
-		for(int i=0; i<OBJECT_COUNT; i++)
+
+		// draw tracking result
+		windage::Vector3 eulerRotation;
+		if(maxScoreIndex >= 0)
+		if(matcingCountList[maxScoreIndex] > FIND_FEATURE_COUNT)
 		{
-			cvSetImageROI(tempImage2, cvRect(0, 0, WIDTH, HEIGHT));
-			cvCopy(referenceImage[i], tempImage2);
-			cvSetImageROI(tempImage2, cvRect(0, HEIGHT, WIDTH, HEIGHT));
-			cvCopy(inputImage, tempImage2);
-			cvResetImageROI(tempImage2);
-			multipleTracker->DrawDebugInfo2(tempImage2, i);
+			int i = maxScoreIndex;
+			windage::Matrix4 extrinsic = CalculateMarkerExtrinsicParameter(multipleTracker->GetCameraParameter(i), GetRotation(i+1), GetTranslation(i+1));
+			calibration->SetExtrinsicMatrix(extrinsic.m1);
 
-			CvRect rect = cvRect(10 + PIP_WIDTH * i, HEIGHT - 10 - PIP_HEIGHT, PIP_WIDTH, PIP_HEIGHT);
-			cvRectangle(resultImage, cvPoint(rect.x, rect.y), cvPoint(rect.x+rect.width, rect.y+rect.height), CV_RGB(255, 255, 255), 5);
-			cvSetImageROI(resultImage, rect);
-			cvResize(tempImage2, resultImage);
-			cvResetImageROI(resultImage);
+			DrawOutLine(calibration, inputImage, false);
+			calibration->DrawInfomation(inputImage, CUBE_SIZE);
 
-//			cvNamedWindow("temp");
-//			if(multipleTracker->GetMatchedCount(i) > FIND_FEATURE_COUNT)
-//				cvShowImage("temp", tempImage2);
+			CvPoint center = multipleTracker->GetCameraParameter(i)->ConvertWorld2Image(0.0, 0.0, 0.0);
+			
+			center.x += 10;
+			center.y += 10;
+			sprintf(message, "Reference #%d", i);
+			windage::Utils::DrawTextToImage(inputImage, center, message);
+
+			eulerRotation = GetMarkerRotation(calibration);
+
+//			multipleTracker->DrawDebugInfo(inputImage, maxScoreIndex);
 		}
-//*/
-		windage::Utils::CompundImmersiveImage(resultImage, inputImage, CV_RGB(0, 0, 0), 0.75);
-//*/
-//*
-		sprintf(message, "Tracking FPS : %03.2f, Time : %.2f(ms)", fps, trackingTime);
+
+		sprintf(message, "Tracking Time : %.2f(ms)", trackingTime);
 		windage::Utils::DrawTextToImage(inputImage, cvPoint(20, 30), message);
 		sprintf(message, "FAST feature count : %d, threashold : %d", featureCount, fastThreshold);
 		windage::Utils::DrawTextToImage(inputImage, cvPoint(20, 50), message);
@@ -225,29 +426,29 @@ void main()
 			sprintf(message, "#%d:%d ", i, multipleTracker->GetMatchedCount(i));
 			windage::Utils::DrawTextToImage(inputImage, cvPoint(160 + 65*i, 70), message);
 		}
-		sprintf(message, "DB count : %d", multipleTracker->GetTrackerCount());
-		windage::Utils::DrawTextToImage(inputImage, cvPoint(20, 90), message);
-//*/
+
+		eulerRotation *= 180.0/CV_PI;
+		sprintf(message, "Rotation : %.2lf, %.2lf, %.2lf", eulerRotation.x, eulerRotation.y, eulerRotation.z);
+		windage::Utils::DrawTextToImage(inputImage, cvPoint(20, 90), message); 
+
+
 		if(saving)
 		{
-			if(writer)
-				cvWriteFrame(writer, inputImage);
+			if(writer) cvWriteFrame(writer, inputImage);
 		}
 
 		char ch = cvWaitKey(1);
 		switch(ch)
 		{
-		case 'q':
-		case 'Q':
-			processing = false;
-			break;
-		case ' ':
-			cvWaitKey();
-			break;
 		case 's':
+		case 'S':
 			saving = true;
 			if(writer) cvReleaseVideoWriter(&writer);
 			writer = cvCreateVideoWriter("saveimage\\capture.avi", CV_FOURCC_DEFAULT, 30, cvSize(inputImage->width, inputImage->height), 1);
+			break;
+		case 'q':
+		case 'Q':
+			processing = false;
 			break;
 		}
 
@@ -256,4 +457,5 @@ void main()
 
 	if(writer) cvReleaseVideoWriter(&writer);
 	cvReleaseCapture(&capture);
+	cvDestroyAllWindows();
 }
