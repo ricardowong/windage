@@ -683,7 +683,7 @@ double ModifiedSURFTracker::CalculatePose(bool update)
 		{
 			if(isCalculate)
 			{
-				if(this->refinement)
+				if(this->refinement && matchedScene.size() > 4)
 				{
 					Find3DPoseEstimation poseEstimator;
 					std::vector<Matched3DPoint> poseEstimatorPoints;

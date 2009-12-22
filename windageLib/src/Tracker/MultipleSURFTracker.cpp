@@ -282,7 +282,7 @@ double MultipleSURFTracker::CalculatePose(int index)
 		{
 			if(isCalculate)
 			{
-				if(this->refinement)
+				if(this->refinement && matchedScenePoints.size() > 4)
 				{
 					Find3DPoseEstimation poseEstimator;
 					std::vector<Matched3DPoint> poseEstimatorPoints;
