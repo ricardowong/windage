@@ -1,0 +1,89 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Algorithms", "Algorithms", "{8BF375E3-6F4C-4A37-AC13-05B53622449A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sample Applications", "Sample Applications", "{5C4A8281-0408-4892-A7FE-7337E88AC198}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "windage", "windage\windage.vcproj", "{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Research Applications", "Research Applications", "{D9F3728E-9184-47B0-AD78-6C1589E2964E}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TrackingSample", "..\..\Sample Programs\TrackingSample\TrackingSample.vcproj", "{A21B71BE-DB3F-406F-95F0-174625303EBD}"
+	ProjectSection(ProjectDependencies) = postProject
+		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B} = {BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MultipleTrackerSample", "..\..\Sample Programs\MultipleTrackerSample\MultipleTrackerSample.vcproj", "{EFA67BD2-893D-4E0A-B43E-51C6E8975527}"
+	ProjectSection(ProjectDependencies) = postProject
+		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B} = {BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ARSample", "..\..\Sample Programs\ARSample\ARSample.vcproj", "{C4CD3D39-6AE7-49C0-9208-4C57ED65A792}"
+	ProjectSection(ProjectDependencies) = postProject
+		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B} = {BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MultipleObjectARSample", "..\..\Sample Programs\MultipleObjectARSample\MultipleObjectARSample.vcproj", "{4201EB7B-25CF-4C6D-BDA8-21F19A0E2A91}"
+	ProjectSection(ProjectDependencies) = postProject
+		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B} = {BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RuntimeLearningTrackerSample", "..\..\Sample Programs\RuntimeLearningTrackerSample\RuntimeLearningTrackerSample.vcproj", "{7B6391F1-257B-405F-BA32-CEAB29E8DD36}"
+	ProjectSection(ProjectDependencies) = postProject
+		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B} = {BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MultipleTrackerSingleCoordinate", "..\..\Sample Programs\MultipleTrackerSingleCoordinate\MultipleTrackerSingleCoordinate.vcproj", "{DA9D4805-2657-4287-A051-435F4E5106A5}"
+	ProjectSection(ProjectDependencies) = postProject
+		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B} = {BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}.Debug|Win32.Build.0 = Debug|Win32
+		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}.Release|Win32.ActiveCfg = Release|Win32
+		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}.Release|Win32.Build.0 = Release|Win32
+		{A21B71BE-DB3F-406F-95F0-174625303EBD}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A21B71BE-DB3F-406F-95F0-174625303EBD}.Debug|Win32.Build.0 = Debug|Win32
+		{A21B71BE-DB3F-406F-95F0-174625303EBD}.Release|Win32.ActiveCfg = Release|Win32
+		{A21B71BE-DB3F-406F-95F0-174625303EBD}.Release|Win32.Build.0 = Release|Win32
+		{EFA67BD2-893D-4E0A-B43E-51C6E8975527}.Debug|Win32.ActiveCfg = Debug|Win32
+		{EFA67BD2-893D-4E0A-B43E-51C6E8975527}.Debug|Win32.Build.0 = Debug|Win32
+		{EFA67BD2-893D-4E0A-B43E-51C6E8975527}.Release|Win32.ActiveCfg = Release|Win32
+		{EFA67BD2-893D-4E0A-B43E-51C6E8975527}.Release|Win32.Build.0 = Release|Win32
+		{C4CD3D39-6AE7-49C0-9208-4C57ED65A792}.Debug|Win32.ActiveCfg = Debug|Win32
+		{C4CD3D39-6AE7-49C0-9208-4C57ED65A792}.Debug|Win32.Build.0 = Debug|Win32
+		{C4CD3D39-6AE7-49C0-9208-4C57ED65A792}.Release|Win32.ActiveCfg = Release|Win32
+		{C4CD3D39-6AE7-49C0-9208-4C57ED65A792}.Release|Win32.Build.0 = Release|Win32
+		{4201EB7B-25CF-4C6D-BDA8-21F19A0E2A91}.Debug|Win32.ActiveCfg = Debug|Win32
+		{4201EB7B-25CF-4C6D-BDA8-21F19A0E2A91}.Debug|Win32.Build.0 = Debug|Win32
+		{4201EB7B-25CF-4C6D-BDA8-21F19A0E2A91}.Release|Win32.ActiveCfg = Release|Win32
+		{4201EB7B-25CF-4C6D-BDA8-21F19A0E2A91}.Release|Win32.Build.0 = Release|Win32
+		{7B6391F1-257B-405F-BA32-CEAB29E8DD36}.Debug|Win32.ActiveCfg = Debug|Win32
+		{7B6391F1-257B-405F-BA32-CEAB29E8DD36}.Debug|Win32.Build.0 = Debug|Win32
+		{7B6391F1-257B-405F-BA32-CEAB29E8DD36}.Release|Win32.ActiveCfg = Release|Win32
+		{7B6391F1-257B-405F-BA32-CEAB29E8DD36}.Release|Win32.Build.0 = Release|Win32
+		{DA9D4805-2657-4287-A051-435F4E5106A5}.Debug|Win32.ActiveCfg = Debug|Win32
+		{DA9D4805-2657-4287-A051-435F4E5106A5}.Debug|Win32.Build.0 = Debug|Win32
+		{DA9D4805-2657-4287-A051-435F4E5106A5}.Release|Win32.ActiveCfg = Release|Win32
+		{DA9D4805-2657-4287-A051-435F4E5106A5}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B} = {8BF375E3-6F4C-4A37-AC13-05B53622449A}
+		{A21B71BE-DB3F-406F-95F0-174625303EBD} = {5C4A8281-0408-4892-A7FE-7337E88AC198}
+		{EFA67BD2-893D-4E0A-B43E-51C6E8975527} = {5C4A8281-0408-4892-A7FE-7337E88AC198}
+		{C4CD3D39-6AE7-49C0-9208-4C57ED65A792} = {5C4A8281-0408-4892-A7FE-7337E88AC198}
+		{4201EB7B-25CF-4C6D-BDA8-21F19A0E2A91} = {5C4A8281-0408-4892-A7FE-7337E88AC198}
+		{7B6391F1-257B-405F-BA32-CEAB29E8DD36} = {5C4A8281-0408-4892-A7FE-7337E88AC198}
+		{DA9D4805-2657-4287-A051-435F4E5106A5} = {5C4A8281-0408-4892-A7FE-7337E88AC198}
+	EndGlobalSection
+EndGlobal
