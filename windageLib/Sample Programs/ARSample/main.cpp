@@ -108,7 +108,7 @@ void display()
 	// camera frame grabbing
 	IplImage* grabFrame = cvQueryFrame(capture);
 	tracker->GetCameraParameter()->Undistortion(grabFrame, input);
-	cvFlip(input, input);
+//	cvFlip(input, input);
 	cvCvtColor(input, gray, CV_BGRA2GRAY);
 
 	// call tracking algorithm
