@@ -139,7 +139,7 @@ void main()
 		// camera frame grabbing and convert to gray and undistortion
 		log->updateTickCount();
 		grabFrame = cvQueryFrame(capture);
-		cvFlip(grabFrame, grabFrame);
+//		cvFlip(grabFrame, grabFrame);
 		cvResize(grabFrame, tempImage);
 		calibration->Undistortion(tempImage, inputImage);
 		cvCvtColor(inputImage, grayImage, CV_BGRA2GRAY);
@@ -198,8 +198,7 @@ void main()
 		char ch = cvWaitKey(1);
 		switch(ch)
 		{
-		case 'l':
-		case 'L':
+		case ' ':
 			cvSetImageROI(inputImage, cvRect(grayImage->width/2 - LEANING_SIZE/2, grayImage->height/2 - LEANING_SIZE/2, LEANING_SIZE, LEANING_SIZE));
 			cvSetImageROI(referenceImage, cvRect(grayImage->width/2 - LEANING_SIZE/2, grayImage->height/2 - LEANING_SIZE/2, LEANING_SIZE, LEANING_SIZE));
 			cvCopyImage(inputImage, referenceImage);

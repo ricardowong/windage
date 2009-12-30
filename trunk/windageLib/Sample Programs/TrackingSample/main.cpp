@@ -116,7 +116,7 @@ void main()
 		// camera frame grabbing and convert to gray and undistortion
 		log->updateTickCount();
 		grabFrame = cvQueryFrame(capture);
-		cvFlip(grabFrame, grabFrame);
+//		cvFlip(grabFrame, grabFrame);
 		cvResize(grabFrame, tempImage);
 		calibration->Undistortion(tempImage, inputImage);
 		cvCvtColor(inputImage, grayImage, CV_BGRA2GRAY);

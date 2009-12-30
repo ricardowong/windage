@@ -109,8 +109,8 @@ void main()
 		// camera frame grabbing and convert to gray color
 		log->updateTickCount();
 		grabFrame = cvQueryFrame(capture);
-		cvFlip(grabFrame, undistImage);
-		calibration->Undistortion( undistImage, inputImage);
+//		cvFlip(grabFrame, grabFrame);
+		calibration->Undistortion(grabFrame, inputImage);
 		cvCvtColor(inputImage, grayImage, CV_BGRA2GRAY);
 		log->log("capture", log->calculateProcessTime());
 
