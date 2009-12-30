@@ -43,7 +43,8 @@
 #include "Tracker/ChessboardTracker.h"
 #include "Tracker/ModifiedSURFTracker.h"
 #include "Tracker/MultipleSURFTracker.h"
-#include "Tracker/CubeTracker.h"
+//#include "Tracker/CubeTracker.h"
+#include "MultiCoordinate/MultiMarkerCoordinate.h"
 
 // header files for feature descriptor
 /* currently not support

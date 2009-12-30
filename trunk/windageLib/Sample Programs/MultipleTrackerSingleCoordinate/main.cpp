@@ -51,7 +51,7 @@ const int MIN_FAST_THRESHOLD = 30;
 const int ADAPTIVE_THRESHOLD_VALUE = 500;
 const int THRESHOLD_STEP = 1;
 
-const int OBJECT_COUNT = 1;
+const int OBJECT_COUNT = 3;
 const int FIND_FEATURE_COUNT = 10;
 
 const int WIDTH = 640;
@@ -62,106 +62,6 @@ const double REAL_WIDTH = 267.0 * SCALE;
 const double REAL_HEIGHT = 200.0 * SCALE;
 
 const double intrinsicValues[8] = {1029.400, 1028.675, 316.524, 211.395, -0.206360, 0.238378, 0.001089, -0.000769};
-
-windage::Vector3 GetMarkerTranslation(windage::Calibration* fromCalibration, windage::Calibration* toCalibration)
-{
-	CvMat* toExtrinsicMatrix = toCalibration->GetExtrinsicMatrix();
-	CvMat* fromExtrinsicMatrix = fromCalibration->GetExtrinsicMatrix();
-
-	windage::Vector3 fromTranslation;
-	fromTranslation.x = cvGetReal2D(fromExtrinsicMatrix, 0, 3);
-	fromTranslation.y = cvGetReal2D(fromExtrinsicMatrix, 1, 3);
-	fromTranslation.z = cvGetReal2D(fromExtrinsicMatrix, 2, 3);
-
-	windage::Vector3 toTranslation;
-	toTranslation.x = cvGetReal2D(toExtrinsicMatrix, 0, 3);
-	toTranslation.y = cvGetReal2D(toExtrinsicMatrix, 1, 3);
-	toTranslation.z = cvGetReal2D(toExtrinsicMatrix, 2, 3);
-
-	windage::Matrix3 fromRotation;
-	for(int y=0; y<3; y++)
-	{
-		for(int x=0; x<3; x++)
-		{
-			fromRotation.m[y][x] = cvGetReal2D(fromExtrinsicMatrix, y, x);
-		}
-	}
-
-	fromRotation = fromRotation.Inverse();
-	fromTranslation = fromRotation * fromTranslation;
-	toTranslation = fromRotation * toTranslation;
-
-	double x = toTranslation.x - fromTranslation.x;
-	double y = toTranslation.y - fromTranslation.y;
-	double z = toTranslation.z - fromTranslation.z;
-
-	return windage::Vector3(x, y, z);
-}
-
-windage::Matrix3 GetMarkerRotation(windage::Calibration* fromCalibration, windage::Calibration* toCalibration)
-{
-	CvMat* toExtrinsicMatrix = toCalibration->GetExtrinsicMatrix();
-	CvMat* fromExtrinsicMatrix = fromCalibration->GetExtrinsicMatrix();
-
-	windage::Matrix3 fromRotation;
-	for(int y=0; y<3; y++)
-	{
-		for(int x=0; x<3; x++)
-		{
-			fromRotation.m[y][x] = cvGetReal2D(fromExtrinsicMatrix, y, x);
-		}
-	}
-	
-	windage::Matrix3 toRotation;
-	for(int y=0; y<3; y++)
-	{
-		for(int x=0; x<3; x++)
-		{
-			toRotation.m[y][x] = cvGetReal2D(toExtrinsicMatrix, y, x);
-		}
-	}
-	
-	return fromRotation.Transpose() * toRotation;
-}
-
-windage::Matrix4 CalculateMarkerExtrinsicParameter(windage::Calibration* fromCalibration, windage::Matrix3 toRotation, windage::Vector3 toTranslation)
-{
-	CvMat* fromExtrinsicMatrix = fromCalibration->GetExtrinsicMatrix();
-
-	windage::Vector3 fromTranslation;
-	fromTranslation.v[0] = cvGetReal2D(fromExtrinsicMatrix, 0, 3);
-	fromTranslation.v[1] = cvGetReal2D(fromExtrinsicMatrix, 1, 3);
-	fromTranslation.v[2] = cvGetReal2D(fromExtrinsicMatrix, 2, 3);
-
-	windage::Matrix3 fromRotation;
-	for(int y=0; y<3; y++)
-	{
-		for(int x=0; x<3; x++)
-		{
-			fromRotation.m[y][x] = cvGetReal2D(fromExtrinsicMatrix, y, x);
-		}
-	}
-
-	toTranslation = fromRotation * toTranslation;
-
-	windage::Matrix3 rotation = fromRotation * toRotation;
-	windage::Vector3 translation = fromTranslation + toTranslation;
-
-	// set rotatino and translation
-	windage::Matrix4 matrix;
-	for(int y=0; y<3; y++)
-	{
-		for(int x=0; x<3; x++)
-		{
-			matrix.m[y][x] = rotation.m[y][x];
-		}
-		matrix.m[y][3] = translation.v[y];
-	}
-	matrix.m[3][0] = matrix.m[3][1] = matrix.m[3][2] = 0.0;
-	matrix.m[3][3] = 1.0;
-
-	return matrix;
-}
 
 
 void main()
@@ -272,8 +172,9 @@ void main()
 				if(updating)
 				{
 					foundList[i] = true;
-					rotationList[i] = GetMarkerRotation(multipleTracker->GetCameraParameter(0), multipleTracker->GetCameraParameter(i));
-					translationList[i] = GetMarkerTranslation(multipleTracker->GetCameraParameter(0), multipleTracker->GetCameraParameter(i));
+					
+					rotationList[i] = windage::MultiMarkerCoordinate::GetRotation(multipleTracker->GetCameraParameter(0), multipleTracker->GetCameraParameter(i));
+					translationList[i] = windage::MultiMarkerCoordinate::GetTranslation(multipleTracker->GetCameraParameter(0), multipleTracker->GetCameraParameter(i));
 				}
 			}
 			
@@ -282,7 +183,7 @@ void main()
 				windage::Matrix3 rotation = rotationList[i];
 				windage::Vector3 translation = translationList[i];
 
-				windage::Matrix4 extrinsic = CalculateMarkerExtrinsicParameter(multipleTracker->GetCameraParameter(0), rotation, translation);
+				windage::Matrix4 extrinsic = windage::MultiMarkerCoordinate::CalculateExtrinsic(multipleTracker->GetCameraParameter(0), rotation, translation);
 				calibration->SetExtrinsicMatrix(extrinsic.m1);
 
 				// draw outline
