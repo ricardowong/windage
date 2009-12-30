@@ -101,7 +101,7 @@ Matrix3 MultiMarkerCoordinate::GetRotation(Calibration* baseCalibration, Calibra
 	return fromRotation.Transpose() * toRotation;
 }
 
-Matrix4 CalculateExtrinsic(Calibration* baseCalibration, Matrix3 toRotation, Vector3 toTranslation)
+Matrix4 MultiMarkerCoordinate::CalculateExtrinsic(Calibration* baseCalibration, Matrix3 toRotation, Vector3 toTranslation)
 {
 	CvMat* fromExtrinsicMatrix = baseCalibration->GetExtrinsicMatrix();
 

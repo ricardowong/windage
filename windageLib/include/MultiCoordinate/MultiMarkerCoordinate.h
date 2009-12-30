@@ -50,6 +50,7 @@ namespace windage
 {
 	class MultiMarkerCoordinate
 	{
+	public:
 		static Vector3 GetTranslation(Calibration* baseCalibration, Calibration* toCalibration);
 		static Matrix3 GetRotation(Calibration* baseCalibration, Calibration* toCalibration);
 		static Matrix4 CalculateExtrinsic(Calibration* baseCalibration, Matrix3 toRotation, Vector3 toTranslation);
