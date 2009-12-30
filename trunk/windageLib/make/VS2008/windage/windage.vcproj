@@ -481,6 +481,18 @@
 				</File>
 			</Filter>
 		</Filter>
+		<Filter
+			Name="MultiCoordinate"
+			>
+			<File
+				RelativePath="..\..\..\src\MultiCoordinate\MultiMarkerCoordinate.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\include\MultiCoordinate\MultiMarkerCoordinate.h"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath="..\..\..\include\base.h"
 			>

@@ -52,6 +52,29 @@ const int HEIGHT = 480;
 
 const double intrinsicValues[8] = {1029.400, 1028.675, 316.524, 211.395, -0.206360, 0.238378, 0.001089, -0.000769};
 
+void DrawFeatureInformation(IplImage* image, std::vector<SURFDesciription>* featureList)
+{
+	int count = featureList->size();
+	for(int i=0; i<count; i++)
+	{
+		CvPoint2D32f point = (*featureList)[i].point;
+		double size = 10;
+		double ori = (*featureList)[i].dir;
+
+		CvPoint pos1 = cvPoint(cos(ori)*(-size) - sin(ori)*(-size), sin(ori)*(-size) + cos(ori)*(-size));
+		CvPoint pos2 = cvPoint(cos(ori)*(+size) - sin(ori)*(-size), sin(ori)*(+size) + cos(ori)*(-size));
+		CvPoint pos3 = cvPoint(cos(ori)*(+size) - sin(ori)*(+size), sin(ori)*(+size) + cos(ori)*(+size));
+		CvPoint pos4 = cvPoint(cos(ori)*(-size) - sin(ori)*(+size), sin(ori)*(-size) + cos(ori)*(+size));
+		CvPoint pos5 = cvPoint(cos(ori)*(+size), 					sin(ori)*(+size));
+
+		cvLine(image, cvPoint(point.x + pos1.x, point.y + pos1.y), cvPoint(point.x + pos2.x, point.y + pos2.y), CV_RGB(255, 0, 0), 2);
+		cvLine(image, cvPoint(point.x + pos2.x, point.y + pos2.y), cvPoint(point.x + pos3.x, point.y + pos3.y), CV_RGB(255, 0, 0), 2);
+		cvLine(image, cvPoint(point.x + pos3.x, point.y + pos3.y), cvPoint(point.x + pos4.x, point.y + pos4.y), CV_RGB(255, 0, 0), 2);
+		cvLine(image, cvPoint(point.x + pos4.x, point.y + pos4.y), cvPoint(point.x + pos1.x, point.y + pos1.y), CV_RGB(255, 0, 0), 2);
+
+		cvLine(image, cvPoint(point.x, point.y), cvPoint(point.x + pos5.x, point.y + pos5.y), CV_RGB(255, 0, 0), 2);
+	}
+}
 
 void main()
 {
@@ -171,7 +194,6 @@ void main()
 			sprintf(message, "#%d:%d ", i, multipleTracker->GetMatchedCount(i));
 			windage::Utils::DrawTextToImage(inputImage, cvPoint(160 + 65*i, 70), message);
 		}
-
 
 		// draw fast corners
 		cvCopyImage(inputImage, feature);
