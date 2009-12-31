@@ -54,6 +54,7 @@
 
 #include <windage.h>
 #include <AugmentedReality/ARForOSG.h>
+#include <windageARforOSG.h>
 
 #include <NVideoLayer.h>
 #include "OSGWrapper.h"
@@ -134,17 +135,6 @@ windage::ModifiedSURFTracker* CreateTracker(IplImage* refImage, int index)
 	return tracker;
 }
 
-osg::Matrixd ConvertMatrix(windage::Matrix4 matrix)
-{
-	osg::Matrixd osgMatrix;
-	for(int y=0; y<4; y++)
-	{
-		for(int x=0; x<4; x++)
-			osgMatrix(y, x) = matrix.m[y][x];
-	}
-	return osgMatrix;
-}
-
 osg::Matrixd GetTrackerCoordinate()
 {
 	// camera frame grabbing
@@ -188,7 +178,7 @@ osg::Matrixd GetTrackerCoordinate()
 	if(matchingCount > 10)
 	{
 		tracker->DrawOutLine(input, true);
-		modelView = ConvertMatrix(arTool->GetModelViewMatrix());
+		modelView = windageARTool::ForOSG::ConvertOSGMatrix(arTool->GetModelViewMatrix());
 	}
 	return modelView;
 }
@@ -226,7 +216,7 @@ int main(int argc, char ** argv )
 	// initialize OSG
 	// create projection matrix
 	arTool->SetProjectionMatrix();
-	osg::Matrixd _proj = ConvertMatrix(arTool->GetProjectionMatrix());
+	osg::Matrixd _proj = windageARTool::ForOSG::ConvertOSGMatrix(arTool->GetProjectionMatrix());
 	projectionMatrix = new osg::Projection(_proj);
 	modelViewMatrix  = new osg::MatrixTransform();
 

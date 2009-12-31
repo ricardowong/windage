@@ -37,3 +37,15 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
+#include "windageARforOSG.h"
+using namespace windageARTool;
+osg::Matrixd ForOSG::ConvertOSGMatrix(windage::Matrix4 matrix)
+{
+	osg::Matrixd osgMatrix;
+	for(int y=0; y<4; y++)
+	{
+		for(int x=0; x<4; x++)
+			osgMatrix(y, x) = matrix.m[y][x];
+	}
+	return osgMatrix;
+}

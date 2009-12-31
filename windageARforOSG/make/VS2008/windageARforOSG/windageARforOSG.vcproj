@@ -151,6 +151,14 @@
 		<Filter
 			Name="OSGconvert"
 			>
+			<File
+				RelativePath="..\..\..\src\windageARforOSG.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\include\windageARforOSG.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="OSGutils"
@@ -161,14 +169,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\include\NVideoLayer.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\src\windageARforOSG.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\include\windageARforOSG.h"
 				>
 			</File>
 		</Filter>
