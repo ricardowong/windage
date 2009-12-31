@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "windageARforOSG", "windageARforOSG\windageARforOSG.vcproj", "{B6835DDB-5946-4077-807E-4AB8237B4929}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Algorithm Tools", "Algorithm Tools", "{E9CD27C4-C086-4630-AC61-409579F9FA94}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sample Programs", "Sample Programs", "{626A995B-BDA9-4068-B79F-0795F6B77B89}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "windageARforOSGSample", "..\..\Sample Programs\windageARforOSGSample\windageARforOSGSample.vcproj", "{7568927E-6627-48A3-B6C6-F04F441C4444}"
+	ProjectSection(ProjectDependencies) = postProject
+		{B6835DDB-5946-4077-807E-4AB8237B4929} = {B6835DDB-5946-4077-807E-4AB8237B4929}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B6835DDB-5946-4077-807E-4AB8237B4929}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B6835DDB-5946-4077-807E-4AB8237B4929}.Debug|Win32.Build.0 = Debug|Win32
+		{B6835DDB-5946-4077-807E-4AB8237B4929}.Release|Win32.ActiveCfg = Release|Win32
+		{B6835DDB-5946-4077-807E-4AB8237B4929}.Release|Win32.Build.0 = Release|Win32
+		{7568927E-6627-48A3-B6C6-F04F441C4444}.Debug|Win32.ActiveCfg = Debug|Win32
+		{7568927E-6627-48A3-B6C6-F04F441C4444}.Debug|Win32.Build.0 = Debug|Win32
+		{7568927E-6627-48A3-B6C6-F04F441C4444}.Release|Win32.ActiveCfg = Release|Win32
+		{7568927E-6627-48A3-B6C6-F04F441C4444}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{B6835DDB-5946-4077-807E-4AB8237B4929} = {E9CD27C4-C086-4630-AC61-409579F9FA94}
+		{7568927E-6627-48A3-B6C6-F04F441C4444} = {626A995B-BDA9-4068-B79F-0795F6B77B89}
+	EndGlobalSection
+EndGlobal
