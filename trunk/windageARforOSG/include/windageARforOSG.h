@@ -37,3 +37,28 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
+#ifndef _WINDAGE_AR_FOR_OSG_H_
+#define _WINDAGE_AR_FOR_OSG_H_
+
+//#define DYNAMIC_LIBRARY
+#ifdef DYNAMIC_LIBRARY
+	#define DLLEXPORT __declspec(dllexport)   
+	#define DLLIMPORT __declspec(dllimport)
+#else
+	#define DLLEXPORT 
+	#define DLLIMPORT
+#endif
+
+#include <Utils/wMatrix.h>
+#include <osg/Matrixd>
+
+namespace windageARTool
+{
+	class DLLEXPORT ForOSG
+	{
+	public:
+		static osg::Matrixd ConvertOSGMatrix(windage::Matrix4 matrix);
+	};
+}
+
+#endif
