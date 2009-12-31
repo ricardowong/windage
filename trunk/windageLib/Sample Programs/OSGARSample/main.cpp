@@ -59,7 +59,7 @@
 #include <windage.h>
 #include <AugmentedReality/ARForOSG.h>
 
-#define SAVE_RENDERING_IMAGE
+//#define SAVE_RENDERING_IMAGE
 
 const int WIDTH = 640;
 const int HEIGHT = 480;
@@ -123,7 +123,7 @@ windage::ModifiedSURFTracker* CreateTracker(IplImage* refImage, int index)
 	//set rectangle marker
 	windage::ModifiedSURFTracker* tracker = new windage::ModifiedSURFTracker();
 	tracker->Initialize(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], intrinsicValues[4], intrinsicValues[5], intrinsicValues[6], intrinsicValues[7], 30);
-	tracker->RegistReferenceImage(refImage, 407.0, 283.0, 4.0, 8);
+	tracker->RegistReferenceImage(refImage, 640, 480, 4.0, 8);
 	tracker->SetPoseEstimationMethod(windage::LMEDS);
 	tracker->SetOutlinerRemove(true);
 	tracker->SetRefinement(true);
@@ -153,7 +153,7 @@ osg::Matrixd GetTrackerCoordinate()
 	// camera frame grabbing
 	IplImage* grabFrame = cvQueryFrame(capture);
 	tracker->GetCameraParameter()->Undistortion(grabFrame, input);
-	cvFlip(input, input);
+//	cvFlip(input, input);
 	cvCvtColor(input, gray, CV_BGRA2GRAY);
 
 	// call tracking algorithm
