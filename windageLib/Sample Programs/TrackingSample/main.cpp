@@ -1,6 +1,3 @@
-#define RUNNING
-#ifdef RUNNING
-
 /* ========================================================================
  * PROJECT: windage Library
  * ========================================================================
@@ -45,11 +42,7 @@
 #include <highgui.h>
 #include <windage.h>
 
-#define FLIP
-#define RECTIFICATION
 #define ADAPTIVE_THRESHOLD
-
-//#define USE_IMAGE_SEQUENCE
 
 const int FIND_FEATURE_COUNT = 10;
 
@@ -96,6 +89,7 @@ void main()
 	IplImage* trainingImage = cvLoadImage("reference1_320.png", 0);
 	IplImage* referenceImage = cvLoadImage("reference1.png");
 	IplImage* resultImage = cvCreateImage(cvSize(WIDTH, HEIGHT*2), IPL_DEPTH_8U, 3);
+	IplImage* resultImage2 = cvCreateImage(cvSize(resultImage->width/2+10, resultImage->height/2+10), IPL_DEPTH_8U, 3);
 	windage::ModifiedSURFTracker* tracker = CreateTracker(trainingImage, 0);
 
 	// for undistortion
@@ -109,8 +103,9 @@ void main()
 
 	bool saving = false;
 	bool processing = true;
-	cvNamedWindow("result");
+//	cvNamedWindow("result");
 	cvNamedWindow("matching");
+
 	while(processing)
 	{
 		// camera frame grabbing and convert to gray and undistortion
@@ -176,8 +171,13 @@ void main()
 		cvResetImageROI(resultImage);
 		tracker->DrawDebugInfo2(resultImage);
 
+		cvRectangle(resultImage2, cvPoint(0, 0), cvPoint(resultImage2->width, resultImage2->height), CV_RGB(255, 255, 255), CV_FILLED);
+		cvSetImageROI(resultImage2, cvRect(5, 5, resultImage2->width-10, resultImage2->height-10));
+		cvResize(resultImage, resultImage2);
+		cvResetImageROI(resultImage2);
+
 		cvShowImage("result", inputImage);
-		cvShowImage("matching", resultImage);
+		cvShowImage("matching", resultImage2);
 
 		if(saving)
 		{
@@ -190,5 +190,3 @@ void main()
 	cvReleaseCapture(&capture);
 	cvDestroyAllWindows();
 }
-
-#endif

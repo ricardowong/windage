@@ -38,6 +38,7 @@
  * ======================================================================== */
 
 #include "Tracker/FAST/wfastsurf.h"
+//#define USE_GAUSSIAN_WEIGHT
 
 const int dx1[] = {3, 3, 2, 1, 0, -1, -2, -3};
 const int dx2[] = {-3, -3, -2, -1, 0, 1, 2, 3};
@@ -67,6 +68,28 @@ void wExtractFASTSURF( const CvArr* _img, const CvArr* _mask,
             descriptor_size*CV_ELEM_SIZE(descriptor_data_type), storage );
         cvSeqPushMulti( descriptors, 0, N );
     }
+
+#ifdef USE_GAUSSIAN_WEIGHT
+	const float DESC_SIGMA = 3.3f;
+	float DW[PATCH_SZ][PATCH_SZ];
+    CvMat _DW = cvMat(PATCH_SZ, PATCH_SZ, CV_32F, DW);
+	// Gaussian used to weight descriptor samples
+    {
+    double c2 = 1./(DESC_SIGMA*DESC_SIGMA*2);
+    double gs = 0;
+    for(int i = 0; i < PATCH_SZ; i++)
+    {
+        for(int j = 0; j < PATCH_SZ; j++)
+        {
+            double x = j - (float)(PATCH_SZ-1)/2, y = i - (float)(PATCH_SZ-1)/2;
+            double val = exp(-(x*x+y*y)*c2);
+            DW[i][j] = (float)val;
+            gs += val;
+        }
+    }
+    cvScale( &_DW, &_DW, 1./gs );
+    }
+#endif
 
 	#pragma omp parallel for schedule(dynamic)
     for(int k = 0; k < N; k++ )
@@ -118,14 +141,18 @@ void wExtractFASTSURF( const CvArr* _img, const CvArr* _mask,
         }
 
         // Calculate gradients in x and y with wavelets of size 2s
-		int DX[PATCH_SZ][PATCH_SZ];
-		int DY[PATCH_SZ][PATCH_SZ];
+		float DX[PATCH_SZ][PATCH_SZ];
+		float DY[PATCH_SZ][PATCH_SZ];
+		float dw = 1.0f;
         for( i = 0; i < PATCH_SZ; i++ )
 		{
             for( j = 0; j < PATCH_SZ; j++ )
             {
-				DX[i][j] = (PATCH[i][j+1] - PATCH[i][j] + PATCH[i+1][j+1] - PATCH[i+1][j]);
-				DY[i][j] = (PATCH[i+1][j] - PATCH[i][j] + PATCH[i+1][j+1] - PATCH[i][j+1]);
+#ifdef USE_GAUSSIAN_WEIGHT
+				dw = DW[i][j];
+#endif
+				DX[i][j] = (float)(PATCH[i][j+1] - PATCH[i][j] + PATCH[i+1][j+1] - PATCH[i+1][j]) * dw;
+				DY[i][j] = (float)(PATCH[i+1][j] - PATCH[i][j] + PATCH[i+1][j+1] - PATCH[i][j+1]) * dw;
             }
 		}
 
@@ -143,10 +170,10 @@ void wExtractFASTSURF( const CvArr* _img, const CvArr* _mask,
                 {
                     for(x = j*5; x < j*5+5; x++)
                     {
-                        vec[0] += (float)DX[y][x];
-						vec[1] += (float)DY[y][x];
-                        vec[2] += (float)fabs((float)DX[y][x]);
-						vec[3] += (float)fabs((float)DY[y][x]);
+                        vec[0] += DX[y][x];
+						vec[1] += DY[y][x];
+                        vec[2] += fabs(DX[y][x]);
+						vec[3] += fabs(DY[y][x]);
                     }
                 }
                 vec+=4;

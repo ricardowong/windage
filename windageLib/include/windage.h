@@ -45,6 +45,7 @@
 #include "Tracker/MultipleSURFTracker.h"
 //#include "Tracker/CubeTracker.h"
 #include "MultiCoordinate/MultiMarkerCoordinate.h"
+#include "MultiCoordinate/MultiCameraCoordinate.h"
 
 // header files for feature descriptor
 /* currently not support

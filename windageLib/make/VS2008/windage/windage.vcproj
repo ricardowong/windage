@@ -485,6 +485,14 @@
 			Name="MultiCoordinate"
 			>
 			<File
+				RelativePath="..\..\..\src\MultiCoordinate\MultiCameraCoordinate.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\include\MultiCoordinate\MultiCameraCoordinate.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\src\MultiCoordinate\MultiMarkerCoordinate.cpp"
 				>
 			</File>
