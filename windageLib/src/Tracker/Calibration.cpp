@@ -166,15 +166,10 @@ void Calibration::ConvertExtrinsicParameter(CvMat* rotationVector, CvMat* transl
 	cvReleaseMat(&rotationMatrix);
 }
 
-void Calibration::GetCameraPosition(CvMat* output)
-{
-	cvSetReal1D(output, 0, cvGetReal2D(this->extrinsicMatrix, 0, 3));
-	cvSetReal1D(output, 1, cvGetReal2D(this->extrinsicMatrix, 1, 3));
-	cvSetReal1D(output, 2, cvGetReal2D(this->extrinsicMatrix, 2, 3));
-}
-
 CvScalar Calibration::GetCameraPosition()
 {
+	CvScalar cameraPos;
+//*
 	windage::Matrix3 rotation;
 	rotation.m[0][0] = cvGetReal2D(this->extrinsicMatrix, 0, 0);
 	rotation.m[0][1] = cvGetReal2D(this->extrinsicMatrix, 1, 0);
@@ -193,18 +188,19 @@ CvScalar Calibration::GetCameraPosition()
 	translation.y = cvGetReal2D(this->extrinsicMatrix, 1, 3);
 	translation.z = cvGetReal2D(this->extrinsicMatrix, 2, 3);
 
-	rotation = rotation.Transpose();
+//	rotation = rotation.Transpose();
+	translation = -translation;
 	windage::Vector3 temp = rotation * translation;
-
-	CvScalar cameraPos;
 
 	cameraPos.val[0] = temp.x;
 	cameraPos.val[1] = temp.y;
 	cameraPos.val[2] = temp.z;
-
-//	cameraPos.val[0] = cvGetReal2D(this->extrinsicMatrix, 0, 3);
-//	cameraPos.val[1] = cvGetReal2D(this->extrinsicMatrix, 1, 3);
-//	cameraPos.val[2] = cvGetReal2D(this->extrinsicMatrix, 2, 3);
+//*/
+/*
+	cameraPos.val[0] = cvGetReal2D(this->extrinsicMatrix, 0, 3);
+	cameraPos.val[1] = cvGetReal2D(this->extrinsicMatrix, 1, 3);
+	cameraPos.val[2] = cvGetReal2D(this->extrinsicMatrix, 2, 3);
+//*/
 	return cameraPos;
 }
 

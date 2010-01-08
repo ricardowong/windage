@@ -59,8 +59,9 @@ windage::ModifiedSURFTracker* CreateTracker(IplImage* refImage, int index)
 {
 	windage::ModifiedSURFTracker* tracker = new windage::ModifiedSURFTracker();
 	tracker->Initialize(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], intrinsicValues[4], intrinsicValues[5], intrinsicValues[6], intrinsicValues[7], 30);
+	tracker->SetFeatureExtractThreshold(30);
 	tracker->RegistReferenceImage(refImage, REAL_WIDTH, REAL_HEIGHT, 4.0, 8);
-	tracker->SetPoseEstimationMethod(windage::PROSAC);
+	tracker->SetPoseEstimationMethod(windage::RANSAC);
 	tracker->SetOutlinerRemove(true);
 	tracker->SetRefinement(true);
 	tracker->InitializeOpticalFlow(WIDTH, HEIGHT, 10, cvSize(8, 8), 3);
@@ -163,8 +164,16 @@ void main()
 			tracker2->DrawInfomation(inputImage2, 100.0);
 			tracker2->DrawDebugInfo(inputImage2);
 		}
+
+		std::cout << std::endl;
+		CvScalar pos1 = tracker1->GetCameraParameter()->GetCameraPosition();
+		std::cout << pos1.val[0] << ", " << pos1.val[1] << ", " << pos1.val[2] << std::endl;
+		CvScalar pos2 = tracker2->GetCameraParameter()->GetCameraPosition();
+		std::cout << pos2.val[0] << ", " << pos2.val[1] << ", " << pos2.val[2] << std::endl;
+		std::cout << std::endl;
 		
-//*
+
+/*
 		// update
 		if(matchedCount1 > FIND_FEATURE_COUNT && matchedCount2 > FIND_FEATURE_COUNT && updating)
 		{
@@ -175,6 +184,12 @@ void main()
 			translation21 = windage::MultiCameraCoordinate::GetTranslation(tracker2->GetCameraParameter(), tracker1->GetCameraParameter());
 			updating = false;
 		}
+
+		double tempValue;
+		tempValue = cvGetReal2D(tracker1->GetCameraParameter()->GetExtrinsicMatrix(), 1, 3);
+		cvSetReal2D(tracker1->GetCameraParameter()->GetExtrinsicMatrix(), 1, 3, tempValue+50);
+		tempValue = cvGetReal2D(tracker2->GetCameraParameter()->GetExtrinsicMatrix(), 1, 3);
+		cvSetReal2D(tracker2->GetCameraParameter()->GetExtrinsicMatrix(), 1, 3, tempValue+50);
 
 		if(matchedCount1 > FIND_FEATURE_COUNT)
 		{
@@ -256,7 +271,6 @@ void main()
 			processing = false;
 			break;
 		}
-
 	}
 
 	cvDestroyAllWindows();

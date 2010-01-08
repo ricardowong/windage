@@ -48,7 +48,7 @@
 
 namespace windage
 {
-	class MultiCameraCoordinate
+	class DLLEXPORT MultiCameraCoordinate
 	{
 	public:
 		static Vector3 GetTranslation(Calibration* baseCalibration, Calibration* toCalibration);
