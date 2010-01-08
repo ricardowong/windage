@@ -42,8 +42,8 @@
 
 /** @cond */
 
-#define STEP_SIZE_X 2
-#define STEP_SIZE_Y 1
+#define STEP_SIZE_X 1
+#define STEP_SIZE_Y 2
 
 typedef struct { int x, y; } xy; 
 typedef unsigned char byte;

@@ -48,7 +48,7 @@
 
 namespace windage
 {
-	class MultiMarkerCoordinate
+	class DLLEXPORT MultiMarkerCoordinate
 	{
 	public:
 		static Vector3 GetTranslation(Calibration* baseCalibration, Calibration* toCalibration);
