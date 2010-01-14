@@ -79,6 +79,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="COPY /Y &quot;$(OutDir)\$(ProjectName)d.lib&quot; &quot;$(SolutionDir)\..\..\lib\$(ProjectName)d.lib&quot;"
 			/>
 		</Configuration>
 		<Configuration
@@ -147,6 +148,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="COPY /Y &quot;$(OutDir)\$(ProjectName).lib&quot; &quot;$(SolutionDir)\..\..\lib\$(ProjectName).lib&quot;"
 			/>
 		</Configuration>
 	</Configurations>
