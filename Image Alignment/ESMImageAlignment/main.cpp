@@ -12,13 +12,14 @@ const char* IMAGE_SEQ_FILE_NAME = "seq/im%03d.pgm";
 
 const double PROCESSING_TIME = 33.0;//ms
 
-const int TEMPLATE_WIDTH = 150;
-const int TEMPLATE_HEIGHT = 150;
+const int TEMPLATE_WIDTH = 100;
+const int TEMPLATE_HEIGHT = 100;
 
 void  main()
 {
 	char message[100];
 	cvNamedWindow("template");
+	cvNamedWindow("sampling");
 	cvNamedWindow("result");
 
 	// initialize
@@ -32,10 +33,17 @@ void  main()
 	
 	// set template image
 	IplImage* templateImage = cvCreateImage(cvSize(TEMPLATE_WIDTH, TEMPLATE_HEIGHT), IPL_DEPTH_8U, 1);
+	IplImage* samplingImage = cvCreateImage(cvSize(TEMPLATE_WIDTH, TEMPLATE_HEIGHT), IPL_DEPTH_8U, 1);
+
 	CvRect rect = cvRect(startX, startY, TEMPLATE_WIDTH, TEMPLATE_HEIGHT);
 	cvSetImageROI(inputImage, rect);
 	cvCopyImage(inputImage, templateImage);
 	cvShowImage("template", templateImage);
+
+	std::vector<int> se;
+	for(int y=0; y<templateImage->height; y++)
+		for(int x=0; x<templateImage->width; x++)
+			se.push_back(cvRound(cvGetReal2D(templateImage, y, x)));
 
 	cvReleaseImage(&inputImage);
 	IplImage* resultImage = cvCreateImage(cvSize(width, height), IPL_DEPTH_8U, 3);
@@ -56,7 +64,24 @@ void  main()
 		cvCvtColor(inputImage, resultImage, CV_GRAY2BGR);
 
 		// processing
+		// get 
+		std::vector<int> sxc;
+		for(int y=0; y<TEMPLATE_HEIGHT; y++)
+		{
+			for(int x=0; x<TEMPLATE_WIDTH; x++)
+			{
+				windage::Vector3 point(x, y, 1.0);
+				windage::Vector3 out = homography * point;
+				out /= out.z;
+
+				double value = cvGetReal2D(inputImage, out.y, out.x);
+				cvSetReal2D(samplingImage, y, x, value);
+				sxc.push_back(cvRound(value));
+			}
+		}
+
 		// update homography
+
 
 		// draw result
 		windage::Vector3 point1(0.0, 0.0, 1.0);
@@ -80,6 +105,7 @@ void  main()
 		cvLine(resultImage, cvPoint(outPoint4.x, outPoint4.y), cvPoint(outPoint1.x, outPoint1.y), CV_RGB(255, 0, 0));
 
 		// draw image
+		cvShowImage("sampling", samplingImage);
 		cvShowImage("result", resultImage);
 		cvReleaseImage(&inputImage);
 
