@@ -350,6 +350,12 @@ namespace windage
 			return *this;
 		}
 
+		Matrix3 operator/(const double &rhs) const
+		{
+			return Matrix3( m[0][0] / rhs, m[0][1] / rhs, m[0][2] / rhs,
+							m[1][0] / rhs, m[1][1] / rhs, m[1][2] / rhs,
+							m[2][0] / rhs, m[2][1] / rhs,m[2][2] / rhs);
+		}
 	};
 
 	/**
