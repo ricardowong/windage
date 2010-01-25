@@ -1,20 +1,57 @@
+/* ========================================================================
+ * PROJECT: windage Library
+ * ========================================================================
+ * This work is based on the original windage Library developed by
+ *   Woonhyuk Baek
+ *   Woontack Woo
+ *   U-VR Lab, GIST of Gwangju in Korea.
+ *   http://windage.googlecode.com/
+ *   http://uvr.gist.ac.kr/
+ *
+ * Copyright of the derived and new portions of this work
+ *     (C) 2009 GIST U-VR Lab.
+ *
+ * This framework is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This framework is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this framework; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ * For further information please contact 
+ *   Woonhyuk Baek
+ *   <windage@live.com>
+ *   GIST U-VR Lab.
+ *   Department of Information and Communication
+ *   Gwangju Institute of Science and Technology
+ *   1, Oryong-dong, Buk-gu, Gwangju
+ *   South Korea
+ * ========================================================================
+ ** @author   Woonhyuk Baek
+ * ======================================================================== */
+
 #include <iostream>
 #include <vector>
 
 #include <cv.h>
 #include <highgui.h>
 
-#include "Utils/wVector.h"
-#include "Utils/wMatrix.h"
 #include "ESMAlgorithm/homographyESM.h"
 
 const int IMAGE_SEQ_COUNT = 200;
 const char* IMAGE_SEQ_FILE_NAME = "seq/im%03d.pgm";
 
-const double PROCESSING_TIME = 33.0;//ms
+const double PROCESSING_TIME = 33.0 * 3;//ms
 
-const int TEMPLATE_WIDTH = 150;
-const int TEMPLATE_HEIGHT = 150;
+const int TEMPLATE_WIDTH = 100;
+const int TEMPLATE_HEIGHT = 100;
 
 const double DELTA = 1.0;
 const double HOMOGRAPHY_DELTA = 1.0;
@@ -37,27 +74,18 @@ void  main()
 	int startY = (height-TEMPLATE_HEIGHT)/2;
 	double q = TEMPLATE_WIDTH * TEMPLATE_HEIGHT;
 	
-	// set template image
+	IplImage* inputImage = NULL;
+	IplImage* resultImage = cvCreateImage(cvSize(width, height), IPL_DEPTH_8U, 3);
 	IplImage* templateImage = cvCreateImage(cvSize(TEMPLATE_WIDTH, TEMPLATE_HEIGHT), IPL_DEPTH_8U, 1);
-	IplImage* samplingImage = cvCreateImage(cvSize(TEMPLATE_WIDTH, TEMPLATE_HEIGHT), IPL_DEPTH_8U, 1);
+	IplImage* samplingImage = NULL;
 
-	CvMat* Je = cvCreateMat(q, HOMOGRAPHY_COUNT, CV_64F);
-	CvMat* Jx = cvCreateMat(q, HOMOGRAPHY_COUNT, CV_64F);
-	CvMat* Jsum = cvCreateMat(q, HOMOGRAPHY_COUNT, CV_64F);
-	CvMat* JsumT = cvCreateMat(HOMOGRAPHY_COUNT, q, CV_64F);
-	CvMat* J = cvCreateMat(HOMOGRAPHY_COUNT, HOMOGRAPHY_COUNT, CV_64F);
-	CvMat* Jinvers = cvCreateMat(HOMOGRAPHY_COUNT, HOMOGRAPHY_COUNT, CV_64F);
-	CvMat* ds = cvCreateMat(q, 1, CV_64F);
-	CvMat* JTds = cvCreateMat(HOMOGRAPHY_COUNT, 1, CV_64F);
-	CvMat* dx = cvCreateMat(HOMOGRAPHY_COUNT, 1, CV_64F);
-
+	// set template image
 	CvRect rect = cvRect(startX, startY, TEMPLATE_WIDTH, TEMPLATE_HEIGHT);
 	cvSetImageROI(saveImage, rect);
 	cvCopyImage(saveImage, templateImage);
 	cvShowImage("template", templateImage);
 	cvResetImageROI(saveImage);
-
-	IplImage* resultImage = cvCreateImage(cvSize(width, height), IPL_DEPTH_8U, 3);
+	cvReleaseImage(&saveImage);
 
 	// initial homography
 	windage::Matrix3 homography(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
@@ -65,172 +93,59 @@ void  main()
 	homography._23 = startY;
 	windage::Matrix3 e = homography;
 
+	// Template based Tracking using Homography ESM
+	windage::HomographyESM* esm = new windage::HomographyESM(TEMPLATE_WIDTH, TEMPLATE_HEIGHT);
+	esm->AttatchTemplateImage(templateImage);
+	esm->SetInitialHomography(e);
+	esm->Initialize();	
+
+	bool update = true;
 	bool processing =true;
-	for(int k=0; k<IMAGE_SEQ_COUNT && processing;)
+	int k = 0;
+	while(processing)
 	{
-		int64 startTime = cvGetTickCount();
+		if(k >= IMAGE_SEQ_COUNT)
+			processing = false;
 
 		// load image
-		sprintf(message, IMAGE_SEQ_FILE_NAME, k);
-		IplImage* inputImage = cvLoadImage(message, 0);
-		cvCvtColor(inputImage, resultImage, CV_GRAY2BGR);
+		if(update)
+		{
+			if(inputImage) cvReleaseImage(&inputImage);
+
+			sprintf(message, IMAGE_SEQ_FILE_NAME, k);
+			inputImage = cvLoadImage(message, 0);
+			cvCvtColor(inputImage, resultImage, CV_GRAY2BGR);
+		}
 
 		// processing
-		// sampling the current image
+		int64 startTime = cvGetTickCount();
+		int64 endTime;
 
-		// se
-		std::vector<double> se;
-		for(int y=0; y<templateImage->height; y++)
+		double error = 0.0;
+		bool roop = true;
+		while(roop)
 		{
-			for(int x=0; x<templateImage->width; x++)
+			error = esm->UpdateHomography(inputImage);
+			homography = esm->GetHomography();
+			samplingImage = esm->GetSamplingImage();
+
+			endTime = cvGetTickCount();
+
+			error /= 8.0;
+			if(error < 0.005)
 			{
-				double value = cvGetReal2D(templateImage, y, x);
-				se.push_back(value);
+				roop = false;
+			}
+			if((double)(endTime - startTime)/(cvGetTickFrequency() * 1000.0) > PROCESSING_TIME)
+			{
+				roop = false;
 			}
 		}
-
-		// sxc
-		std::vector<double> sxc;
-		for(int y=0; y<TEMPLATE_HEIGHT; y++)
-		{
-			for(int x=0; x<TEMPLATE_WIDTH; x++)
-			{
-				windage::Vector3 point(x, y, 1.0);
-				windage::Vector3 out = homography * point;
-				out /= out.z;
-
-				double value = -1.0;
-				if( 0 < out.x && out.x < inputImage->width &&
-					0 < out.y && out.y < inputImage->height)
-					value = cvGetReal2D(inputImage, out.y, out.x);
-				cvSetReal2D(samplingImage, y, x, value);
-				sxc.push_back(value);
-			}
-		}
-
-		// update homography
-		windage::Vector3 point1, point2, out1, out2;
-		point1.z = point2.z = 1.0;
-		for(int y=0; y<TEMPLATE_HEIGHT; y++)
-		{
-			for(int x=0; x<TEMPLATE_WIDTH; x++)
-			{
-				double I1 = -1.0;
-				double I2 = -1.0;
-
-				// dI(p) / dp
-				windage::Vector2 dI;
-				point1.x = x - DELTA;
-				point1.y = y;
-				point2.x = x + DELTA;
-				point2.y = y;
-				out1 = e * point1;
-				out2 = e * point2;
-				out1 /= out1.z;
-				out2 /= out2.z;
-
-				I1 = cvGetReal2D(saveImage, out1.y, out1.x);
-				I2 = cvGetReal2D(saveImage, out2.y, out2.x);
-				dI.x = (I2 - I1)/(2*DELTA);
-
-				point1.x = x;
-				point1.y = y - DELTA;
-				point2.x = x;
-				point2.y = y + DELTA;
-				out1 = e * point1;
-				out2 = e * point2;
-				out1 /= out1.z;
-				out2 /= out2.z;
-
-				I1 = cvGetReal2D(saveImage, out1.y, out1.x);
-				I2 = cvGetReal2D(saveImage, out2.y, out2.x);
-				dI.y = (I2 - I1)/(2*DELTA);
-
-				// dIw(p) / dp
-				windage::Vector2 dwI;
-				point1.x = x - DELTA;
-				point1.y = y;
-				point2.x = x + DELTA;
-				point2.y = y;
-				out1 = homography * point1;
-				out2 = homography * point2;
-				out1 /= out1.z;
-				out2 /= out2.z;
-
-				I1 = cvGetReal2D(inputImage, out1.y, out1.x);
-				I2 = cvGetReal2D(inputImage, out2.y, out2.x);
-				dwI.x = (I2 - I1)/(2*DELTA);
-
-				point1.x = x;
-				point1.y = y - DELTA;
-				point2.x = x;
-				point2.y = y + DELTA;
-				out1 = homography * point1;
-				out2 = homography * point2;
-				out1 /= out1.z;
-				out2 /= out2.z;
-
-				I1 = cvGetReal2D(inputImage, out1.y, out1.x);
-				I2 = cvGetReal2D(inputImage, out2.y, out2.x);
-				dwI.y = (I2 - I1)/(2*DELTA);
-
-				// dw(x) / dx (2xp jacobian matrix)
-				std::vector<windage::Vector2> dwx;
-				point1.x = x;
-				point1.y = y;
-
-				for(int i=0; i<HOMOGRAPHY_COUNT; i++)
-				{
-					windage::Matrix3 tempHomography1 = e;
-					windage::Matrix3 tempHomography2 = e;
-
-					tempHomography1.m1[i] -= HOMOGRAPHY_DELTA;
-					tempHomography2.m1[i] += HOMOGRAPHY_DELTA;
-
-					out1 = tempHomography1 * point1;
-					out2 = tempHomography2 * point1;
-//					out1 /= out1.z;
-//					out2 /= out2.z;
-
-					out1 = (out2 - out1)/(2*DELTA);
-//					out1 /= out1.z;
-					windage::Vector2 temp(out1.x, out1.y);
-					dwx.push_back(temp);
-				}
-
-				// Jsum = J(e) + J(xc)
-				for(int i=0; i<HOMOGRAPHY_COUNT; i++)
-				{
-					double value = (dI + dwI) * dwx[i];
-					cvSetReal2D(Jsum, y*TEMPLATE_WIDTH + x, i, value);
-				}
-			}
-		}
-
-		// delta_s
-		for(int i=0; i<q; i++)
-		{
-			double value = (sxc[i] - se[i]);
-			cvSetReal2D(ds, i, 0, value);
-		}
-
-		// pseudo-invers
-		cvTranspose(Jsum, JsumT);
-		cvMatMul(JsumT, Jsum, J);
-		cvMatMul(JsumT, ds, JTds);
-
-		cvInvert(J, Jinvers, CV_SVD_SYM);
-		cvMatMul(Jinvers, JTds, dx);
-
-		// set
-		windage::Matrix3 dxm;
-		dxm._33 = 0.0;
-		for(int i=0; i<HOMOGRAPHY_COUNT; i++)
-			dxm.m1[i] = -2.0 * cvGetReal1D(dx, i);
-		homography = homography + dxm;
+		k++;
+		update = true;
 
 		// draw result
-		windage::Vector3 pt1(0.0, 0.0, 1.0);
+ 		windage::Vector3 pt1(0.0, 0.0, 1.0);
 		windage::Vector3 pt2(TEMPLATE_WIDTH, 0.0, 1.0);
 		windage::Vector3 pt3(TEMPLATE_WIDTH, TEMPLATE_HEIGHT, 1.0);
 		windage::Vector3 pt4(0.0, TEMPLATE_HEIGHT, 1.0);
@@ -255,18 +170,15 @@ void  main()
 		cvShowImage("result", resultImage);
 		cvReleaseImage(&inputImage);
 
-		int64 endTime = cvGetTickCount();
 		double processingTime = (endTime - startTime)/(cvGetTickFrequency() * 1000.0);
-		std::cout << k << " : processing time : " << processingTime << " ms" << std::endl;
+		std::cout << k << " >> processing time : " << processingTime << " ms, error : " << error << std::endl;
 
-		int waittingTime = cvRound(PROCESSING_TIME - processingTime);
-		if(waittingTime < 1) waittingTime = 1;
-//		waittingTime = 0;
-		char ch = cvWaitKey(waittingTime);
+		char ch = cvWaitKey(1);
 		switch(ch)
 		{
 		case 'i':
 		case 'I':
+			update = true;
 			k++;
 			break;
 		case 'q':
