@@ -184,6 +184,14 @@
 		<Filter
 			Name="Algorithm"
 			>
+			<File
+				RelativePath=".\ESMAlgorithm\homographyESM.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ESMAlgorithm\homographyESM.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Utils"
