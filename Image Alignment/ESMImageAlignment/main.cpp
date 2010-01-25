@@ -6,6 +6,7 @@
 
 #include "Utils/wVector.h"
 #include "Utils/wMatrix.h"
+#include "ESMAlgorithm/homographyESM.h"
 
 const int IMAGE_SEQ_COUNT = 200;
 const char* IMAGE_SEQ_FILE_NAME = "seq/im%03d.pgm";
@@ -16,7 +17,7 @@ const int TEMPLATE_WIDTH = 150;
 const int TEMPLATE_HEIGHT = 150;
 
 const double DELTA = 1.0;
-const double HOMOGRAPHY_DELTA = 0.00001;
+const double HOMOGRAPHY_DELTA = 1.0;
 const int HOMOGRAPHY_COUNT = 8;
 
 void  main()
@@ -65,12 +66,12 @@ void  main()
 	windage::Matrix3 e = homography;
 
 	bool processing =true;
-	for(int i=0; i<IMAGE_SEQ_COUNT && processing; )
+	for(int k=0; k<IMAGE_SEQ_COUNT && processing;)
 	{
 		int64 startTime = cvGetTickCount();
 
 		// load image
-		sprintf(message, IMAGE_SEQ_FILE_NAME, i);
+		sprintf(message, IMAGE_SEQ_FILE_NAME, k);
 		IplImage* inputImage = cvLoadImage(message, 0);
 		cvCvtColor(inputImage, resultImage, CV_GRAY2BGR);
 
@@ -156,8 +157,8 @@ void  main()
 				out1 /= out1.z;
 				out2 /= out2.z;
 
-				I1 = cvGetReal2D(saveImage, out1.y, out1.x);
-				I2 = cvGetReal2D(saveImage, out2.y, out2.x);
+				I1 = cvGetReal2D(inputImage, out1.y, out1.x);
+				I2 = cvGetReal2D(inputImage, out2.y, out2.x);
 				dwI.x = (I2 - I1)/(2*DELTA);
 
 				point1.x = x;
@@ -169,8 +170,8 @@ void  main()
 				out1 /= out1.z;
 				out2 /= out2.z;
 
-				I1 = cvGetReal2D(saveImage, out1.y, out1.x);
-				I2 = cvGetReal2D(saveImage, out2.y, out2.x);
+				I1 = cvGetReal2D(inputImage, out1.y, out1.x);
+				I2 = cvGetReal2D(inputImage, out2.y, out2.x);
 				dwI.y = (I2 - I1)/(2*DELTA);
 
 				// dw(x) / dx (2xp jacobian matrix)
@@ -256,7 +257,7 @@ void  main()
 
 		int64 endTime = cvGetTickCount();
 		double processingTime = (endTime - startTime)/(cvGetTickFrequency() * 1000.0);
-		std::cout << i << " : processing time : " << processingTime << " ms" << std::endl;
+		std::cout << k << " : processing time : " << processingTime << " ms" << std::endl;
 
 		int waittingTime = cvRound(PROCESSING_TIME - processingTime);
 		if(waittingTime < 1) waittingTime = 1;
@@ -266,7 +267,7 @@ void  main()
 		{
 		case 'i':
 		case 'I':
-			i++;
+			k++;
 			break;
 		case 'q':
 		case 'Q':
