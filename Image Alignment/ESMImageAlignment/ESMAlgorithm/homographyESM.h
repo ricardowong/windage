@@ -60,6 +60,7 @@ namespace windage
 		int p;
 
 		IplImage* templateImage;
+		IplImage* samplingImage;
 
 		std::vector<Vector2> dI;
 		std::vector<Vector2> dwI;
@@ -92,6 +93,7 @@ namespace windage
 
 			// templateImage is gray
 			templateImage = cvCreateImage(this->GetTemplateSize(), IPL_DEPTH_8U, 1);
+			samplingImage = cvCreateImage(this->GetTemplateSize(), IPL_DEPTH_8U, 1);
 
 			JacobianSum		= cvCreateMat(q, p, CV_64F);
 			JacobianSumT	= cvCreateMat(p, q, CV_64F);
@@ -104,6 +106,7 @@ namespace windage
 		~HomographyESM()
 		{
 			if(templateImage)	cvReleaseImage(&templateImage);
+			if(samplingImage)	cvReleaseImage(&samplingImage);
 
 			if(JacobianSum)		cvReleaseMat(&JacobianSum);
 			if(JacobianSumT)	cvReleaseMat(&JacobianSumT);
@@ -118,6 +121,7 @@ namespace windage
 		inline CvSize GetTemplateSize(){return cvSize(this->width, this->height);};
 		inline void SetInitialHomography(Matrix3 homography){this->homography = homography;};
 		inline IplImage* GetTemplateImage(){return this->templateImage;};
+		inline IplImage* GetSamplingImage(){return this->samplingImage;};
 
 		bool AttatchTemplateImage(IplImage* image);
 		bool Initialize();

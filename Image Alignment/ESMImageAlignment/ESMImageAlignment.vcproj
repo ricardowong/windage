@@ -192,6 +192,14 @@
 				RelativePath=".\ESMAlgorithm\homographyESM.h"
 				>
 			</File>
+			<File
+				RelativePath=".\ESMAlgorithm\wMatrix.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ESMAlgorithm\wVector.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Utils"
@@ -210,14 +218,6 @@
 			</File>
 			<File
 				RelativePath=".\Utils\Utils.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Utils\wMatrix.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Utils\wVector.h"
 				>
 			</File>
 		</Filter>

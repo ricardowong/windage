@@ -60,8 +60,6 @@ namespace windage
 		 *		draw text to image
 		 */
 		static void DrawTextToImage(IplImage* colorImage, CvPoint position, char* message);
-		static bool CompundImmersiveImage(IplImage* src, IplImage* dst, CvScalar maskColor = CV_RGB(0, 0, 0), double alpha=0.5);
-		static bool IsInside(CvPoint point, CvPoint corner1, CvPoint corner2, CvPoint corner3, CvPoint corner4, bool isClockWise=false);
 	};
 }
 

@@ -113,8 +113,8 @@ bool HomographyESM::Initialize()
 			point1.x = x;
 			point1.y = y;
 
-			double HOMOGRAPHY_DELTA = 1.0;
-			for(int i=0; i<HOMOGRAPHY_COUNT; i++)
+			double HOMOGRAPHY_DELTA = 2.0;
+			for(int i=0; i<this->p; i++)
 			{
 				windage::Matrix3 tempHomography1 = this->homography;
 				windage::Matrix3 tempHomography2 = this->homography;
@@ -169,6 +169,9 @@ double HomographyESM::UpdateHomography(IplImage* image)
 				value = cvGetReal2D(image, out.y, out.x);
 			sxc[index] = value;
 
+			// for debuging
+			cvSetReal2D(samplingImage, y, x, value);
+
 			// dI(w(p)) / dp (1x2 gradient of image)
 			Vector2 tempdwI;
 
@@ -181,8 +184,12 @@ double HomographyESM::UpdateHomography(IplImage* image)
 			out1 /= out1.z;
 			out2 /= out2.z;
 
-			I1 = cvGetReal2D(image, out1.y, out1.x);
-			I2 = cvGetReal2D(image, out2.y, out2.x);
+			I1 = -1.0;
+			I2 = -1.0;
+			if( 0 < out1.x && out1.x < image->width && 0 < out1.y && out1.y < image->height)
+				I1 = cvGetReal2D(image, out1.y, out1.x);
+			if( 0 < out2.x && out2.x < image->width && 0 < out2.y && out2.y < image->height)
+				I2 = cvGetReal2D(image, out2.y, out2.x);
 			tempdwI.x = (I2 - I1)/(2*DELTA);
 
 			point1.x = x;
@@ -194,14 +201,18 @@ double HomographyESM::UpdateHomography(IplImage* image)
 			out1 /= out1.z;
 			out2 /= out2.z;
 
-			I1 = cvGetReal2D(image, out1.y, out1.x);
-			I2 = cvGetReal2D(image, out2.y, out2.x);
+			I1 = -1.0;
+			I2 = -1.0;
+			if( 0 < out1.x && out1.x < image->width && 0 < out1.y && out1.y < image->height)
+				I1 = cvGetReal2D(image, out1.y, out1.x);
+			if( 0 < out2.x && out2.x < image->width && 0 < out2.y && out2.y < image->height)
+				I2 = cvGetReal2D(image, out2.y, out2.x);
 			tempdwI.y = (I2 - I1)/(2*DELTA);
 
 			dwI[index] = tempdwI;
 
 			// Jsum = J(e) + J(xc)
-			for(int i=0; i<HOMOGRAPHY_COUNT; i++)
+			for(int i=0; i<this->p; i++)
 			{
 				double value = (dI[index] + dwI[index]) * dwx[index][i];
 				cvSetReal2D(JacobianSum, index, i, value);
@@ -228,11 +239,11 @@ double HomographyESM::UpdateHomography(IplImage* image)
 
 	// update homography
 	double difference = 0.0;
-	for(int i=0; i<HOMOGRAPHY_COUNT; i++)
+	for(int i=0; i<this->p; i++)
 	{
 		double value = -2.0 * cvGetReal1D(dx, i);
 		this->homography.m1[i] += value;
-		difference += value;
+		difference += abs(value);
 	}
 
 	return difference;
