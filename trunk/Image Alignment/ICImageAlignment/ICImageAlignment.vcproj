@@ -1,10 +1,10 @@
-<?xml version="1.0" encoding="Windows-1252"?>
+<?xml version="1.0" encoding="ks_c_5601-1987"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="ESMImageAlignment"
-	ProjectGUID="{C407F471-5EFC-4B16-8EEF-370C0C5193A2}"
-	RootNamespace="ESMImageAlignment"
+	Name="ICImageAlignment"
+	ProjectGUID="{381CD2BC-821A-4594-8956-ABD69065F118}"
+	RootNamespace="ICImageAlignment"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
@@ -61,7 +61,6 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="cv120.lib cvaux120.lib cxcore120.lib highgui120.lib"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="&quot;$(SolutionDir)/../../component/opencv1.2/lib/&quot;"
 				GenerateDebugInformation="true"
@@ -185,39 +184,11 @@
 			Name="Algorithm"
 			>
 			<File
-				RelativePath=".\ESMAlgorithm\homographyESM.cpp"
+				RelativePath=".\ICAlgorithm\wMatrix.h"
 				>
 			</File>
 			<File
-				RelativePath=".\ESMAlgorithm\homographyESM.h"
-				>
-			</File>
-			<File
-				RelativePath=".\ESMAlgorithm\wMatrix.h"
-				>
-			</File>
-			<File
-				RelativePath=".\ESMAlgorithm\wVector.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="Utils"
-			>
-			<File
-				RelativePath=".\Utils\Logger.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Utils\Logger.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Utils\Utils.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Utils\Utils.h"
+				RelativePath=".\ICAlgorithm\wVector.h"
 				>
 			</File>
 		</Filter>

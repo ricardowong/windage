@@ -43,7 +43,7 @@
 #include <cv.h>
 #include <highgui.h>
 
-#include "ESMAlgorithm/homographyESM.h"
+#include "ICAlgorithm/wMatrix.h"
 
 const int IMAGE_SEQ_COUNT = 200;
 const char* IMAGE_SEQ_FILE_NAME = "seq/im%03d.pgm";
@@ -89,12 +89,6 @@ void  main()
 	homography._23 = startY;
 	windage::Matrix3 e = homography;
 
-	// Template based Tracking using Homography ESM
-	windage::HomographyESM* esm = new windage::HomographyESM(TEMPLATE_WIDTH, TEMPLATE_HEIGHT);
-	esm->AttatchTemplateImage(templateImage);
-	esm->SetInitialHomography(e);
-	esm->Initialize();	
-
 	bool processing =true;
 	int k = 0;
 	while(processing)
@@ -111,29 +105,7 @@ void  main()
 		// processing
 		int64 startTime = cvGetTickCount();
 		int64 endTime;
-
 		double error = 0.0;
-		bool roop = true;
-//		while(roop)
-		{
-			error = esm->UpdateHomography(inputImage);
-			homography = esm->GetHomography();
-			samplingImage = esm->GetSamplingImage();
-
-			endTime = cvGetTickCount();
-/*
-			error /= 8.0;
-			if(error < 0.005)
-			{
-				roop = false;
-			}
-			if((double)(endTime - startTime)/(cvGetTickFrequency() * 1000.0) > PROCESSING_TIME)
-			{
-				roop = false;
-			}
-//*/
-		}
-//		k++;
 
 		// draw result
  		windage::Vector3 pt1(0.0, 0.0, 1.0);
@@ -175,6 +147,7 @@ void  main()
 			processing = false;
 			break;
 		}
+
 	}
 
 	cvReleaseImage(&resultImage);
