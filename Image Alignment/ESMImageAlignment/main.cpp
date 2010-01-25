@@ -12,11 +12,11 @@ const char* IMAGE_SEQ_FILE_NAME = "seq/im%03d.pgm";
 
 const double PROCESSING_TIME = 33.0;//ms
 
-const int TEMPLATE_WIDTH = 15;
-const int TEMPLATE_HEIGHT = 15;
+const int TEMPLATE_WIDTH = 100;
+const int TEMPLATE_HEIGHT = 100;
 
 const double DELTA = 1.0;
-const int HOMOGRAPHY_COUNT = 9;
+const int HOMOGRAPHY_COUNT = 8;
 
 void  main()
 {
@@ -44,6 +44,7 @@ void  main()
 	CvMat* Jsum = cvCreateMat(q, HOMOGRAPHY_COUNT, CV_64F);
 	CvMat* JsumT = cvCreateMat(HOMOGRAPHY_COUNT, q, CV_64F);
 	CvMat* J = cvCreateMat(HOMOGRAPHY_COUNT, HOMOGRAPHY_COUNT, CV_64F);
+	CvMat* Jinvers = cvCreateMat(HOMOGRAPHY_COUNT, HOMOGRAPHY_COUNT, CV_64F);
 	CvMat* ds = cvCreateMat(q, 1, CV_64F);
 	CvMat* JTds = cvCreateMat(HOMOGRAPHY_COUNT, 1, CV_64F);
 	CvMat* dx = cvCreateMat(HOMOGRAPHY_COUNT, 1, CV_64F);
@@ -149,8 +150,8 @@ void  main()
 				point1.y = y;
 				point2.x = x + DELTA;
 				point2.y = y;
-				out1 = e * point1;
-				out2 = e * point2;
+				out1 = homography * point1;
+				out2 = homography * point2;
 				out1 /= out1.z;
 				out2 /= out2.z;
 
@@ -162,8 +163,8 @@ void  main()
 				point1.y = y - DELTA;
 				point2.x = x;
 				point2.y = y + DELTA;
-				out1 = e * point1;
-				out2 = e * point2;
+				out1 = homography * point1;
+				out2 = homography * point2;
 				out1 /= out1.z;
 				out2 /= out2.z;
 
@@ -171,112 +172,53 @@ void  main()
 				I2 = cvGetReal2D(saveImage, out2.y, out2.x);
 				dwI.y = (I2 - I1)/(2*DELTA);
 
-				// dw(x) / dx
+				// dw(x) / dx (2xp jacobian matrix)
 				std::vector<windage::Vector2> dwx;
 				point1.x = x;
 				point1.y = y;
 
 				for(int i=0; i<HOMOGRAPHY_COUNT; i++)
 				{
-					windage::Matrix3 tempHomography = e;
-					tempHomography.m1[i] = 1.0;
-					out1 = tempHomography * point1;
-					out1 /= out1.z;
+					windage::Matrix3 tempHomography1 = e;
+					windage::Matrix3 tempHomography2 = e;
 
-					dwx.push_back(out1);
+					tempHomography1.m1[i] -= DELTA;
+					tempHomography2.m1[i] += DELTA;
+
+					out1 = tempHomography1 * point1;
+					out2 = tempHomography2 * point1;
+//					out1 /= out1.z;
+//					out2 /= out2.z;
+
+					out1 = (out2 - out1)/(2*DELTA);
+//					out1 /= out1.z;
+					windage::Vector2 temp(out1.x, out1.y);
+					dwx.push_back(temp);
 				}
-			}
-		}
 
-
-		// J(e)
-		/*
-		cvSetZero(Je);
-		for(int i=0; i<HOMOGRAPHY_COUNT; i++)
-		{
-			windage::Matrix3 dx1 = e;
-			windage::Matrix3 dx2 = e;
-			dx1.m1[i] -= DELTA;
-			dx2.m1[i] += DELTA;
-			for(int y=0; y<TEMPLATE_HEIGHT; y++)
-			{
-				for(int x=0; x<TEMPLATE_WIDTH; x++)
+				// Jsum = J(e) + J(xc)
+				for(int i=0; i<HOMOGRAPHY_COUNT; i++)
 				{
-					windage::Vector3 point(x, y, 1.0);
-					windage::Vector3 out1 = dx1 * point;
-					out1 /= out1.z;
-					windage::Vector3 out2 = dx2 * point;
-					out2 /= out2.z;
-
-					double I1 = -1.0;
-					double I2 = -1.0;
-					if( 0 < out1.x && out1.x < saveImage->width &&
-						0 < out1.y && out1.y < saveImage->height)
-						I1 = cvGetReal2D(saveImage, out1.y, out1.x);
-					if( 0 < out2.x && out2.x < saveImage->width &&
-						0 < out2.y && out2.y < saveImage->height)
-						I2 = cvGetReal2D(saveImage, out2.y, out2.x);
-					double dI = (I2 - I1)/(DELTA+DELTA);
-//					dI /= 255.0;
-
-					cvSetReal2D(Je, y*TEMPLATE_WIDTH + x, i, dI);
+					double value = (dI + dwI) * dwx[i];
+					cvSetReal2D(Jsum, y*TEMPLATE_WIDTH + x, i, value);
 				}
 			}
 		}
 
-		// J(xc)
-		cvSetZero(Jx);
-		for(int i=0; i<HOMOGRAPHY_COUNT; i++)
-		{
-			windage::Matrix3 dx1 = homography;
-			windage::Matrix3 dx2 = homography;
-			dx1.m1[i] -= DELTA;
-			dx2.m1[i] += DELTA;
-			for(int y=0; y<TEMPLATE_HEIGHT; y++)
-			{
-				for(int x=0; x<TEMPLATE_WIDTH; x++)
-				{
-					windage::Vector3 point(x, y, 1.0);
-					windage::Vector3 out1 = dx1 * point;
-					out1 /= out1.z;
-					windage::Vector3 out2 = dx2 * point;
-					out2 /= out2.z;
-
-					double I1 = -1.0;
-					double I2 = -1.0;
-					if( 0 <= out1.x && out1.x < inputImage->width &&
-						0 <= out1.y && out1.y < inputImage->height)
-						I1 = cvGetReal2D(inputImage, out1.y, out1.x);
-					if( 0 <= out2.x && out2.x < inputImage->width &&
-						0 <= out2.y && out2.y < inputImage->height)
-						I2 = cvGetReal2D(inputImage, out2.y, out2.x);
-					double dI = (I2 - I1)/(DELTA+DELTA);
-//					dI /= 255.0;
-
-					cvSetReal2D(Jx, y*TEMPLATE_WIDTH + x, i, dI);
-				}
-			}
-		}
-		*/
-
-		// Jsum = J(e) + J(x)
-//		cvAdd(Je, Jx, Jsum);
-
-		
 		// delta_s
-		std::vector<double> dsTemp;
 		for(int i=0; i<q; i++)
 		{
 			double value = (sxc[i] - se[i]);
 			cvSetReal2D(ds, i, 0, value);
-			dsTemp.push_back(value);
 		}
 
 		// pseudo-invers
 		cvTranspose(Jsum, JsumT);
 		cvMatMul(JsumT, Jsum, J);
 		cvMatMul(JsumT, ds, JTds);
-		cvMatMul(J, JTds, dx);
+
+		cvInvert(J, Jinvers, CV_SVD_SYM);
+		cvMatMul(Jinvers, JTds, dx);
 
 		// set
 		windage::Matrix3 dxm;
@@ -284,18 +226,17 @@ void  main()
 		for(int i=0; i<HOMOGRAPHY_COUNT; i++)
 			dxm.m1[i] = -2.0 * cvGetReal1D(dx, i);
 		homography = homography + dxm;
-		homography = homography / homography._33;
 
 		// draw result
-		windage::Vector3 point1(0.0, 0.0, 1.0);
-		windage::Vector3 point2(TEMPLATE_WIDTH, 0.0, 1.0);
-		windage::Vector3 point3(TEMPLATE_WIDTH, TEMPLATE_HEIGHT, 1.0);
-		windage::Vector3 point4(0.0, TEMPLATE_HEIGHT, 1.0);
+		windage::Vector3 pt1(0.0, 0.0, 1.0);
+		windage::Vector3 pt2(TEMPLATE_WIDTH, 0.0, 1.0);
+		windage::Vector3 pt3(TEMPLATE_WIDTH, TEMPLATE_HEIGHT, 1.0);
+		windage::Vector3 pt4(0.0, TEMPLATE_HEIGHT, 1.0);
 
-		windage::Vector3 outPoint1 = homography * point1;
-		windage::Vector3 outPoint2 = homography * point2;
-		windage::Vector3 outPoint3 = homography * point3;
-		windage::Vector3 outPoint4 = homography * point4;
+		windage::Vector3 outPoint1 = homography * pt1;
+		windage::Vector3 outPoint2 = homography * pt2;
+		windage::Vector3 outPoint3 = homography * pt3;
+		windage::Vector3 outPoint4 = homography * pt4;
 
 		outPoint1 /= outPoint1.z;
 		outPoint2 /= outPoint2.z;
