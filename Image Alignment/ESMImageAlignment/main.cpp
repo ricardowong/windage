@@ -50,8 +50,8 @@ const char* IMAGE_SEQ_FILE_NAME = "seq/im%03d.pgm";
 
 const double PROCESSING_TIME = 33.0 * 3;//ms
 
-const int TEMPLATE_WIDTH = 100;
-const int TEMPLATE_HEIGHT = 100;
+const int TEMPLATE_WIDTH = 200;
+const int TEMPLATE_HEIGHT = 200;
 
 void  main()
 {
@@ -63,6 +63,7 @@ void  main()
 	// initialize
 	sprintf(message, IMAGE_SEQ_FILE_NAME, 0);
 	IplImage* saveImage = cvLoadImage(message, 0);
+	cvSmooth(saveImage, saveImage, CV_GAUSSIAN, 3, 3);
 
 	int width = saveImage->width;
 	int height = saveImage->height;
@@ -106,6 +107,8 @@ void  main()
 		if(inputImage) cvReleaseImage(&inputImage);
 		sprintf(message, IMAGE_SEQ_FILE_NAME, k);
 		inputImage = cvLoadImage(message, 0);
+		cvSmooth(inputImage, inputImage, CV_GAUSSIAN, 3, 3);
+
 		cvCvtColor(inputImage, resultImage, CV_GRAY2BGR);
 
 		// processing
