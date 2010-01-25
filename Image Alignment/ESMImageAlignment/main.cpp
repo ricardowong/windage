@@ -12,10 +12,11 @@ const char* IMAGE_SEQ_FILE_NAME = "seq/im%03d.pgm";
 
 const double PROCESSING_TIME = 33.0;//ms
 
-const int TEMPLATE_WIDTH = 100;
-const int TEMPLATE_HEIGHT = 100;
+const int TEMPLATE_WIDTH = 150;
+const int TEMPLATE_HEIGHT = 150;
 
 const double DELTA = 1.0;
+const double HOMOGRAPHY_DELTA = 0.00001;
 const int HOMOGRAPHY_COUNT = 8;
 
 void  main()
@@ -64,7 +65,7 @@ void  main()
 	windage::Matrix3 e = homography;
 
 	bool processing =true;
-	for(int i=0; i<IMAGE_SEQ_COUNT && processing; i++)
+	for(int i=0; i<IMAGE_SEQ_COUNT && processing; )
 	{
 		int64 startTime = cvGetTickCount();
 
@@ -182,8 +183,8 @@ void  main()
 					windage::Matrix3 tempHomography1 = e;
 					windage::Matrix3 tempHomography2 = e;
 
-					tempHomography1.m1[i] -= DELTA;
-					tempHomography2.m1[i] += DELTA;
+					tempHomography1.m1[i] -= HOMOGRAPHY_DELTA;
+					tempHomography2.m1[i] += HOMOGRAPHY_DELTA;
 
 					out1 = tempHomography1 * point1;
 					out2 = tempHomography2 * point1;
@@ -259,10 +260,14 @@ void  main()
 
 		int waittingTime = cvRound(PROCESSING_TIME - processingTime);
 		if(waittingTime < 1) waittingTime = 1;
-		waittingTime = 0;
+//		waittingTime = 0;
 		char ch = cvWaitKey(waittingTime);
 		switch(ch)
 		{
+		case 'i':
+		case 'I':
+			i++;
+			break;
 		case 'q':
 		case 'Q':
 			processing = false;
