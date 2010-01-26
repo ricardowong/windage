@@ -43,15 +43,15 @@
 #include <cv.h>
 #include <highgui.h>
 
-#include "../Algorithms/wMatrix.h"
+#include "../Algorithms/InverseCompositional.h"
 
 const int IMAGE_SEQ_COUNT = 200;
 const char* IMAGE_SEQ_FILE_NAME = "seq/im%03d.pgm";
 
 const double PROCESSING_TIME = 33.0 * 3;//ms
 
-const int TEMPLATE_WIDTH = 100;
-const int TEMPLATE_HEIGHT = 100;
+const int TEMPLATE_WIDTH = 200;
+const int TEMPLATE_HEIGHT = 200;
 
 void  main()
 {
@@ -89,6 +89,12 @@ void  main()
 	homography._23 = startY;
 	windage::Matrix3 e = homography;
 
+	// Template based Tracking using Inverse Compositional
+	windage::InverseCompositional* ic = new windage::InverseCompositional(TEMPLATE_WIDTH, TEMPLATE_HEIGHT);
+	ic->AttatchTemplateImage(templateImage);
+	ic->SetInitialHomography(e);
+	ic->Initialize();	
+
 	bool processing =true;
 	int k = 0;
 	while(processing)
@@ -106,6 +112,12 @@ void  main()
 		int64 startTime = cvGetTickCount();
 		int64 endTime;
 		double error = 0.0;
+
+		error = ic->UpdateHomography(inputImage);
+		homography = ic->GetHomography();
+		samplingImage = ic->GetSamplingImage();
+
+		endTime = cvGetTickCount();
 
 		// draw result
  		windage::Vector3 pt1(0.0, 0.0, 1.0);

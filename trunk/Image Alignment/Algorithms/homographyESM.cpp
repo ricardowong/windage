@@ -224,11 +224,14 @@ double HomographyESM::UpdateHomography(IplImage* image)
 	}
 
 	// delta_s
+	double error = 0.0;
 	for(int i=0; i<q; i++)
 	{
 		double value = (sxc[i] - se[i]);
 		cvSetReal2D(dS, i, 0, value);
+		error += abs(value);
 	}
+	error /= q ;
 
 	// pseudo-invers
 	cvTranspose(JacobianSum, JacobianSumT);
@@ -239,13 +242,11 @@ double HomographyESM::UpdateHomography(IplImage* image)
 	cvMatMul(JacobianInvers, JacobianTdS, dx);
 
 	// update homography
-	double difference = 0.0;
 	for(int i=0; i<this->p; i++)
 	{
 		double value = -2.0 * cvGetReal1D(dx, i);
 		this->homography.m1[i] += value;
-		difference += abs(value);
 	}
 
-	return difference;
+	return error;
 }
