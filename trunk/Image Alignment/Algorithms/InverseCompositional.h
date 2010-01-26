@@ -44,15 +44,6 @@
 #include <cv.h>
 
 #include "wMatrix.h"
-
-#define SET_VECTOR(X, u, v)\
-	CV_MAT_ELEM(*(X), float, 0, 0) = (float)(u);\
-	CV_MAT_ELEM(*(X), float, 1, 0) = (float)(v);\
-	CV_MAT_ELEM(*(X), float, 2, 0) = 1.0f;
-
-#define GET_VECTOR(X, u, v)\
-	(u) = (int)CV_MAT_ELEM(*(X), float, 0, 0);\
-	(v) = (int)CV_MAT_ELEM(*(X), float, 1, 0);
  
 namespace windage
 {
@@ -148,7 +139,7 @@ namespace windage
 
 		bool AttatchTemplateImage(IplImage* image);
 		bool Initialize();
-		double UpdateHomography(IplImage* image);
+		double UpdateHomography(IplImage* image, double* delta = NULL);
 	};
 }
 

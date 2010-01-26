@@ -103,7 +103,7 @@ bool InverseCompositional::Initialize()
 	return true;
 }
 
-double InverseCompositional::UpdateHomography(IplImage* image)
+double InverseCompositional::UpdateHomography(IplImage* image, double* delta)
 {
 	double error = 0.0;
 	cvSetIdentity(W);
@@ -178,7 +178,7 @@ double InverseCompositional::UpdateHomography(IplImage* image)
 	{
 		printf("Error: Warp matrix is singular.\n");
 		return -1.0;
-	}
+	} 
 
 	cvGEMM(W, idW, 1, 0, 0, dW);
 	cvCopy(dW, W);
@@ -191,6 +191,10 @@ double InverseCompositional::UpdateHomography(IplImage* image)
 			this->homography.m[y][x] = cvGetReal2D(W, y, x);
 		}
 	}
+
+	// return delta factor
+	if(delta)
+		(*delta) = abs(delta_wz) + abs(delta_tx) + abs(delta_ty) + abs(delta_s);
 
 	return error;
 }

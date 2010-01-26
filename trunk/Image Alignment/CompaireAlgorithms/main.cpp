@@ -50,10 +50,14 @@
 const int IMAGE_SEQ_COUNT = 200;
 const char* IMAGE_SEQ_FILE_NAME = "seq/im%03d.pgm";
 
-const int TEMPLATE_WIDTH = 80;
-const int TEMPLATE_HEIGHT = 80;
+const int GAUSSIAN_BLUR = 5;
 
-void DrawResult(IplImage* image, windage::Matrix3 homography, CvScalar color = CV_RGB(255, 0, 0))
+const int TEMPLATE_WIDTH = 100;
+const int TEMPLATE_HEIGHT = 100;
+const double HOMOGRAPHY_DELTA = 0.01;
+const int MAX_ITERATION = 80;
+
+void DrawResult(IplImage* image, windage::Matrix3 homography, CvScalar color = CV_RGB(255, 0, 0), int thickness = 1)
 {
 	windage::Vector3 pt1(0.0, 0.0, 1.0);
 	windage::Vector3 pt2(TEMPLATE_WIDTH, 0.0, 1.0);
@@ -70,10 +74,10 @@ void DrawResult(IplImage* image, windage::Matrix3 homography, CvScalar color = C
 	outPoint3 /= outPoint3.z;
 	outPoint4 /= outPoint4.z;
 
-	cvLine(image, cvPoint(outPoint1.x, outPoint1.y), cvPoint(outPoint2.x, outPoint2.y), color);
-	cvLine(image, cvPoint(outPoint2.x, outPoint2.y), cvPoint(outPoint3.x, outPoint3.y), color);
-	cvLine(image, cvPoint(outPoint3.x, outPoint3.y), cvPoint(outPoint4.x, outPoint4.y), color);
-	cvLine(image, cvPoint(outPoint4.x, outPoint4.y), cvPoint(outPoint1.x, outPoint1.y), color);
+	cvLine(image, cvPoint(outPoint1.x, outPoint1.y), cvPoint(outPoint2.x, outPoint2.y), color, thickness);
+	cvLine(image, cvPoint(outPoint2.x, outPoint2.y), cvPoint(outPoint3.x, outPoint3.y), color, thickness);
+	cvLine(image, cvPoint(outPoint3.x, outPoint3.y), cvPoint(outPoint4.x, outPoint4.y), color, thickness);
+	cvLine(image, cvPoint(outPoint4.x, outPoint4.y), cvPoint(outPoint1.x, outPoint1.y), color, thickness);
 }
 
 void  main()
@@ -87,7 +91,7 @@ void  main()
 	// initialize
 	sprintf(message, IMAGE_SEQ_FILE_NAME, 0);
 	IplImage* saveImage = cvLoadImage(message, 0);
-	cvSmooth(saveImage, saveImage, CV_GAUSSIAN, 3, 3);
+	cvSmooth(saveImage, saveImage, CV_GAUSSIAN, GAUSSIAN_BLUR, GAUSSIAN_BLUR);
 
 	int width = saveImage->width;
 	int height = saveImage->height;
@@ -140,33 +144,51 @@ void  main()
 		if(inputImage) cvReleaseImage(&inputImage);
 		sprintf(message, IMAGE_SEQ_FILE_NAME, k);
 		inputImage = cvLoadImage(message, 0);
-		cvSmooth(inputImage, inputImage, CV_GAUSSIAN, 3, 3);
+		cvSmooth(inputImage, inputImage, CV_GAUSSIAN, GAUSSIAN_BLUR, GAUSSIAN_BLUR);
 
 		cvCvtColor(inputImage, resultImage, CV_GRAY2BGR);
 
 		// processing
 		int64 startTimeESM = cvGetTickCount();
-		double errorESM = esm->UpdateHomography(inputImage);
-		homographyESM = esm->GetHomography();
-		samplingESMImage = esm->GetSamplingImage();
+		double errorESM = 0.0;
+		int iterESM = 0;
+		for(iterESM=0; iterESM<MAX_ITERATION; iterESM++)
+		{
+			double delta = 1.0;
+			errorESM = esm->UpdateHomography(inputImage, &delta);
+			homographyESM = esm->GetHomography();
+			samplingESMImage = esm->GetSamplingImage();
+
+			if(delta < HOMOGRAPHY_DELTA)
+				break;			
+		}
 		int64 endTimeESM = cvGetTickCount();
 
 		int64 startTimeIC = cvGetTickCount();
-		double errorIC = ic->UpdateHomography(inputImage);
-		homographyIC = ic->GetHomography();
-		samplingICImage = ic->GetSamplingImage();
+		double errorIC = 0.0;
+		int iterIC = 0;
+		for(iterIC=0; iterIC<MAX_ITERATION; iterIC++)
+		{
+			double delta = 1.0;
+			errorIC = ic->UpdateHomography(inputImage, &delta);
+			homographyIC = ic->GetHomography();
+			samplingICImage = ic->GetSamplingImage();
+
+			if(delta < HOMOGRAPHY_DELTA)
+				break;
+		}
 		int64 endTimeIC = cvGetTickCount();
 
 		// draw result
-		DrawResult(resultImage, homographyESM, CV_RGB(255, 0, 0));
-		DrawResult(resultImage, homographyIC, CV_RGB(0, 255, 0));
+		DrawResult(resultImage, homographyESM, CV_RGB(255, 0, 0), 3);
+		DrawResult(resultImage, homographyIC, CV_RGB(0, 255, 0), 3);
 
 		char message[500];
 		double processingTimeESM = (endTimeESM - startTimeESM)/(cvGetTickFrequency() * 1000.0);
 		double processingTimeIC = (endTimeIC - startTimeIC)/(cvGetTickFrequency() * 1000.0);
-		sprintf(message, "ESM (error : %.2lf, %.2lf ms), IC (error : %.2lf, %.2lf ms)",
-			errorESM, processingTimeESM, errorIC, processingTimeIC);
-		std::cout << message << std::endl; 
+		sprintf(message, "ESM (error : %.2lf, %d iter, %.2lf ms), IC (error : %.2lf, %d iter, %.2lf ms)",
+			errorESM, iterESM, processingTimeESM, errorIC, iterIC, processingTimeIC);
+		std::cout << message << std::endl;
 
 		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 60), message, 0.5);
 		sprintf(message, "press 'I' key to get next image");
@@ -194,6 +216,7 @@ void  main()
 			processing = false;
 			break;
 		}
+		k++;
 	}
 
 	cvReleaseImage(&resultImage);

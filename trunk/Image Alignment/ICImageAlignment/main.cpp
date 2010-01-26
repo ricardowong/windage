@@ -48,10 +48,35 @@
 const int IMAGE_SEQ_COUNT = 200;
 const char* IMAGE_SEQ_FILE_NAME = "seq/im%03d.pgm";
 
-const double PROCESSING_TIME = 33.0 * 3;//ms
+const int GAUSSIAN_BLUR = 5;
 
-const int TEMPLATE_WIDTH = 200;
-const int TEMPLATE_HEIGHT = 200;
+const int TEMPLATE_WIDTH = 100;
+const int TEMPLATE_HEIGHT = 100;
+const double HOMOGRAPHY_DELTA = 0.01;
+const int MAX_ITERATION = 80;
+
+void DrawResult(IplImage* image, windage::Matrix3 homography, CvScalar color = CV_RGB(255, 0, 0), int thickness = 1)
+{
+	windage::Vector3 pt1(0.0, 0.0, 1.0);
+	windage::Vector3 pt2(TEMPLATE_WIDTH, 0.0, 1.0);
+	windage::Vector3 pt3(TEMPLATE_WIDTH, TEMPLATE_HEIGHT, 1.0);
+	windage::Vector3 pt4(0.0, TEMPLATE_HEIGHT, 1.0);
+
+	windage::Vector3 outPoint1 = homography * pt1;
+	windage::Vector3 outPoint2 = homography * pt2;
+	windage::Vector3 outPoint3 = homography * pt3;
+	windage::Vector3 outPoint4 = homography * pt4;
+
+	outPoint1 /= outPoint1.z;
+	outPoint2 /= outPoint2.z;
+	outPoint3 /= outPoint3.z;
+	outPoint4 /= outPoint4.z;
+
+	cvLine(image, cvPoint(outPoint1.x, outPoint1.y), cvPoint(outPoint2.x, outPoint2.y), color, thickness);
+	cvLine(image, cvPoint(outPoint2.x, outPoint2.y), cvPoint(outPoint3.x, outPoint3.y), color, thickness);
+	cvLine(image, cvPoint(outPoint3.x, outPoint3.y), cvPoint(outPoint4.x, outPoint4.y), color, thickness);
+	cvLine(image, cvPoint(outPoint4.x, outPoint4.y), cvPoint(outPoint1.x, outPoint1.y), color, thickness);
+}
 
 void  main()
 {
@@ -63,6 +88,7 @@ void  main()
 	// initialize
 	sprintf(message, IMAGE_SEQ_FILE_NAME, 0);
 	IplImage* saveImage = cvLoadImage(message, 0);
+	cvSmooth(saveImage, saveImage, CV_GAUSSIAN, GAUSSIAN_BLUR, GAUSSIAN_BLUR);
 
 	int width = saveImage->width;
 	int height = saveImage->height;
@@ -106,46 +132,37 @@ void  main()
 		if(inputImage) cvReleaseImage(&inputImage);
 		sprintf(message, IMAGE_SEQ_FILE_NAME, k);
 		inputImage = cvLoadImage(message, 0);
+		cvSmooth(inputImage, inputImage, CV_GAUSSIAN, GAUSSIAN_BLUR, GAUSSIAN_BLUR);
+
 		cvCvtColor(inputImage, resultImage, CV_GRAY2BGR);
 
 		// processing
 		int64 startTime = cvGetTickCount();
-		int64 endTime;
+		
 		double error = 0.0;
+		double delta = 1.0;
+		int iter = 0;
+		for(iter=0; iter<MAX_ITERATION; iter++)
+		{
+			error = ic->UpdateHomography(inputImage, &delta);
+			homography = ic->GetHomography();
+			samplingImage = ic->GetSamplingImage();
 
-		error = ic->UpdateHomography(inputImage);
-		homography = ic->GetHomography();
-		samplingImage = ic->GetSamplingImage();
-
-		endTime = cvGetTickCount();
+			if(delta < HOMOGRAPHY_DELTA)
+				break;
+		}
+		int64 endTime = cvGetTickCount();
+		k++;
 
 		// draw result
- 		windage::Vector3 pt1(0.0, 0.0, 1.0);
-		windage::Vector3 pt2(TEMPLATE_WIDTH, 0.0, 1.0);
-		windage::Vector3 pt3(TEMPLATE_WIDTH, TEMPLATE_HEIGHT, 1.0);
-		windage::Vector3 pt4(0.0, TEMPLATE_HEIGHT, 1.0);
-
-		windage::Vector3 outPoint1 = homography * pt1;
-		windage::Vector3 outPoint2 = homography * pt2;
-		windage::Vector3 outPoint3 = homography * pt3;
-		windage::Vector3 outPoint4 = homography * pt4;
-
-		outPoint1 /= outPoint1.z;
-		outPoint2 /= outPoint2.z;
-		outPoint3 /= outPoint3.z;
-		outPoint4 /= outPoint4.z;
-
-		cvLine(resultImage, cvPoint(outPoint1.x, outPoint1.y), cvPoint(outPoint2.x, outPoint2.y), CV_RGB(255, 0, 0));
-		cvLine(resultImage, cvPoint(outPoint2.x, outPoint2.y), cvPoint(outPoint3.x, outPoint3.y), CV_RGB(255, 0, 0));
-		cvLine(resultImage, cvPoint(outPoint3.x, outPoint3.y), cvPoint(outPoint4.x, outPoint4.y), CV_RGB(255, 0, 0));
-		cvLine(resultImage, cvPoint(outPoint4.x, outPoint4.y), cvPoint(outPoint1.x, outPoint1.y), CV_RGB(255, 0, 0));
-
+		DrawResult(resultImage, homography, CV_RGB(0, 255, 0), 3);
+ 		
 		// draw image
 		cvShowImage("sampling", samplingImage);
 		cvShowImage("result", resultImage);
 
 		double processingTime = (endTime - startTime)/(cvGetTickFrequency() * 1000.0);
-		std::cout << k << " >> processing time : " << processingTime << " ms, error : " << error << std::endl;
+		std::cout << k << " >> processing time : " << iter << " iter, " << processingTime << " ms, error : " << error << std::endl;
 
 		char ch = cvWaitKey(1);
 		switch(ch)
