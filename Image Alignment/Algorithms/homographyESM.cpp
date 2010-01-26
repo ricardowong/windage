@@ -102,7 +102,7 @@ bool HomographyESM::Initialize()
 			point1.x = x;
 			point1.y = y;
 
-			double HOMOGRAPHY_DELTA = 2.5;
+			double HOMOGRAPHY_DELTA = 5.0;
 			for(int i=0; i<this->p; i++)
 			{
 				windage::Matrix3 tempHomography1 = this->homography;
@@ -126,7 +126,7 @@ bool HomographyESM::Initialize()
 	return true;
 }
 
-double HomographyESM::UpdateHomography(IplImage* image)
+double HomographyESM::UpdateHomography(IplImage* image, double* delta)
 {
 	if(this->templateImage == NULL)
 		return false;
@@ -225,13 +225,13 @@ double HomographyESM::UpdateHomography(IplImage* image)
 
 	// delta_s
 	double error = 0.0;
-	for(int i=0; i<q; i++)
+	for(int i=0; i<this->q; i++)
 	{
 		double value = (sxc[i] - se[i]);
 		cvSetReal2D(dS, i, 0, value);
 		error += abs(value);
 	}
-	error /= q ;
+	error /= this->q ;
 
 	// pseudo-invers
 	cvTranspose(JacobianSum, JacobianSumT);
@@ -242,10 +242,19 @@ double HomographyESM::UpdateHomography(IplImage* image)
 	cvMatMul(JacobianInvers, JacobianTdS, dx);
 
 	// update homography
+	double tempDelta = 0.0;
 	for(int i=0; i<this->p; i++)
 	{
 		double value = -2.0 * cvGetReal1D(dx, i);
 		this->homography.m1[i] += value;
+
+		tempDelta += abs(value);
+	}
+
+	// return delta factor
+	if(delta != NULL)
+	{
+		(*delta) = tempDelta;
 	}
 
 	return error;
