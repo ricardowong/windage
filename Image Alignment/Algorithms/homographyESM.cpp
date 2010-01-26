@@ -102,7 +102,7 @@ bool HomographyESM::Initialize()
 			point1.x = x;
 			point1.y = y;
 
-			double HOMOGRAPHY_DELTA = 2.0;
+			double HOMOGRAPHY_DELTA = 2.5;
 			for(int i=0; i<this->p; i++)
 			{
 				windage::Matrix3 tempHomography1 = this->homography;
