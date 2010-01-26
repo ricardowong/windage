@@ -50,7 +50,7 @@ namespace windage
 	class HomographyESM
 	{
 	private:
-		double DELTA;
+		int DELTA;
 		static const int HOMOGRAPHY_COUNT = 9;
 		Matrix3 homography;
 
@@ -80,7 +80,7 @@ namespace windage
 	public:
 		HomographyESM(int width=150, int height=150)
 		{
-			this->DELTA = 1.0;
+			this->DELTA = 1;
 			this->width = width;
 			this->height = height;
 
@@ -88,7 +88,7 @@ namespace windage
 			homography.m1[3] = 0.0; homography.m1[4] = 1.0; homography.m1[5] = 0.0;
 			homography.m1[6] = 0.0; homography.m1[7] = 0.0; homography.m1[8] = 1.0;
 
-			this->q = this->width * this->height - (2*this->DELTA);
+			this->q = this->width * this->height - (int)(2*this->DELTA);
 			this->p = HOMOGRAPHY_COUNT - 1;
 
 			// templateImage is gray
