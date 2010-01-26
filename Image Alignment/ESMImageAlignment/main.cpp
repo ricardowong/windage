@@ -43,7 +43,7 @@
 #include <cv.h>
 #include <highgui.h>
 
-#include "ESMAlgorithm/homographyESM.h"
+#include "../Algorithms/homographyESM.h"
 
 const int IMAGE_SEQ_COUNT = 200;
 const char* IMAGE_SEQ_FILE_NAME = "seq/im%03d.pgm";
