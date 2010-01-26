@@ -43,21 +43,45 @@
 #include <cv.h>
 #include <highgui.h>
 
+#include "../Utils/Utils.h"
 #include "../Algorithms/homographyESM.h"
+#include "../Algorithms/InverseCompositional.h"
 
 const int IMAGE_SEQ_COUNT = 200;
 const char* IMAGE_SEQ_FILE_NAME = "seq/im%03d.pgm";
 
-const double PROCESSING_TIME = 33.0 * 3;//ms
+const int TEMPLATE_WIDTH = 80;
+const int TEMPLATE_HEIGHT = 80;
 
-const int TEMPLATE_WIDTH = 200;
-const int TEMPLATE_HEIGHT = 200;
+void DrawResult(IplImage* image, windage::Matrix3 homography, CvScalar color = CV_RGB(255, 0, 0))
+{
+	windage::Vector3 pt1(0.0, 0.0, 1.0);
+	windage::Vector3 pt2(TEMPLATE_WIDTH, 0.0, 1.0);
+	windage::Vector3 pt3(TEMPLATE_WIDTH, TEMPLATE_HEIGHT, 1.0);
+	windage::Vector3 pt4(0.0, TEMPLATE_HEIGHT, 1.0);
+
+	windage::Vector3 outPoint1 = homography * pt1;
+	windage::Vector3 outPoint2 = homography * pt2;
+	windage::Vector3 outPoint3 = homography * pt3;
+	windage::Vector3 outPoint4 = homography * pt4;
+
+	outPoint1 /= outPoint1.z;
+	outPoint2 /= outPoint2.z;
+	outPoint3 /= outPoint3.z;
+	outPoint4 /= outPoint4.z;
+
+	cvLine(image, cvPoint(outPoint1.x, outPoint1.y), cvPoint(outPoint2.x, outPoint2.y), color);
+	cvLine(image, cvPoint(outPoint2.x, outPoint2.y), cvPoint(outPoint3.x, outPoint3.y), color);
+	cvLine(image, cvPoint(outPoint3.x, outPoint3.y), cvPoint(outPoint4.x, outPoint4.y), color);
+	cvLine(image, cvPoint(outPoint4.x, outPoint4.y), cvPoint(outPoint1.x, outPoint1.y), color);
+}
 
 void  main()
 {
 	char message[100];
 	cvNamedWindow("template");
-	cvNamedWindow("sampling");
+	cvNamedWindow("samplingESM");
+	cvNamedWindow("samplingIC");
 	cvNamedWindow("result");
 
 	// initialize
@@ -74,7 +98,8 @@ void  main()
 	IplImage* inputImage = NULL;
 	IplImage* resultImage = cvCreateImage(cvSize(width, height), IPL_DEPTH_8U, 3);
 	IplImage* templateImage = cvCreateImage(cvSize(TEMPLATE_WIDTH, TEMPLATE_HEIGHT), IPL_DEPTH_8U, 1);
-	IplImage* samplingImage = NULL;
+	IplImage* samplingESMImage = NULL;
+	IplImage* samplingICImage = NULL;
 
 	// set template image
 	CvRect rect = cvRect(startX, startY, TEMPLATE_WIDTH, TEMPLATE_HEIGHT);
@@ -89,12 +114,20 @@ void  main()
 	homography._13 = startX;
 	homography._23 = startY;
 	windage::Matrix3 e = homography;
+	windage::Matrix3 homographyESM = e;
+	windage::Matrix3 homographyIC = e;
 
 	// Template based Tracking using Homography ESM
 	windage::HomographyESM* esm = new windage::HomographyESM(TEMPLATE_WIDTH, TEMPLATE_HEIGHT);
 	esm->AttatchTemplateImage(templateImage);
 	esm->SetInitialHomography(e);
-	esm->Initialize();	
+	esm->Initialize();
+
+	// Template based Tracking using Inverse Compositional
+	windage::InverseCompositional* ic = new windage::InverseCompositional(TEMPLATE_WIDTH, TEMPLATE_HEIGHT);
+	ic->AttatchTemplateImage(templateImage);
+	ic->SetInitialHomography(e);
+	ic->Initialize();
 
 	bool processing =true;
 	int k = 0;
@@ -112,52 +145,46 @@ void  main()
 		cvCvtColor(inputImage, resultImage, CV_GRAY2BGR);
 
 		// processing
-		int64 startTime = cvGetTickCount();
-		int64 endTime;
+		int64 startTimeESM = cvGetTickCount();
+		double errorESM = esm->UpdateHomography(inputImage);
+		homographyESM = esm->GetHomography();
+		samplingESMImage = esm->GetSamplingImage();
+		int64 endTimeESM = cvGetTickCount();
 
-		double error = 0.0;
-		bool roop = true;
-//		while(roop)
-		{
-			error = esm->UpdateHomography(inputImage);
-			homography = esm->GetHomography();
-			samplingImage = esm->GetSamplingImage();
-
-			endTime = cvGetTickCount();
-		}
-//		k++;
+		int64 startTimeIC = cvGetTickCount();
+		double errorIC = ic->UpdateHomography(inputImage);
+		homographyIC = ic->GetHomography();
+		samplingICImage = ic->GetSamplingImage();
+		int64 endTimeIC = cvGetTickCount();
 
 		// draw result
- 		windage::Vector3 pt1(0.0, 0.0, 1.0);
-		windage::Vector3 pt2(TEMPLATE_WIDTH, 0.0, 1.0);
-		windage::Vector3 pt3(TEMPLATE_WIDTH, TEMPLATE_HEIGHT, 1.0);
-		windage::Vector3 pt4(0.0, TEMPLATE_HEIGHT, 1.0);
+		DrawResult(resultImage, homographyESM, CV_RGB(255, 0, 0));
+		DrawResult(resultImage, homographyIC, CV_RGB(0, 255, 0));
 
-		windage::Vector3 outPoint1 = homography * pt1;
-		windage::Vector3 outPoint2 = homography * pt2;
-		windage::Vector3 outPoint3 = homography * pt3;
-		windage::Vector3 outPoint4 = homography * pt4;
+		char message[500];
+		double processingTimeESM = (endTimeESM - startTimeESM)/(cvGetTickFrequency() * 1000.0);
+		double processingTimeIC = (endTimeIC - startTimeIC)/(cvGetTickFrequency() * 1000.0);
+		sprintf(message, "ESM (error : %.2lf, %.2lf ms), IC (error : %.2lf, %.2lf ms)",
+			errorESM, processingTimeESM, errorIC, processingTimeIC);
+		std::cout << message << std::endl; 
 
-		outPoint1 /= outPoint1.z;
-		outPoint2 /= outPoint2.z;
-		outPoint3 /= outPoint3.z;
-		outPoint4 /= outPoint4.z;
-
-		cvLine(resultImage, cvPoint(outPoint1.x, outPoint1.y), cvPoint(outPoint2.x, outPoint2.y), CV_RGB(255, 0, 0));
-		cvLine(resultImage, cvPoint(outPoint2.x, outPoint2.y), cvPoint(outPoint3.x, outPoint3.y), CV_RGB(255, 0, 0));
-		cvLine(resultImage, cvPoint(outPoint3.x, outPoint3.y), cvPoint(outPoint4.x, outPoint4.y), CV_RGB(255, 0, 0));
-		cvLine(resultImage, cvPoint(outPoint4.x, outPoint4.y), cvPoint(outPoint1.x, outPoint1.y), CV_RGB(255, 0, 0));
-
+		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 60), message, 0.5);
+		sprintf(message, "press 'I' key to get next image");
+		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 20), message, 0.5);
+		sprintf(message, "red line is ESM algorithm & green line is Inverse Compositional algorithm");
+		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 40), message, 0.5 );
+ 		
 		// draw image
-		cvShowImage("sampling", samplingImage);
+		cvShowImage("samplingESM", samplingESMImage );
+		cvShowImage("samplingIC", samplingICImage);
 		cvShowImage("result", resultImage);
-
-		double processingTime = (endTime - startTime)/(cvGetTickFrequency() * 1000.0);
-		std::cout << k << " >> processing time : " << processingTime << " ms, error : " << error << std::endl;
 
 		char ch = cvWaitKey(1);
 		switch(ch)
 		{
+		case ' ':
+			cvWaitKey(0);
+			break;
 		case 'i':
 		case 'I':
 			k++;

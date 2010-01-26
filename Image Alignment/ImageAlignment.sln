@@ -5,6 +5,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ESMImageAlignment", "ESMIma
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ICImageAlignment", "ICImageAlignment\ICImageAlignment.vcproj", "{381CD2BC-821A-4594-8956-ABD69065F118}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CompaireAlgorithms", "CompaireAlgorithms\CompaireAlgorithms.vcproj", "{CC2F4991-F237-4F3B-BC62-3AF19F42936E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -19,6 +21,10 @@ Global
 		{381CD2BC-821A-4594-8956-ABD69065F118}.Debug|Win32.Build.0 = Debug|Win32
 		{381CD2BC-821A-4594-8956-ABD69065F118}.Release|Win32.ActiveCfg = Release|Win32
 		{381CD2BC-821A-4594-8956-ABD69065F118}.Release|Win32.Build.0 = Release|Win32
+		{CC2F4991-F237-4F3B-BC62-3AF19F42936E}.Debug|Win32.ActiveCfg = Debug|Win32
+		{CC2F4991-F237-4F3B-BC62-3AF19F42936E}.Debug|Win32.Build.0 = Debug|Win32
+		{CC2F4991-F237-4F3B-BC62-3AF19F42936E}.Release|Win32.ActiveCfg = Release|Win32
+		{CC2F4991-F237-4F3B-BC62-3AF19F42936E}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
