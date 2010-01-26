@@ -185,19 +185,19 @@
 			Name="Algorithm"
 			>
 			<File
-				RelativePath=".\ESMAlgorithm\homographyESM.cpp"
+				RelativePath="..\Algorithms\homographyESM.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\ESMAlgorithm\homographyESM.h"
+				RelativePath="..\Algorithms\homographyESM.h"
 				>
 			</File>
 			<File
-				RelativePath=".\ESMAlgorithm\wMatrix.h"
+				RelativePath="..\Algorithms\wMatrix.h"
 				>
 			</File>
 			<File
-				RelativePath=".\ESMAlgorithm\wVector.h"
+				RelativePath="..\Algorithms\wVector.h"
 				>
 			</File>
 		</Filter>
