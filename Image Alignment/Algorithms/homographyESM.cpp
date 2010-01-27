@@ -75,9 +75,9 @@ bool HomographyESM::Initialize()
 	point2.z = 1.0;
 
 	int index = 0;
-	for(int y=DELTA; y<templateImage->height-DELTA; y++)
+	for(int y=DELTA; y<templateImage->height-DELTA; y+= SAMPLING_STEP)
 	{
-		for(int x=DELTA; x<templateImage->width-DELTA; x++)
+		for(int x=DELTA; x<templateImage->width-DELTA; x+= SAMPLING_STEP)
 		{
 			double I1 = -1.0;
 			double I2 = -1.0;
@@ -136,21 +136,20 @@ double HomographyESM::UpdateHomography(IplImage* image, double* delta)
 		return false;
 
 	// update homography
-	Vector3 point1, point2, out1, out2;
+	Vector3 point, point1, point2, out, out1, out2;
+	point.z = 1.0;
 	point1.z = 1.0;
 	point2.z = 1.0;
 
 	int ix, iy;
 	int index = 0;
-	for(int y=DELTA; y<templateImage->height-DELTA; y++)
+	for(int y=DELTA; y<templateImage->height-DELTA; y+= SAMPLING_STEP)
 	{
-		for(int x=DELTA; x<templateImage->width-DELTA; x++)
+		for(int x=DELTA; x<templateImage->width-DELTA; x+= SAMPLING_STEP)
 		{
-			double I1 = -1.0;
-			double I2 = -1.0;
-
-			windage::Vector3 point(x, y, 1.0);
-			windage::Vector3 out = this->homography * point;
+			point.x = x;
+			point.y = y;
+			out = this->homography * point;
 			out /= out.z;
 
 			ix = cvRound(out.x);
@@ -165,6 +164,10 @@ double HomographyESM::UpdateHomography(IplImage* image, double* delta)
 			// for debuging
 			cvSetReal2D(samplingImage, y, x, value);
 
+			double I1 = -1.0;
+			double I2 = -1.0;
+
+			// TODO! : replace to sobel image
 			// dI(w(p)) / dp (1x2 gradient of image)
 			Vector2 tempdwI;
 
@@ -179,12 +182,12 @@ double HomographyESM::UpdateHomography(IplImage* image, double* delta)
 
 			I1 = -1.0;
 			I2 = -1.0;
-			ix = cvRound(out.x);
-			iy = cvRound(out.y);
+			ix = cvRound(out1.x);
+			iy = cvRound(out1.y);
 			if( 0 < ix && ix < image->width && 0 < iy && iy < image->height)
 				I1 = cvGetReal2D(image, iy, ix);
-			ix = cvRound(out.x);
-			iy = cvRound(out.y);
+			ix = cvRound(out2.x);
+			iy = cvRound(out2.y);
 			if( 0 < ix && ix < image->width && 0 < iy && iy < image->height)
 				I2 = cvGetReal2D(image, iy, ix);
 			tempdwI.x = (I2 - I1)/(2*DELTA);
@@ -200,17 +203,15 @@ double HomographyESM::UpdateHomography(IplImage* image, double* delta)
 
 			I1 = -1.0;
 			I2 = -1.0;
-			ix = cvRound(out.x);
-			iy = cvRound(out.y);
+			ix = cvRound(out1.x);
+			iy = cvRound(out1.y);
 			if( 0 < ix && ix < image->width && 0 < iy && iy < image->height)
 				I1 = cvGetReal2D(image, iy, ix);
-			ix = cvRound(out.x);
-			iy = cvRound(out.y);
+			ix = cvRound(out2.x);
+			iy = cvRound(out2.y);
 			if( 0 < ix && ix < image->width && 0 < iy && iy < image->height)
 				I2 = cvGetReal2D(image, iy, ix);
 			tempdwI.y = (I2 - I1)/(2*DELTA);
-
-			dwI[index] = tempdwI;
 
 			// Jsum = J(e) + J(xc)
 			for(int i=0; i<this->p; i++)

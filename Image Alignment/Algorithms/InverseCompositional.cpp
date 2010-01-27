@@ -56,6 +56,9 @@ bool InverseCompositional::AttatchTemplateImage(IplImage* image)
 bool InverseCompositional::Initialize()
 {
 	// Calculate gradient of T.
+	IplImage* pGradTx = cvCreateImage(cvSize(width, height), IPL_DEPTH_16S, 1);
+	IplImage* pGradTy = cvCreateImage(cvSize(width, height), IPL_DEPTH_16S, 1);
+
 	cvSobel(this->templateImage, pGradTx, 1, 0); // Gradient in X direction
 	cvSobel(this->templateImage, pGradTy, 0, 1); // Gradient in Y direction
 
@@ -91,6 +94,9 @@ bool InverseCompositional::Initialize()
 			}
 		}	
 	}
+
+	cvReleaseImage(&pGradTx);
+	cvReleaseImage(&pGradTy);
 
 	// Invert Hessian.
 	double inv_res = cvInvert(H, iH);
