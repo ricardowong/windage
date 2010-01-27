@@ -180,7 +180,7 @@ void  main()
 		int64 endTimeIC = cvGetTickCount();
 
 		// draw result
-		DrawResult(resultImage, homographyESM, CV_RGB(255, 0, 0), 3);
+		DrawResult(resultImage, homographyESM, CV_RGB(255, 0, 0), 6);
 		DrawResult(resultImage, homographyIC, CV_RGB(0, 255, 0), 3);
 
 		char message[500];
