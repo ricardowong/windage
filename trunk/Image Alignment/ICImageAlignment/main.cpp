@@ -88,7 +88,8 @@ void  main()
 	// initialize
 	sprintf(message, IMAGE_SEQ_FILE_NAME, 0);
 	IplImage* saveImage = cvLoadImage(message, 0);
-	cvSmooth(saveImage, saveImage, CV_GAUSSIAN, GAUSSIAN_BLUR, GAUSSIAN_BLUR);
+	if(GAUSSIAN_BLUR > 0)
+		cvSmooth(saveImage, saveImage, CV_GAUSSIAN, GAUSSIAN_BLUR, GAUSSIAN_BLUR);
 
 	int width = saveImage->width;
 	int height = saveImage->height;
@@ -135,7 +136,8 @@ void  main()
 		if(inputImage) cvReleaseImage(&inputImage);
 		sprintf(message, IMAGE_SEQ_FILE_NAME, k);
 		inputImage = cvLoadImage(message, 0);
-		cvSmooth(inputImage, inputImage, CV_GAUSSIAN, GAUSSIAN_BLUR, GAUSSIAN_BLUR);
+		if(GAUSSIAN_BLUR > 0)
+			cvSmooth(inputImage, inputImage, CV_GAUSSIAN, GAUSSIAN_BLUR, GAUSSIAN_BLUR);
 
 		cvCvtColor(inputImage, resultImage, CV_GRAY2BGR);
 

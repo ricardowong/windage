@@ -53,7 +53,9 @@ namespace windage
 		int DELTA;
 		double PARAMETER_AMPLIFICATION;
 		double HOMOGRAPHY_DELTA;
+		static const int SAMPLING_STEP = 1;
 		static const int HOMOGRAPHY_COUNT = 9;
+		
 		Matrix3 homography;
 
 		int width;
@@ -98,6 +100,7 @@ namespace windage
 			// templateImage is gray
 			templateImage = cvCreateImage(this->GetTemplateSize(), IPL_DEPTH_8U, 1);
 			samplingImage = cvCreateImage(this->GetTemplateSize(), IPL_DEPTH_8U, 1);
+			cvZero(samplingImage);
 
 			JacobianSum		= cvCreateMat(q, p, CV_64F);
 			JacobianSumT	= cvCreateMat(p, q, CV_64F);

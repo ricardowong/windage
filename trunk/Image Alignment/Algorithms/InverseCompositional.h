@@ -62,8 +62,6 @@ namespace windage
 		IplImage* templateImage;
 		IplImage* samplingImage;
 
-		IplImage* pGradTx;	// Gradient of I in X direction.
-		IplImage* pGradTy;	// Gradient of I in Y direction.
 		IplImage* pStDesc;	// Steepest descent images.
 
 		CvMat* W;	// Current value of warp W(x,p)
@@ -82,7 +80,7 @@ namespace windage
 		InverseCompositional(int width=150, int height=150)
 		{
 			this->DELTA = 1;
-			this->PARAMETER_AMPLIFICATION = 2.0;
+			this->PARAMETER_AMPLIFICATION = 3.0;
 			this->width = width;
 			this->height = height;
 
@@ -95,8 +93,6 @@ namespace windage
 			samplingImage = cvCreateImage(this->GetTemplateSize(), IPL_DEPTH_8U, 1);
 
 			// Create matrices.
-			pGradTx = cvCreateImage(cvSize(width, height), IPL_DEPTH_16S, 1);
-			pGradTy = cvCreateImage(cvSize(width, height), IPL_DEPTH_16S, 1);
 			pStDesc = cvCreateImage(cvSize(width, height), IPL_DEPTH_32F, 4);
 			
 			W = cvCreateMat(3, 3, CV_32F);
@@ -115,8 +111,6 @@ namespace windage
 			if(templateImage)	cvReleaseImage(&templateImage);
 			if(samplingImage)	cvReleaseImage(&samplingImage);
 
-			if(pGradTx)	cvReleaseImage(&pGradTx);
-			if(pGradTy)	cvReleaseImage(&pGradTy);
 			if(pStDesc)	cvReleaseImage(&pStDesc);
 
 			if(W)	cvReleaseMat(&W);
