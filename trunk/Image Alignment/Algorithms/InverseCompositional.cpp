@@ -66,9 +66,9 @@ bool InverseCompositional::Initialize()
 	cvSet(H, cvScalar(0)); // Set Hessian with zeroes
 
 	// Walk through pixels in the template T.
-	for(int y=0; y<this->height; y++)
+	for(int y=0; y<this->height; y+=SAMPLING_STEP)
 	{
-		for(int x=0; x<this->width; x++)
+		for(int x=0; x<this->width; x+=SAMPLING_STEP)
 		{
 			// Evaluate gradient of T.
 			double Tx = cvGetReal2D(pGradTx, y, x);
@@ -109,10 +109,9 @@ bool InverseCompositional::Initialize()
 	return true;
 }
 
-double InverseCompositional::UpdateHomography(IplImage* image, double* delta)
+void InverseCompositional::SetInitialHomography(Matrix3 homography)
 {
-	double error = 0.0;
-	cvSetIdentity(W);
+	this->homography = homography;
 
 	for(int y=0; y<3; y++)
 	{
@@ -121,36 +120,56 @@ double InverseCompositional::UpdateHomography(IplImage* image, double* delta)
 			cvSetReal2D(W, y, x , this->homography.m[y][x]);
 		}
 	}
+}
+
+Matrix3 InverseCompositional::GetHomography()
+{
+	// update homography
+	for(int y=0; y<3; y++)
+	{
+		for(int x=0; x<3; x++)
+		{
+			this->homography.m[y][x] = cvGetReal2D(W, y, x);
+		}
+	}
+
+	return this->homography;
+}
+
+double InverseCompositional::UpdateHomography(IplImage* image, double* delta)
+{
+	double error = 0.0;
+//	cvSetIdentity(W);
 
 	int ix, iy;
 	int pixel_count=0; // Count of processed pixels
 	cvSet(b, cvScalar(0)); // Set b matrix with zeroes
+	windage::Vector3 point, out;
+	point.z = 1.0;
 
 	// Walk through pixels in the template T.
-	for(int y=0; y<this->height; y++)
+	for(int y=0; y<this->height; y+=SAMPLING_STEP)
 	{
-		for(int x=0; x<this->width; x++)
+		for(int x=0; x<this->width; x+=SAMPLING_STEP)
 		{
 			// get value
-			windage::Vector3 point(x, y, 1.0);
-			windage::Vector3 out = this->homography * point;
+			point.x = x;
+			point.y = y;
+			out = this->homography * point;
 			out /= out.z;
 
 			ix = cvRound(out.x);
 			iy = cvRound(out.y);
 
-			double value = -1.0;
 			if( 0 < ix && ix < image->width && 0 < iy && iy < image->height)
-				value = cvGetReal2D(image, iy, ix);
-			cvSetReal2D(samplingImage, y, x, value);
-
-			if(0 <= ix && ix < image->width &&
-				0 <= iy && iy < image->height)
 			{
 				pixel_count++;
 
+				double value = cvGetReal2D(image, iy, ix);
+				cvSetReal2D(samplingImage, y, x, value);
+
 				// Calculate image difference D = I(W(x,p))-T(x).
-				double D = cvGetReal2D(image, iy, ix) - cvGetReal2D(this->templateImage, y, x);
+				double D = value - cvGetReal2D(this->templateImage, y, x);
 
 				// Update mean error value.
 				error += abs(D);
@@ -186,17 +205,9 @@ double InverseCompositional::UpdateHomography(IplImage* image, double* delta)
 		return -1.0;
 	} 
 
+	// update homography at W
 	cvGEMM(W, idW, 1, 0, 0, dW);
 	cvCopy(dW, W);
-
-	// update homography
-	for(int y=0; y<3; y++)
-	{
-		for(int x=0; x<3; x++)
-		{
-			this->homography.m[y][x] = cvGetReal2D(W, y, x);
-		}
-	}
 
 	// return delta factor
 	if(delta)

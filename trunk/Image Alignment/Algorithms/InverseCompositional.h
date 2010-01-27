@@ -52,8 +52,7 @@ namespace windage
 	private:
 		int DELTA;
 		double PARAMETER_AMPLIFICATION;
-		static const int MAX_ITERATOR = 100;
-		static const int HOMOGRAPHY_COUNT = 9;
+		int SAMPLING_STEP;
 		Matrix3 homography;
 
 		int width;
@@ -80,7 +79,9 @@ namespace windage
 		InverseCompositional(int width=150, int height=150)
 		{
 			this->DELTA = 1;
-			this->PARAMETER_AMPLIFICATION = 3.0;
+			this->PARAMETER_AMPLIFICATION = 5.0;
+			this->SAMPLING_STEP = 5;
+
 			this->width = width;
 			this->height = height;
 
@@ -91,6 +92,7 @@ namespace windage
 			// templateImage is gray
 			templateImage = cvCreateImage(this->GetTemplateSize(), IPL_DEPTH_8U, 1);
 			samplingImage = cvCreateImage(this->GetTemplateSize(), IPL_DEPTH_8U, 1);
+			cvZero(samplingImage);
 
 			// Create matrices.
 			pStDesc = cvCreateImage(cvSize(width, height), IPL_DEPTH_32F, 4);
@@ -125,14 +127,15 @@ namespace windage
 			if(delta_p) cvReleaseMat(&delta_p);
 		}
 
-		inline Matrix3 GetHomography(){return this->homography;};
+		
 		inline CvSize GetTemplateSize(){return cvSize(this->width, this->height);};
-		inline void SetInitialHomography(Matrix3 homography){this->homography = homography;};
 		inline IplImage* GetTemplateImage(){return this->templateImage;};
 		inline IplImage* GetSamplingImage(){return this->samplingImage;};
 
 		bool AttatchTemplateImage(IplImage* image);
 		bool Initialize();
+		void SetInitialHomography(Matrix3 homography);
+		Matrix3 GetHomography();
 		double UpdateHomography(IplImage* image, double* delta = NULL);
 	};
 }

@@ -50,10 +50,10 @@ const char* IMAGE_SEQ_FILE_NAME = "seq/im%03d.pgm";
 
 const int GAUSSIAN_BLUR = 5;
 
-const int TEMPLATE_WIDTH = 100;
-const int TEMPLATE_HEIGHT = 100;
+const int TEMPLATE_WIDTH = 150;
+const int TEMPLATE_HEIGHT = 150;
 const double HOMOGRAPHY_DELTA = 0.01;
-const int MAX_ITERATION = 80;
+const int MAX_ITERATION = 50;
 
 void DrawResult(IplImage* image, windage::Matrix3 homography, CvScalar color = CV_RGB(255, 0, 0), int thickness = 1)
 {

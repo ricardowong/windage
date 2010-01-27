@@ -239,7 +239,7 @@ double HomographyESM::UpdateHomography(IplImage* image, double* delta)
 	cvMatMul(JacobianSumT, JacobianSum, Jacobian);
 	cvMatMul(JacobianSumT, dS, JacobianTdS);
 
-	cvInvert(Jacobian, JacobianInvers, CV_SVD_SYM);
+	double inv_res = cvInvert(Jacobian, JacobianInvers, CV_SVD_SYM);
 	cvMatMul(JacobianInvers, JacobianTdS, dx);
 
 	// update homography
