@@ -166,10 +166,10 @@ double InverseCompositional::UpdateHomography(IplImage* image, double* delta)
 
 	// Find parameter increment. 
 	cvGEMM(iH, b, 1, 0, 0, delta_p);
-	float delta_wz = CV_MAT_ELEM(*delta_p, float, 0, 0);
-	float delta_tx = CV_MAT_ELEM(*delta_p, float, 1, 0);
-	float delta_ty = CV_MAT_ELEM(*delta_p, float, 2, 0);
-	float delta_s  = CV_MAT_ELEM(*delta_p, float, 3, 0);
+	float delta_wz = CV_MAT_ELEM(*delta_p, float, 0, 0) * (float)PARAMETER_AMPLIFICATION;
+	float delta_tx = CV_MAT_ELEM(*delta_p, float, 1, 0) * (float)PARAMETER_AMPLIFICATION;
+	float delta_ty = CV_MAT_ELEM(*delta_p, float, 2, 0) * (float)PARAMETER_AMPLIFICATION;
+	float delta_s  = CV_MAT_ELEM(*delta_p, float, 3, 0) * (float)PARAMETER_AMPLIFICATION;
 
 	init_warp(dW, delta_wz, delta_tx, delta_ty, 1.0f+delta_s);
 	// Invert warp.
@@ -194,7 +194,9 @@ double InverseCompositional::UpdateHomography(IplImage* image, double* delta)
 
 	// return delta factor
 	if(delta)
+	{
 		(*delta) = abs(delta_wz) + abs(delta_tx) + abs(delta_ty) + abs(delta_s);
+	}
 
 	return error;
 }

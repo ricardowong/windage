@@ -51,6 +51,8 @@ namespace windage
 	{
 	private:
 		int DELTA;
+		double PARAMETER_AMPLIFICATION;
+		double HOMOGRAPHY_DELTA;
 		static const int HOMOGRAPHY_COUNT = 9;
 		Matrix3 homography;
 
@@ -81,6 +83,8 @@ namespace windage
 		HomographyESM(int width=150, int height=150)
 		{
 			this->DELTA = 1;
+			this->PARAMETER_AMPLIFICATION = 2.0;
+			this->HOMOGRAPHY_DELTA = 5.0;
 			this->width = width;
 			this->height = height;
 

@@ -119,7 +119,10 @@ void  main()
 	windage::InverseCompositional* ic = new windage::InverseCompositional(TEMPLATE_WIDTH, TEMPLATE_HEIGHT);
 	ic->AttatchTemplateImage(templateImage);
 	ic->SetInitialHomography(e);
-	ic->Initialize();	
+	ic->Initialize();
+
+	// homography update stack
+	std::vector<windage::Matrix3> homographyList;
 
 	bool processing =true;
 	int k = 0;
@@ -142,11 +145,14 @@ void  main()
 		double error = 0.0;
 		double delta = 1.0;
 		int iter = 0;
+		homographyList.clear();
 		for(iter=0; iter<MAX_ITERATION; iter++)
 		{
 			error = ic->UpdateHomography(inputImage, &delta);
 			homography = ic->GetHomography();
 			samplingImage = ic->GetSamplingImage();
+
+			homographyList.push_back(homography);
 
 			if(delta < HOMOGRAPHY_DELTA)
 				break;
@@ -155,7 +161,9 @@ void  main()
 		k++;
 
 		// draw result
-		DrawResult(resultImage, homography, CV_RGB(0, 255, 0), 3);
+		int count = homographyList.size();
+		for(int i=0; i<count; i++)
+ 			DrawResult(resultImage, homographyList[i], CV_RGB(((count-i)/(double)count) * 255.0, (i/(double)count) * 255.0, 0), 1);
  		
 		// draw image
 		cvShowImage("sampling", samplingImage);

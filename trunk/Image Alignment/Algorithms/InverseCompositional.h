@@ -51,7 +51,7 @@ namespace windage
 	{
 	private:
 		int DELTA;
-		double EPS;
+		double PARAMETER_AMPLIFICATION;
 		static const int MAX_ITERATOR = 100;
 		static const int HOMOGRAPHY_COUNT = 9;
 		Matrix3 homography;
@@ -82,7 +82,7 @@ namespace windage
 		InverseCompositional(int width=150, int height=150)
 		{
 			this->DELTA = 1;
-			this->EPS = 1E-5f;
+			this->PARAMETER_AMPLIFICATION = 2.0;
 			this->width = width;
 			this->height = height;
 
