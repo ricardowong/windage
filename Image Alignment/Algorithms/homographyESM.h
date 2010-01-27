@@ -81,13 +81,15 @@ namespace windage
 		CvMat* JacobianTdS;
 		CvMat* dx;
 
+		bool isInitialize;
+
 	public:
 		HomographyESM(int width=150, int height=150)
 		{
 			this->DELTA = 1;
 			this->PARAMETER_AMPLIFICATION = 2.0;
 			this->HOMOGRAPHY_DELTA = 5.0;
-			this->SAMPLING_STEP = 5;
+			this->SAMPLING_STEP = 2;
 			this->width = width;
 			this->height = height;
 
@@ -110,6 +112,8 @@ namespace windage
 			dS				= cvCreateMat(q, 1, CV_64F);
 			JacobianTdS		= cvCreateMat(p, 1, CV_64F);
 			dx				= cvCreateMat(p, 1, CV_64F);
+
+			isInitialize = false;
 		}
 		~HomographyESM()
 		{
