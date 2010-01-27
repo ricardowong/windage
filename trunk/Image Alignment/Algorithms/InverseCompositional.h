@@ -80,7 +80,7 @@ namespace windage
 		{
 			this->DELTA = 1;
 			this->PARAMETER_AMPLIFICATION = 5.0;
-			this->SAMPLING_STEP = 5;
+			this->SAMPLING_STEP = 2;
 
 			this->width = width;
 			this->height = height;

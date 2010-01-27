@@ -123,11 +123,14 @@ bool HomographyESM::Initialize()
 		}
 	}
 
+	isInitialize = true;
 	return true;
 }
 
 double HomographyESM::UpdateHomography(IplImage* image, double* delta)
 {
+	if(isInitialize == false)
+		return false;
 	if(this->templateImage == NULL)
 		return false;
 	if(image == NULL)
