@@ -119,7 +119,10 @@ void  main()
 	windage::HomographyESM* esm = new windage::HomographyESM(TEMPLATE_WIDTH, TEMPLATE_HEIGHT);
 	esm->AttatchTemplateImage(templateImage);
 	esm->SetInitialHomography(e);
-	esm->Initialize();	
+	esm->Initialize();
+
+	// homography update stack
+	std::vector<windage::Matrix3> homographyList;
 
 	bool processing =true;
 	int k = 0;
@@ -142,11 +145,14 @@ void  main()
 		double error = 0.0;
 		double delta = 1.0;
 		int iter = 0;
+		homographyList.clear();
 		for(iter=0; iter<MAX_ITERATION; iter++)
 		{
 			error = esm->UpdateHomography(inputImage, &delta);
 			homography = esm->GetHomography();
 			samplingImage = esm->GetSamplingImage();
+
+			homographyList.push_back(homography);
 
 			if(delta < HOMOGRAPHY_DELTA)
 				break;
@@ -155,7 +161,9 @@ void  main()
 		k++;
 
 		// draw result
- 		DrawResult(resultImage, homography, CV_RGB(255, 0, 0), 3);
+		int count = homographyList.size();
+		for(int i=0; i<count; i++)
+ 			DrawResult(resultImage, homographyList[i], CV_RGB(((count-i)/(double)count) * 255.0, (i/(double)count) * 255.0, 0), 1);
 
 		// draw image
 		cvShowImage("sampling", samplingImage);

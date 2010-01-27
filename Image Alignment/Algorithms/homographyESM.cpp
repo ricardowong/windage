@@ -102,7 +102,7 @@ bool HomographyESM::Initialize()
 			point1.x = x;
 			point1.y = y;
 
-			double HOMOGRAPHY_DELTA = 5.0;
+			// TODO! replace homography derivation
 			for(int i=0; i<this->p; i++)
 			{
 				windage::Matrix3 tempHomography1 = this->homography;
@@ -245,7 +245,7 @@ double HomographyESM::UpdateHomography(IplImage* image, double* delta)
 	double tempDelta = 0.0;
 	for(int i=0; i<this->p; i++)
 	{
-		double value = -2.0 * cvGetReal1D(dx, i);
+		double value = -2.0 * cvGetReal1D(dx, i) * PARAMETER_AMPLIFICATION;
 		this->homography.m1[i] += value;
 
 		tempDelta += abs(value);
