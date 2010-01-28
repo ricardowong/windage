@@ -89,7 +89,7 @@ namespace windage
 			this->DELTA = 1;
 			this->PARAMETER_AMPLIFICATION = 2.0;
 			this->HOMOGRAPHY_DELTA = 5.0;
-			this->SAMPLING_STEP = 2;
+			this->SAMPLING_STEP = 5;
 			this->width = width;
 			this->height = height;
 
@@ -97,7 +97,7 @@ namespace windage
 			homography.m1[3] = 0.0; homography.m1[4] = 1.0; homography.m1[5] = 0.0;
 			homography.m1[6] = 0.0; homography.m1[7] = 0.0; homography.m1[8] = 1.0;
 
-			this->q = (this->width/this->SAMPLING_STEP+1) * (this->height/this->SAMPLING_STEP+1) - (int)(2*this->DELTA);
+			this->q = (this->width/this->SAMPLING_STEP) * (this->height/this->SAMPLING_STEP) - (int)(2*this->DELTA) + 2;
 			this->p = HOMOGRAPHY_COUNT - 1;
 
 			// templateImage is gray
@@ -112,6 +112,10 @@ namespace windage
 			dS				= cvCreateMat(q, 1, CV_64F);
 			JacobianTdS		= cvCreateMat(p, 1, CV_64F);
 			dx				= cvCreateMat(p, 1, CV_64F);
+
+			cvZero(JacobianSum);
+			cvZero(JacobianSumT);
+			cvZero(Jacobian);
 
 			isInitialize = false;
 		}
