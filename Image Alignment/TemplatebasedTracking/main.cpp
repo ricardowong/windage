@@ -47,13 +47,16 @@
 #include "../Algorithms/homographyESM.h"
 #include "../Algorithms/InverseCompositional.h"
 
-const int GAUSSIAN_BLUR = -1;
+#define USE_ESM 1
+#define USE_IC 0
 
-const int WIDTH = 320;
-const int HEIGHT = 240;
+const int GAUSSIAN_BLUR = 5;
 
-const int TEMPLATE_WIDTH = 200;
-const int TEMPLATE_HEIGHT = 200;
+const int WIDTH = 640;
+const int HEIGHT = 480;
+
+const int TEMPLATE_WIDTH = 300;
+const int TEMPLATE_HEIGHT = 300;
 const double HOMOGRAPHY_DELTA = 0.01;
 const int MAX_ITERATION = 50;
 
@@ -107,8 +110,12 @@ void  main()
 	windage::Matrix3 e = homography;
 
 	// Template based Tracking using Inverse Compositional
-//	windage::InverseCompositional* tracker = new windage::InverseCompositional(TEMPLATE_WIDTH, TEMPLATE_HEIGHT);
+#if USE_IC
+	windage::InverseCompositional* tracker = new windage::InverseCompositional(TEMPLATE_WIDTH, TEMPLATE_HEIGHT);
+#endif
+#if USE_ESM
 	windage::HomographyESM* tracker = new windage::HomographyESM(TEMPLATE_WIDTH, TEMPLATE_HEIGHT);
+#endif
 	tracker->SetInitialHomography(e);
 
 	// homography update stack

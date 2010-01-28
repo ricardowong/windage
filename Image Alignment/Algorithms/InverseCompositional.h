@@ -79,8 +79,8 @@ namespace windage
 		InverseCompositional(int width=150, int height=150)
 		{
 			this->DELTA = 1;
-			this->PARAMETER_AMPLIFICATION = 5.0;
-			this->SAMPLING_STEP = 2;
+			this->PARAMETER_AMPLIFICATION = 3.0;
+			this->SAMPLING_STEP = 5;
 
 			this->width = width;
 			this->height = height;

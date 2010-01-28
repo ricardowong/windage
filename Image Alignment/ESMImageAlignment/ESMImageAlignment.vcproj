@@ -202,6 +202,18 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="Utils"
+			>
+			<File
+				RelativePath="..\Utils\Utils.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\Utils\Utils.h"
+				>
+			</File>
+		</Filter>
 	</Files>
 	<Globals>
 	</Globals>

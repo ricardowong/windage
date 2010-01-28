@@ -43,6 +43,7 @@
 #include <cv.h>
 #include <highgui.h>
 
+#include "../Utils/Utils.h"
 #include "../Algorithms/homographyESM.h"
 
 const int IMAGE_SEQ_COUNT = 200;
@@ -167,22 +168,35 @@ void  main()
 		for(int i=0; i<count; i++)
  			DrawResult(resultImage, homographyList[i], CV_RGB(((count-i)/(double)count) * 255.0, (i/(double)count) * 255.0, 0), 1);
 
+		double processingTime = (endTime - startTime)/(cvGetTickFrequency() * 1000.0);
+		sprintf(message, "%03d >> processing time : %.2lf ms (%02d iter), error : %.2lf", k, processingTime, iter, error);
+		std::cout << message << std::endl;
+
+		windage::Utils::DrawTextToImage(resultImage, cvPoint(5, 15), message, 0.6);
+
 		// draw image
 		cvShowImage("sampling", samplingImage);
 		cvShowImage("result", resultImage);
-
-		double processingTime = (endTime - startTime)/(cvGetTickFrequency() * 1000.0);
-		std::cout << k << " >> processing time : " << iter << " iter, " << processingTime << " ms, error : " << error << std::endl;
 
 		char ch = cvWaitKey(1);
 		switch(ch)
 		{
 		case ' ':
-			cvWaitKey(0);
+			{
+				char tempch = cvWaitKey(0);
+				if(tempch == 's' || tempch == 'S')
+				{
+					cvSaveImage("ESMAlgorithm.jpg", resultImage);
+				}
+			}
 			break;
 		case 'i':
 		case 'I':
 			k++;
+			break;
+		case 'o':
+		case 'O':
+			k-=5;
 			break;
 		case 'q':
 		case 'Q':
