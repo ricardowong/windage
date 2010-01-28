@@ -37,81 +37,71 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#ifndef _HOMOGRAPHY_ESM_H_
-#define _HOMOGRAPHY_ESM_H_
+#ifndef _TEMPLATE_MINIMIZATION_H_
+#define _TEMPLATE_MINIMIZATION_H_
 
 #include <vector>
 #include <cv.h>
 
 #include "wMatrix.h"
-#include "TemplateMinimization.h"
-
+ 
 namespace windage
 {
-	class HomographyESM : public TemplateMinimization
+	class TemplateMinimization
 	{
-	private:
-		double HOMOGRAPHY_DELTA;
-		static const int HOMOGRAPHY_COUNT = 9;
+	protected:
+		static const int DELTA = 1;
+		double PARAMETER_AMPLIFICATION;
+		int SAMPLING_STEP;
+		Matrix3 homography;
 
-		int q;
-		int p;
+		int width;
+		int height;
 
-		std::vector<Vector2> dI;
-		std::vector<Vector2> dwI;
-		std::vector<std::vector<Vector2>> dwx;
+		IplImage* templateImage;
+		IplImage* samplingImage;
 
-		std::vector<double> se;
-		std::vector<double> sxc;
-
-		CvMat* JacobianSum;
-		CvMat* JacobianSumT;
-		CvMat* Jacobian;
-		CvMat* JacobianInvers;
-		CvMat* dS;
-		CvMat* JacobianTdS;
-		CvMat* dx;
+		bool isInitialize;
 
 	public:
-		HomographyESM(int width=150, int height=150) : TemplateMinimization(width, height)
+		TemplateMinimization(int width=150, int height=150)
 		{
-			this->HOMOGRAPHY_DELTA = 5.0;
+			this->PARAMETER_AMPLIFICATION = 2.0;
+			this->SAMPLING_STEP = 5;
 
-			this->q = (this->width/this->SAMPLING_STEP) * (this->height/this->SAMPLING_STEP) - (int)(2*this->DELTA) + 2;
-			this->p = HOMOGRAPHY_COUNT - 1;
+			this->width = width;
+			this->height = height;
 
-			JacobianSum		= cvCreateMat(q, p, CV_64F);
-			JacobianSumT	= cvCreateMat(p, q, CV_64F);
-			Jacobian		= cvCreateMat(p, p, CV_64F);
-			JacobianInvers	= cvCreateMat(p, p, CV_64F);
-			dS				= cvCreateMat(q, 1, CV_64F);
-			JacobianTdS		= cvCreateMat(p, 1, CV_64F);
-			dx				= cvCreateMat(p, 1, CV_64F);
+			homography.m1[0] = 1.0; homography.m1[1] = 0.0; homography.m1[2] = 0.0;
+			homography.m1[3] = 0.0; homography.m1[4] = 1.0; homography.m1[5] = 0.0;
+			homography.m1[6] = 0.0; homography.m1[7] = 0.0; homography.m1[8] = 1.0;
 
-			cvZero(JacobianSum);
-			cvZero(JacobianSumT);
-			cvZero(Jacobian);
+			// templateImage is gray
+			templateImage = cvCreateImage(this->GetTemplateSize(), IPL_DEPTH_8U, 1);
+			samplingImage = cvCreateImage(this->GetTemplateSize(), IPL_DEPTH_8U, 1);
+			cvZero(samplingImage);
+
+			isInitialize = false;
 		}
-		~HomographyESM()
+		virtual ~TemplateMinimization()
 		{
 			if(templateImage)	cvReleaseImage(&templateImage);
 			if(samplingImage)	cvReleaseImage(&samplingImage);
-
-			if(JacobianSum)		cvReleaseMat(&JacobianSum);
-			if(JacobianSumT)	cvReleaseMat(&JacobianSumT);
-			if(Jacobian)		cvReleaseMat(&Jacobian);
-			if(JacobianInvers)	cvReleaseMat(&JacobianInvers);
-			if(dS)				cvReleaseMat(&dS);
-			if(JacobianTdS)		cvReleaseMat(&JacobianTdS);
-			if(dx)				cvReleaseMat(&dx);
 		}
 
-		inline Matrix3 GetHomography(){return this->homography;};
-		inline void SetInitialHomography(Matrix3 homography){this->homography = homography;};
+		inline void SetParameterAmplification(double amplification){this->PARAMETER_AMPLIFICATION = amplification;};
+//		inline void SetSamplingStep(double step){this->SAMPLING_STEP = step;};
 		
-		bool AttatchTemplateImage(IplImage* image);
-		bool Initialize();
-		double UpdateHomography(IplImage* image, double* delta = NULL);
+		inline CvSize GetTemplateSize(){return cvSize(this->width, this->height);};
+		inline IplImage* GetTemplateImage(){return this->templateImage;};
+		inline IplImage* GetSamplingImage(){return this->samplingImage;};
+
+		virtual Matrix3 GetHomography() = 0;
+		virtual void SetInitialHomography(Matrix3 homography) = 0;
+		
+		virtual bool AttatchTemplateImage(IplImage* image) = 0;
+		virtual bool Initialize() = 0;
+		virtual double UpdateHomography(IplImage* image, double* delta = NULL) = 0;
 	};
 }
 

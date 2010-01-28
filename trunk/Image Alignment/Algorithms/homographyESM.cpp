@@ -130,13 +130,13 @@ bool HomographyESM::Initialize()
 double HomographyESM::UpdateHomography(IplImage* image, double* delta)
 {
 	if(isInitialize == false)
-		return false;
+		return -1.0;
 	if(this->templateImage == NULL)
-		return false;
+		return -1.0;
 	if(image == NULL)
-		return false;
+		return -1.0;
 	if(image->nChannels != 1)
-		return false;
+		return -1.0;
 
 	// update homography
 	Vector3 point, point1, point2, out, out1, out2;

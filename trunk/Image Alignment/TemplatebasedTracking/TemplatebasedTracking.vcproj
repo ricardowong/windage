@@ -201,6 +201,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\Algorithms\TemplateMinimization.h"
+				>
+			</File>
+			<File
 				RelativePath="..\Algorithms\wMatrix.h"
 				>
 			</File>
