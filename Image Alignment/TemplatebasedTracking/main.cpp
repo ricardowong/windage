@@ -47,10 +47,10 @@
 #include "../Algorithms/homographyESM.h"
 #include "../Algorithms/InverseCompositional.h"
 
-#define USE_ESM 1
-#define USE_IC 0
+#define USE_ESM 0
+#define USE_IC 1
 
-const int GAUSSIAN_BLUR = 5;
+const int GAUSSIAN_BLUR = 3;
 
 const int WIDTH = 640;
 const int HEIGHT = 480;
@@ -159,12 +159,21 @@ void  main()
 		for(int i=0; i<count; i++)
  			DrawResult(resultImage, homographyList[i], CV_RGB(((count-i)/(double)count) * 255.0, (i/(double)count) * 255.0, 0), 1);
  		
+		double processingTime = (endTime - startTime)/(cvGetTickFrequency() * 1000.0);
+		sprintf(message, "processing time : %.2lf ms (%02d iter), error : %.2lf", processingTime, iter, error);
+		std::cout << message << std::endl;
+
+#if USE_IC
+		windage::Utils::DrawTextToImage(resultImage, cvPoint(5, 15), "Inverse Compositional", 0.6);
+#endif
+#if USE_ESM
+		windage::Utils::DrawTextToImage(resultImage, cvPoint(5, 15), "Efficient Second-order Minimization", 0.6);
+#endif
+		windage::Utils::DrawTextToImage(resultImage, cvPoint(5, 35), message, 0.6);
+
 		// draw image
 		cvShowImage("sampling", samplingImage);
 		cvShowImage("result", resultImage);
-
-		double processingTime = (endTime - startTime)/(cvGetTickFrequency() * 1000.0);
-		std::cout << "processing time : " << iter << " iter, " << processingTime << " ms, error : " << error << std::endl;
 
 		char ch = cvWaitKey(1);
 		switch(ch)
@@ -178,6 +187,18 @@ void  main()
 			tracker->AttatchTemplateImage(templateImage);
 			tracker->SetInitialHomography(e);
 			tracker->Initialize();
+			break;
+		case 'r':
+		case 'R':
+			delete tracker;
+			tracker = NULL;
+#if USE_IC
+			tracker = new windage::InverseCompositional(TEMPLATE_WIDTH, TEMPLATE_HEIGHT);
+#endif
+#if USE_ESM
+			tracker = new windage::HomographyESM(TEMPLATE_WIDTH, TEMPLATE_HEIGHT);
+#endif
+			tracker->SetInitialHomography(e);
 			break;
 		case 'q':
 		case 'Q':

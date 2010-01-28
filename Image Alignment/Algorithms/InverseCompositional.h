@@ -44,23 +44,13 @@
 #include <cv.h>
 
 #include "wMatrix.h"
+#include "TemplateMinimization.h"
  
 namespace windage
 {
-	class InverseCompositional
+	class InverseCompositional : public TemplateMinimization
 	{
 	private:
-		int DELTA;
-		double PARAMETER_AMPLIFICATION;
-		int SAMPLING_STEP;
-		Matrix3 homography;
-
-		int width;
-		int height;
-
-		IplImage* templateImage;
-		IplImage* samplingImage;
-
 		IplImage* pStDesc;	// Steepest descent images.
 
 		CvMat* W;	// Current value of warp W(x,p)
@@ -76,24 +66,8 @@ namespace windage
 
 		void init_warp(CvMat* W, float wz, float tx, float ty, float s);
 	public:
-		InverseCompositional(int width=150, int height=150)
+		InverseCompositional(int width=150, int height=150) : TemplateMinimization(width, height)
 		{
-			this->DELTA = 1;
-			this->PARAMETER_AMPLIFICATION = 3.0;
-			this->SAMPLING_STEP = 5;
-
-			this->width = width;
-			this->height = height;
-
-			homography.m1[0] = 1.0; homography.m1[1] = 0.0; homography.m1[2] = 0.0;
-			homography.m1[3] = 0.0; homography.m1[4] = 1.0; homography.m1[5] = 0.0;
-			homography.m1[6] = 0.0; homography.m1[7] = 0.0; homography.m1[8] = 1.0;
-
-			// templateImage is gray
-			templateImage = cvCreateImage(this->GetTemplateSize(), IPL_DEPTH_8U, 1);
-			samplingImage = cvCreateImage(this->GetTemplateSize(), IPL_DEPTH_8U, 1);
-			cvZero(samplingImage);
-
 			// Create matrices.
 			pStDesc = cvCreateImage(cvSize(width, height), IPL_DEPTH_32F, 4);
 			
@@ -126,16 +100,12 @@ namespace windage
 			if(b)	cvReleaseMat(&b);
 			if(delta_p) cvReleaseMat(&delta_p);
 		}
-
 		
-		inline CvSize GetTemplateSize(){return cvSize(this->width, this->height);};
-		inline IplImage* GetTemplateImage(){return this->templateImage;};
-		inline IplImage* GetSamplingImage(){return this->samplingImage;};
+		Matrix3 GetHomography();
+		void SetInitialHomography(Matrix3 homography);
 
 		bool AttatchTemplateImage(IplImage* image);
 		bool Initialize();
-		void SetInitialHomography(Matrix3 homography);
-		Matrix3 GetHomography();
 		double UpdateHomography(IplImage* image, double* delta = NULL);
 	};
 }

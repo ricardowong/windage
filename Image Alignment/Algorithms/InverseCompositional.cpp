@@ -106,6 +106,8 @@ bool InverseCompositional::Initialize()
 		return false;
 	}
 
+	isInitialize = true;
+
 	return true;
 }
 
@@ -138,6 +140,15 @@ Matrix3 InverseCompositional::GetHomography()
 
 double InverseCompositional::UpdateHomography(IplImage* image, double* delta)
 {
+	if(isInitialize == false)
+		return -1.0;
+	if(this->templateImage == NULL)
+		return -1.0;
+	if(image == NULL)
+		return -1.0;
+	if(image->nChannels != 1)
+		return -1.0;
+
 	double error = 0.0;
 //	cvSetIdentity(W);
 

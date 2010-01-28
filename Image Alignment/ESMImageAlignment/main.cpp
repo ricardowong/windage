@@ -126,6 +126,7 @@ void  main()
 	// homography update stack
 	std::vector<windage::Matrix3> homographyList;
 
+	int sumIter = 0;
 	bool processing =true;
 	int k = 0;
 	while(processing)
@@ -162,6 +163,7 @@ void  main()
 		}
 		int64 endTime = cvGetTickCount();
 		k++;
+		sumIter+= iter;
 
 		// draw result
 		int count = homographyList.size();
@@ -204,6 +206,8 @@ void  main()
 			break;
 		}
 	}
+
+	std::cout << "average iteration : " << sumIter/IMAGE_SEQ_COUNT << std::endl;
 
 	cvReleaseImage(&resultImage);
 	cvDestroyAllWindows();

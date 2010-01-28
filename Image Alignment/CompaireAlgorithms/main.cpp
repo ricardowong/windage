@@ -57,12 +57,12 @@ const int TEMPLATE_HEIGHT = 150;
 const double HOMOGRAPHY_DELTA = 0.01;
 const int MAX_ITERATION = 50;
 
-void DrawResult(IplImage* image, windage::Matrix3 homography, CvScalar color = CV_RGB(255, 0, 0), int thickness = 1)
+void DrawResult(IplImage* image, windage::Matrix3 homography, CvScalar color = CV_RGB(255, 0, 0), int thickness = 1, int size = TEMPLATE_WIDTH)
 {
-	windage::Vector3 pt1(0.0, 0.0, 1.0);
-	windage::Vector3 pt2(TEMPLATE_WIDTH, 0.0, 1.0);
-	windage::Vector3 pt3(TEMPLATE_WIDTH, TEMPLATE_HEIGHT, 1.0);
-	windage::Vector3 pt4(0.0, TEMPLATE_HEIGHT, 1.0);
+	windage::Vector3 pt1(TEMPLATE_WIDTH/2 - size/2, TEMPLATE_HEIGHT/2 - size/2, 1.0);
+	windage::Vector3 pt2(TEMPLATE_WIDTH/2 + size/2, TEMPLATE_HEIGHT/2 - size/2, 1.0);
+	windage::Vector3 pt3(TEMPLATE_WIDTH/2 + size/2, TEMPLATE_HEIGHT/2 + size/2, 1.0);
+	windage::Vector3 pt4(TEMPLATE_WIDTH/2 - size/2, TEMPLATE_HEIGHT/2 + size/2, 1.0);
 
 	windage::Vector3 outPoint1 = homography * pt1;
 	windage::Vector3 outPoint2 = homography * pt2;
@@ -75,7 +75,7 @@ void DrawResult(IplImage* image, windage::Matrix3 homography, CvScalar color = C
 	outPoint4 /= outPoint4.z;
 
 	cvLine(image, cvPoint(outPoint1.x, outPoint1.y), cvPoint(outPoint2.x, outPoint2.y), color, thickness);
-	cvLine(image, cvPoint(outPoint2.x, outPoint2.y), cvPoint(outPoint3.x, outPoint3.y), color, thickness);
+	cvLine(image, cvPoint(outPoint2.x, outPoint2.y), cvPoint(outPoint3.x, outPoint3.y), color, thickness);		
 	cvLine(image, cvPoint(outPoint3.x, outPoint3.y), cvPoint(outPoint4.x, outPoint4.y), color, thickness);
 	cvLine(image, cvPoint(outPoint4.x, outPoint4.y), cvPoint(outPoint1.x, outPoint1.y), color, thickness);
 }
@@ -134,6 +134,11 @@ void  main()
 	ic->SetInitialHomography(e);
 	ic->Initialize();
 
+	int sumIterESM = 0;
+	int sumIterIC = 0;
+	double sumErrorESM = 0.0;
+	double sumErrorIC = 0.0;
+
 	bool processing =true;
 	int k = 0;
 	while(processing)
@@ -150,6 +155,9 @@ void  main()
 
 		cvCvtColor(inputImage, resultImage, CV_GRAY2BGR);
 
+		std::vector<windage::Matrix3> esmHomographyList;
+		std::vector<windage::Matrix3> icHomographyList;
+
 		// processing
 		int64 startTimeESM = cvGetTickCount();
 		double errorESM = 0.0;
@@ -159,11 +167,14 @@ void  main()
 			double delta = 1.0;
 			errorESM = esm->UpdateHomography(inputImage, &delta);
 			homographyESM = esm->GetHomography();
-			samplingESMImage = esm->GetSamplingImage();
+			esmHomographyList.push_back(homographyESM);
 
 			if(delta < HOMOGRAPHY_DELTA)
 				break;			
 		}
+		samplingESMImage = esm->GetSamplingImage();
+		sumIterESM += iterESM;
+		sumErrorESM += errorESM;
 		int64 endTimeESM = cvGetTickCount();
 
 		int64 startTimeIC = cvGetTickCount();
@@ -174,16 +185,24 @@ void  main()
 			double delta = 1.0;
 			errorIC = ic->UpdateHomography(inputImage, &delta);
 			homographyIC = ic->GetHomography();
-			samplingICImage = ic->GetSamplingImage();
-
+			icHomographyList.push_back(homographyIC);
+			
 			if(delta < HOMOGRAPHY_DELTA)
 				break;
 		}
+		samplingICImage = ic->GetSamplingImage();
+		sumIterIC += iterIC;
+		sumErrorIC += errorIC;
 		int64 endTimeIC = cvGetTickCount();
 
 		// draw result
-		DrawResult(resultImage, homographyESM, CV_RGB(255, 0, 0), 6);
-		DrawResult(resultImage, homographyIC, CV_RGB(0, 255, 0), 3);
+		int count;
+		count = esmHomographyList.size();
+		for(int i=0; i<count; i++)
+			DrawResult(resultImage, esmHomographyList[i], CV_RGB((i/(double)count) * 255.0, ((count-i)/(double)count) * 255.0, ((count-i)/(double)count) * 255.0), 1, TEMPLATE_WIDTH*(2.0/3.0));
+		count = icHomographyList.size();
+		for(int i=0; i<count; i++)
+			DrawResult(resultImage, icHomographyList[i], CV_RGB(((count-i)/(double)count) * 255.0, ((count-i)/(double)count) * 255.0, (i/(double)count) * 255.0), 1, TEMPLATE_WIDTH*(4.0/3.0));
 
 		char message[500];
 		double processingTimeESM = (endTimeESM - startTimeESM)/(cvGetTickFrequency() * 1000.0);
@@ -195,7 +214,7 @@ void  main()
 		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 60), message, 0.5);
 		sprintf(message, "press 'I' key to get next image");
 		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 20), message, 0.5);
-		sprintf(message, "red line is ESM algorithm & green line is Inverse Compositional algorithm");
+		sprintf(message, "red line is ESM algorithm & blue line is Inverse Compositional algorithm");
 		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 40), message, 0.5 );
  		
 		// draw image
@@ -220,6 +239,9 @@ void  main()
 		}
 		k++;
 	}
+
+	std::cout << "ESM iter : " << sumIterESM/(double)IMAGE_SEQ_COUNT << " error : " << sumErrorESM/(double)IMAGE_SEQ_COUNT << std::endl;
+	std::cout << "IC iter : " << sumIterIC/(double)IMAGE_SEQ_COUNT << " error : " << sumErrorIC/(double)IMAGE_SEQ_COUNT << std::endl;
 
 	cvReleaseImage(&resultImage);
 	cvDestroyAllWindows();
