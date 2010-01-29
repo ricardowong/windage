@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Algorithms", "Algorithms", "{8BF375E3-6F4C-4A37-AC13-05B53622449A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "windage", "windage\windage.vcproj", "{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "windageTest", "..\..\Test Programs\windageTest\windageTest.vcproj", "{D74C4D0D-B19F-4155-B0D8-B1171D91839A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B} = {BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{C89B9D79-0565-43FA-A9BA-FC5CB52972F1}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}.Debug|Win32.Build.0 = Debug|Win32
+		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}.Release|Win32.ActiveCfg = Release|Win32
+		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}.Release|Win32.Build.0 = Release|Win32
+		{D74C4D0D-B19F-4155-B0D8-B1171D91839A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{D74C4D0D-B19F-4155-B0D8-B1171D91839A}.Debug|Win32.Build.0 = Debug|Win32
+		{D74C4D0D-B19F-4155-B0D8-B1171D91839A}.Release|Win32.ActiveCfg = Release|Win32
+		{D74C4D0D-B19F-4155-B0D8-B1171D91839A}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B} = {8BF375E3-6F4C-4A37-AC13-05B53622449A}
+		{D74C4D0D-B19F-4155-B0D8-B1171D91839A} = {C89B9D79-0565-43FA-A9BA-FC5CB52972F1}
+	EndGlobalSection
+EndGlobal
