@@ -1,4 +1,3 @@
-
 /* ========================================================================
  * PROJECT: windage Library
  * ========================================================================
@@ -38,34 +37,64 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
+#ifndef _COLOR_IO_H_
+#define _COLOR_IO_H_
+
 #include <iostream>
-#include <windage.h>
-
-void main()
+#include <windows.h>
+ 
+inline std::ostream& BLUE(std::ostream &s)
 {
-	double dx = 15.0 * CV_PI/180.0;
-	double dy = 172.0* CV_PI/180.0;
-	double dz = (0.0 + 112.0) * CV_PI/180.0;
-
-	windage::Vector3 euler = windage::Vector3(dx, dy, dz);
-	windage::Vector4 quaternion = windage::Quaternion::EulerToQuaternion(euler);
-	windage::Vector3 confirmEuler = windage::Quaternion::QuaternionToEuler(quaternion);
-//	confirmEuler = windage::Quaternion::QuaternionToEuler(windage::Quaternion::EulerToQuaternion(confirmEuler));
-
-	std::cout << "EulerToQuaternion and QuaternionToEuler Error : " << euler.getDistance(confirmEuler) << std::endl;
-
-
-	windage::Matrix3 dcm = windage::Quaternion::QuaternionToDcm(quaternion);
-	windage::Vector4 confirmQuat = windage::Quaternion::DcmToQuaternion(dcm);
-
-	std::cout << "QuaternionToDcm and DcmToQuaternion Error : " << quaternion.getDistance(confirmQuat) << std::endl;
-
-
-	dcm = windage::Quaternion::EulerToDcm(euler);
-	confirmEuler = windage::Quaternion::DcmToEuler(dcm);
-
-	std::cout << "EulerToDcm and DcmToEuler Error : " << euler.getDistance(confirmEuler) << std::endl;
-
-
-
+	HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
+	SetConsoleTextAttribute(hStdout, FOREGROUND_BLUE
+              |FOREGROUND_GREEN|FOREGROUND_INTENSITY);
+    return s;
 }
+
+inline std::ostream& RED(std::ostream &s)
+{
+    HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
+    SetConsoleTextAttribute(hStdout,
+                FOREGROUND_RED|FOREGROUND_INTENSITY);
+    return s;
+}
+
+inline std::ostream& GREEN(std::ostream &s)
+{
+    HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
+    SetConsoleTextAttribute(hStdout,
+              FOREGROUND_GREEN|FOREGROUND_INTENSITY);
+    return s;
+}
+
+inline std::ostream& YELLOW(std::ostream &s)
+{
+    HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
+    SetConsoleTextAttribute(hStdout,
+         FOREGROUND_GREEN|FOREGROUND_RED|FOREGROUND_INTENSITY);
+    return s;
+}
+
+inline std::ostream& WHITE(std::ostream &s)
+{
+    HANDLE hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
+    SetConsoleTextAttribute(hStdout,
+       FOREGROUND_RED|FOREGROUND_GREEN|FOREGROUND_BLUE);
+    return s;
+}
+
+struct color {
+    color(WORD attribute):m_color(attribute){};
+    WORD m_color;
+};
+
+template <class _Elem, class _Traits>
+std::basic_ostream<_Elem,_Traits>&
+      operator<<(std::basic_ostream<_Elem,_Traits>& i, color& c)
+{
+    HANDLE hStdout=GetStdHandle(STD_OUTPUT_HANDLE);
+    SetConsoleTextAttribute(hStdout,c.m_color);
+    return i;
+}
+
+#endif

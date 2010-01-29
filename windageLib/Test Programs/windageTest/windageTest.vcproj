@@ -1,10 +1,10 @@
-<?xml version="1.0" encoding="ks_c_5601-1987"?>
+<?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="MatrixTestProgram"
-	ProjectGUID="{0307B37B-A111-4FAB-B3E4-19252EA87599}"
-	RootNamespace="MatrixTestProgram"
+	Name="windageTest"
+	ProjectGUID="{D74C4D0D-B19F-4155-B0D8-B1171D91839A}"
+	RootNamespace="windageTest"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../include&quot;;&quot;$(SolutionDir)../../component/OpenCV 1.2/include/&quot;;&quot;$(SolutionDir)../../component/GLUT/include/&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../include&quot;;&quot;$(SolutionDir)../../component/OpenCV 1.2/include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -61,9 +61,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="cv120.lib cxcore120.lib highgui120.lib glut32.lib"
+				AdditionalDependencies="cv120.lib cxcore120.lib highgui120.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="&quot;$(SolutionDir)../../component/OpenCV 1.2/lib/&quot;;&quot;$(SolutionDir)../../component/GLUT/lib/&quot;"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)../../lib/&quot;;&quot;$(SolutionDir)../../component/OpenCV 1.2/lib/&quot;;"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				TargetMachine="1"
@@ -117,7 +117,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../include&quot;;&quot;$(SolutionDir)../../component/OpenCV 1.2/include/&quot;;&quot;$(SolutionDir)../../component/GLUT/include/&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../include&quot;;&quot;$(SolutionDir)../../component/OpenCV 1.2/include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -136,9 +136,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="cv120.lib cxcore120.lib highgui120.lib glut32.lib"
+				AdditionalDependencies="cv120.lib cxcore120.lib highgui120.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;$(SolutionDir)../../component/OpenCV 1.2/lib/&quot;;&quot;$(SolutionDir)../../component/GLUT/lib/&quot;"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)../../lib/&quot;;&quot;$(SolutionDir)../../component/OpenCV 1.2/lib/&quot;;"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"
@@ -182,16 +182,24 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="Header Files"
-			Filter="h;hpp;hxx;hm;inl;inc;xsd"
-			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
+			Name="TestRoutine"
 			>
-		</Filter>
-		<Filter
-			Name="Resource Files"
-			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
-			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
-			>
+			<File
+				RelativePath=".\colorIO.h"
+				>
+			</File>
+			<File
+				RelativePath=".\windageTest.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\windageTest.h"
+				>
+			</File>
+			<File
+				RelativePath=".\windageTestSample.h"
+				>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>
