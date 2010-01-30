@@ -48,8 +48,19 @@ bool ObjectTracking::AttatchReferenceImage(IplImage* grayImage)
 
 	if(this->referenceImage) cvReleaseImage(&this->referenceImage);
 	this->referenceImage = NULL;
-
 	this->referenceImage = cvCloneImage(grayImage);
+
+	this->detector->DoExtractKeypointsDescriptor(this->referenceImage);
+	std::vector<windage::FeaturePoint>* tempReferenceImage = this->detector->GetKeypoints();
+
+	this->referenceRepository.clear();
+	for(unsigned int i=0; i<tempReferenceImage->size(); i++)
+	{
+		this->referenceRepository.push_back((*tempReferenceImage)[i]);
+	}
+
+	this->matcher->Training(&this->referenceRepository);
+
 	return true;
 }
 
@@ -58,15 +69,6 @@ bool ObjectTracking::Initialize(int width, int height)
 	this->width = width;
 	this->height = height;
 
-	this->detector->DoExtractKeypointsDescriptor(this->referenceImage);
-	std::vector<windage::FeaturePoint>* tempReferenceImage = this->detector->GetKeypoints();
-
-	this->referenceRepository.clear();
-	for(int i=0; i<tempReferenceImage->size(); i++)
-	{
-		this->referenceRepository.push_back((*tempReferenceImage)[i]);
-	}
-	
 	return true;
 }
 
@@ -75,7 +77,24 @@ bool ObjectTracking::UpdateCamerapose(IplImage* grayImage)
 	this->detector->DoExtractKeypointsDescriptor(grayImage);
 	std::vector<windage::FeaturePoint>* sceneKeypoints = this->detector->GetKeypoints();
 
+	std::vector<windage::FeaturePoint> refMatchedKeypoints;
+	std::vector<windage::FeaturePoint> sceMatchedKeypoints;
 
+
+	for(unsigned int i=0; i<sceneKeypoints->size(); i++)
+	{
+		int index = this->matcher->Matching((*sceneKeypoints)[i]);
+
+		if(index >= 0)
+		{
+			refMatchedKeypoints.push_back(this->referenceRepository[index]);
+			sceMatchedKeypoints.push_back((*sceneKeypoints)[i]);
+		}
+	}
+
+	estimator->AttatchReferencePoint(&refMatchedKeypoints);
+	estimator->AttatchScenePoint(&sceMatchedKeypoints);
+	estimator->Calculate();
 
 	return true;
 }

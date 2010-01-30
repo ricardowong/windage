@@ -215,6 +215,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ObjectTrackingTest.h"
+				>
+			</File>
+			<File
 				RelativePath=".\OpticalFlowTest.h"
 				>
 			</File>

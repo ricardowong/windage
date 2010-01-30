@@ -94,13 +94,6 @@ namespace windage
 				if(referenceImage) cvReleaseImage(&referenceImage);
 				referenceImage = NULL;
 
-				if(detector) delete detector;
-				detector = NULL;
-				if(matcher) delete matcher;
-				matcher = NULL;
-				if(estimator) delete estimator;
-				estimator = NULL;
-
 				this->referenceRepository.clear();
 			}
 
