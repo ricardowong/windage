@@ -72,5 +72,5 @@
 #include "Algorithms/OutlierRemover.h"
 
 // Utilities
-#include "Utilites/Utils.h"
-#include "Utilites/Logger.h"
+#include "Utilities/Utils.h"
+#include "Utilities/Logger.h"

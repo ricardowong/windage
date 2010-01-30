@@ -52,23 +52,31 @@
 #include "RANSACestimatorTest.h"
 #include "LMeDSestimatorTest.h"
 #include "OutlierRemoverTest.h"
+#include "ObjectTrackingTest.h"
 
 void main()
 {
 	windageTestSample testSample;
 	VectorMatrixTest testMatrixVector;
 	CalibrationTest testCalibration;
+
 	FeaturePointTest testFeaturePoint;
 	SURFdetectorTest testSURFdetector;
 	SIFTdetectorTest testSIFTdetector;
 	WSURFdetectorTest testWSURFdetector;
+
 	KDtreeTest testKDtree;
 	SpilltreeTest testSpilltree;
 	FLANNtreeTest testFLANNtree;
+
 	OpticalFlowTest testOpticalFlow;
+
 	RANSACestimatorTest testRANSACestimator;
 	LMeDSestimatorTest testLMeDSestimator;
+
 	OutlierRemoverTest testOutlierRemover;
+
+	ObjectTrackingTest testObjectTracking;
 
 	std::cout << "terminate entire test routine!" << std::endl;
 	char ch;
