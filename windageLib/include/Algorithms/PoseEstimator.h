@@ -37,79 +37,77 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#ifndef _OBJECT_TRACKING_H_
-#define _OBJECT_TRACKING_H_
+#ifndef _POSE_ESTIMATOR_H_
+#define _POSE_ESTIMATOR_H_
 
 #include <vector>
 
 #include <cv.h>
 #include "base.h"
 
-#include "Structures/Vector.h"
 #include "Structures/Matrix.h"
-
 #include "Structures/FeaturePoint.h"
-
 #include "Structures/Calibration.h"
-
-#include "Algorithms/FeatureDetector.h"
-#include "Algorithms/SearchTree.h"
-#include "Algorithms/OpticalFlow.h"
-#include "Algorithms/PoseEstimator.h"
-
 
 namespace windage
 {
-	namespace Frameworks
+	namespace Algorithms
 	{
-		class DLLEXPORT ObjectTracking
+		class DLLEXPORT PoseEstimator
 		{
 		protected:
 			windage::Calibration* cameraParameter;
+			double reprojectionError;
 
-			int width;
-			int height;
-			IplImage* referenceImage;
-			std::vector<windage::FeaturePoint> referenceRepository;
-
-			windage::Algorithms::FeatureDetector* detector;
-			windage::Algorithms::SearchTree* matcher;
-			windage::Algorithms::OpticalFlow* tracker;
-			windage::Algorithms::PoseEstimator* estimator;
+			std::vector<windage::FeaturePoint>* referencePoints;
+			std::vector<windage::FeaturePoint>* scenePoints;
 			
 		public:
-			ObjectTracking()
+			PoseEstimator()
 			{
 				cameraParameter = NULL;
-				referenceImage = NULL;
+				reprojectionError = 2.0;
 
-				detector = NULL;
-				matcher = NULL;
-				estimator = NULL;
+				this->referencePoints = NULL;
+				this->scenePoints = NULL;
 			}
-			virtual ~ObjectTracking()
+			virtual ~PoseEstimator()
 			{
-				if(referenceImage) cvReleaseImage(&referenceImage);
-				referenceImage = NULL;
-
-				this->referenceRepository.clear();
+				this->referencePoints = NULL;
+				this->scenePoints = NULL;
 			}
 
-			inline void SetSize(int width, int height){this->width = width; this->height = height;};
-			inline CvSize GetSize(){return cvSize(this->width, this->height);};
-
-			inline void AttatchCalibration(windage::Calibration* calibration){this->cameraParameter = calibration;};
+			inline void AttatchCameraParameter(windage::Calibration* cameraParameter){this->cameraParameter = cameraParameter;};
 			inline windage::Calibration* GetCameraParameter(){return this->cameraParameter;};
-			
-			inline void AttatchDetetor(windage::Algorithms::FeatureDetector* detector){this->detector = detector;};
-			inline void AttatchMatcher(windage::Algorithms::SearchTree* matcher){this->matcher = matcher;};
-			inline void AttatchTracker(windage::Algorithms::OpticalFlow* tracker){this->tracker = tracker;};
-			inline void AttatchEstimator(windage::Algorithms::PoseEstimator* estimator){this->estimator = estimator;};
 
-			bool AttatchReferenceImage(IplImage* grayImage);
-			bool Initialize(int width, int height);
-			bool UpdateCamerapose(IplImage* grayImage);
-			void DrawOutLine(IplImage* colorImage, bool drawCross);
+			inline void SetReprojectionError(double error){this->reprojectionError = error;};
+			inline double GetReprojectionError(){return this->reprojectionError;};
+			
+			inline void AttatchReferencePoint(std::vector<windage::FeaturePoint>* referencePoints){this->referencePoints = referencePoints;};
+			inline void AttatchScenePoint(std::vector<windage::FeaturePoint>* scenePoints){this->scenePoints = scenePoints;};
+			inline std::vector<windage::FeaturePoint>* GetReferencePoint(){return this->referencePoints;};
+			inline std::vector<windage::FeaturePoint>* GetScenePoint(){return this->scenePoints;};
+
+			windage::Vector3 ConvertWorldToImage(windage::Vector3 point = windage::Vector3(0.0, 0.0, 0.0))
+			{
+				CvPoint imagePoint;
+				if(cameraParameter)
+				{
+					imagePoint = cameraParameter->ConvertWorld2Image(point.x, point.y, point.z);
+				}
+				return windage::Vector3(imagePoint.x, imagePoint.y, 1.0);
+			}
+			windage::Vector3 ConvertImageToWorld(windage::Vector3 point = windage::Vector3(0.0, 0.0, 1.0), double z = 0.0)
+			{
+				CvPoint2D64f worldPoint;
+				if(cameraParameter)
+				{
+					worldPoint = cameraParameter->ConvertImage2World(point.x, point.y, z);
+				}
+				return windage::Vector3(worldPoint.x, worldPoint.y, z);
+			}
+
+			virtual bool Calculate() = 0;
 		};
 	}
 }

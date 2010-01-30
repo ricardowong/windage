@@ -54,6 +54,11 @@ private:
 	IplImage* grayImage2;
 	CvSize imageSize;
 
+	windage::Calibration* calibration;
+	windage::Algorithms::WSURFdetector* detector;
+	windage::Algorithms::FLANNtree* matcher;
+	windage::Algorithms::RANSACestimator* estimator;
+
 public:
 	ObjectTrackingTest() : windageTest("ObjectTracking Test", "ObjectTracking")
 	{
@@ -61,6 +66,10 @@ public:
 		inputImage2 = NULL;
 		grayImage1 = NULL;
 		grayImage2 = NULL;
+
+		detector = NULL;
+		matcher = NULL;
+		estimator = NULL;
 
 		this->Do();
 	}
@@ -74,6 +83,15 @@ public:
 		grayImage1 = NULL;
 		if(grayImage2) cvReleaseImage(&grayImage2);
 		grayImage2 = NULL;
+
+		if(calibration) delete calibration;
+		calibration = NULL;
+		if(detector) delete detector;
+		detector = NULL;
+		if(matcher) delete matcher;
+		matcher = NULL;
+		if(estimator) delete estimator;
+		estimator = NULL;
 	}
 
 	bool Initialize(std::string* message)
@@ -92,6 +110,12 @@ public:
 		cvCvtColor(inputImage1, grayImage1, CV_BGR2GRAY);
 		cvCvtColor(inputImage2, grayImage2, CV_BGR2GRAY);
 
+		calibration = new windage::Calibration();
+		detector = new windage::Algorithms::WSURFdetector();
+		matcher = new windage::Algorithms::FLANNtree();
+		estimator = new windage::Algorithms::RANSACestimator();
+
+		calibration->Initialize(1200, 1200, 200, 160, 0, 0, 0, 0);
 		return true;
 	}
 
@@ -106,6 +130,27 @@ public:
 		void* p2 = 0;
 		int compair = 0;
 
+		windage::Frameworks::ObjectTracking* tracking1 = new windage::Frameworks::ObjectTracking();
+		p1 = (void*)tracking1;
+		tracking1->AttatchCalibration(this->calibration);
+		tracking1->AttatchDetetor(this->detector);
+		tracking1->AttatchMatcher(this->matcher);
+		tracking1->AttatchEstimator(this->estimator);
+		tracking1->Initialize(imageSize.width, imageSize.height);
+		tracking1->AttatchReferenceImage(grayImage1);
+		tracking1->UpdateCamerapose(grayImage2);
+		delete tracking1;
+
+		windage::Frameworks::ObjectTracking* tracking2 = new windage::Frameworks::ObjectTracking();
+		p2 = (void*)tracking2;
+		tracking2->AttatchCalibration(this->calibration);
+		tracking2->AttatchDetetor(this->detector);
+		tracking2->AttatchMatcher(this->matcher);
+		tracking2->AttatchEstimator(this->estimator);
+		tracking2->Initialize(imageSize.width, imageSize.height);
+		tracking2->AttatchReferenceImage(grayImage1);
+		tracking2->UpdateCamerapose(grayImage2);
+		delete tracking2;		
 
 		sprintf(memoryAddress1, "%08X", p1);
 		sprintf(memoryAddress2, "%08X", p2);
@@ -133,41 +178,21 @@ public:
 		cvCopyImage(inputImage2, resultImage);
 		cvNamedWindow("Object Tracking Frameworks");
 
-		windage::Algorithms::WSURFdetector detector;
-		windage::Algorithms::FLANNtree matcher;
-		windage::Algorithms::RANSACestimator estimator;
-
 		windage::Frameworks::ObjectTracking tracking;
-		tracking.AttatchDetetor(&detector);
-		tracking.AttatchMatcher(&matcher);
-		tracking.AttatchEstimator(&estimator);
+		tracking.AttatchCalibration(this->calibration);
+		tracking.AttatchDetetor(this->detector);
+		tracking.AttatchMatcher(this->matcher);
+		tracking.AttatchEstimator(this->estimator);
 
 		tracking.Initialize(width, height);
 		tracking.AttatchReferenceImage(grayImage1);
 		tracking.UpdateCamerapose(grayImage2);
 
-		windage::Vector3 drawRefPoints[4];
-		windage::Vector3 drawScePoints[4];
-		drawRefPoints[0].x = 0.0;	drawRefPoints[0].y = 0.0;		drawRefPoints[0].z = 1.0;
-		drawRefPoints[1].x = width; drawRefPoints[1].y = 0.0;		drawRefPoints[1].z = 1.0;
-		drawRefPoints[2].x = width; drawRefPoints[2].y = height;	drawRefPoints[2].z = 1.0;
-		drawRefPoints[3].x = 0.0;	drawRefPoints[3].y = height;	drawRefPoints[3].z = 1.0;
-
-		for(int i=0; i<4; i++)
-		{
-			drawScePoints[i] = estimator.ConvertObjectToImage(drawRefPoints[i]);
-			drawScePoints[i] /= drawScePoints[i].z;
-		}
-
-		for(int i=0; i<4; i++)
-		{
-			int i2 = i==3?0:i+1;
-			cvLine(resultImage, cvPoint(drawScePoints[i].x, drawScePoints[i].y),
-								cvPoint(drawScePoints[i2].x, drawScePoints[i2].y), CV_RGB(0, 255, 0), 3);
-		}		
+		tracking.DrawOutLine(resultImage, true);
+		this->calibration->DrawInfomation(resultImage, 100.0);
 		
 		cvShowImage("Object Tracking Frameworks", resultImage);
-		cvWaitKey(3000);
+		cvWaitKey(1000);
 
 		return test;
 	}

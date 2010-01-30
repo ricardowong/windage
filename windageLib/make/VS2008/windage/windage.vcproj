@@ -325,6 +325,18 @@
 					Name="PoseEstimator"
 					>
 					<File
+						RelativePath="..\..\..\src\Algorithms\EPnPestimator.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\..\include\Algorithms\EPnPestimator.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\..\src\Algorithms\HomographyEstimator.cpp"
+						>
+					</File>
+					<File
 						RelativePath="..\..\..\include\Algorithms\HomographyEstimator.h"
 						>
 					</File>
@@ -337,6 +349,10 @@
 						>
 					</File>
 					<File
+						RelativePath="..\..\..\include\Algorithms\PoseEstimator.h"
+						>
+					</File>
+					<File
 						RelativePath="..\..\..\src\Algorithms\RANSACestimator.cpp"
 						>
 					</File>
@@ -344,6 +360,18 @@
 						RelativePath="..\..\..\include\Algorithms\RANSACestimator.h"
 						>
 					</File>
+					<Filter
+						Name="epnp"
+						>
+						<File
+							RelativePath="..\..\..\src\Algorithms\epnp\epnp.cpp"
+							>
+						</File>
+						<File
+							RelativePath="..\..\..\include\Algorithms\epnp\epnp.h"
+							>
+						</File>
+					</Filter>
 				</Filter>
 				<Filter
 					Name="Refiner"

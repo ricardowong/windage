@@ -37,44 +37,36 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#include "Algorithms/LMeDSestimator.h"
-using namespace windage;
-using namespace windage::Algorithms;
+#ifndef _EPNP_ESTIMATOR_H_
+#define _EPNP_ESTIMATOR_H_
 
-bool LMeDSestimator::Calculate()
+#include <vector>
+
+#include <cv.h>
+#include "base.h"
+
+#include "Structures/Matrix.h"
+#include "Structures/FeaturePoint.h"
+#include "Algorithms/PoseEstimator.h"
+
+namespace windage
 {
-	if(referencePoints == NULL || scenePoints == NULL)
-		return false;
-	int n = (int)referencePoints->size();
-	if(n != (int)scenePoints->size())
-		return false;
-	if(n < 4)
-		return false;
-
-	const int HOMOGRAPHY_PARAM_COUNT = 9;
-	float localHomography[HOMOGRAPHY_PARAM_COUNT];
-	CvMat _h = cvMat(3, 3, CV_32F, localHomography);
-
-	std::vector<CvPoint2D32f> refPoints; refPoints.resize(n);
-	std::vector<CvPoint2D32f> scePoints; scePoints.resize(n);
-	for(int i=0; i<n; i++)
+	namespace Algorithms
 	{
-		windage::Vector3 ref = (*this->referencePoints)[i].GetPoint();
-		windage::Vector3 sce = (*this->scenePoints)[i].GetPoint();
+		class DLLEXPORT EPnPEstimator : public PoseEstimator
+		{
+		protected:
+		public:
+			EPnPEstimator() : PoseEstimator()
+			{
+			}
+			virtual ~EPnPEstimator()
+			{
+			}
 
-		refPoints[i] = cvPoint2D32f(ref.x, ref.y);
-		scePoints[i] = cvPoint2D32f(sce.x, sce.y);
+			bool Calculate();
+		};
 	}
-
-	CvMat _refPoints = cvMat(1, n, CV_32FC2, &(refPoints[0]));
-	CvMat _scePoints = cvMat(1, n, CV_32FC2, &(scePoints[0]));
-
-	cvFindHomography(&_refPoints, &_scePoints, &_h, CV_LMEDS);
-
-	for(int i=0; i<HOMOGRAPHY_PARAM_COUNT; i++)
-		this->homography.m1[i] = (double)localHomography[i];
-
-	this->DecomposeHomography();
-
-	return true;
 }
+
+#endif

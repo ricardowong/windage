@@ -37,44 +37,63 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#include "Algorithms/LMeDSestimator.h"
+#include "Algorithms/EPnPEstimator.h"
 using namespace windage;
 using namespace windage::Algorithms;
 
-bool LMeDSestimator::Calculate()
+#include "Algorithms/epnp/epnp.h"
+
+bool EPnPEstimator::Calculate()
 {
-	if(referencePoints == NULL || scenePoints == NULL)
+	if(this->cameraParameter == NULL)
 		return false;
-	int n = (int)referencePoints->size();
-	if(n != (int)scenePoints->size())
-		return false;
+	int n = (int)this->referencePoints->size();
 	if(n < 4)
 		return false;
+	if(n != (int)this->scenePoints->size())
+		return false;
 
-	const int HOMOGRAPHY_PARAM_COUNT = 9;
-	float localHomography[HOMOGRAPHY_PARAM_COUNT];
-	CvMat _h = cvMat(3, 3, CV_32F, localHomography);
+	double fx = this->cameraParameter->GetParameters()[0];
+	double fy = this->cameraParameter->GetParameters()[1];
+	double cx = this->cameraParameter->GetParameters()[2];
+	double cy = this->cameraParameter->GetParameters()[3];
 
-	std::vector<CvPoint2D32f> refPoints; refPoints.resize(n);
-	std::vector<CvPoint2D32f> scePoints; scePoints.resize(n);
+	// Pose estimation using PnP alogrithm from EPFL
+	epnp* _epnp = new epnp;
+	_epnp->set_internal_parameters(cx, cy, fx, fy);
+
+	_epnp->set_maximum_number_of_correspondences(n);
+	_epnp->reset_correspondences();
 	for(int i=0; i<n; i++)
 	{
-		windage::Vector3 ref = (*this->referencePoints)[i].GetPoint();
-		windage::Vector3 sce = (*this->scenePoints)[i].GetPoint();
+		double _X, _Y, _Z, _u, _v;
+		_X = (*this->referencePoints)[i].GetPoint().x;
+		_Y = (*this->referencePoints)[i].GetPoint().y;
+		_Z = (*this->referencePoints)[i].GetPoint().z;
+		_u = (*this->scenePoints)[i].GetPoint().x;
+		_v = (*this->scenePoints)[i].GetPoint().y;
 
-		refPoints[i] = cvPoint2D32f(ref.x, ref.y);
-		scePoints[i] = cvPoint2D32f(sce.x, sce.y);
+		_epnp->add_correspondence(_X, _Y, _Z, _u, _v);
 	}
 
-	CvMat _refPoints = cvMat(1, n, CV_32FC2, &(refPoints[0]));
-	CvMat _scePoints = cvMat(1, n, CV_32FC2, &(scePoints[0]));
+	// compute pose
+	double _R[3][3], _t[3];
+	double _rerror  = _epnp->compute_pose(_R, _t);
+	delete _epnp;
 
-	cvFindHomography(&_refPoints, &_scePoints, &_h, CV_LMEDS);
+	double extrinsic[16];
+	for(int y=0; y<3; y++)
+	{
+		for(int x=0; x<3; x++)
+		{
+			extrinsic[y*4+x] = _R[y][x];
+		}
+		extrinsic[y*4+3] = _t[y];
+	}
+	extrinsic[12] = extrinsic[13] = extrinsic[14] = 0.0;
+	extrinsic[15] = 1.0;
 
-	for(int i=0; i<HOMOGRAPHY_PARAM_COUNT; i++)
-		this->homography.m1[i] = (double)localHomography[i];
-
-	this->DecomposeHomography();
+	this->cameraParameter->SetExtrinsicMatrix(extrinsic);
 
 	return true;
 }
