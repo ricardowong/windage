@@ -65,9 +65,11 @@
 #include "Algorithms/OpticalFlow.h"
 
 // estimator
+#include "Algorithms/PoseEstimator.h"
 #include "Algorithms/HomographyEstimator.h"
 #include "Algorithms/RANSACestimator.h"
 #include "Algorithms/LMeDSestimator.h"
+#include "Algorithms/EPnPEstimator.h"
 
 #include "Algorithms/OutlierRemover.h"
 

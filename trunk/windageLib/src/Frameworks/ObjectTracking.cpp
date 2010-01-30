@@ -56,6 +56,11 @@ bool ObjectTracking::AttatchReferenceImage(IplImage* grayImage)
 	this->referenceRepository.clear();
 	for(unsigned int i=0; i<tempReferenceImage->size(); i++)
 	{
+		windage::Vector3 point = (*tempReferenceImage)[i].GetPoint();
+		point.x -= (double)width/2.0;
+		point.y = (double)height/2.0 - point.y + 1;
+
+		(*tempReferenceImage)[i].SetPoint(point);
 		this->referenceRepository.push_back((*tempReferenceImage)[i]);
 	}
 
@@ -66,8 +71,13 @@ bool ObjectTracking::AttatchReferenceImage(IplImage* grayImage)
 
 bool ObjectTracking::Initialize(int width, int height)
 {
+	if(this->cameraParameter == NULL)
+		return false;
+	
 	this->width = width;
 	this->height = height;
+
+	this->estimator->AttatchCameraParameter(this->cameraParameter);
 
 	return true;
 }
@@ -79,7 +89,6 @@ bool ObjectTracking::UpdateCamerapose(IplImage* grayImage)
 
 	std::vector<windage::FeaturePoint> refMatchedKeypoints;
 	std::vector<windage::FeaturePoint> sceMatchedKeypoints;
-
 
 	for(unsigned int i=0; i<sceneKeypoints->size(); i++)
 	{
@@ -97,4 +106,30 @@ bool ObjectTracking::UpdateCamerapose(IplImage* grayImage)
 	estimator->Calculate();
 
 	return true;
+}
+
+void ObjectTracking::DrawOutLine(IplImage* colorImage, bool drawCross)
+{
+	int size = 4;
+	CvScalar color = CV_RGB(255, 0, 255);
+	CvScalar color2 = CV_RGB(255, 255, 255);
+
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(-this->width/2, -this->height/2, 0.0),	cameraParameter->ConvertWorld2Image(+this->width/2, -this->height/2, 0.0),	color2, 6);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(+this->width/2, -this->height/2, 0.0),	cameraParameter->ConvertWorld2Image(+this->width/2, +this->height/2, 0.0),	color2, 6);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(+this->width/2, +this->height/2, 0.0),	cameraParameter->ConvertWorld2Image(-this->width/2, +this->height/2, 0.0),	color2, 6);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(-this->width/2, +this->height/2, 0.0),	cameraParameter->ConvertWorld2Image(-this->width/2, -this->height/2, 0.0),	color2, 6);
+
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(-this->width/2, -this->height/2, 0.0),	cameraParameter->ConvertWorld2Image(+this->width/2, -this->height/2, 0.0),	color, 2);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(+this->width/2, -this->height/2, 0.0),	cameraParameter->ConvertWorld2Image(+this->width/2, +this->height/2, 0.0),	color, 2);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(+this->width/2, +this->height/2, 0.0),	cameraParameter->ConvertWorld2Image(-this->width/2, +this->height/2, 0.0),	color, 2);
+	cvLine(colorImage, cameraParameter->ConvertWorld2Image(-this->width/2, +this->height/2, 0.0),	cameraParameter->ConvertWorld2Image(-this->width/2, -this->height/2, 0.0),	color, 2);
+
+	if(drawCross)
+	{
+		cvLine(colorImage, cameraParameter->ConvertWorld2Image(-this->width/2, -this->height/2, 0.0),	cameraParameter->ConvertWorld2Image(+this->width/2, +this->height/2, 0.0),	color2, 6);
+		cvLine(colorImage, cameraParameter->ConvertWorld2Image(-this->width/2, +this->height/2, 0.0),	cameraParameter->ConvertWorld2Image(+this->width/2, -this->height/2, 0.0),	color2, 6);
+
+		cvLine(colorImage, cameraParameter->ConvertWorld2Image(-this->width/2, -this->height/2, 0.0),	cameraParameter->ConvertWorld2Image(+this->width/2, +this->height/2, 0.0),	color, 2);
+		cvLine(colorImage, cameraParameter->ConvertWorld2Image(-this->width/2, +this->height/2, 0.0),	cameraParameter->ConvertWorld2Image(+this->width/2, -this->height/2, 0.0),	color, 2);
+	}
 }

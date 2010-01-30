@@ -1,7 +1,7 @@
 #include <iostream>
 using namespace std;
 
-#include "Tracker/PoseEstimation/epnp.h"
+#include "Algorithms/epnp/epnp.h"
 
 epnp::epnp(void)
 {

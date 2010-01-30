@@ -62,7 +62,7 @@ void main()
 
 	FeaturePointTest testFeaturePoint;
 	SURFdetectorTest testSURFdetector;
-	SIFTdetectorTest testSIFTdetector;
+//	SIFTdetectorTest testSIFTdetector;
 	WSURFdetectorTest testWSURFdetector;
 
 	KDtreeTest testKDtree;

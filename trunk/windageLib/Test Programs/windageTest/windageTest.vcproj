@@ -186,6 +186,14 @@
 				RelativePath=".\main.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\windageTest.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\windageTest.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="TestRoutine"
@@ -244,14 +252,6 @@
 			</File>
 			<File
 				RelativePath=".\VectorMatrixTest.h"
-				>
-			</File>
-			<File
-				RelativePath=".\windageTest.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\windageTest.h"
 				>
 			</File>
 			<File

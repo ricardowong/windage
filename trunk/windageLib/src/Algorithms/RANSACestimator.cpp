@@ -74,5 +74,7 @@ bool RANSACestimator::Calculate()
 	for(int i=0; i<HOMOGRAPHY_PARAM_COUNT; i++)
 		this->homography.m1[i] = (double)localHomography[i];
 
+	this->DecomposeHomography();
+
 	return true;
 }
