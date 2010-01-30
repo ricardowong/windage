@@ -51,14 +51,14 @@ namespace windage
 {
 	namespace Algorithms
 	{
-		class DLLEXPORT LMEDSestimator : public HomographyEstimator
+		class DLLEXPORT LMeDSestimator : public HomographyEstimator
 		{
 		private:
 		public:
-			LMEDSestimator() : HomographyEstimator()
+			LMeDSestimator() : HomographyEstimator()
 			{
 			}
-			~LMEDSestimator()
+			~LMeDSestimator()
 			{
 			}
 

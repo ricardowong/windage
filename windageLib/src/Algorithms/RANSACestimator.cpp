@@ -59,8 +59,8 @@ bool RANSACestimator::Calculate()
 	std::vector<CvPoint2D32f> scePoints; scePoints.resize(n);
 	for(int i=0; i<n; i++)
 	{
-		windage::Vector3 ref = (*this->referencePoints)[i]->GetPoint();
-		windage::Vector3 sce = (*this->scenePoints)[i]->GetPoint();
+		windage::Vector3 ref = (*this->referencePoints)[i].GetPoint();
+		windage::Vector3 sce = (*this->scenePoints)[i].GetPoint();
 
 		refPoints[i] = cvPoint2D32f(ref.x, ref.y);
 		scePoints[i] = cvPoint2D32f(sce.x, sce.y);

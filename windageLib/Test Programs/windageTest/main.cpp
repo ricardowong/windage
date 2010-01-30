@@ -50,7 +50,7 @@
 #include "FLANNtreeTest.h"
 #include "OpticalFlowTest.h"
 #include "RANSACestimatorTest.h"
-#include "LMEDSestimatorTest.h"
+#include "LMeDSestimatorTest.h"
 #include "OutlierRemoverTest.h"
 
 void main()
@@ -67,7 +67,7 @@ void main()
 	FLANNtreeTest testFLANNtree;
 	OpticalFlowTest testOpticalFlow;
 	RANSACestimatorTest testRANSACestimator;
-	LMEDSestimatorTest testLMEDSestimator;
+	LMeDSestimatorTest testLMeDSestimator;
 	OutlierRemoverTest testOutlierRemover;
 
 	std::cout << "terminate entire test routine!" << std::endl;

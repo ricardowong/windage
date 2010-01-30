@@ -54,17 +54,18 @@ namespace windage
 		class DLLEXPORT OpticalFlow
 		{
 		private:
+			const static int MAX_POINT_COUNT = 3000;
+
 			int imageWidth;		///< input image size
 			int imageHeight;	///< input image size
 
 			CvSize windowSize;	///< opticalflow window size
 			int pyramidLevel;	///< opticalflow pyramid level
 			
-			const static int maxPointCount = 5000;	///< maximum feature points count
-			CvPoint2D32f feature1[maxPointCount];	///< preview image feature points
-			CvPoint2D32f feature2[maxPointCount];	///< current image feature points
-			char foundFeature[maxPointCount];		///< tracking status
-			float errorFeature[maxPointCount];
+			CvPoint2D32f feature1[MAX_POINT_COUNT];	///< preview image feature points
+			CvPoint2D32f feature2[MAX_POINT_COUNT];	///< current image feature points
+			char foundFeature[MAX_POINT_COUNT];		///< tracking status
+			float errorFeature[MAX_POINT_COUNT];
 
 			CvTermCriteria terminationCriteria;
 			IplImage* pyramid1;
@@ -122,8 +123,8 @@ namespace windage
 			int TrackFeatures(
 							IplImage* prevGrayImage,						///< input image
 							IplImage* currGrayImage,						///< input image
-							std::vector<FeaturePoint*>* prevPoints,		///< input previous points
-							std::vector<FeaturePoint*>* currentPoints	///< output updated points
+							std::vector<FeaturePoint>* prevPoints,		///< input previous points
+							std::vector<FeaturePoint>* currentPoints	///< output updated points
 							);
 		};
 	}

@@ -46,22 +46,22 @@ bool OutlierRemover::Calculate()
 	if(this->homographyEstimator == NULL)
 		return false;
 
-	std::vector<windage::FeaturePoint*>* refPoints = this->homographyEstimator->GetReferencePoint();
-	std::vector<windage::FeaturePoint*>* scePoints = this->homographyEstimator->GetScenePoint();
+	std::vector<windage::FeaturePoint>* refPoints = this->homographyEstimator->GetReferencePoint();
+	std::vector<windage::FeaturePoint>* scePoints = this->homographyEstimator->GetScenePoint();
 	for(unsigned int i=0; i<refPoints->size(); i++)
 	{
-		windage::Vector3 imagePoint = this->homographyEstimator->ConvertObjectToImage((*refPoints)[i]->GetPoint());
+		windage::Vector3 imagePoint = this->homographyEstimator->ConvertObjectToImage((*refPoints)[i].GetPoint());
 		imagePoint /= imagePoint.z;
-		double error = (*scePoints)[i]->GetPoint().getDistance(imagePoint);
+		double error = (*scePoints)[i].GetPoint().getDistance(imagePoint);
 		if(error < this->reprojectionError)
 		{
-			(*refPoints)[i]->SetRemove(false);
-			(*scePoints)[i]->SetRemove(false);
+			(*refPoints)[i].SetRemove(false);
+			(*scePoints)[i].SetRemove(false);
 		}
 		else
 		{
-			(*refPoints)[i]->SetRemove(true);
-			(*scePoints)[i]->SetRemove(true);
+			(*refPoints)[i].SetRemove(true);
+			(*scePoints)[i].SetRemove(true);
 		}
 	}
 

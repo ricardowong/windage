@@ -52,26 +52,24 @@ bool SIFTdetector::DoExtractKeypointsDescriptor(IplImage* grayImage)
 	if(grayImage->nChannels != 1)
 		return false;
 
-	this->ResetKeypoints();
+	this->keypoints.clear();
 	
 	struct feature* features = NULL;
 	int count = sift_features(grayImage, &features);
 
-	windage::SIFTpoint* point;
+	windage::SIFTpoint point;
 	for(int i=0; i<count; i++)
 	{
-		point = new windage::SIFTpoint();
+		point.SetPoint(windage::Vector3(features[i].x, features[i].y, 1.0));
+		point.SetSize(cvRound(features[i].scl * SIZE_AMPLIFICATION));
+		point.SetDir(features[i].ori);
 
-		point->SetPoint(windage::Vector3(features[i].x, features[i].y, 1.0));
-		point->SetSize(cvRound(features[i].scl * SIZE_AMPLIFICATION));
-		point->SetDir(features[i].ori);
-
-		for(int j=0; j<point->DESCRIPTOR_DIMENSION; j++)
+		for(int j=0; j<point.DESCRIPTOR_DIMENSION; j++)
 		{
-			point->descriptor[j] = features[i].descr[j];
+			point.descriptor[j] = features[i].descr[j];
 		}
 
-		this->keypoints.push_back((FeaturePoint*)point);
+		this->keypoints.push_back(point);
 	}
 
 	if(features) delete[] features;

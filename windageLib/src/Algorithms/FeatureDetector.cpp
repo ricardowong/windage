@@ -74,6 +74,6 @@ void FeatureDetector::DrawKeypoints(IplImage* colorImage, CvScalar color)
 {
 	for(unsigned int i=0; i<keypoints.size(); i++)
 	{
-		DrawKeypoint(colorImage, (*keypoints[i]), color);
+		DrawKeypoint(colorImage, keypoints[i], color);
 	}
 }

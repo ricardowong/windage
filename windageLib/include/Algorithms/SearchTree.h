@@ -70,7 +70,7 @@ namespace windage
 			inline void SetRatio(double ratio){this->nearestNeighbourhoodRatio = ratio;};
 			inline double GetRatio(){return this->nearestNeighbourhoodRatio;};
 
-			virtual bool Training(std::vector<windage::FeaturePoint*>* pointList) = 0;
+			virtual bool Training(std::vector<windage::FeaturePoint>* pointList) = 0;
 			virtual int Matching(windage::FeaturePoint point, double* difference = NULL) = 0;
 		};
 	}

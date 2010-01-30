@@ -37,30 +37,45 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#ifndef _W_SURF_H_
-#define _W_SURF_H_
+#include "Frameworks/ObjectTracking.h"
+using namespace windage;
+using namespace windage::Frameworks;
 
-// modified SURF by windage
-/** @cond */
-
-#include <cv.h>
-#include <cxmisc.h>
-
-struct CvSurfHF
+bool ObjectTracking::AttatchReferenceImage(IplImage* grayImage)
 {
-    int p0, p1, p2, p3;
-    float w;
-};
+	if(grayImage == NULL)
+		return false;
 
-float wCalcHaarPattern( const int* origin, const CvSurfHF* f, int n );
-static void wResizeHaarPattern( const int src[][5], CvSurfHF* dst, int n, int oldSize, int newSize, int widthStep );
-int wInterpolateKeypoint( float N9[3][9], int dx, int dy, int ds, CvSURFPoint *point );
+	if(this->referenceImage) cvReleaseImage(&this->referenceImage);
+	this->referenceImage = NULL;
 
-static CvSeq* wFastHessianDetector( const CvMat* sum, const CvMat* mask_sum, CvMemStorage* storage, const CvSURFParams* params );
-void getGaussianKernel( CvMat* kernel, int n, double sigma, int ktype );
-void wExtractSURF( const CvArr* _img, const CvArr* _mask,
-							CvSeq** _keypoints, CvSeq** _descriptors,
-							CvMemStorage* storage, CvSURFParams params,
-							int useProvidedKeyPts);
+	this->referenceImage = cvCloneImage(grayImage);
+	return true;
+}
 
-#endif
+bool ObjectTracking::Initialize(int width, int height)
+{
+	this->width = width;
+	this->height = height;
+
+	this->detector->DoExtractKeypointsDescriptor(this->referenceImage);
+	std::vector<windage::FeaturePoint>* tempReferenceImage = this->detector->GetKeypoints();
+
+	this->referenceRepository.clear();
+	for(int i=0; i<tempReferenceImage->size(); i++)
+	{
+		this->referenceRepository.push_back((*tempReferenceImage)[i]);
+	}
+	
+	return true;
+}
+
+bool ObjectTracking::UpdateCamerapose(IplImage* grayImage)
+{
+	this->detector->DoExtractKeypointsDescriptor(grayImage);
+	std::vector<windage::FeaturePoint>* sceneKeypoints = this->detector->GetKeypoints();
+
+
+
+	return true;
+}

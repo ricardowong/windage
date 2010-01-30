@@ -64,9 +64,9 @@ void OpticalFlow::Initialize(int width, int height, CvSize windowSize, int pyram
 	removePrevPoints = false;
 }
 
-int OpticalFlow::TrackFeatures(IplImage* prevGrayImage, IplImage* currGrayImage, std::vector<FeaturePoint*>* prevPoints, std::vector<FeaturePoint*>* currPoints)
+int OpticalFlow::TrackFeatures(IplImage* prevGrayImage, IplImage* currGrayImage, std::vector<FeaturePoint>* prevPoints, std::vector<FeaturePoint>* currPoints)
 {
-	int pointCount = MIN((int)prevPoints->size(), this->maxPointCount);
+	int pointCount = MIN((int)prevPoints->size(), this->MAX_POINT_COUNT);
 	if(pointCount >= 1)
 	{
 		IplImage* tempPrev = cvCloneImage(prevGrayImage);
@@ -76,7 +76,7 @@ int OpticalFlow::TrackFeatures(IplImage* prevGrayImage, IplImage* currGrayImage,
 		cvSmooth(tempCurr, tempCurr, CV_GAUSSIAN, 3, 3);
 
 		for(int i=0; i<pointCount; i++)
-			this->feature1[i] = cvPoint2D32f((*prevPoints)[i]->GetPoint().x, (*prevPoints)[i]->GetPoint().y);
+			this->feature1[i] = cvPoint2D32f((*prevPoints)[i].GetPoint().x, (*prevPoints)[i].GetPoint().y);
 
 		cvCalcOpticalFlowPyrLK(tempPrev, tempCurr, pyramid1, pyramid2, feature1, feature2, pointCount, this->windowSize, this->pyramidLevel, foundFeature, errorFeature, terminationCriteria, 0);
 
@@ -88,24 +88,20 @@ int OpticalFlow::TrackFeatures(IplImage* prevGrayImage, IplImage* currGrayImage,
 		{
 			if(foundFeature[i] != 0)
 			{
-				windage::FeaturePoint* tempPoint = new windage::FeaturePoint();
-				(*tempPoint) = (*(*prevPoints)[i]);
-				tempPoint->SetPoint(windage::Vector3(feature2[i].x, feature2[i].y, 1.0));
-
-				currPoints->push_back(tempPoint);
+				windage::FeaturePoint point = (*prevPoints)[i];
+				point.SetPoint(windage::Vector3(feature2[i].x, feature2[i].y, 1.0));
+				currPoints->push_back(point);
 				index++;
 			}
 			else
 			{
 				if(removePrevPoints)
+				{
 					prevPoints->erase(prevPoints->begin() + index);
+				}
 				else
 				{
-					windage::FeaturePoint* tempPoint = new windage::FeaturePoint();
-					(*tempPoint) = (*(*prevPoints)[i]);
-					tempPoint->SetPoint(windage::Vector3(-this->imageWidth, -this->imageHeight, 1.0));
-
-					currPoints->push_back(tempPoint);
+					currPoints->push_back((*prevPoints)[i]);
 				}
 			}
 		}

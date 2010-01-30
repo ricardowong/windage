@@ -41,7 +41,7 @@
 using namespace windage;
 using namespace windage::Algorithms;
 
-bool KDtree::Training(std::vector<windage::FeaturePoint*>* pointList)
+bool KDtree::Training(std::vector<windage::FeaturePoint>* pointList)
 {
 	if(pointList == NULL)
 		return false;
@@ -50,7 +50,7 @@ bool KDtree::Training(std::vector<windage::FeaturePoint*>* pointList)
 	if(count <= 0)
 		return false;
 
-	int dimension = (*pointList)[0]->DESCRIPTOR_DIMENSION;
+	int dimension = (*pointList)[0].DESCRIPTOR_DIMENSION;
 
 	if(this->descriptorStorage) cvReleaseMat(&this->descriptorStorage);
 	this->descriptorStorage = cvCreateMat(count, dimension, DESCRIPTOR_DATA_TYPE);
@@ -59,7 +59,7 @@ bool KDtree::Training(std::vector<windage::FeaturePoint*>* pointList)
 	{
 		for(int x=0; x<dimension; x++)
 		{
-			cvSetReal2D(this->descriptorStorage, y, x, (*pointList)[y]->descriptor[x]);
+			cvSetReal2D(this->descriptorStorage, y, x, (*pointList)[y].descriptor[x]);
 		}
 	}
 

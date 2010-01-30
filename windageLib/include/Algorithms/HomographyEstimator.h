@@ -58,8 +58,8 @@ namespace windage
 			windage::Matrix3 homography;
 			double reprojectionError;
 
-			std::vector<windage::FeaturePoint*>* referencePoints;
-			std::vector<windage::FeaturePoint*>* scenePoints;
+			std::vector<windage::FeaturePoint>* referencePoints;
+			std::vector<windage::FeaturePoint>* scenePoints;
 			
 		public:
 			HomographyEstimator()
@@ -81,10 +81,10 @@ namespace windage
 			inline windage::Matrix3 GetHomography(){return this->homography;};
 			inline void SetReprojectionError(double error){this->reprojectionError = error;};
 			inline double GetReprojectionError(){return this->reprojectionError;};
-			inline void AttatchReferencePoint(std::vector<windage::FeaturePoint*>* referencePoints){this->referencePoints = referencePoints;};
-			inline void AttatchScenePoint(std::vector<windage::FeaturePoint*>* scenePoints){this->scenePoints = scenePoints;};
-			inline std::vector<windage::FeaturePoint*>* GetReferencePoint(){return this->referencePoints;};
-			inline std::vector<windage::FeaturePoint*>* GetScenePoint(){return this->scenePoints;};
+			inline void AttatchReferencePoint(std::vector<windage::FeaturePoint>* referencePoints){this->referencePoints = referencePoints;};
+			inline void AttatchScenePoint(std::vector<windage::FeaturePoint>* scenePoints){this->scenePoints = scenePoints;};
+			inline std::vector<windage::FeaturePoint>* GetReferencePoint(){return this->referencePoints;};
+			inline std::vector<windage::FeaturePoint>* GetScenePoint(){return this->scenePoints;};
 
 			windage::Vector3 ConvertObjectToImage(windage::Vector3 point)
 			{

@@ -54,8 +54,8 @@ private:
 	windage::Algorithms::WSURFdetector* surfDetectorSce;
 	windage::Algorithms::FLANNtree* searchTree;
 
-	std::vector<windage::FeaturePoint*> referencePoints;
-	std::vector<windage::FeaturePoint*> scenePoints;
+	std::vector<windage::FeaturePoint> referencePoints;
+	std::vector<windage::FeaturePoint> scenePoints;
 
 public:
 	RANSACestimatorTest() : windageTest("RANSACestimator Test", "RANSACestimator")
@@ -77,11 +77,7 @@ public:
 		if(searchTree) delete searchTree;
 		searchTree = NULL;
 
-		for(int i=0; i<referencePoints.size(); i++)
-			delete referencePoints[i];
 		referencePoints.clear();
-		for(int i=0; i<scenePoints.size(); i++)
-			delete scenePoints[i];
 		scenePoints.clear();
 	}
 
@@ -118,20 +114,20 @@ public:
 		// matching : find corresponding points
 		searchTree = new windage::Algorithms::FLANNtree();
 		searchTree->Training(surfDetectorRef->GetKeypoints());
-		std::vector<windage::FeaturePoint*>* pScenePoints = surfDetectorSce->GetKeypoints();
+		std::vector<windage::FeaturePoint>* pScenePoints = surfDetectorSce->GetKeypoints();
 		for(int i=0; i<pScenePoints->size(); i++)
 		{
 			double distance = 1.0e10;
-			int index = searchTree->Matching((*(*pScenePoints)[i]), &distance);
+			int index = searchTree->Matching((*pScenePoints)[i], &distance);
 			if(index >= 0)
 			{
-				windage::FeaturePoint* ref = new windage::FeaturePoint();
-				windage::FeaturePoint* sce = new windage::FeaturePoint();
+				windage::FeaturePoint ref;
+				windage::FeaturePoint sce;
 
-				(*ref) = (*(*surfDetectorRef->GetKeypoints())[index]);
-				ref->SetDistance(distance);
-				(*sce) = (*(*pScenePoints)[i]);
-				sce->SetDistance(distance);
+				ref = (*surfDetectorRef->GetKeypoints())[index];
+				ref.SetDistance(distance);
+				sce = (*pScenePoints)[i];
+				sce.SetDistance(distance);
 
 				referencePoints.push_back(ref);
 				scenePoints.push_back(sce);
@@ -233,11 +229,7 @@ public:
 		if(surfDetectorSce) delete surfDetectorSce;
 		surfDetectorSce = NULL;
 
-		for(int i=0; i<referencePoints.size(); i++)
-			delete referencePoints[i];
 		referencePoints.clear();
-		for(int i=0; i<scenePoints.size(); i++)
-			delete scenePoints[i];
 		scenePoints.clear();
 		
 		cvDestroyWindow("RANSAC estimator search");

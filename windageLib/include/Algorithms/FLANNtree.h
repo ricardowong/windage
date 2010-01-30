@@ -78,7 +78,7 @@ namespace windage
 			inline void SetEMax(int emax){this->eMax = emax;};
 			inline int GetEMax(){return this->eMax;};
 
-			bool Training(std::vector<windage::FeaturePoint*>* pointList);
+			bool Training(std::vector<windage::FeaturePoint>* pointList);
 			int Matching(windage::FeaturePoint point, double* difference = NULL);
 		};
 	}

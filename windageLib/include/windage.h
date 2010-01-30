@@ -38,4 +38,39 @@
  * ======================================================================== */
 
 // Structures
+#include "Structures/Vector.h"
+#include "Structures/Matrix.h"
 
+#include "Structures/FeaturePoint.h"
+#include "Structures/SURFpoint.h"
+#include "Structures/SIFTpoint.h"
+#include "Structures/WSURFpoint.h"
+
+#include "Structures/Calibration.h"
+
+// Algorithms
+// detector
+#include "Algorithms/FeatureDetector.h"
+#include "Algorithms/SURFdetector.h"
+#include "Algorithms/SIFTdetector.h"
+#include "Algorithms/WSURFdetector.h"
+
+// matcher
+#include "Algorithms/SearchTree.h"
+#include "Algorithms/KDtree.h"
+#include "Algorithms/Spilltree.h"
+#include "Algorithms/FLANNtree.h"
+
+// tracker
+#include "Algorithms/OpticalFlow.h"
+
+// estimator
+#include "Algorithms/HomographyEstimator.h"
+#include "Algorithms/RANSACestimator.h"
+#include "Algorithms/LMeDSestimator.h"
+
+#include "Algorithms/OutlierRemover.h"
+
+// Utilities
+#include "Utilites/Utils.h"
+#include "Utilites/Logger.h"
