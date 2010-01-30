@@ -56,8 +56,8 @@ private:
 	windage::Algorithms::FLANNtree* searchTree;
 	windage::Algorithms::RANSACestimator* estimator;
 
-	std::vector<windage::FeaturePoint*> referencePoints;
-	std::vector<windage::FeaturePoint*> scenePoints;
+	std::vector<windage::FeaturePoint> referencePoints;
+	std::vector<windage::FeaturePoint> scenePoints;
 
 public:
 	OutlierRemoverTest() : windageTest("OutlierRemover Test", "OutlierRemover")
@@ -82,11 +82,7 @@ public:
 		if(estimator) delete estimator;
 		estimator = NULL;
 
-		for(int i=0; i<referencePoints.size(); i++)
-			delete referencePoints[i];
 		referencePoints.clear();
-		for(int i=0; i<scenePoints.size(); i++)
-			delete scenePoints[i];
 		scenePoints.clear();
 	}
 
@@ -123,20 +119,20 @@ public:
 		// matching : find corresponding points
 		searchTree = new windage::Algorithms::FLANNtree();
 		searchTree->Training(surfDetectorRef->GetKeypoints());
-		std::vector<windage::FeaturePoint*>* pScenePoints = surfDetectorSce->GetKeypoints();
+		std::vector<windage::FeaturePoint>* pScenePoints = surfDetectorSce->GetKeypoints();
 		for(int i=0; i<pScenePoints->size(); i++)
 		{
 			double distance = 1.0e10;
-			int index = searchTree->Matching((*(*pScenePoints)[i]), &distance);
+			int index = searchTree->Matching((*pScenePoints)[i], &distance);
 			if(index >= 0)
 			{
-				windage::FeaturePoint* ref = new windage::FeaturePoint();
-				windage::FeaturePoint* sce = new windage::FeaturePoint();
+				windage::FeaturePoint ref;
+				windage::FeaturePoint sce;
 
-				(*ref) = (*(*surfDetectorRef->GetKeypoints())[index]);
-				ref->SetDistance(distance);
-				(*sce) = (*(*pScenePoints)[i]);
-				sce->SetDistance(distance);
+				ref = (*surfDetectorRef->GetKeypoints())[index];
+				ref.SetDistance(distance);
+				sce = (*pScenePoints)[i];
+				sce.SetDistance(distance);
 
 				referencePoints.push_back(ref);
 				scenePoints.push_back(sce);
@@ -203,26 +199,26 @@ public:
 		remover.AttatchHomographyEstimator(this->estimator);
 		remover.Calculate();
 
-		std::vector<windage::FeaturePoint*>* referencePoints = estimator->GetReferencePoint();
-		std::vector<windage::FeaturePoint*>* scenePoints = estimator->GetScenePoint();
+		std::vector<windage::FeaturePoint>* referencePoints = estimator->GetReferencePoint();
+		std::vector<windage::FeaturePoint>* scenePoints = estimator->GetScenePoint();
 		for(int i=0; i<scenePoints->size(); i++)
 		{
-			if((*scenePoints)[i]->GetRemove())
+			if((*scenePoints)[i].GetRemove())
 			{
-				windage::Vector3 refPT = (*referencePoints)[i]->GetPoint();
+				windage::Vector3 refPT = (*referencePoints)[i].GetPoint();
 				CvPoint pointRef = cvPoint(refPT.x, refPT.y);
 
-				windage::Vector3 scePT = (*scenePoints)[i]->GetPoint();
+				windage::Vector3 scePT = (*scenePoints)[i].GetPoint();
 				CvPoint pointSce = cvPoint(scePT.x + width, scePT.y);
 
 				cvLine(resultImage, pointRef, pointSce, CV_RGB(255, 0, 0), 2);
 			}
 			else
 			{
-				windage::Vector3 refPT = (*referencePoints)[i]->GetPoint();
+				windage::Vector3 refPT = (*referencePoints)[i].GetPoint();
 				CvPoint pointRef = cvPoint(refPT.x, refPT.y);
 
-				windage::Vector3 scePT = (*scenePoints)[i]->GetPoint();
+				windage::Vector3 scePT = (*scenePoints)[i].GetPoint();
 				CvPoint pointSce = cvPoint(scePT.x + width, scePT.y);
 
 				cvLine(resultImage, pointRef, pointSce, CV_RGB(0, 255, 0));
@@ -249,11 +245,7 @@ public:
 		if(estimator) delete estimator;
 		estimator = NULL;
 
-		for(int i=0; i<referencePoints.size(); i++)
-			delete referencePoints[i];
 		referencePoints.clear();
-		for(int i=0; i<scenePoints.size(); i++)
-			delete scenePoints[i];
 		scenePoints.clear();
 		
 		cvDestroyWindow("Outlier remover search");

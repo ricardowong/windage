@@ -322,18 +322,18 @@
 				Name="PoseEstimator"
 				>
 				<Filter
-					Name="HomographyEstimator"
+					Name="PoseEstimator"
 					>
 					<File
 						RelativePath="..\..\..\include\Algorithms\HomographyEstimator.h"
 						>
 					</File>
 					<File
-						RelativePath="..\..\..\src\Algorithms\LMEDSestimator.cpp"
+						RelativePath="..\..\..\src\Algorithms\LMeDSestimator.cpp"
 						>
 					</File>
 					<File
-						RelativePath="..\..\..\include\Algorithms\LMEDSestimator.h"
+						RelativePath="..\..\..\include\Algorithms\LMeDSestimator.h"
 						>
 					</File>
 					<File
@@ -344,10 +344,6 @@
 						RelativePath="..\..\..\include\Algorithms\RANSACestimator.h"
 						>
 					</File>
-				</Filter>
-				<Filter
-					Name="PnPEstimator"
-					>
 				</Filter>
 				<Filter
 					Name="Refiner"
@@ -402,6 +398,14 @@
 		<Filter
 			Name="Frameworks"
 			>
+			<File
+				RelativePath="..\..\..\src\Frameworks\ObjectTracking.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\include\Frameworks\ObjectTracking.h"
+				>
+			</File>
 		</Filter>
 		<File
 			RelativePath="..\..\..\include\base.h"

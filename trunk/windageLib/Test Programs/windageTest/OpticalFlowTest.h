@@ -113,8 +113,8 @@ public:
 		void* p2 = 0;
 		int compair = 0;
 
-		std::vector<windage::FeaturePoint*> currPoints;
-		std::vector<windage::FeaturePoint*>* prevPoints = detector->GetKeypoints();
+		std::vector<windage::FeaturePoint> currPoints;
+		std::vector<windage::FeaturePoint>* prevPoints = detector->GetKeypoints();
 
 		// Feature Point
 		windage::Algorithms::OpticalFlow* tracker1 = new windage::Algorithms::OpticalFlow();
@@ -123,8 +123,6 @@ public:
 		tracker1->TrackFeatures(grayImage1, grayImage2, prevPoints, &currPoints);
 		delete tracker1;
 
-		for(int i=0; i<currPoints.size(); i++)
-			delete currPoints[i];
 		currPoints.clear();
 
 		windage::Algorithms::OpticalFlow* tracker2 = new windage::Algorithms::OpticalFlow();
@@ -133,8 +131,6 @@ public:
 		tracker2->TrackFeatures(grayImage1, grayImage2, prevPoints, &currPoints);
 		delete tracker2;
 
-		for(int i=0; i<currPoints.size(); i++)
-			delete currPoints[i];
 		currPoints.clear();
 
 		sprintf(memoryAddress1, "%08X", p1);
@@ -170,14 +166,14 @@ public:
 		image[0] = grayImage1;
 		image[1] = grayImage2;
 
-		std::vector<windage::FeaturePoint*>* points[2];
-		std::vector<windage::FeaturePoint*> currPoints;
+		std::vector<windage::FeaturePoint>* points[2];
+		std::vector<windage::FeaturePoint> currPoints;
 
 		points[0] = detector->GetKeypoints();
 		points[1] = &currPoints;
 
 		int index1, index2;
-		for(int i=0; i<30; i++)
+		for(int i=0; i<10; i++)
 		{
 			index1 = i%2;
 			index2 = (index1 + 1)%2;
@@ -188,16 +184,15 @@ public:
 
 			for(int i=0; i<points[index1]->size(); i++)
 			{
-				windage::Vector3 tempPt1 = (*points[index2])[i]->GetPoint();
-				windage::Vector3 tempPt2 = (*points[index1])[i]->GetPoint();
+				windage::Vector3 tempPt1 = (*points[index2])[i].GetPoint();
+				windage::Vector3 tempPt2 = (*points[index1])[i].GetPoint();
 				cvCircle(resultImage, cvPoint(tempPt1.x, tempPt1.y), 3, CV_RGB(255, 0, 0));
 				cvLine(resultImage, cvPoint(tempPt1.x, tempPt1.y), cvPoint(tempPt2.x, tempPt2.y), CV_RGB(255, 0, 0));
-				delete (*points[index1])[i];
 			}
 			points[index1]->clear();
 
 			cvShowImage("OpticalFlow", resultImage);
-			cvWaitKey(1);
+			cvWaitKey(100);
 		}
 		
 		

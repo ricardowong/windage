@@ -41,6 +41,7 @@
 #include "Structures/FeaturePoint.h"
 #include "Structures/WSURFpoint.h"
 #include "Structures/SURFpoint.h"
+#include "Structures/SIFTpoint.h"
 
 
 class FeaturePointTest : public windageTest
@@ -87,7 +88,7 @@ public:
 		sprintf(memoryAddress2, "%08X", p2);
 		compair += strcmp(memoryAddress1, memoryAddress2);
 
-		// Feature Point
+		// windage SURF Feature Point
 		windage::WSURFpoint* wSURFPoint1 = new windage::WSURFpoint();
 		p1 = (void*)wSURFPoint1;
 		delete wSURFPoint1;
@@ -95,6 +96,32 @@ public:
 		windage::WSURFpoint* wSURFPoint2 = new windage::WSURFpoint();
 		p2 = (void*)wSURFPoint2;
 		delete wSURFPoint2;
+
+		sprintf(memoryAddress1, "%08X", p1);
+		sprintf(memoryAddress2, "%08X", p2);
+		compair += strcmp(memoryAddress1, memoryAddress2);
+
+		// SURF Feature Point
+		windage::SURFpoint* surfPoint1 = new windage::SURFpoint();
+		p1 = (void*)surfPoint1;
+		delete surfPoint1;
+
+		windage::SURFpoint* surfPoint2 = new windage::SURFpoint();
+		p2 = (void*)surfPoint2;
+		delete surfPoint2;
+
+		sprintf(memoryAddress1, "%08X", p1);
+		sprintf(memoryAddress2, "%08X", p2);
+		compair += strcmp(memoryAddress1, memoryAddress2);
+
+		// SIFT Feature Point
+		windage::SIFTpoint* siftPoint1 = new windage::SIFTpoint();
+		p1 = (void*)siftPoint1;
+		delete siftPoint1;
+
+		windage::SIFTpoint* siftPoint2 = new windage::SIFTpoint();
+		p2 = (void*)siftPoint2;
+		delete siftPoint2;
 
 		sprintf(memoryAddress1, "%08X", p1);
 		sprintf(memoryAddress2, "%08X", p2);
@@ -201,6 +228,33 @@ public:
 		deltaDescriptor = tempSurfPoint.GetDistance(surfPoint);
 		deltaSize = tempSurfPoint.GetSize() - surfPoint.GetSize();
 		deltaDir = tempSurfPoint.GetDir() - surfPoint.GetDir();
+
+		if(deltaPoint.getLength() > EPS)
+			test = false;
+		if(deltaID != 0)
+			test = false;
+		if(deltaDescriptor > EPS)
+			test = false;
+		if(deltaSize != 0)
+			test = false;
+		if(deltaDir > EPS)
+			test = false;
+
+		// SIFTpoint
+		windage::SIFTpoint siftPoint;
+		siftPoint.SetPoint(windage::Vector3(px, py, pz));
+		siftPoint.SetObjectID(id);
+		siftPoint.SetSize(size);
+		siftPoint.SetDir(dir);
+		for(int i=0; i<siftPoint.DESCRIPTOR_DIMENSION; i++)
+			siftPoint.descriptor[i] = d[i];
+		windage::SIFTpoint tempSiftPoint = siftPoint;
+
+		deltaPoint = tempSiftPoint.GetPoint() - siftPoint.GetPoint();
+		deltaID = tempSiftPoint.GetObjectID() - siftPoint.GetObjectID();
+		deltaDescriptor = tempSiftPoint.GetDistance(siftPoint);
+		deltaSize = tempSiftPoint.GetSize() - siftPoint.GetSize();
+		deltaDir = tempSiftPoint.GetDir() - siftPoint.GetDir();
 
 		if(deltaPoint.getLength() > EPS)
 			test = false;

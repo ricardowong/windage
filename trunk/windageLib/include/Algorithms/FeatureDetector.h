@@ -55,7 +55,7 @@ namespace windage
 		class DLLEXPORT FeatureDetector
 		{
 		protected:
-			std::vector<windage::FeaturePoint*> keypoints;
+			std::vector<windage::FeaturePoint> keypoints;
 
 		public:
 			FeatureDetector()
@@ -63,17 +63,9 @@ namespace windage
 			}
 			virtual ~FeatureDetector()
 			{
-				this->ResetKeypoints();
 			}
 
-			inline std::vector<windage::FeaturePoint*>* GetKeypoints(){return &this->keypoints;};
-			void ResetKeypoints()
-			{
-				for(unsigned int i=0; i<keypoints.size(); i++)
-					delete keypoints[i];
-				keypoints.clear();
-			}
-
+			inline std::vector<windage::FeaturePoint>* GetKeypoints(){return &this->keypoints;};
 			virtual bool DoExtractKeypointsDescriptor(IplImage* grayImage) = 0;
 
 			void DrawKeypoint(IplImage* colorImage, FeaturePoint point, CvScalar color = CV_RGB(255, 0, 0));

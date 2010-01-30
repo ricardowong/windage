@@ -118,15 +118,15 @@ public:
 		windage::Algorithms::KDtree* tree1 = new windage::Algorithms::KDtree();
 		p1 = (void*)tree1;
 		tree1->Training(surfDetectorRef->GetKeypoints());
-		std::vector<windage::FeaturePoint*>* scenePoints = surfDetectorSce->GetKeypoints();
+		std::vector<windage::FeaturePoint>* scenePoints = surfDetectorSce->GetKeypoints();
 		for(int i=0; i<scenePoints->size(); i++)
 		{
-			int index = tree1->Matching((*(*scenePoints)[i]));
+			int index = tree1->Matching((*scenePoints)[i]);
 		}
 		tree1->Training(surfDetectorRef->GetKeypoints());
 		for(int i=0; i<scenePoints->size(); i++)
 		{
-			int index = tree1->Matching((*(*scenePoints)[i]));
+			int index = tree1->Matching((*scenePoints)[i]);
 		}
 		delete tree1;
 
@@ -159,17 +159,17 @@ public:
 		
 		windage::Algorithms::KDtree kdtree;
 		kdtree.Training(surfDetectorRef->GetKeypoints());
-		std::vector<windage::FeaturePoint*>* scenePoints = surfDetectorSce->GetKeypoints();
+		std::vector<windage::FeaturePoint>* scenePoints = surfDetectorSce->GetKeypoints();
 		for(int i=0; i<scenePoints->size(); i++)
 		{
 			double distance = 1.0e10;
-			int index = kdtree.Matching((*(*scenePoints)[i]), &distance);
+			int index = kdtree.Matching((*scenePoints)[i], &distance);
 			if(index >= 0)
 			{
-				windage::Vector3 refPT = (*surfDetectorRef->GetKeypoints())[index]->GetPoint();
+				windage::Vector3 refPT = (*surfDetectorRef->GetKeypoints())[index].GetPoint();
 				CvPoint pointRef = cvPoint(refPT.x, refPT.y);
 
-				windage::Vector3 scePT = (*surfDetectorSce->GetKeypoints())[i]->GetPoint();
+				windage::Vector3 scePT = (*surfDetectorSce->GetKeypoints())[i].GetPoint();
 				CvPoint pointSce = cvPoint(scePT.x + width, scePT.y);
 
 				cvLine(resultImage, pointRef, pointSce, CV_RGB(0, 255, 0));

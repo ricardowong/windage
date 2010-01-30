@@ -55,7 +55,7 @@ bool WSURFdetector::DoExtractKeypointsDescriptor(IplImage* grayImage)
 	if(grayImage->nChannels != 1)
 		return false;
 
-	this->ResetKeypoints();
+	this->keypoints.clear();
 
 	// Extract FAST corners;
 	CvSeq* descriptors;
@@ -81,25 +81,24 @@ bool WSURFdetector::DoExtractKeypointsDescriptor(IplImage* grayImage)
 	CvSeqReader reader;
 	cvStartReadSeq(descriptors, &reader, 0);
 
-	windage::WSURFpoint* point;
+	windage::WSURFpoint point;
 	for(int i=0; i<keypointsSeq->total; i++)
 	{
-		point = new windage::WSURFpoint();
 		CvSURFPoint* surfPT = (CvSURFPoint*)cvGetSeqElem(keypointsSeq, i);
 
-		point->SetPoint(windage::Vector3(surfPT->pt.x, surfPT->pt.y, 1.0));
-		point->SetSize(surfPT->size);
-		point->SetDir(surfPT->dir);
+		point.SetPoint(windage::Vector3(surfPT->pt.x, surfPT->pt.y, 1.0));
+		point.SetSize(surfPT->size);
+		point.SetDir(surfPT->dir);
 
 		const float* vec = (const float*)reader.ptr;
 		CV_NEXT_SEQ_ELEM(reader.seq->elem_size, reader);
 
-		for(int j=0; j<point->DESCRIPTOR_DIMENSION; j++)
+		for(int j=0; j<point.DESCRIPTOR_DIMENSION; j++)
 		{
-			point->descriptor[j] = vec[j];
+			point.descriptor[j] = vec[j];
 		}
 
-		this->keypoints.push_back((FeaturePoint*)point);
+		this->keypoints.push_back(point);
 	}
 
 	cvReleaseMemStorage(&storage);
