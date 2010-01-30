@@ -298,13 +298,13 @@ namespace windage
 		// distance
 		double getDistance(const Vector3 &rhs) const
 		{
-			return sqrt( pow(this->x - rhs.x, 2) + pow(this->y - rhs.y, 2) + pow(this->z - rhs.z, 2));
+			return sqrt( pow(this->x - rhs.x, 2) + pow(this->y - rhs.y, 2) + pow(this->z - rhs.z, 2) );
 		}
 
 		// set scale value to z
 		double setScaleValue()
 		{
-			this->z = sqrt( pow(this->x , 2) + pow(this->y, 2) ); 
+			this->z = sqrt( pow(this->x, 2) + pow(this->y, 2) ); 
 		}
 
 		// initialize

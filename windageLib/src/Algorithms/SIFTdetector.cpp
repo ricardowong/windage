@@ -63,7 +63,7 @@ bool SIFTdetector::DoExtractKeypointsDescriptor(IplImage* grayImage)
 		point = new windage::SIFTpoint();
 
 		point->SetPoint(windage::Vector3(features[i].x, features[i].y, 1.0));
-		point->SetSize(cvRound(features[i].scl) * SIZE_AMPLIFICATION);
+		point->SetSize(cvRound(features[i].scl * SIZE_AMPLIFICATION));
 		point->SetDir(features[i].ori);
 
 		for(int j=0; j<point->DESCRIPTOR_DIMENSION; j++)

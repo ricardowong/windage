@@ -37,65 +37,41 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#ifndef _HOMOGRAPHY_ESTIMATOR_H_
-#define _HOMOGRAPHY_ESTIMATOR_H_
+#ifndef _OUTLIER_REMOVER_TREE_H_
+#define _OUTLIER_REMOVER_TREE_H_
 
 #include <vector>
 
 #include <cv.h>
 #include "base.h"
 
-#include "Structures/Matrix.h"
-#include "Structures/FeaturePoint.h"
+#include "Algorithms/HomographyEstimator.h"
 
 namespace windage
 {
 	namespace Algorithms
 	{
-		class DLLEXPORT HomographyEstimator
+		class DLLEXPORT OutlierRemover
 		{
-		protected:
-			windage::Matrix3 homography;
+		private:
+			HomographyEstimator* homographyEstimator;
 			double reprojectionError;
 
-			std::vector<windage::FeaturePoint*>* referencePoints;
-			std::vector<windage::FeaturePoint*>* scenePoints;
-			
 		public:
-			HomographyEstimator()
+			OutlierRemover()
 			{
-				this->homography.m[0][0] = 1.0; this->homography.m[0][1] = 0.0; this->homography.m[0][2] = 0.0;
-				this->homography.m[1][0] = 0.0; this->homography.m[1][1] = 1.0; this->homography.m[1][2] = 0.0;
-				this->homography.m[2][0] = 0.0; this->homography.m[2][1] = 0.0; this->homography.m[2][2] = 1.0;
+				homographyEstimator = NULL;
 				reprojectionError = 2.0;
-
-				this->referencePoints = NULL;
-				this->scenePoints = NULL;
 			}
-			virtual ~HomographyEstimator()
+			~OutlierRemover()
 			{
-				this->referencePoints = NULL;
-				this->scenePoints = NULL;
 			}
 
-			inline windage::Matrix3 GetHomography(){return this->homography;};
+			inline void AttatchHomographyEstimator(HomographyEstimator* homographyEstimator){this->homographyEstimator = homographyEstimator;};
 			inline void SetReprojectionError(double error){this->reprojectionError = error;};
 			inline double GetReprojectionError(){return this->reprojectionError;};
-			inline void AttatchReferencePoint(std::vector<windage::FeaturePoint*>* referencePoints){this->referencePoints = referencePoints;};
-			inline void AttatchScenePoint(std::vector<windage::FeaturePoint*>* scenePoints){this->scenePoints = scenePoints;};
-			inline std::vector<windage::FeaturePoint*>* GetReferencePoint(){return this->referencePoints;};
-			inline std::vector<windage::FeaturePoint*>* GetScenePoint(){return this->scenePoints;};
 
-			windage::Vector3 ConvertObjectToImage(windage::Vector3 point)
-			{
-				return this->homography * point;
-			}
-			windage::Vector3 ConvertImageToObject(windage::Vector3 point)
-			{
-				return this->homography.Inverse() * point;
-			}
-
-			virtual bool Calculate() = 0;
+			bool Calculate();
 		};
 	}
 }
