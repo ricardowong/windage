@@ -175,6 +175,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\include\Structures\SIFTpoint.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\include\Structures\SURFpoint.h"
 				>
 			</File>
@@ -202,6 +206,14 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\..\src\Algorithms\SIFTdetector.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\include\Algorithms\SIFTdetector.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\..\src\Algorithms\SURFdetector.cpp"
 					>
 				</File>
@@ -209,6 +221,70 @@
 					RelativePath="..\..\..\include\Algorithms\SURFdetector.h"
 					>
 				</File>
+				<File
+					RelativePath="..\..\..\src\Algorithms\WSURFdetector.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\include\Algorithms\WSURFdetector.h"
+					>
+				</File>
+				<Filter
+					Name="windageSURF"
+					>
+					<File
+						RelativePath="..\..\..\src\Algorithms\windageSURF\fast.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\..\include\Algorithms\windageSURF\fast.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\..\src\Algorithms\windageSURF\wfastsurf.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\..\include\Algorithms\windageSURF\wfastsurf.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\..\src\Algorithms\windageSURF\wsurf.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\..\include\Algorithms\windageSURF\wsurf.h"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="SIFT"
+					>
+					<File
+						RelativePath="..\..\..\src\Algorithms\SIFT\imgfeatures.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\..\include\Algorithms\SIFT\imgfeatures.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\..\src\Algorithms\SIFT\sift.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\..\include\Algorithms\SIFT\sift.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\..\src\Algorithms\SIFT\siftutils.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\..\include\Algorithms\SIFT\siftutils.h"
+						>
+					</File>
+				</Filter>
 			</Filter>
 			<Filter
 				Name="FeatureMatcher"
@@ -233,28 +309,64 @@
 					RelativePath="..\..\..\include\Algorithms\SearchTree.h"
 					>
 				</File>
+				<File
+					RelativePath="..\..\..\src\Algorithms\Spilltree.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\include\Algorithms\Spilltree.h"
+					>
+				</File>
 			</Filter>
 			<Filter
 				Name="PoseEstimator"
 				>
+				<Filter
+					Name="HomographyEstimator"
+					>
+					<File
+						RelativePath="..\..\..\include\Algorithms\HomographyEstimator.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\..\src\Algorithms\LMEDSestimator.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\..\include\Algorithms\LMEDSestimator.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\..\src\Algorithms\RANSACestimator.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\..\include\Algorithms\RANSACestimator.h"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="PnPEstimator"
+					>
+				</Filter>
+				<Filter
+					Name="Refiner"
+					>
+				</Filter>
+				<Filter
+					Name="OutlierRemover"
+					>
+				</Filter>
+			</Filter>
+			<Filter
+				Name="FeatureTracker"
+				>
 				<File
-					RelativePath="..\..\..\include\Algorithms\HomographyEstimator.h"
+					RelativePath="..\..\..\src\Algorithms\OpticalFlow.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\src\Algorithms\LMEDSestimator.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\..\include\Algorithms\LMEDSestimator.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\..\src\Algorithms\RANSACestimator.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\..\include\Algorithms\RANSACestimator.h"
+					RelativePath="..\..\..\include\Algorithms\OpticalFlow.h"
 					>
 				</File>
 			</Filter>
@@ -278,6 +390,10 @@
 				RelativePath="..\..\..\include\Utilities\Utils.h"
 				>
 			</File>
+		</Filter>
+		<Filter
+			Name="Frameworks"
+			>
 		</Filter>
 		<File
 			RelativePath="..\..\..\include\base.h"

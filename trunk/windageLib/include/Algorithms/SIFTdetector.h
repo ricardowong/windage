@@ -37,36 +37,37 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#include "windageTest.h"
-#include "windageTestSample.h"
-#include "VectorMatrixTest.h"
-#include "CalibrationTest.h"
-#include "FeaturePointTest.h"
-#include "SURFdetectorTest.h"
-#include "SIFTdetectorTest.h"
-#include "WSURFdetectorTest.h"
-#include "KDtreeTest.h"
-#include "SpilltreeTest.h"
-#include "FLANNtreeTest.h"
-#include "RANSACestimatorTest.h"
-#include "LMEDSestimatorTest.h"
+#ifndef _SIFT_DETECTOR_H_
+#define _SIFT_DETECTOR_H_
 
-void main()
+#include <vector>
+
+#include <cv.h>
+#include "base.h"
+
+#include "Structures/Vector.h"
+#include "Algorithms/FeatureDetector.h"
+
+namespace windage
 {
-	windageTestSample testSample;
-	VectorMatrixTest testMatrixVector;
-	CalibrationTest testCalibration;
-	FeaturePointTest testFeaturePoint;
-	SURFdetectorTest testSURFdetector;
-	SIFTdetectorTest testSIFTdetector;
-	WSURFdetectorTest testWSURFdetector;
-	KDtreeTest testKDtree;
-	SpilltreeTest testSpilltree;
-	FLANNtreeTest testFLANNtree;
-	RANSACestimatorTest testRANSACestimator;
-	LMEDSestimatorTest testLMEDSestimator;
+	namespace Algorithms
+	{
+		class DLLEXPORT SIFTdetector : public FeatureDetector
+		{
+		private:
 
-	std::cout << "terminate entire test routine!" << std::endl;
-	char ch;
-	std::cin >> ch;
+		public:
+			SIFTdetector() : FeatureDetector()
+			{
+			}
+			~SIFTdetector()
+			{
+			}
+
+			bool DoExtractKeypointsDescriptor(IplImage* grayImage);
+		};
+	}
 }
+
+
+#endif

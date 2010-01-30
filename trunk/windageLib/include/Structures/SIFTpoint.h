@@ -37,36 +37,39 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#include "windageTest.h"
-#include "windageTestSample.h"
-#include "VectorMatrixTest.h"
-#include "CalibrationTest.h"
-#include "FeaturePointTest.h"
-#include "SURFdetectorTest.h"
-#include "SIFTdetectorTest.h"
-#include "WSURFdetectorTest.h"
-#include "KDtreeTest.h"
-#include "SpilltreeTest.h"
-#include "FLANNtreeTest.h"
-#include "RANSACestimatorTest.h"
-#include "LMEDSestimatorTest.h"
+#ifndef _SIFT_POINT_H_
+#define _SIFT_POINT_H_
 
-void main()
+#include <vector>
+
+#include <cv.h>
+#include "base.h"
+#include "Vector.h"
+#include "FeaturePoint.h"
+
+namespace windage
 {
-	windageTestSample testSample;
-	VectorMatrixTest testMatrixVector;
-	CalibrationTest testCalibration;
-	FeaturePointTest testFeaturePoint;
-	SURFdetectorTest testSURFdetector;
-	SIFTdetectorTest testSIFTdetector;
-	WSURFdetectorTest testWSURFdetector;
-	KDtreeTest testKDtree;
-	SpilltreeTest testSpilltree;
-	FLANNtreeTest testFLANNtree;
-	RANSACestimatorTest testRANSACestimator;
-	LMEDSestimatorTest testLMEDSestimator;
+	class DLLEXPORT SIFTpoint : public FeaturePoint
+	{
+	public:
+		SIFTpoint() : FeaturePoint()
+		{
+			this->DESCRIPTOR_DIMENSION = 128;
+			this->descriptor.resize(this->DESCRIPTOR_DIMENSION);
+		}
+		~SIFTpoint()
+		{
+		}
 
-	std::cout << "terminate entire test routine!" << std::endl;
-	char ch;
-	std::cin >> ch;
+		void operator=(SIFTpoint oprd)
+		{
+			this->DESCRIPTOR_DIMENSION = oprd.DESCRIPTOR_DIMENSION;
+			this->descriptor.resize(DESCRIPTOR_DIMENSION);
+
+			this->point = oprd.GetPoint();
+			this->objectID = oprd.GetObjectID();
+		}
+	};
 }
+
+#endif

@@ -100,6 +100,7 @@ public:
 		sprintf(memoryAddress2, "%08X", p2);
 		compair += strcmp(memoryAddress1, memoryAddress2);
 
+		(*message) = std::string(memoryAddress1) + std::string(",") + std::string(memoryAddress2);
 		if(compair == 0)
 		{
 			return true;

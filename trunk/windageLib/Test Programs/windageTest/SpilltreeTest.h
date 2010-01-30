@@ -42,10 +42,10 @@
 
 #include "windageTest.h"
 #include "Algorithms/WSURFdetector.h"
-#include "Algorithms/FLANNtree.h"
+#include "Algorithms/Spilltree.h"
 #include "Utilities/Utils.h"
 
-class FLANNtreeTest : public windageTest
+class SpilltreeTest : public windageTest
 {
 private:
 	IplImage* grayImage;
@@ -53,14 +53,14 @@ private:
 	windage::Algorithms::WSURFdetector* surfDetectorSce;
 
 public:
-	FLANNtreeTest() : windageTest("FLANNtree Test", "FLANNtree")
+	SpilltreeTest() : windageTest("Spilltree Test", "Spilltree")
 	{
 		grayImage = NULL;
 		surfDetectorRef = NULL;
 		surfDetectorSce = NULL;
 		this->Do();
 	}
-	~FLANNtreeTest()
+	~SpilltreeTest()
 	{
 		if(grayImage) cvReleaseImage(&grayImage);
 		grayImage = NULL;
@@ -115,7 +115,7 @@ public:
 		int compair = 0;
 
 		// Feature Point
-		windage::Algorithms::FLANNtree* tree1 = new windage::Algorithms::FLANNtree();
+		windage::Algorithms::Spilltree* tree1 = new windage::Algorithms::Spilltree();
 		p1 = (void*)tree1;
 		tree1->Training(surfDetectorRef->GetKeypoints());
 		std::vector<windage::FeaturePoint*>* scenePoints = surfDetectorSce->GetKeypoints();
@@ -130,7 +130,7 @@ public:
 		}
 		delete tree1;
 
-		windage::Algorithms::FLANNtree* tree2 = new windage::Algorithms::FLANNtree();
+		windage::Algorithms::Spilltree* tree2 = new windage::Algorithms::Spilltree();
 		p2 = (void*)tree2;
 		tree2->Training(surfDetectorSce->GetKeypoints());
 		delete tree2;
@@ -157,13 +157,13 @@ public:
 
 		int width = resultImage->width / 2;
 		
-		windage::Algorithms::FLANNtree flanntree;
-		flanntree.Training(surfDetectorRef->GetKeypoints());
+		windage::Algorithms::Spilltree spilltree;
+		spilltree.Training(surfDetectorRef->GetKeypoints());
 		std::vector<windage::FeaturePoint*>* scenePoints = surfDetectorSce->GetKeypoints();
 		for(int i=0; i<scenePoints->size(); i++)
 		{
 			double distance = 1.0e10;
-			int index = flanntree.Matching((*(*scenePoints)[i]), &distance);
+			int index = spilltree.Matching((*(*scenePoints)[i]), &distance);
 			if(index >= 0)
 			{
 				windage::Vector3 refPT = (*surfDetectorRef->GetKeypoints())[index]->GetPoint();
@@ -176,8 +176,8 @@ public:
 			}
 		}
 
-		cvNamedWindow("FLANN tree search");
-		cvShowImage("FLANN tree search", resultImage);
+		cvNamedWindow("Spill tree search");
+		cvShowImage("Spill tree search", resultImage);
 		cvWaitKey(1000);
 
 		return test;
@@ -194,9 +194,8 @@ public:
 		if(surfDetectorSce) delete surfDetectorSce;
 		surfDetectorSce = NULL;
 		 
-		cvDestroyWindow("FLANN tree search");
+		cvDestroyWindow("Spill tree search");
 
 		return true;
 	}
 };
-

@@ -37,36 +37,45 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#include "windageTest.h"
-#include "windageTestSample.h"
-#include "VectorMatrixTest.h"
-#include "CalibrationTest.h"
-#include "FeaturePointTest.h"
-#include "SURFdetectorTest.h"
-#include "SIFTdetectorTest.h"
-#include "WSURFdetectorTest.h"
-#include "KDtreeTest.h"
-#include "SpilltreeTest.h"
-#include "FLANNtreeTest.h"
-#include "RANSACestimatorTest.h"
-#include "LMEDSestimatorTest.h"
+#include "Algorithms/SIFTdetector.h"
+#include "Structures/SIFTpoint.h"
+using namespace windage;
+using namespace windage::Algorithms;
 
-void main()
+#include "Algorithms/SIFT/sift.h"
+#include "Algorithms/SIFT/imgfeatures.h"
+
+bool SIFTdetector::DoExtractKeypointsDescriptor(IplImage* grayImage)
 {
-	windageTestSample testSample;
-	VectorMatrixTest testMatrixVector;
-	CalibrationTest testCalibration;
-	FeaturePointTest testFeaturePoint;
-	SURFdetectorTest testSURFdetector;
-	SIFTdetectorTest testSIFTdetector;
-	WSURFdetectorTest testWSURFdetector;
-	KDtreeTest testKDtree;
-	SpilltreeTest testSpilltree;
-	FLANNtreeTest testFLANNtree;
-	RANSACestimatorTest testRANSACestimator;
-	LMEDSestimatorTest testLMEDSestimator;
+	if(grayImage == NULL)
+		return false;
+	if(grayImage->nChannels != 1)
+		return false;
 
-	std::cout << "terminate entire test routine!" << std::endl;
-	char ch;
-	std::cin >> ch;
+	this->ResetKeypoints();
+
+	
+	struct feature* features = NULL;
+	int count = sift_features(grayImage, &features);
+
+	windage::SIFTpoint* point;
+	for(int i=0; i<count; i++)
+	{
+		point = new windage::SIFTpoint();
+
+		point->SetPoint(windage::Vector3(features[i].x, features[i].y, 1.0));
+		point->SetSize(cvRound(features[i].scl));
+		point->SetDir(features[i].ori);
+
+		for(int j=0; j<point->DESCRIPTOR_DIMENSION; j++)
+		{
+			point->descriptor[j] = features[i].descr[j];
+		}
+
+		this->keypoints.push_back((FeaturePoint*)point);
+	}
+
+	if(features) delete features;
+
+	return true;
 }
