@@ -37,36 +37,20 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#include "windageTest.h"
-#include "windageTestSample.h"
-#include "VectorMatrixTest.h"
-#include "CalibrationTest.h"
-#include "FeaturePointTest.h"
-#include "SURFdetectorTest.h"
-#include "SIFTdetectorTest.h"
-#include "WSURFdetectorTest.h"
-#include "KDtreeTest.h"
-#include "SpilltreeTest.h"
-#include "FLANNtreeTest.h"
-#include "RANSACestimatorTest.h"
-#include "LMEDSestimatorTest.h"
+#ifndef _W_FAST_SURF_H_
+#define _W_FAST_SURF_H_
 
-void main()
-{
-	windageTestSample testSample;
-	VectorMatrixTest testMatrixVector;
-	CalibrationTest testCalibration;
-	FeaturePointTest testFeaturePoint;
-	SURFdetectorTest testSURFdetector;
-	SIFTdetectorTest testSIFTdetector;
-	WSURFdetectorTest testWSURFdetector;
-	KDtreeTest testKDtree;
-	SpilltreeTest testSpilltree;
-	FLANNtreeTest testFLANNtree;
-	RANSACestimatorTest testRANSACestimator;
-	LMEDSestimatorTest testLMEDSestimator;
+// modified SURF by windage
+/** @cond */
 
-	std::cout << "terminate entire test routine!" << std::endl;
-	char ch;
-	std::cin >> ch;
-}
+#include <cv.h>
+#include <cxmisc.h>
+
+#include "wsurf.h"
+
+void wExtractFASTSURF( const CvArr* _img, const CvArr* _mask,
+							CvSeq** _keypoints, CvSeq** _descriptors,
+							CvMemStorage* storage, CvSURFParams params,
+							int useProvidedKeyPts);
+
+#endif

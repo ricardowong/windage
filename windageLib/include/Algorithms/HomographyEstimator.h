@@ -74,6 +74,8 @@ namespace windage
 			}
 			virtual ~HomographyEstimator()
 			{
+				this->referencePoints = NULL;
+				this->scenePoints = NULL;
 			}
 
 			inline windage::Matrix3 GetHomography(){return this->homography;};

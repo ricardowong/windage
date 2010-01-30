@@ -37,26 +37,38 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#include "windageTest.h"
-#include "Structures/Calibration.h"
+#include <cv.h>
+#include <highgui.h>
 
-class CalibrationTest : public windageTest
+#include "windageTest.h"
+#include "Algorithms/SIFTdetector.h"
+#include "Utilities/Utils.h"
+
+class SIFTdetectorTest : public windageTest
 {
 private:
+	IplImage* grayImage;
+
 public:
-	CalibrationTest() : windageTest("Calibration Test", "Calibration")
+	SIFTdetectorTest() : windageTest("SIFTdetector Test", "SIFTdetector")
 	{
+		grayImage = NULL;
 		this->Do();
 	}
-	~CalibrationTest()
+	~SIFTdetectorTest()
 	{
+		if(grayImage) cvReleaseImage(&grayImage);
+		grayImage = NULL;
 	}
 
 	bool Initialize(std::string* message)
 	{
 		// prepair the test data and setup the parameters
+		testImage = cvLoadImage(TEST_IMAGE_FILENAME.c_str());
+		grayImage = cvCreateImage(cvGetSize(testImage), IPL_DEPTH_8U, 1);
+		resultImage = cvCreateImage(cvGetSize(testImage), IPL_DEPTH_8U, 3);
+		cvCvtColor(testImage, grayImage, CV_BGR2GRAY);
 
-		//testImage = cvLoadImage(TEST_IMAGE_FILENAME.c_str());
 		return true;
 	}
 
@@ -71,14 +83,16 @@ public:
 		void* p2 = 0;
 		int compair = 0;
 
-		// calibration
-		windage::Calibration* calibration1 = new windage::Calibration();
-		p1 = (void*)calibration1;
-		delete calibration1;
+		// Feature Point
+		windage::Algorithms::SIFTdetector* SIFTDetector1 = new windage::Algorithms::SIFTdetector();
+		p1 = (void*)SIFTDetector1;
+		SIFTDetector1->DoExtractKeypointsDescriptor(grayImage);
+		delete SIFTDetector1;
 
-		windage::Calibration* calibration2 = new windage::Calibration();
-		p2 = (void*)calibration2;
-		delete calibration2;
+		windage::Algorithms::SIFTdetector* SIFTDetector2 = new windage::Algorithms::SIFTdetector();
+		p2 = (void*)SIFTDetector2;
+		SIFTDetector1->DoExtractKeypointsDescriptor(grayImage);
+		delete SIFTDetector2;
 
 		sprintf(memoryAddress1, "%08X", p1);
 		sprintf(memoryAddress2, "%08X", p2);
@@ -98,12 +112,21 @@ public:
 	bool TestAlgorithm(std::string* message)
 	{
 		bool test = true;
-		double EPS = 1.0e-5;
+		char tempMessage[100];
+		windage::Algorithms::SIFTdetector SIFTDetector;
 
-		// checek the algorithm
-		CvRNG rng = cvRNG(cvGetTickCount());
-		double r11 = (double)1;//cvRandInt(&rng) % 200 - 100;
-	
+		cvNamedWindow("SIFT detector");
+		cvCopyImage(testImage, resultImage);
+
+		SIFTDetector.DoExtractKeypointsDescriptor(grayImage);
+		SIFTDetector.DrawKeypoints(resultImage, CV_RGB(255, 0, 0));
+
+		sprintf(tempMessage, "SIFT detector");
+		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 20), 0.7, tempMessage);
+
+		cvShowImage("SIFT detector", resultImage);
+		cvWaitKey(1000);
+		
 		return test;
 	}
 
@@ -111,7 +134,11 @@ public:
 	{
 		// remove data and reset the parameters
 		//if(testImage) cvReleaseImage(&testImage);
+		if(grayImage) cvReleaseImage(&grayImage);
+		grayImage = NULL;
+		cvDestroyWindow("SIFT detector");
 
 		return true;
 	}
 };
+

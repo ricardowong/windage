@@ -41,7 +41,7 @@
 #include <highgui.h>
 
 #include "windageTest.h"
-#include "Algorithms/SURFdetector.h"
+#include "Algorithms/WSURFdetector.h"
 #include "Algorithms/FLANNtree.h"
 #include "Algorithms/RANSACestimator.h"
 #include "Utilities/Utils.h"
@@ -50,8 +50,8 @@ class RANSACestimatorTest : public windageTest
 {
 private:
 	IplImage* grayImage;
-	windage::Algorithms::SURFdetector* surfDetectorRef;
-	windage::Algorithms::SURFdetector* surfDetectorSce;
+	windage::Algorithms::WSURFdetector* surfDetectorRef;
+	windage::Algorithms::WSURFdetector* surfDetectorSce;
 	windage::Algorithms::FLANNtree* searchTree;
 
 	std::vector<windage::FeaturePoint*> referencePoints;
@@ -98,7 +98,7 @@ public:
 		cvSetImageROI(resultImage, cvRect(0, 0, testImage->width, testImage->height));
 		cvCopyImage(testImage, resultImage);
 
-		surfDetectorRef = new windage::Algorithms::SURFdetector(2000.0);
+		surfDetectorRef = new windage::Algorithms::WSURFdetector();
 		surfDetectorRef->DoExtractKeypointsDescriptor(grayImage);
 		cvReleaseImage(&testImage);
 
@@ -109,7 +109,7 @@ public:
 		cvSetImageROI(resultImage, cvRect(testImage->width, 0, testImage->width, testImage->height));
 		cvCopyImage(testImage, resultImage);
 
-		surfDetectorSce = new windage::Algorithms::SURFdetector(2000.0);
+		surfDetectorSce = new windage::Algorithms::WSURFdetector();
 		surfDetectorSce->DoExtractKeypointsDescriptor(grayImage);
 		cvReleaseImage(&testImage);
 
@@ -170,6 +170,7 @@ public:
 		sprintf(memoryAddress2, "%08X", p2);
 		compair += strcmp(memoryAddress1, memoryAddress2);
 
+		(*message) = std::string(memoryAddress1) + std::string(",") + std::string(memoryAddress2);
 		if(compair == 0)
 		{
 			return true;

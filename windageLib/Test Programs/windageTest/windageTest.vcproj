@@ -121,6 +121,7 @@
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
+				OpenMP="true"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
@@ -213,6 +214,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\SIFTdetectorTest.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SpilltreeTest.h"
+				>
+			</File>
+			<File
 				RelativePath=".\SURFdetectorTest.h"
 				>
 			</File>
@@ -230,6 +239,10 @@
 			</File>
 			<File
 				RelativePath=".\windageTestSample.h"
+				>
+			</File>
+			<File
+				RelativePath=".\WSURFdetectorTest.h"
 				>
 			</File>
 		</Filter>

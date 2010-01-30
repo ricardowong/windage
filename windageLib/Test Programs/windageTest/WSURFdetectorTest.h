@@ -37,26 +37,38 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#include "windageTest.h"
-#include "Structures/Calibration.h"
+#include <cv.h>
+#include <highgui.h>
 
-class CalibrationTest : public windageTest
+#include "windageTest.h"
+#include "Algorithms/WSURFdetector.h"
+#include "Utilities/Utils.h"
+
+class WSURFdetectorTest : public windageTest
 {
 private:
+	IplImage* grayImage;
+
 public:
-	CalibrationTest() : windageTest("Calibration Test", "Calibration")
+	WSURFdetectorTest() : windageTest("Windage SURFdetector Test", "WindageSURFdetector")
 	{
+		grayImage = NULL;
 		this->Do();
 	}
-	~CalibrationTest()
+	~WSURFdetectorTest()
 	{
+		if(grayImage) cvReleaseImage(&grayImage);
+		grayImage = NULL;
 	}
 
 	bool Initialize(std::string* message)
 	{
 		// prepair the test data and setup the parameters
+		testImage = cvLoadImage(TEST_IMAGE_FILENAME.c_str());
+		grayImage = cvCreateImage(cvGetSize(testImage), IPL_DEPTH_8U, 1);
+		resultImage = cvCreateImage(cvGetSize(testImage), IPL_DEPTH_8U, 3);
+		cvCvtColor(testImage, grayImage, CV_BGR2GRAY);
 
-		//testImage = cvLoadImage(TEST_IMAGE_FILENAME.c_str());
 		return true;
 	}
 
@@ -71,14 +83,16 @@ public:
 		void* p2 = 0;
 		int compair = 0;
 
-		// calibration
-		windage::Calibration* calibration1 = new windage::Calibration();
-		p1 = (void*)calibration1;
-		delete calibration1;
+		// Feature Point
+		windage::Algorithms::WSURFdetector* detector1 = new windage::Algorithms::WSURFdetector();
+		p1 = (void*)detector1;
+		detector1->DoExtractKeypointsDescriptor(grayImage);
+		delete detector1;
 
-		windage::Calibration* calibration2 = new windage::Calibration();
-		p2 = (void*)calibration2;
-		delete calibration2;
+		windage::Algorithms::WSURFdetector* detector2 = new windage::Algorithms::WSURFdetector();
+		p2 = (void*)detector2;
+		detector2->DoExtractKeypointsDescriptor(grayImage);
+		delete detector2;
 
 		sprintf(memoryAddress1, "%08X", p1);
 		sprintf(memoryAddress2, "%08X", p2);
@@ -98,12 +112,26 @@ public:
 	bool TestAlgorithm(std::string* message)
 	{
 		bool test = true;
-		double EPS = 1.0e-5;
+		char tempMessage[100];
+		windage::Algorithms::WSURFdetector wSurfDetector;
 
-		// checek the algorithm
-		CvRNG rng = cvRNG(cvGetTickCount());
-		double r11 = (double)1;//cvRandInt(&rng) % 200 - 100;
-	
+		cvNamedWindow("Windage SURF detector");
+		for(int i=1; i<10; i++)
+		{
+			double threshold = 20.0 * (double)i;
+			cvCopyImage(testImage, resultImage);
+
+			wSurfDetector.SetThreshold(threshold);
+			wSurfDetector.DoExtractKeypointsDescriptor(grayImage);
+			wSurfDetector.DrawKeypoints(resultImage, CV_RGB(255, 0, 0));
+
+			sprintf(tempMessage, "Windage SURF threshold : %.2lf", threshold);
+			windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 20), 0.7, tempMessage);
+
+			cvShowImage("Windage SURF detector", resultImage);
+			cvWaitKey(1);
+		}
+		
 		return test;
 	}
 
@@ -111,7 +139,11 @@ public:
 	{
 		// remove data and reset the parameters
 		//if(testImage) cvReleaseImage(&testImage);
+		if(grayImage) cvReleaseImage(&grayImage);
+		grayImage = NULL;
+		cvDestroyWindow("Windage SURF detector");
 
 		return true;
 	}
 };
+
