@@ -51,6 +51,7 @@
 #include "OpticalFlowTest.h"
 #include "RANSACestimatorTest.h"
 #include "LMEDSestimatorTest.h"
+#include "OutlierRemoverTest.h"
 
 void main()
 {
@@ -67,6 +68,7 @@ void main()
 	OpticalFlowTest testOpticalFlow;
 	RANSACestimatorTest testRANSACestimator;
 	LMEDSestimatorTest testLMEDSestimator;
+	OutlierRemoverTest testOutlierRemover;
 
 	std::cout << "terminate entire test routine!" << std::endl;
 	char ch;

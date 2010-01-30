@@ -37,39 +37,33 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#ifndef _SIFT_DETECTOR_H_
-#define _SIFT_DETECTOR_H_
+#include "Algorithms/OutlierRemover.h"
+using namespace windage;
+using namespace windage::Algorithms;
 
-#include <vector>
-
-#include <cv.h>
-#include "base.h"
-
-#include "Structures/Vector.h"
-#include "Algorithms/FeatureDetector.h"
-
-namespace windage
+bool OutlierRemover::Calculate()
 {
-	namespace Algorithms
+	if(this->homographyEstimator == NULL)
+		return false;
+
+	std::vector<windage::FeaturePoint*>* refPoints = this->homographyEstimator->GetReferencePoint();
+	std::vector<windage::FeaturePoint*>* scePoints = this->homographyEstimator->GetScenePoint();
+	for(unsigned int i=0; i<refPoints->size(); i++)
 	{
-		class DLLEXPORT SIFTdetector : public FeatureDetector
+		windage::Vector3 imagePoint = this->homographyEstimator->ConvertObjectToImage((*refPoints)[i]->GetPoint());
+		imagePoint /= imagePoint.z;
+		double error = (*scePoints)[i]->GetPoint().getDistance(imagePoint);
+		if(error < this->reprojectionError)
 		{
-		private:
-			double SIZE_AMPLIFICATION;
-
-		public:
-			SIFTdetector() : FeatureDetector()
-			{
-				SIZE_AMPLIFICATION = 5.0;
-			}
-			~SIFTdetector()
-			{
-			}
-
-			bool DoExtractKeypointsDescriptor(IplImage* grayImage);
-		};
+			(*refPoints)[i]->SetRemove(false);
+			(*scePoints)[i]->SetRemove(false);
+		}
+		else
+		{
+			(*refPoints)[i]->SetRemove(true);
+			(*scePoints)[i]->SetRemove(true);
+		}
 	}
+
+	return true;
 }
-
-
-#endif

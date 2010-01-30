@@ -56,6 +56,7 @@ namespace windage
 		int size;
 		double dir;
 		double distance;
+		bool removed;
 		
 	public:
 		int DESCRIPTOR_DIMENSION;
@@ -71,6 +72,7 @@ namespace windage
 			size = 0;
 			dir = 0;
 			distance = 1.0e10;
+			removed = false;
 		}
 		virtual ~FeaturePoint()
 		{
@@ -86,6 +88,8 @@ namespace windage
 			this->size = oprd.GetSize();
 			this->dir = oprd.GetDir();
 			this->distance = oprd.GetDistance();
+
+			this->removed = oprd.GetRemove();
 		}
 
 		virtual double GetDistance(FeaturePoint oprd)
@@ -109,6 +113,8 @@ namespace windage
 		inline double GetDir(){return this->dir;};
 		inline void SetDistance(double distance){this->distance = distance;};
 		inline double GetDistance(){return this->distance;};
+		inline void SetRemove(bool remove){this->removed = remove;};
+		inline bool GetRemove(){return this->removed;};
 	};
 }
 

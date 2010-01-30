@@ -62,6 +62,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="cv120.lib cxcore120.lib highgui120.lib"
+				OutputFile="$(OutDir)\$(ProjectName)d.exe"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="&quot;$(SolutionDir)../../lib/&quot;;&quot;$(SolutionDir)../../component/OpenCV 1.2/lib/&quot;;"
 				GenerateDebugInformation="true"
@@ -88,6 +89,8 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="COPY /Y &quot;$(OutDir)\$(ProjectName)d.exe&quot; &quot;$(SolutionDir)\..\..\runtime\$(ProjectName)d.exe&quot;"
+				ExcludedFromBuild="false"
 			/>
 		</Configuration>
 		<Configuration
@@ -166,6 +169,8 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="COPY /Y &quot;$(OutDir)\$(ProjectName).exe&quot; &quot;$(SolutionDir)\..\..\runtime\$(ProjectName).exe&quot;"
+				ExcludedFromBuild="false"
 			/>
 		</Configuration>
 	</Configurations>
@@ -211,6 +216,10 @@
 			</File>
 			<File
 				RelativePath=".\OpticalFlowTest.h"
+				>
+			</File>
+			<File
+				RelativePath=".\OutlierRemoverTest.h"
 				>
 			</File>
 			<File

@@ -356,6 +356,14 @@
 				<Filter
 					Name="OutlierRemover"
 					>
+					<File
+						RelativePath="..\..\..\src\Algorithms\OutlierRemover.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\..\include\Algorithms\OutlierRemover.h"
+						>
+					</File>
 				</Filter>
 			</Filter>
 			<Filter
