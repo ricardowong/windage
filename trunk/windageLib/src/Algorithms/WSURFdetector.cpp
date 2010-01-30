@@ -71,7 +71,7 @@ bool WSURFdetector::DoExtractKeypointsDescriptor(IplImage* grayImage)
 		CvSURFPoint point = cvSURFPoint(cvPoint2D32f(cornerPoints[i].x, cornerPoints[i].y), 0, 15, 0, 0);
 		cvSeqPush(keypointsSeq, &point);
 	}
-	if(cornerPoints) delete cornerPoints;
+	if(cornerPoints) delete[] cornerPoints;
 
 	// Generate Descriptor
 	CvSURFParams params = cvSURFParams(this->threshold, 0);

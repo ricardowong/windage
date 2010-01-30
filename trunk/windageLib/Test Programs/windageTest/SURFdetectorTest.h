@@ -91,7 +91,7 @@ public:
 
 		windage::Algorithms::SURFdetector* surfDetector2 = new windage::Algorithms::SURFdetector();
 		p2 = (void*)surfDetector2;
-		surfDetector1->DoExtractKeypointsDescriptor(grayImage);
+		surfDetector2->DoExtractKeypointsDescriptor(grayImage);
 		delete surfDetector2;
 
 		sprintf(memoryAddress1, "%08X", p1);

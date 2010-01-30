@@ -103,7 +103,7 @@ int OpticalFlow::TrackFeatures(IplImage* prevGrayImage, IplImage* currGrayImage,
 				{
 					windage::FeaturePoint* tempPoint = new windage::FeaturePoint();
 					(*tempPoint) = (*(*prevPoints)[i]);
-					tempPoint->SetPoint(windage::Vector3(-this->imageWidth, feature2[i].y, -this->imageHeight));
+					tempPoint->SetPoint(windage::Vector3(-this->imageWidth, -this->imageHeight, 1.0));
 
 					currPoints->push_back(tempPoint);
 				}

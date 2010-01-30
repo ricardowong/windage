@@ -210,6 +210,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\OpticalFlowTest.h"
+				>
+			</File>
+			<File
 				RelativePath=".\RANSACestimatorTest.h"
 				>
 			</File>
