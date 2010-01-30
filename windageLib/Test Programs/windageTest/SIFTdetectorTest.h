@@ -84,15 +84,15 @@ public:
 		int compair = 0;
 
 		// Feature Point
-		windage::Algorithms::SIFTdetector* SIFTDetector1 = new windage::Algorithms::SIFTdetector();
-		p1 = (void*)SIFTDetector1;
-		SIFTDetector1->DoExtractKeypointsDescriptor(grayImage);
-		delete SIFTDetector1;
+		windage::Algorithms::SIFTdetector* siftDetector1 = new windage::Algorithms::SIFTdetector();
+		p1 = (void*)siftDetector1;
+		siftDetector1->DoExtractKeypointsDescriptor(grayImage);
+		delete siftDetector1;
 
-		windage::Algorithms::SIFTdetector* SIFTDetector2 = new windage::Algorithms::SIFTdetector();
-		p2 = (void*)SIFTDetector2;
-		SIFTDetector1->DoExtractKeypointsDescriptor(grayImage);
-		delete SIFTDetector2;
+		windage::Algorithms::SIFTdetector* siftDetector2 = new windage::Algorithms::SIFTdetector();
+		p2 = (void*)siftDetector2;
+		siftDetector2->DoExtractKeypointsDescriptor(grayImage);
+		delete siftDetector2;
 
 		sprintf(memoryAddress1, "%08X", p1);
 		sprintf(memoryAddress2, "%08X", p2);

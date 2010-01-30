@@ -55,10 +55,12 @@ namespace windage
 		class DLLEXPORT SIFTdetector : public FeatureDetector
 		{
 		private:
+			double SIZE_AMPLIFICATION;
 
 		public:
 			SIFTdetector() : FeatureDetector()
 			{
+				SIZE_AMPLIFICATION = 3.0;
 			}
 			~SIFTdetector()
 			{

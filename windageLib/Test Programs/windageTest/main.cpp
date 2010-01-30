@@ -48,6 +48,7 @@
 #include "KDtreeTest.h"
 #include "SpilltreeTest.h"
 #include "FLANNtreeTest.h"
+#include "OpticalFlowTest.h"
 #include "RANSACestimatorTest.h"
 #include "LMEDSestimatorTest.h"
 
@@ -63,6 +64,7 @@ void main()
 	KDtreeTest testKDtree;
 	SpilltreeTest testSpilltree;
 	FLANNtreeTest testFLANNtree;
+	OpticalFlowTest testOpticalFlow;
 	RANSACestimatorTest testRANSACestimator;
 	LMEDSestimatorTest testLMEDSestimator;
 
