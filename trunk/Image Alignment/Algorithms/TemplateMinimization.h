@@ -67,7 +67,7 @@ namespace windage
 		TemplateMinimization(int width=150, int height=150)
 		{
 			this->PARAMETER_AMPLIFICATION = 2.0;
-			this->SAMPLING_STEP = 5;
+			this->SAMPLING_STEP = 3;
 
 			this->width = width;
 			this->height = height;
