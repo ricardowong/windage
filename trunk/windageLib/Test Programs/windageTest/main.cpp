@@ -53,6 +53,7 @@
 #include "LMeDSestimatorTest.h"
 #include "OutlierCheckerTest.h"
 #include "ObjectTrackingTest.h"
+#include "MultipleObjectTrackingTest.h"
 
 void main()
 {
@@ -77,6 +78,7 @@ void main()
 	OutlierCheckerTest testOutlierChecker;
 
 	ObjectTrackingTest testObjectTracking;
+	MultipleObjectTrackingTest testMultipleObjectTracking;
 
 	std::cout << "terminate entire test routine!" << std::endl;
 	char ch;

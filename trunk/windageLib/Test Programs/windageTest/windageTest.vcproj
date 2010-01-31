@@ -227,6 +227,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\MultipleObjectTrackingTest.h"
+				>
+			</File>
+			<File
 				RelativePath=".\ObjectTrackingTest.h"
 				>
 			</File>
