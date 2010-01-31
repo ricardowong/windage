@@ -41,6 +41,28 @@
 using namespace windage;
 using namespace windage::Frameworks;
 
+bool ObjectTracking::Initialize(int width, int height, double realWidth, double realHeight)
+{
+	if(this->cameraParameter == NULL)
+		return false;
+	
+	this->width = width;
+	this->height = height;
+	this->realWidth = realWidth;
+	this->realHeight = realHeight;
+
+	this->checker->AttatchEstimator(this->estimator);
+
+	this->estimator->SetReprojectionError(2.0);
+	this->checker->SetReprojectionError(2.0);
+	
+	if(prevImage) cvReleaseImage(&prevImage);
+	prevImage = cvCreateImage(cvSize(width, height), IPL_DEPTH_8U, 1);
+
+	this->initialize = true;
+	return true;
+}
+
 bool ObjectTracking::AttatchReferenceImage(IplImage* grayImage)
 {
 	if(grayImage == NULL)
@@ -50,61 +72,137 @@ bool ObjectTracking::AttatchReferenceImage(IplImage* grayImage)
 	this->referenceImage = NULL;
 	this->referenceImage = cvCloneImage(grayImage);
 
-	this->detector->DoExtractKeypointsDescriptor(this->referenceImage);
-	std::vector<windage::FeaturePoint>* tempReferenceImage = this->detector->GetKeypoints();
-
-	this->referenceRepository.clear();
-	for(unsigned int i=0; i<tempReferenceImage->size(); i++)
-	{
-		windage::Vector3 point = (*tempReferenceImage)[i].GetPoint();
-		point.x -= (double)width/2.0;
-		point.y = (double)height/2.0 - point.y + 1;
-
-		(*tempReferenceImage)[i].SetPoint(point);
-		this->referenceRepository.push_back((*tempReferenceImage)[i]);
-	}
-
-	this->matcher->Training(&this->referenceRepository);
-
 	return true;
 }
 
-bool ObjectTracking::Initialize(int width, int height)
+bool ObjectTracking::TrainingReference(double scaleFactor, int scaleStep)
 {
-	if(this->cameraParameter == NULL)
+	if(this->referenceImage == NULL)
 		return false;
-	
-	this->width = width;
-	this->height = height;
 
-	this->estimator->AttatchCameraParameter(this->cameraParameter);
+	int width = cvRound((double)this->referenceImage->width/scaleFactor);
+	int height = cvRound((double)this->referenceImage->height/scaleFactor);
+	int count = 0;
 
+	this->referenceRepository.clear();
+	for(int y=1; y<=scaleStep; y++)
+	{
+		for(int x=1; x<=scaleStep; x++)
+		{
+			IplImage* resizeReferenceImage = cvCreateImage(cvSize(width*x, height*y), IPL_DEPTH_8U, 1);
+			cvResize(this->referenceImage, resizeReferenceImage, CV_INTER_LINEAR);
+			cvSmooth(resizeReferenceImage, resizeReferenceImage, CV_GAUSSIAN, 3, 3);
+
+			this->detector->DoExtractKeypointsDescriptor(resizeReferenceImage);
+			std::vector<windage::FeaturePoint>* tempReferenceKeypoints = this->detector->GetKeypoints();
+
+			// add reference feature repository
+			double xScaleFactor = this->realWidth / (double)resizeReferenceImage->width;
+			double yScaleFactor = this->realHeight / (double)resizeReferenceImage->height;
+			for(unsigned int i=0; i<tempReferenceKeypoints->size(); i++)
+			{
+				windage::Vector3 point = (*tempReferenceKeypoints)[i].GetPoint();
+				point.x *= xScaleFactor;
+				point.y *= yScaleFactor;
+				point.x -= (double)this->realWidth/2.0;
+				point.y = (double) this->realHeight/2.0 - point.y + 1;
+
+				(*tempReferenceKeypoints)[i].SetPoint(point);
+				(*tempReferenceKeypoints)[i].SetRepositoryID(count);
+
+				this->referenceRepository.push_back((*tempReferenceKeypoints)[i]);
+				count++;
+			}
+
+			cvReleaseImage(&resizeReferenceImage);
+		}
+	}
+
+	this->matcher->Training(&this->referenceRepository);
+	this->trained = true;
 	return true;
 }
 
 bool ObjectTracking::UpdateCamerapose(IplImage* grayImage)
 {
-	this->detector->DoExtractKeypointsDescriptor(grayImage);
-	std::vector<windage::FeaturePoint>* sceneKeypoints = this->detector->GetKeypoints();
+	if(initialize == false || trained == false)
+		return false;
 
-	std::vector<windage::FeaturePoint> refMatchedKeypoints;
-	std::vector<windage::FeaturePoint> sceMatchedKeypoints;
-
-	for(unsigned int i=0; i<sceneKeypoints->size(); i++)
+	if(this->detectionRatio < 1)
 	{
-		int index = this->matcher->Matching((*sceneKeypoints)[i]);
+		refMatchedKeypoints.clear();
+		sceMatchedKeypoints.clear();
+	}
+	else // featur tracking routine
+	{
+		std::vector<windage::FeaturePoint> sceneKeypoints;
+		this->tracker->TrackFeatures(prevImage, grayImage, &sceMatchedKeypoints, &sceneKeypoints);
 
-		if(index >= 0)
+		int index = 0;
+		for(unsigned int i=0; i<sceneKeypoints.size(); i++)
 		{
-			refMatchedKeypoints.push_back(this->referenceRepository[index]);
-			sceMatchedKeypoints.push_back((*sceneKeypoints)[i]);
+			if(sceneKeypoints[i].IsOutlier() == false)
+			{
+				sceMatchedKeypoints[index] = sceneKeypoints[i];
+				index++;
+			}
+			else // tracking fail feature
+			{
+				this->referenceRepository[refMatchedKeypoints[index].GetRepositoryID()].SetTracked(false);
+
+				sceMatchedKeypoints.erase(sceMatchedKeypoints.begin() + index);
+				refMatchedKeypoints.erase(refMatchedKeypoints.begin() + index);
+			}
 		}
 	}
 
-	estimator->AttatchReferencePoint(&refMatchedKeypoints);
-	estimator->AttatchScenePoint(&sceMatchedKeypoints);
-	estimator->Calculate();
+	if(this->step > this->detectionRatio) // detection routine (add new points)
+	{
+		step = 0;
+		this->detector->DoExtractKeypointsDescriptor(grayImage);
+		std::vector<windage::FeaturePoint>* sceneKeypoints = this->detector->GetKeypoints();
 
+		for(unsigned int i=0; i<sceneKeypoints->size(); i++)
+		{
+			int index = this->matcher->Matching((*sceneKeypoints)[i]);
+			if(index >= 0)
+			{
+				// if not tracked have point
+				if(this->referenceRepository[index].IsTracked() == false)
+				{
+					this->referenceRepository[index].SetTracked(true);
+
+					refMatchedKeypoints.push_back(this->referenceRepository[index]);
+					sceMatchedKeypoints.push_back((*sceneKeypoints)[i]);
+				}
+			}
+		}
+	}
+
+	// pose estimate
+	this->estimator->AttatchReferencePoint(&refMatchedKeypoints);
+	this->estimator->AttatchScenePoint(&sceMatchedKeypoints);
+	this->estimator->Calculate();
+	this->estimator->DecomposeHomography(this->cameraParameter);
+
+	// outlier checker
+	this->checker->AttatchEstimator(this->estimator);
+	this->checker->Calculate();
+
+	int index = 0;
+	for(unsigned int i=0; i<refMatchedKeypoints.size(); i++)
+	{
+		if(refMatchedKeypoints[i].IsOutlier() == true)
+		{
+			sceMatchedKeypoints.erase(sceMatchedKeypoints.begin() + i);
+			refMatchedKeypoints.erase(refMatchedKeypoints.begin() + i);
+			i--;
+		}
+	}
+
+	cvCopyImage(grayImage, this->prevImage);
+
+	this->step++;
 	return true;
 }
 
@@ -131,5 +229,26 @@ void ObjectTracking::DrawOutLine(IplImage* colorImage, bool drawCross)
 
 		cvLine(colorImage, cameraParameter->ConvertWorld2Image(-this->width/2, -this->height/2, 0.0),	cameraParameter->ConvertWorld2Image(+this->width/2, +this->height/2, 0.0),	color, 2);
 		cvLine(colorImage, cameraParameter->ConvertWorld2Image(-this->width/2, +this->height/2, 0.0),	cameraParameter->ConvertWorld2Image(+this->width/2, -this->height/2, 0.0),	color, 2);
+	}
+}
+
+void ObjectTracking::DrawDebugInfo(IplImage* colorImage)
+{
+	int pointCount = (int)refMatchedKeypoints.size();
+	int r = 255;
+	int g = 0;
+	int b = 0;
+
+	int size = 4;
+	for(unsigned int i=0; i<refMatchedKeypoints.size(); i++)
+	{
+		CvPoint referencePoint = cvPoint((int)refMatchedKeypoints[i].GetPoint().x * colorImage->width/realWidth + colorImage->width/2,
+									(int)(colorImage->height - refMatchedKeypoints[i].GetPoint().y * colorImage->height/realHeight - colorImage->height/2));
+		CvPoint imagePoint = cvPoint((int)sceMatchedKeypoints[i].GetPoint().x, (int)sceMatchedKeypoints[i].GetPoint().y);
+
+		cvCircle(colorImage, referencePoint, size, CV_RGB(0, 255, 255), CV_FILLED);
+		cvCircle(colorImage, imagePoint, size, CV_RGB(255, 255, 0), CV_FILLED);
+
+		cvLine(colorImage, referencePoint, imagePoint, CV_RGB(255, 0, 0));
 	}
 }

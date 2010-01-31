@@ -55,7 +55,7 @@ namespace windage
 		class DLLEXPORT SURFdetector : public FeatureDetector
 		{
 		private:
-			double threshold;
+			
 
 		public:
 			SURFdetector(double threshold = 1000.0) : FeatureDetector()
@@ -65,9 +65,6 @@ namespace windage
 			~SURFdetector()
 			{
 			}
-
-			inline void SetThreshold(double threshold){this->threshold = threshold;};
-			inline double GetThreshold(){return this->threshold;};
 
 			bool DoExtractKeypointsDescriptor(IplImage* grayImage);
 		};

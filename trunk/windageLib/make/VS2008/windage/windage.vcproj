@@ -381,11 +381,11 @@
 					Name="OutlierRemover"
 					>
 					<File
-						RelativePath="..\..\..\src\Algorithms\OutlierRemover.cpp"
+						RelativePath="..\..\..\src\Algorithms\OutlierChecker.cpp"
 						>
 					</File>
 					<File
-						RelativePath="..\..\..\include\Algorithms\OutlierRemover.h"
+						RelativePath="..\..\..\include\Algorithms\OutlierChecker.h"
 						>
 					</File>
 				</Filter>

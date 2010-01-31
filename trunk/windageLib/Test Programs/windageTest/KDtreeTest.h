@@ -118,6 +118,8 @@ public:
 		windage::Algorithms::KDtree* tree1 = new windage::Algorithms::KDtree();
 		p1 = (void*)tree1;
 		tree1->Training(surfDetectorRef->GetKeypoints());
+		tree1->Training(surfDetectorRef->GetKeypoints());
+		tree1->Training(surfDetectorRef->GetKeypoints());
 		std::vector<windage::FeaturePoint>* scenePoints = surfDetectorSce->GetKeypoints();
 		for(int i=0; i<scenePoints->size(); i++)
 		{

@@ -55,8 +55,8 @@
 #include "Algorithms/FeatureDetector.h"
 #include "Algorithms/SearchTree.h"
 #include "Algorithms/OpticalFlow.h"
-#include "Algorithms/PoseEstimator.h"
-
+#include "Algorithms/HomographyEstimator.h"
+#include "Algorithms/OutlierChecker.h"
 
 namespace windage
 {
@@ -66,29 +66,51 @@ namespace windage
 		{
 		protected:
 			windage::Calibration* cameraParameter;
+			IplImage* prevImage;
+			std::vector<windage::FeaturePoint> refMatchedKeypoints;
+			std::vector<windage::FeaturePoint> sceMatchedKeypoints;
 
 			int width;
 			int height;
+			double realWidth;
+			double realHeight;
+
+			int step;
+			int detectionRatio;
+
 			IplImage* referenceImage;
 			std::vector<windage::FeaturePoint> referenceRepository;
 
 			windage::Algorithms::FeatureDetector* detector;
 			windage::Algorithms::SearchTree* matcher;
 			windage::Algorithms::OpticalFlow* tracker;
-			windage::Algorithms::PoseEstimator* estimator;
+			windage::Algorithms::HomographyEstimator* estimator;
+			windage::Algorithms::OutlierChecker* checker;
+
+			bool initialize;
+			bool trained;
 			
 		public:
 			ObjectTracking()
 			{
-				cameraParameter = NULL;
+				prevImage = NULL;
 				referenceImage = NULL;
 
+				cameraParameter = NULL;
 				detector = NULL;
 				matcher = NULL;
 				estimator = NULL;
+
+				initialize = false;
+				trained = false;
+
+				step = 1;
+				detectionRatio = 0;
 			}
 			virtual ~ObjectTracking()
 			{
+				if(prevImage) cvReleaseImage(&prevImage);
+				prevImage = NULL;
 				if(referenceImage) cvReleaseImage(&referenceImage);
 				referenceImage = NULL;
 
@@ -97,6 +119,7 @@ namespace windage
 
 			inline void SetSize(int width, int height){this->width = width; this->height = height;};
 			inline CvSize GetSize(){return cvSize(this->width, this->height);};
+			inline void SetDitectionRatio(int ratio){this->detectionRatio=ratio; this->step=ratio+1;};
 
 			inline void AttatchCalibration(windage::Calibration* calibration){this->cameraParameter = calibration;};
 			inline windage::Calibration* GetCameraParameter(){return this->cameraParameter;};
@@ -104,12 +127,16 @@ namespace windage
 			inline void AttatchDetetor(windage::Algorithms::FeatureDetector* detector){this->detector = detector;};
 			inline void AttatchMatcher(windage::Algorithms::SearchTree* matcher){this->matcher = matcher;};
 			inline void AttatchTracker(windage::Algorithms::OpticalFlow* tracker){this->tracker = tracker;};
-			inline void AttatchEstimator(windage::Algorithms::PoseEstimator* estimator){this->estimator = estimator;};
+			inline void AttatchEstimator(windage::Algorithms::HomographyEstimator* estimator){this->estimator = estimator;};
+			inline void AttatchChecker(windage::Algorithms::OutlierChecker* checker){this->checker = checker;};
 
+			bool Initialize(int width, int height, double realWidth=640.0, double realHeight=480.0);
 			bool AttatchReferenceImage(IplImage* grayImage);
-			bool Initialize(int width, int height);
+			bool TrainingReference(double scaleFactor=1.0, int scaleStep=1);
+
 			bool UpdateCamerapose(IplImage* grayImage);
 			void DrawOutLine(IplImage* colorImage, bool drawCross);
+			void DrawDebugInfo(IplImage* colorImage);
 		};
 	}
 }

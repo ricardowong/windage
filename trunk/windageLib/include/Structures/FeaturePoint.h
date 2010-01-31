@@ -56,7 +56,11 @@ namespace windage
 		int size;
 		double dir;
 		double distance;
-		bool removed;
+		bool outlier;
+
+		// to check tracking
+		bool tracked;
+		int repositoryID;
 		
 	public:
 		int DESCRIPTOR_DIMENSION;
@@ -72,7 +76,10 @@ namespace windage
 			size = 0;
 			dir = 0;
 			distance = 1.0e10;
-			removed = false;
+			outlier = false;
+
+			tracked = false;
+			repositoryID = -1;
 		}
 		virtual ~FeaturePoint()
 		{
@@ -89,7 +96,10 @@ namespace windage
 			this->dir = oprd.GetDir();
 			this->distance = oprd.GetDistance();
 
-			this->removed = oprd.GetRemove();
+			this->outlier = oprd.IsOutlier();
+
+			this->tracked = oprd.IsTracked();
+			this->repositoryID = oprd.GetRepositoryID();
 		}
 
 		virtual double GetDistance(FeaturePoint oprd)
@@ -113,8 +123,13 @@ namespace windage
 		inline double GetDir(){return this->dir;};
 		inline void SetDistance(double distance){this->distance = distance;};
 		inline double GetDistance(){return this->distance;};
-		inline void SetRemove(bool remove){this->removed = remove;};
-		inline bool GetRemove(){return this->removed;};
+		inline void SetOutlier(bool outlier){this->outlier = outlier;};
+		inline bool IsOutlier(){return this->outlier;};
+
+		inline void SetTracked(bool tracked){this->tracked = tracked;};
+		inline bool IsTracked(){return this->tracked;};
+		inline void SetRepositoryID(int id){this->repositoryID = id;};
+		inline int GetRepositoryID(){return this->repositoryID;};
 	};
 }
 

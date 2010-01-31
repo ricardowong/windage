@@ -44,10 +44,10 @@
 #include "Algorithms/WSURFdetector.h"
 #include "Algorithms/FLANNtree.h"
 #include "Algorithms/RANSACestimator.h"
-#include "Algorithms/OutlierRemover.h"
+#include "Algorithms/OutlierChecker.h"
 #include "Utilities/Utils.h"
 
-class OutlierRemoverTest : public windageTest
+class OutlierCheckerTest : public windageTest
 {
 private:
 	IplImage* grayImage;
@@ -60,7 +60,7 @@ private:
 	std::vector<windage::FeaturePoint> scenePoints;
 
 public:
-	OutlierRemoverTest() : windageTest("OutlierRemover Test", "OutlierRemover")
+	OutlierCheckerTest() : windageTest("OutlierChecker Test", "OutlierChecker")
 	{
 		grayImage = NULL;
 		surfDetectorRef = NULL;
@@ -69,7 +69,7 @@ public:
 		estimator = NULL;
 		this->Do();
 	}
-	~OutlierRemoverTest()
+	~OutlierCheckerTest()
 	{
 		if(grayImage) cvReleaseImage(&grayImage);
 		grayImage = NULL;
@@ -159,17 +159,17 @@ public:
 		void* p2 = 0;
 		int compair = 0;
 
-		windage::Algorithms::OutlierRemover* remover1 = new windage::Algorithms::OutlierRemover();
-		p1 = (void*)remover1;
-		remover1->AttatchHomographyEstimator(estimator);
-		remover1->Calculate();
-		delete remover1;
+		windage::Algorithms::OutlierChecker* checker1 = new windage::Algorithms::OutlierChecker();
+		p1 = (void*)checker1;
+		checker1->AttatchEstimator(estimator);
+		checker1->Calculate();
+		delete checker1;
 
-		windage::Algorithms::OutlierRemover* remover2 = new windage::Algorithms::OutlierRemover();
-		p2 = (void*)remover2;
-		remover2->AttatchHomographyEstimator(estimator);
-		remover2->Calculate();
-		delete remover2;
+		windage::Algorithms::OutlierChecker* checker2 = new windage::Algorithms::OutlierChecker();
+		p2 = (void*)checker2;
+		checker2->AttatchEstimator(estimator);
+		checker2->Calculate();
+		delete checker2;
 
 		sprintf(memoryAddress1, "%08X", p1);
 		sprintf(memoryAddress2, "%08X", p2);
@@ -193,17 +193,18 @@ public:
 
 		int width = resultImage->width / 2;
 
-		cvNamedWindow("Outlier remover search");
+		cvNamedWindow("Outlier checker");
 		
-		windage::Algorithms::OutlierRemover remover;
-		remover.AttatchHomographyEstimator(this->estimator);
-		remover.Calculate();
+		windage::Algorithms::OutlierChecker checker;
+		checker.AttatchEstimator(this->estimator);
+		checker.Calculate();
 
+		int matchCount = 0;
 		std::vector<windage::FeaturePoint>* referencePoints = estimator->GetReferencePoint();
 		std::vector<windage::FeaturePoint>* scenePoints = estimator->GetScenePoint();
 		for(int i=0; i<scenePoints->size(); i++)
 		{
-			if((*scenePoints)[i].GetRemove())
+			if((*scenePoints)[i].IsOutlier())
 			{
 				windage::Vector3 refPT = (*referencePoints)[i].GetPoint();
 				CvPoint pointRef = cvPoint(refPT.x, refPT.y);
@@ -215,6 +216,7 @@ public:
 			}
 			else
 			{
+				matchCount++;
 				windage::Vector3 refPT = (*referencePoints)[i].GetPoint();
 				CvPoint pointRef = cvPoint(refPT.x, refPT.y);
 
@@ -225,8 +227,7 @@ public:
 			}
 		}
 
-		
-		cvShowImage("Outlier remover search", resultImage);
+		cvShowImage("Outlier checker", resultImage);
 		cvWaitKey(1000);
 
 		return test;
@@ -248,7 +249,7 @@ public:
 		referencePoints.clear();
 		scenePoints.clear();
 		
-		cvDestroyWindow("Outlier remover search");
+		cvDestroyWindow("Outlier checker");
 
 		return true;
 	}

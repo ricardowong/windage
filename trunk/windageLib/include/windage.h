@@ -71,8 +71,11 @@
 #include "Algorithms/LMeDSestimator.h"
 #include "Algorithms/EPnPEstimator.h"
 
-#include "Algorithms/OutlierRemover.h"
+#include "Algorithms/OutlierChecker.h"
 
 // Utilities
 #include "Utilities/Utils.h"
 #include "Utilities/Logger.h"
+
+// Frameworks
+#include "Frameworks/ObjectTracking.h"

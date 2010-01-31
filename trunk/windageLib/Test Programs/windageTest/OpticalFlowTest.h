@@ -120,6 +120,8 @@ public:
 		windage::Algorithms::OpticalFlow* tracker1 = new windage::Algorithms::OpticalFlow();
 		p1 = (void*)tracker1;
 		tracker1->Initialize(imageSize.width, imageSize.height);
+		tracker1->Initialize(imageSize.width, imageSize.height);
+		tracker1->TrackFeatures(grayImage1, grayImage2, prevPoints, &currPoints);
 		tracker1->TrackFeatures(grayImage1, grayImage2, prevPoints, &currPoints);
 		delete tracker1;
 
