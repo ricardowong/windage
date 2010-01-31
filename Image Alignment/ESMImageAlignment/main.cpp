@@ -126,6 +126,7 @@ void  main()
 	// homography update stack
 	std::vector<windage::Matrix3> homographyList;
 
+	double sumTime = 0.0;
 	int sumIter = 0;
 	bool processing =true;
 	int k = 0;
@@ -164,7 +165,7 @@ void  main()
 		int64 endTime = cvGetTickCount();
 		k++;
 		sumIter+= iter;
-
+		
 		// draw result
 		int count = homographyList.size();
 		for(int i=0; i<count; i++)
@@ -173,6 +174,7 @@ void  main()
 		double processingTime = (endTime - startTime)/(cvGetTickFrequency() * 1000.0);
 		sprintf(message, "%03d >> processing time : %.2lf ms (%02d iter), error : %.2lf", k, processingTime, iter, error);
 		std::cout << message << std::endl;
+		sumTime += processingTime;
 
 		windage::Utils::DrawTextToImage(resultImage, cvPoint(5, 15), message, 0.6);
 
@@ -207,7 +209,8 @@ void  main()
 		}
 	}
 
-	std::cout << "average iteration : " << sumIter/IMAGE_SEQ_COUNT << std::endl;
+	std::cout << "average iteration : " << sumIter/(double)IMAGE_SEQ_COUNT << std::endl;
+	std::cout << "average processing ime : " << sumTime/(double)IMAGE_SEQ_COUNT << " ms" << std::endl;
 
 	cvReleaseImage(&resultImage);
 	cvDestroyAllWindows();

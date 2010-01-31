@@ -127,6 +127,8 @@ bool HomographyESM::Initialize()
 	return true;
 }
 
+#include <iostream>
+
 double HomographyESM::UpdateHomography(IplImage* image, double* delta)
 {
 	if(isInitialize == false)
@@ -167,12 +169,13 @@ double HomographyESM::UpdateHomography(IplImage* image, double* delta)
 			// for debuging
 			cvSetReal2D(samplingImage, y, x, value);
 
+			Vector2 tempdwI = Vector2();
+/*
 			double I1 = -1.0;
 			double I2 = -1.0;
 
 			// TODO! : replace to sobel image
 			// dI(w(p)) / dp (1x2 gradient of image)
-			Vector2 tempdwI;
 
 			point1.x = x - DELTA;
 			point1.y = y;
@@ -215,11 +218,11 @@ double HomographyESM::UpdateHomography(IplImage* image, double* delta)
 			if( 0 < ix && ix < image->width && 0 < iy && iy < image->height)
 				I2 = cvGetReal2D(image, iy, ix);
 			tempdwI.y = (I2 - I1)/(2*DELTA);
-
+//*/
 			// Jsum = J(e) + J(xc)
 			for(int i=0; i<this->p; i++)
 			{
-				double value = (dI[index] + dwI[index]) * dwx[index][i];
+				double value = (dI[index] + tempdwI) * dwx[index][i];
 				cvSetReal2D(JacobianSum, index, i, value);
 			}
 
@@ -244,6 +247,7 @@ double HomographyESM::UpdateHomography(IplImage* image, double* delta)
 
 	double inv_res = cvInvert(Jacobian, JacobianInvers, CV_SVD_SYM);
 	cvMatMul(JacobianInvers, JacobianTdS, dx);
+
 
 	// update homography
 	double tempDelta = 0.0;
