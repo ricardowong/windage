@@ -134,16 +134,15 @@ void DecomposeHomographyToRT(CvMat *intrinsic, CvMat *Homography, CvMat *RT)
 	}
 }
 
-bool HomographyEstimator::DecomposeHomography()
+bool HomographyEstimator::DecomposeHomography(windage::Calibration* cameraParameter)
 {
-	if(this->cameraParameter == NULL)
+	if(cameraParameter == NULL)
 		return false;
 
 	float localHomography[9];
 	float intrinsicMatrix[9];
 	float extrinsicMatrix[12];
-
-	windage::Calibration* calibration = this->GetCameraParameter();
+	windage::Calibration* calibration = cameraParameter;
 
 	for(int i=0; i<9; i++)
 		localHomography[i] = (float)this->homography.m1[i];

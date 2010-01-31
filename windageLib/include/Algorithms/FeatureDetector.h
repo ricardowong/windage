@@ -56,6 +56,7 @@ namespace windage
 		{
 		protected:
 			std::vector<windage::FeaturePoint> keypoints;
+			double threshold;
 
 		public:
 			FeatureDetector()
@@ -65,8 +66,12 @@ namespace windage
 			{
 			}
 
+			inline int GetKeypointsCount(){return (int)this->keypoints.size();};
 			inline std::vector<windage::FeaturePoint>* GetKeypoints(){return &this->keypoints;};
 			virtual bool DoExtractKeypointsDescriptor(IplImage* grayImage) = 0;
+			
+			inline void SetThreshold(double threshold){this->threshold = threshold;};
+			inline double GetThreshold(){return this->threshold;};
 
 			void DrawKeypoint(IplImage* colorImage, FeaturePoint point, CvScalar color = CV_RGB(255, 0, 0));
 			void DrawKeypoints(IplImage* colorImage, CvScalar color = CV_RGB(255, 0, 0));

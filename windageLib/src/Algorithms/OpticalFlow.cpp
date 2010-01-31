@@ -58,10 +58,11 @@ void OpticalFlow::Initialize(int width, int height, CvSize windowSize, int pyram
 	this->SetPyramidLevel(pyramidLevel);
 
 	terminationCriteria = cvTermCriteria(CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 20, .3);
+
+	if(pyramid1) cvReleaseImage(&pyramid1);
+	if(pyramid2) cvReleaseImage(&pyramid2);
 	pyramid1 = cvCreateImage(this->GetImageSize(), IPL_DEPTH_8U, 1);
 	pyramid2 = cvCreateImage(this->GetImageSize(), IPL_DEPTH_8U, 1);
-
-	removePrevPoints = false;
 }
 
 int OpticalFlow::TrackFeatures(IplImage* prevGrayImage, IplImage* currGrayImage, std::vector<FeaturePoint>* prevPoints, std::vector<FeaturePoint>* currPoints)
@@ -95,14 +96,8 @@ int OpticalFlow::TrackFeatures(IplImage* prevGrayImage, IplImage* currGrayImage,
 			}
 			else
 			{
-				if(removePrevPoints)
-				{
-					prevPoints->erase(prevPoints->begin() + index);
-				}
-				else
-				{
-					currPoints->push_back((*prevPoints)[i]);
-				}
+				(*prevPoints)[i].SetOutlier(true);
+				currPoints->push_back((*prevPoints)[i]);
 			}
 		}
 		return 1;

@@ -51,7 +51,7 @@
 #include "OpticalFlowTest.h"
 #include "RANSACestimatorTest.h"
 #include "LMeDSestimatorTest.h"
-#include "OutlierRemoverTest.h"
+#include "OutlierCheckerTest.h"
 #include "ObjectTrackingTest.h"
 
 void main()
@@ -74,7 +74,7 @@ void main()
 	RANSACestimatorTest testRANSACestimator;
 	LMeDSestimatorTest testLMeDSestimator;
 
-	OutlierRemoverTest testOutlierRemover;
+	OutlierCheckerTest testOutlierChecker;
 
 	ObjectTrackingTest testObjectTracking;
 

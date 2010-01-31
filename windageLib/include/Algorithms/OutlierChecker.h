@@ -37,33 +37,44 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#include "Algorithms/OutlierRemover.h"
-using namespace windage;
-using namespace windage::Algorithms;
+#ifndef _OUTLIER_REMOVER_TREE_H_
+#define _OUTLIER_REMOVER_TREE_H_
 
-bool OutlierRemover::Calculate()
+#include <vector>
+
+#include <cv.h>
+#include "base.h"
+
+#include "Algorithms/HomographyEstimator.h"
+
+namespace windage
 {
-	if(this->homographyEstimator == NULL)
-		return false;
-
-	std::vector<windage::FeaturePoint>* refPoints = this->homographyEstimator->GetReferencePoint();
-	std::vector<windage::FeaturePoint>* scePoints = this->homographyEstimator->GetScenePoint();
-	for(unsigned int i=0; i<refPoints->size(); i++)
+	namespace Algorithms
 	{
-		windage::Vector3 imagePoint = this->homographyEstimator->ConvertObjectToImage((*refPoints)[i].GetPoint());
-		imagePoint /= imagePoint.z;
-		double error = (*scePoints)[i].GetPoint().getDistance(imagePoint);
-		if(error < this->reprojectionError)
+		// only check not remove
+		class DLLEXPORT OutlierChecker
 		{
-			(*refPoints)[i].SetRemove(false);
-			(*scePoints)[i].SetRemove(false);
-		}
-		else
-		{
-			(*refPoints)[i].SetRemove(true);
-			(*scePoints)[i].SetRemove(true);
-		}
-	}
+		private:
+			HomographyEstimator* homographyEstimator;
+			double reprojectionError;
 
-	return true;
+		public:
+			OutlierChecker()
+			{
+				homographyEstimator = NULL;
+				reprojectionError = 2.0;
+			}
+			~OutlierChecker()
+			{
+			}
+
+			inline void AttatchEstimator(HomographyEstimator* homographyEstimator){this->homographyEstimator = homographyEstimator;};
+			inline void SetReprojectionError(double error){this->reprojectionError = error;};
+			inline double GetReprojectionError(){return this->reprojectionError;};
+
+			bool Calculate();
+		};
+	}
 }
+
+#endif

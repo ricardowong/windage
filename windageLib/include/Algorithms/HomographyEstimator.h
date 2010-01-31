@@ -71,17 +71,17 @@ namespace windage
 
 			inline windage::Matrix3 GetHomography(){return this->homography;};
 			
-			windage::Vector3 ConvertObjectToImage(windage::Vector3 point)
+			windage::Vector3 ConvertObjectToImage(windage::Vector3 point = windage::Vector3(0.0, 0.0, 1.0))
 			{
 				return this->homography * point;
 			}
-			windage::Vector3 ConvertImageToObject(windage::Vector3 point)
+			windage::Vector3 ConvertImageToObject(windage::Vector3 point = windage::Vector3(0.0, 0.0, 1.0))
 			{
 				return this->homography.Inverse() * point;
 			}
 
 			virtual bool Calculate() = 0;
-			bool DecomposeHomography();
+			bool DecomposeHomography(windage::Calibration* cameraParameter=NULL);
 		};
 	}
 }

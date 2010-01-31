@@ -58,6 +58,7 @@ private:
 	windage::Algorithms::WSURFdetector* detector;
 	windage::Algorithms::FLANNtree* matcher;
 	windage::Algorithms::RANSACestimator* estimator;
+	windage::Algorithms::OutlierChecker* checker;
 
 public:
 	ObjectTrackingTest() : windageTest("ObjectTracking Test", "ObjectTracking")
@@ -92,6 +93,8 @@ public:
 		matcher = NULL;
 		if(estimator) delete estimator;
 		estimator = NULL;
+		if(checker) delete checker;
+		checker = NULL;
 	}
 
 	bool Initialize(std::string* message)
@@ -114,6 +117,7 @@ public:
 		detector = new windage::Algorithms::WSURFdetector();
 		matcher = new windage::Algorithms::FLANNtree();
 		estimator = new windage::Algorithms::RANSACestimator();
+		checker = new windage::Algorithms::OutlierChecker();
 
 		calibration->Initialize(1200, 1200, 200, 160, 0, 0, 0, 0);
 		return true;
@@ -136,6 +140,7 @@ public:
 		tracking1->AttatchDetetor(this->detector);
 		tracking1->AttatchMatcher(this->matcher);
 		tracking1->AttatchEstimator(this->estimator);
+		tracking1->AttatchChecker(this->checker);
 		tracking1->Initialize(imageSize.width, imageSize.height);
 		tracking1->AttatchReferenceImage(grayImage1);
 		tracking1->UpdateCamerapose(grayImage2);
@@ -147,6 +152,7 @@ public:
 		tracking2->AttatchDetetor(this->detector);
 		tracking2->AttatchMatcher(this->matcher);
 		tracking2->AttatchEstimator(this->estimator);
+		tracking2->AttatchChecker(this->checker);
 		tracking2->Initialize(imageSize.width, imageSize.height);
 		tracking2->AttatchReferenceImage(grayImage1);
 		tracking2->UpdateCamerapose(grayImage2);
@@ -183,16 +189,20 @@ public:
 		tracking.AttatchDetetor(this->detector);
 		tracking.AttatchMatcher(this->matcher);
 		tracking.AttatchEstimator(this->estimator);
+		tracking.AttatchChecker(this->checker);
 
-		tracking.Initialize(width, height);
+		tracking.Initialize(width, height, width, height);
 		tracking.AttatchReferenceImage(grayImage1);
+		tracking.TrainingReference();
+
 		tracking.UpdateCamerapose(grayImage2);
 
+		tracking.DrawDebugInfo(resultImage);
 		tracking.DrawOutLine(resultImage, true);
 		this->calibration->DrawInfomation(resultImage, 100.0);
 		
 		cvShowImage("Object Tracking Frameworks", resultImage);
-		cvWaitKey(1000);
+		cvWaitKey(3000);
 
 		return test;
 	}

@@ -54,7 +54,7 @@ namespace windage
 		class DLLEXPORT OpticalFlow
 		{
 		private:
-			const static int MAX_POINT_COUNT = 3000;
+			const static int MAX_POINT_COUNT = 5000;
 
 			int imageWidth;		///< input image size
 			int imageHeight;	///< input image size
@@ -70,8 +70,6 @@ namespace windage
 			CvTermCriteria terminationCriteria;
 			IplImage* pyramid1;
 			IplImage* pyramid2;
-
-			bool removePrevPoints;
 
 			void Release();
 		public:
@@ -92,7 +90,6 @@ namespace windage
 			 * @remark
 			 *		default : false
 			 */
-			inline void SetRemovePrevPoints(bool removePrevPoints=true){this->removePrevPoints=removePrevPoints;};
 			inline void SetImageSize(int width, int height){this->imageWidth=width;this->imageHeight=height;};
 			inline CvSize GetImageSize(){return cvSize(this->imageWidth, this->imageHeight);};
 			inline void SetWindowSize(CvSize size=cvSize(8, 8)){this->windowSize = size;};

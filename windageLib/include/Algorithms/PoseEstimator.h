@@ -95,7 +95,7 @@ namespace windage
 				{
 					imagePoint = cameraParameter->ConvertWorld2Image(point.x, point.y, point.z);
 				}
-				return windage::Vector3(imagePoint.x, imagePoint.y, 1.0);
+				return windage::Vector3((double)imagePoint.x, (double)imagePoint.y, 1.0);
 			}
 			windage::Vector3 ConvertImageToWorld(windage::Vector3 point = windage::Vector3(0.0, 0.0, 1.0), double z = 0.0)
 			{
