@@ -52,9 +52,6 @@ bool ObjectTracking::Initialize(int width, int height, double realWidth, double 
 	this->realHeight = realHeight;
 
 	this->checker->AttatchEstimator(this->estimator);
-
-	this->estimator->SetReprojectionError(2.0);
-	this->checker->SetReprojectionError(2.0);
 	
 	if(prevImage) cvReleaseImage(&prevImage);
 	prevImage = cvCreateImage(cvSize(width, height), IPL_DEPTH_8U, 1);
@@ -190,7 +187,7 @@ bool ObjectTracking::UpdateCamerapose(IplImage* grayImage)
 	this->checker->Calculate();
 
 	int index = 0;
-	for(unsigned int i=0; i<refMatchedKeypoints.size(); i++)
+	for(int i=0; i<(int)refMatchedKeypoints.size(); i++)
 	{
 		if(refMatchedKeypoints[i].IsOutlier() == true)
 		{

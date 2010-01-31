@@ -43,9 +43,9 @@
 #include "windageTest.h"
 
 #include "windage.h"
-#include "Frameworks/ObjectTracking.h"
+#include "Frameworks/MultipleObjectTracking.h"
 
-class ObjectTrackingTest : public windageTest
+class MultipleObjectTrackingTest : public windageTest
 {
 private:
 	IplImage* inputImage1;
@@ -55,13 +55,14 @@ private:
 	CvSize imageSize;
 
 	windage::Calibration* calibration;
+
 	windage::Algorithms::WSURFdetector* detector;
-	windage::Algorithms::FLANNtree* matcher;
 	windage::Algorithms::RANSACestimator* estimator;
+	windage::Algorithms::OpticalFlow* tracker;
 	windage::Algorithms::OutlierChecker* checker;
 
 public:
-	ObjectTrackingTest() : windageTest("ObjectTracking Test", "ObjectTracking")
+	MultipleObjectTrackingTest() : windageTest("MultipleObjectTracking Test", "MultipleObjectTracking")
 	{
 		inputImage1 = NULL;
 		inputImage2 = NULL;
@@ -69,12 +70,11 @@ public:
 		grayImage2 = NULL;
 
 		detector = NULL;
-		matcher = NULL;
 		estimator = NULL;
 
 		this->Do();
 	}
-	~ObjectTrackingTest()
+	~MultipleObjectTrackingTest()
 	{
 		if(inputImage1) cvReleaseImage(&inputImage1);
 		inputImage1 = NULL;
@@ -89,8 +89,8 @@ public:
 		calibration = NULL;
 		if(detector) delete detector;
 		detector = NULL;
-		if(matcher) delete matcher;
-		matcher = NULL;
+		if(tracker) delete tracker;
+		tracker = NULL;
 		if(estimator) delete estimator;
 		estimator = NULL;
 		if(checker) delete checker;
@@ -115,11 +115,12 @@ public:
 
 		calibration = new windage::Calibration();
 		detector = new windage::Algorithms::WSURFdetector();
-		matcher = new windage::Algorithms::FLANNtree();
+		tracker = new windage::Algorithms::OpticalFlow();
 		estimator = new windage::Algorithms::RANSACestimator();
 		checker = new windage::Algorithms::OutlierChecker();
 
 		calibration->Initialize(1200, 1200, 200, 160, 0, 0, 0, 0);
+		tracker->Initialize(imageSize.width, imageSize.height);
 		return true;
 	}
 
@@ -134,11 +135,11 @@ public:
 		void* p2 = 0;
 		int compair = 0;
 
-		windage::Frameworks::ObjectTracking* tracking1 = new windage::Frameworks::ObjectTracking();
+		windage::Frameworks::MultipleObjectTracking* tracking1 = new windage::Frameworks::MultipleObjectTracking();
 		p1 = (void*)tracking1;
 		tracking1->AttatchCalibration(this->calibration);
 		tracking1->AttatchDetetor(this->detector);
-		tracking1->AttatchMatcher(this->matcher);
+		tracking1->AttatchTracker(this->tracker);
 		tracking1->AttatchEstimator(this->estimator);
 		tracking1->AttatchChecker(this->checker);
 		tracking1->Initialize(imageSize.width, imageSize.height);
@@ -149,13 +150,16 @@ public:
 		tracking1->UpdateCamerapose(grayImage2);
 		tracking1->UpdateCamerapose(grayImage2);
 		tracking1->UpdateCamerapose(grayImage2);
+		tracking1->UpdateCamerapose(grayImage2);
+		tracking1->UpdateCamerapose(grayImage2);
+		tracking1->UpdateCamerapose(grayImage2);
 		delete tracking1;
 
-		windage::Frameworks::ObjectTracking* tracking2 = new windage::Frameworks::ObjectTracking();
+		windage::Frameworks::MultipleObjectTracking* tracking2 = new windage::Frameworks::MultipleObjectTracking();
 		p2 = (void*)tracking2;
 		tracking2->AttatchCalibration(this->calibration);
 		tracking2->AttatchDetetor(this->detector);
-		tracking2->AttatchMatcher(this->matcher);
+		tracking2->AttatchTracker(this->tracker);
 		tracking2->AttatchEstimator(this->estimator);
 		tracking2->AttatchChecker(this->checker);
 		tracking2->Initialize(imageSize.width, imageSize.height);
@@ -188,26 +192,31 @@ public:
 		int height = grayImage1->height;
 
 		cvCopyImage(inputImage2, resultImage);
-		cvNamedWindow("Object Tracking Frameworks");
+		cvNamedWindow("Multiple Object Tracking Frameworks");
 
-		windage::Frameworks::ObjectTracking tracking;
+		windage::Frameworks::MultipleObjectTracking tracking;
 		tracking.AttatchCalibration(this->calibration);
 		tracking.AttatchDetetor(this->detector);
-		tracking.AttatchMatcher(this->matcher);
+		tracking.AttatchTracker(this->tracker);
 		tracking.AttatchEstimator(this->estimator);
 		tracking.AttatchChecker(this->checker);
-
 		tracking.Initialize(width, height, width, height);
 		tracking.AttatchReferenceImage(grayImage1);
+		tracking.AttatchReferenceImage(grayImage2);
 		tracking.TrainingReference();
 
 		tracking.UpdateCamerapose(grayImage2);
+		tracking.UpdateCamerapose(grayImage2);
+		tracking.UpdateCamerapose(grayImage2);
 
-		tracking.DrawDebugInfo(resultImage);
-		tracking.DrawOutLine(resultImage, true);
-		this->calibration->DrawInfomation(resultImage, 100.0);
+		for(int i=0; i<tracking.GetObjectCount(); i++)
+		{
+			tracking.DrawDebugInfo(resultImage, i);
+			tracking.DrawOutLine(resultImage, i, true);
+			tracking.GetCameraParameter(i)->DrawInfomation(resultImage, 100.0);
+		}
 		
-		cvShowImage("Object Tracking Frameworks", resultImage);
+		cvShowImage("Multiple Object Tracking Frameworks", resultImage);
 		cvWaitKey(3000);
 
 		return test;
@@ -225,7 +234,7 @@ public:
 		if(grayImage2) cvReleaseImage(&grayImage2);
 		grayImage2 = NULL;
 		
-		cvDestroyWindow("Object Tracking Frameworks");
+		cvDestroyWindow("Multiple Object Tracking Frameworks");
 
 		return true;
 	}

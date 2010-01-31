@@ -48,8 +48,6 @@ const int WIDTH = 320;
 const int HEIGHT = 240;
 const int FEATURE_COUNT = 500;
 
-const char* REFERENCE_FILENAME = "reference.png";
-
 void main()
 {
 	windage::Logger logger(&std::cout);
@@ -58,8 +56,6 @@ void main()
 	IplImage* resizeImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
 	IplImage* grayImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 1);
 	IplImage* resultImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
-
-	IplImage* referenceImage = cvLoadImage(REFERENCE_FILENAME, 0);
 
 	CvCapture* capture = cvCaptureFromCAM(CV_CAP_ANY);
 	cvNamedWindow("result");
@@ -100,6 +96,7 @@ void main()
 	double threshold = 50.0;
 	double processingTime = 0.0;
 
+	char message[100];
 	bool trained = false;
 	bool processing = true;
 	while(processing)
@@ -110,10 +107,11 @@ void main()
 		cvCvtColor(resizeImage, grayImage, CV_BGR2GRAY);
 		cvCopyImage(resizeImage, resultImage);
 
+		logger.updateTickCount();
+
 		// track object
 		if(trained)
 		{
-			logger.updateTickCount();
 			tracking.UpdateCamerapose(grayImage);
 
 			// adaptive threshold
@@ -128,9 +126,6 @@ void main()
 				keypointCount = localcount;
 			}
 
-			processingTime = logger.calculateProcessTime();
-			logger.log("processingTime", processingTime);
-			logger.logNewLine();
 			
 			// draw result
 //			detector->DrawKeypoints(resultImage);
@@ -138,6 +133,15 @@ void main()
 			tracking.DrawOutLine(resultImage, true);
 			calibration->DrawInfomation(resultImage, 100);
 		}
+
+		processingTime = logger.calculateProcessTime();
+		logger.log("processingTime", processingTime);
+		logger.logNewLine();
+
+		sprintf(message, "Processing Time : %.2lf ms", processingTime);
+		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 20), 0.6, message);
+		sprintf(message, "Feature Count : %d, Threshold : %.0lf", keypointCount, threshold);
+		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 40), 0.6, message);
 		cvShowImage("result", resultImage);
 
 		char ch = cvWaitKey(1);
@@ -147,6 +151,7 @@ void main()
 		case 'Q':
 			processing = false;
 			break;
+		case ' ':
 		case 's':
 		case 'S':
 			detector->SetThreshold(30.0);
