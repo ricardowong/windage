@@ -41,6 +41,10 @@
 #include <highgui.h>
 
 #include "windageTest.h"
+#include "Algorithms/WSURFdetector.h"
+#include "Algorithms/FLANNtree.h"
+#include "Algorithms/RANSACestimator.h"
+#include "Algorithms/OutlierChecker.h"
 #include "Algorithms/InverseCompositional.h"
 #include "Utilities/Utils.h"
 
@@ -52,11 +56,24 @@ private:
 	IplImage* grayImage2;
 	windage::Matrix3 homography;
 
+	windage::Algorithms::WSURFdetector* surfDetectorRef;
+	windage::Algorithms::WSURFdetector* surfDetectorSce;
+	windage::Algorithms::FLANNtree* searchTree;
+	windage::Algorithms::RANSACestimator* estimator;
+
+	std::vector<windage::FeaturePoint> referencePoints;
+	std::vector<windage::FeaturePoint> scenePoints;
+
 public:
 	InverseCompositionalTest() : windageTest("InverseCompositional Test", "InverseCompositional")
 	{
 		grayImage1 = NULL;
 		grayImage2 = NULL;
+
+		surfDetectorRef = NULL;
+		surfDetectorSce = NULL;
+		searchTree = NULL;
+		estimator = NULL;
 
 		homography.m[0][0] = 1.0; homography.m[0][1] = 0.0; homography.m[0][2] = 0.0;
 		homography.m[1][0] = 0.0; homography.m[1][1] = 1.0; homography.m[1][2] = 0.0;
@@ -70,6 +87,15 @@ public:
 		grayImage1 = NULL;
 		if(grayImage2) cvReleaseImage(&grayImage2);
 		grayImage2 = NULL;
+
+		if(surfDetectorRef) delete surfDetectorRef;
+		surfDetectorRef = NULL;
+		if(surfDetectorSce) delete surfDetectorSce;
+		surfDetectorSce = NULL;
+		if(searchTree) delete searchTree;
+		searchTree = NULL;
+		if(estimator) delete estimator;
+		estimator = NULL;
 	}
 
 	bool Initialize(std::string* message)
@@ -84,15 +110,52 @@ public:
 		cvCvtColor(testImage, grayImage1, CV_BGR2GRAY);
 		cvReleaseImage(&testImage);
 
+		surfDetectorRef = new windage::Algorithms::WSURFdetector();
+		surfDetectorRef->DoExtractKeypointsDescriptor(grayImage1);
+
 		// load scene image
 		testImage = cvLoadImage(MATCHING_IMAGE_FILENAME.c_str());
 		grayImage2 = cvCreateImage(cvGetSize(testImage), IPL_DEPTH_8U, 1);
 		cvCvtColor(testImage, grayImage2, CV_BGR2GRAY);
 		resultImage = cvCreateImage(cvSize(testImage->width, testImage->height), IPL_DEPTH_8U, 3);
 		cvCopyImage(testImage, resultImage);
+
+		surfDetectorSce = new windage::Algorithms::WSURFdetector();
+		surfDetectorSce->DoExtractKeypointsDescriptor(grayImage2);
 		
 		cvReleaseImage(&testImage);
 		testImage = NULL;
+
+		// matching : find corresponding points
+		searchTree = new windage::Algorithms::FLANNtree();
+		searchTree->Training(surfDetectorRef->GetKeypoints());
+		std::vector<windage::FeaturePoint>* pScenePoints = surfDetectorSce->GetKeypoints();
+		for(unsigned int i=0; i<pScenePoints->size(); i++)
+		{
+			double distance = 1.0e10;
+			int index = searchTree->Matching((*pScenePoints)[i], &distance);
+			if(index >= 0)
+			{
+				windage::FeaturePoint ref;
+				windage::FeaturePoint sce;
+
+				ref = (*surfDetectorRef->GetKeypoints())[index];
+				ref.SetDistance(distance);
+				sce = (*pScenePoints)[i];
+				sce.SetDistance(distance);
+
+				referencePoints.push_back(ref);
+				scenePoints.push_back(sce);
+			}
+		}
+
+		// Pose estimator
+		estimator = new windage::Algorithms::RANSACestimator();
+		estimator->AttatchReferencePoint(&this->referencePoints);
+		estimator->AttatchScenePoint(&this->scenePoints);
+		estimator->Calculate();
+
+		homography = (*estimator->GetHomography());
 
 		return true;
 	}
@@ -156,13 +219,16 @@ public:
 
 		const int iterationCount = 50;
 
-		cvNamedWindow("Inverse Compositional tracker");
+		cvNamedWindow("InverseCompositional tracker");
 
 		windage::Matrix3 h = homography;
 		std::vector<windage::Matrix3> homographyList;
+		for(int i=0; i<2; i++)
+			h.m[i][2] += 10.0;
 
 		windage::Algorithms::InverseCompositional tracker(imageSize.width, imageSize.height);
 		tracker.AttatchTemplateImage(grayImage1);
+		tracker.SetParameterAmplification(5.0);
 		tracker.SetSamplingStep(10);
 		tracker.SetInitialHomography(h);
 		tracker.Initialize();
@@ -178,8 +244,9 @@ public:
 		
 		int count = homographyList.size();
 		for(int i=0; i<count; i++)
-			tracker.DrawResult(resultImage, homographyList[i], CV_RGB((i/(double)count) * 255.0, ((count-i)/(double)count) * 255.0, ((count-i)/(double)count) * 255.0), 1, imageSize.width, imageSize.height);
-		cvShowImage("Inverse Compositional tracker", resultImage);
+			tracker.DrawResult(resultImage, homographyList[i], CV_RGB(((count-i)/(double)count) * 255.0, (i/(double)count) * 255.0, 0.0), 1, imageSize.width, imageSize.height);
+		cvShowImage("InverseCompositional tracker", resultImage);
+		cvWaitKey(1000);
 
 		sprintf_s(tempMessage, "SSD error : %lf, delta : %lf", error, delta);
 		(*message) = std::string(tempMessage);
@@ -196,7 +263,7 @@ public:
 		if(grayImage2) cvReleaseImage(&grayImage2);
 		grayImage2 = NULL;
 
-		cvDestroyWindow("Inverse Compositional tracker");
+		cvDestroyWindow("InverseCompositional tracker");
 
 		return true;
 	}

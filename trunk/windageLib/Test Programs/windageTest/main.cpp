@@ -52,8 +52,6 @@
 #include "FLANNtreeTest.h"
 
 #include "OpticalFlowTest.h"
-#include "HomographyESMTest.h"
-#include "InverseCompositionalTest.h"
 
 #include "RANSACestimatorTest.h"
 #include "ProSACestimatorTest.h"
@@ -62,6 +60,8 @@
 #include "OutlierCheckerTest.h"
 
 #include "LMmethodTest.h"
+#include "HomographyESMTest.h"
+#include "InverseCompositionalTest.h"
 
 #include "PlanarObjectTrackingTest.h"
 #include "MultiplePlanarObjectTrackingTest.h"
@@ -83,8 +83,6 @@ void main()
 	FLANNtreeTest testFLANNtree;
 
 	OpticalFlowTest testOpticalFlow;
-	HomographyESMTest testHomographyESM;
-	InverseCompositionalTest testInverseCompositional;
 
 	RANSACestimatorTest testRANSACestimator;
 	ProSACestimatorTest testProSACestimator;
@@ -92,11 +90,13 @@ void main()
 
 	OutlierCheckerTest testOutlierChecker;
 	LMmethodTest testLMmethod;
+	HomographyESMTest testHomographyESM;
+	InverseCompositionalTest testInverseCompositional;
 
 	PlanarObjectTrackingTest testPlanarObjectTracking;
 	MultiplePlanarObjectTrackingTest testMultiplePlanarObjectTracking;
 
-	std::cout << "terminate entire test routine!" << std::endl;
-	char ch;
-	std::cin >> ch;
+	cvNamedWindow("stop");
+	cvWaitKey(10*1000);
+	cvDestroyAllWindows();
 }
