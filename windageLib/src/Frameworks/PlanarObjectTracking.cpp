@@ -248,8 +248,9 @@ void PlanarObjectTracking::DrawDebugInfo(IplImage* colorImage)
 	int size = 4;
 	for(unsigned int i=0; i<refMatchedKeypoints.size(); i++)
 	{
-		CvPoint referencePoint = cvPoint((int)refMatchedKeypoints[i].GetPoint().x * colorImage->width/realWidth + colorImage->width/2,
-									(int)(colorImage->height - refMatchedKeypoints[i].GetPoint().y * colorImage->height/realHeight - colorImage->height/2));
+		double dx = refMatchedKeypoints[i].GetPoint().x * (double)colorImage->width/realWidth + (double)colorImage->width/2.0;
+		double dy = (double)colorImage->height - refMatchedKeypoints[i].GetPoint().y * (double)colorImage->height/realHeight - (double)colorImage->height/2.0;
+		CvPoint referencePoint = cvPoint(cvRound(dx), cvRound(dy));
 		CvPoint imagePoint = cvPoint((int)sceMatchedKeypoints[i].GetPoint().x, (int)sceMatchedKeypoints[i].GetPoint().y);
 
 		cvCircle(colorImage, referencePoint, size, CV_RGB(0, 255, 255), CV_FILLED);

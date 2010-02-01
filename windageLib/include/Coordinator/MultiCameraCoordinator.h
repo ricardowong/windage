@@ -37,44 +37,25 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#ifndef _FEATURE_DETECTOR_H_
-#define _FEATURE_DETECTOR_H_
-
-#include <vector>
+#ifndef _MULTI_CAMERA_COORDINATE_H_
+#define _MULTI_CAMERA_COORDINATE_H_
 
 #include <cv.h>
-#include "base.h"
 
-#include "Structures/Vector.h"
-#include "Structures/FeaturePoint.h"
+#include "base.h"
+#include "Structures/Matrix.h"
+#include "Structures/Calibration.h"
 
 namespace windage
 {
-	namespace Algorithms
+	namespace Coordinator
 	{
-		class DLLEXPORT FeatureDetector
+		class DLLEXPORT MultiCameraCoordinator
 		{
-		protected:
-			std::vector<windage::FeaturePoint> keypoints;
-			double threshold;
-
 		public:
-			FeatureDetector()
-			{
-			}
-			virtual ~FeatureDetector()
-			{
-			}
-
-			inline int GetKeypointsCount(){return (int)this->keypoints.size();};
-			inline std::vector<windage::FeaturePoint>* GetKeypoints(){return &this->keypoints;};
-			virtual bool DoExtractKeypointsDescriptor(IplImage* grayImage) = 0;
-			
-			inline void SetThreshold(double threshold){if(threshold > 0)this->threshold = threshold;};
-			inline double GetThreshold(){return this->threshold;};
-
-			void DrawKeypoint(IplImage* colorImage, FeaturePoint point, CvScalar color = CV_RGB(255, 0, 0));
-			void DrawKeypoints(IplImage* colorImage, CvScalar color = CV_RGB(255, 0, 0));
+			static Vector3 GetTranslation(Calibration* baseCalibration, Calibration* toCalibration);
+			static Matrix3 GetRotation(Calibration* baseCalibration, Calibration* toCalibration);
+			static Matrix4 CalculateExtrinsic(Calibration* baseCalibration, Matrix3 toRotation, Vector3 toTranslation);
 		};
 	}
 }

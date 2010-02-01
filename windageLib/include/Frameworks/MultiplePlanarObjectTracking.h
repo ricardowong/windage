@@ -70,6 +70,8 @@ namespace windage
 		class DLLEXPORT MultiplePlanarObjectTracking
 		{
 		protected:
+			static const int MIN_FEATURE_POINTS_COUNT = 9;
+
 			windage::Calibration* initialCamearParameter;
 			std::vector<windage::Calibration*> cameraParameter;
 			IplImage* prevImage;

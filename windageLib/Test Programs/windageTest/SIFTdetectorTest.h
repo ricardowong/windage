@@ -94,8 +94,8 @@ public:
 		siftDetector2->DoExtractKeypointsDescriptor(grayImage);
 		delete siftDetector2;
 
-		sprintf(memoryAddress1, "%08X", p1);
-		sprintf(memoryAddress2, "%08X", p2);
+		sprintf_s(memoryAddress1, "%08X", p1);
+		sprintf_s(memoryAddress2, "%08X", p2);
 		compair += strcmp(memoryAddress1, memoryAddress2);
 
 		(*message) = std::string(memoryAddress1) + std::string(",") + std::string(memoryAddress2);
@@ -121,13 +121,13 @@ public:
 		SIFTDetector.DoExtractKeypointsDescriptor(grayImage);
 		SIFTDetector.DrawKeypoints(resultImage, CV_RGB(255, 0, 0));
 
-		sprintf(tempMessage, "SIFT detector");
+		sprintf_s(tempMessage, "SIFT detector");
 		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 20), 0.7, tempMessage);
 
 		cvShowImage("SIFT detector", resultImage);
 		cvWaitKey(1000);
 		
-		(*message) = std::string("");
+		sprintf_s(tempMessage, "");(*message) = std::string(tempMessage);
 		return test;
 	}
 

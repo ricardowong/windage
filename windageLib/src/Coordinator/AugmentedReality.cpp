@@ -37,46 +37,22 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#ifndef _FEATURE_DETECTOR_H_
-#define _FEATURE_DETECTOR_H_
+#include "Coordinator/AugmentedReality.h"
+using namespace windage;
+using namespace windage::Coordinator;
 
-#include <vector>
-
-#include <cv.h>
-#include "base.h"
-
-#include "Structures/Vector.h"
-#include "Structures/FeaturePoint.h"
-
-namespace windage
+AugmentedReality::AugmentedReality()
 {
-	namespace Algorithms
-	{
-		class DLLEXPORT FeatureDetector
-		{
-		protected:
-			std::vector<windage::FeaturePoint> keypoints;
-			double threshold;
+	cameraParameter = NULL;
 
-		public:
-			FeatureDetector()
-			{
-			}
-			virtual ~FeatureDetector()
-			{
-			}
+	isFlip = false;
+	imageWidth = 0;
+	imageHeight = 0;
+	textureWidth = 0;
 
-			inline int GetKeypointsCount(){return (int)this->keypoints.size();};
-			inline std::vector<windage::FeaturePoint>* GetKeypoints(){return &this->keypoints;};
-			virtual bool DoExtractKeypointsDescriptor(IplImage* grayImage) = 0;
-			
-			inline void SetThreshold(double threshold){if(threshold > 0)this->threshold = threshold;};
-			inline double GetThreshold(){return this->threshold;};
-
-			void DrawKeypoint(IplImage* colorImage, FeaturePoint point, CvScalar color = CV_RGB(255, 0, 0));
-			void DrawKeypoints(IplImage* colorImage, CvScalar color = CV_RGB(255, 0, 0));
-		};
-	}
+	textureRepository = NULL;
 }
+AugmentedReality::~AugmentedReality()
+{
 
-#endif
+}

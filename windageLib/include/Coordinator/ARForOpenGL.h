@@ -37,44 +37,51 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#ifndef _FEATURE_DETECTOR_H_
-#define _FEATURE_DETECTOR_H_
+#ifndef _AUGMENTED_REALITY_FOR_OPENGL_H_
+#define _AUGMENTED_REALITY_FOR_OPENGL_H_
 
-#include <vector>
-
-#include <cv.h>
 #include "base.h"
 
-#include "Structures/Vector.h"
-#include "Structures/FeaturePoint.h"
+#include <gl/glut.h>
+#include "AugmentedReality.h"
 
 namespace windage
 {
-	namespace Algorithms
+	namespace Coordinator
 	{
-		class DLLEXPORT FeatureDetector
+		/**
+		 * @brief
+		 *		Class for Augmented Reality Tool at OpenGL Environment
+		 * @author
+		 *		windage
+		 */
+		class DLLEXPORT ARForOpenGL : public AugmentedReality
 		{
-		protected:
-			std::vector<windage::FeaturePoint> keypoints;
-			double threshold;
+		private:
+			GLuint backgroundTexture;	///< OpenGL Texture Pointer
+
+			void Release();
 
 		public:
-			FeatureDetector()
-			{
-			}
-			virtual ~FeatureDetector()
-			{
-			}
+			ARForOpenGL();
+			~ARForOpenGL();
 
-			inline int GetKeypointsCount(){return (int)this->keypoints.size();};
-			inline std::vector<windage::FeaturePoint>* GetKeypoints(){return &this->keypoints;};
-			virtual bool DoExtractKeypointsDescriptor(IplImage* grayImage) = 0;
-			
-			inline void SetThreshold(double threshold){if(threshold > 0)this->threshold = threshold;};
-			inline double GetThreshold(){return this->threshold;};
+			/**
+			 * @brief
+			 *		Initialize ARTool for OpenGL
+			 * @remark
+			 *		initialize ARTool for OpenGL Environment
+			 */
+			void Initialize(
+							int imageWidth,			///< input background image width size
+							int imageHeight,		///< input background image height size
+							bool isFlip=false,		///< input flip background and modelview matrix
+							int textureWidth=512	///< input texture image size (width == height) (*necessary multiple of 4)
+							);
 
-			void DrawKeypoint(IplImage* colorImage, FeaturePoint point, CvScalar color = CV_RGB(255, 0, 0));
-			void DrawKeypoints(IplImage* colorImage, CvScalar color = CV_RGB(255, 0, 0));
+			void DrawBackgroundTexture(IplImage* inputImage);
+			void SetProjectionMatrix();
+			void SetModelViewMatrix();
 		};
 	}
 }

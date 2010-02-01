@@ -81,8 +81,8 @@ public:
 		p2 = (void*)v22;
 		delete v22;
 
-		sprintf(memoryAddress1, "%08X", p1);
-		sprintf(memoryAddress2, "%08X", p2);
+		sprintf_s(memoryAddress1, "%08X", p1);
+		sprintf_s(memoryAddress2, "%08X", p2);
 		compair += strcmp(memoryAddress1, memoryAddress2);
 
 		// Vector3
@@ -94,8 +94,8 @@ public:
 		p2 = (void*)v32;
 		delete v32;
 
-		sprintf(memoryAddress1, "%08X", p1);
-		sprintf(memoryAddress2, "%08X", p2);
+		sprintf_s(memoryAddress1, "%08X", p1);
+		sprintf_s(memoryAddress2, "%08X", p2);
 		compair += strcmp(memoryAddress1, memoryAddress2);
 
 		// Vector4
@@ -107,8 +107,8 @@ public:
 		p2 = (void*)v42;
 		delete v42;
 
-		sprintf(memoryAddress1, "%08X", p1);
-		sprintf(memoryAddress2, "%08X", p2);
+		sprintf_s(memoryAddress1, "%08X", p1);
+		sprintf_s(memoryAddress2, "%08X", p2);
 		compair += strcmp(memoryAddress1, memoryAddress2);
 
 		// Matrix2
@@ -120,8 +120,8 @@ public:
 		p2 = (void*)m22;
 		delete m22;
 
-		sprintf(memoryAddress1, "%08X", p1);
-		sprintf(memoryAddress2, "%08X", p2);
+		sprintf_s(memoryAddress1, "%08X", p1);
+		sprintf_s(memoryAddress2, "%08X", p2);
 		compair += strcmp(memoryAddress1, memoryAddress2);
 
 		// Matrix3
@@ -133,8 +133,8 @@ public:
 		p2 = (void*)m32;
 		delete m32;
 
-		sprintf(memoryAddress1, "%08X", p1);
-		sprintf(memoryAddress2, "%08X", p2);
+		sprintf_s(memoryAddress1, "%08X", p1);
+		sprintf_s(memoryAddress2, "%08X", p2);
 		compair += strcmp(memoryAddress1, memoryAddress2);
 
 		// Matrix4
@@ -146,8 +146,8 @@ public:
 		p2 = (void*)m42;
 		delete m42;
 
-		sprintf(memoryAddress1, "%08X", p1);
-		sprintf(memoryAddress2, "%08X", p2);
+		sprintf_s(memoryAddress1, "%08X", p1);
+		sprintf_s(memoryAddress2, "%08X", p2);
 		compair += strcmp(memoryAddress1, memoryAddress2);
 
 		(*message) = std::string(memoryAddress1) + std::string(",") + std::string(memoryAddress2);
@@ -224,7 +224,7 @@ public:
 			test = false;
 
 		char tempMessage[300];
-		sprintf(tempMessage, "%lf, %lf, %f", error1, error2, error3);
+		sprintf_s(tempMessage, "%lf, %lf, %f", error1, error2, error3);
 		(*message) = std::string(tempMessage);
 
 		return test;

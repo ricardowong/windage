@@ -135,8 +135,8 @@ public:
 
 		currPoints.clear();
 
-		sprintf(memoryAddress1, "%08X", p1);
-		sprintf(memoryAddress2, "%08X", p2);
+		sprintf_s(memoryAddress1, "%08X", p1);
+		sprintf_s(memoryAddress2, "%08X", p2);
 		compair += strcmp(memoryAddress1, memoryAddress2);
 
 		(*message) = std::string(memoryAddress1) + std::string(",") + std::string(memoryAddress2);
@@ -188,8 +188,8 @@ public:
 			{
 				windage::Vector3 tempPt1 = (*points[index2])[i].GetPoint();
 				windage::Vector3 tempPt2 = (*points[index1])[i].GetPoint();
-				cvCircle(resultImage, cvPoint(tempPt1.x, tempPt1.y), 3, CV_RGB(255, 0, 0));
-				cvLine(resultImage, cvPoint(tempPt1.x, tempPt1.y), cvPoint(tempPt2.x, tempPt2.y), CV_RGB(255, 0, 0));
+				cvCircle(resultImage, cvPoint((int)tempPt1.x, (int)tempPt1.y), 3, CV_RGB(255, 0, 0));
+				cvLine(resultImage, cvPoint((int)tempPt1.x, (int)tempPt1.y), cvPoint((int)tempPt2.x, (int)tempPt2.y), CV_RGB(255, 0, 0));
 			}
 			points[index1]->clear();
 
@@ -197,7 +197,8 @@ public:
 			cvWaitKey(100);
 		}
 		
-		(*message) = std::string("");
+		sprintf_s(tempMessage, "");
+		(*message) = std::string(tempMessage);
 		return test;
 	}
 

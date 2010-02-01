@@ -376,13 +376,13 @@ void draw_oxfd_feature( IplImage* img, struct feature* feat, CvScalar color )
 	alpha = -atan2( v[1], v[0] );
 	alpha *= 180 / CV_PI;
 
-	cvEllipse( img, cvPoint( feat->x, feat->y ), cvSize( l2, l1 ), alpha,
+	cvEllipse( img, cvPoint( (int)feat->x, (int)feat->y ), cvSize( (int)l2, (int)l1 ), alpha,
 				0, 360, CV_RGB(0,0,0), 3, 8, 0 );
-	cvEllipse( img, cvPoint( feat->x, feat->y ), cvSize( l2, l1 ), alpha,
+	cvEllipse( img, cvPoint( (int)feat->x, (int)feat->y ), cvSize( (int)l2, (int)l1 ), alpha,
 				0, 360, color, 1, 8, 0 );
-	cvLine( img, cvPoint( feat->x+2, feat->y ), cvPoint( feat->x-2, feat->y ),
+	cvLine( img, cvPoint( (int)feat->x+2, (int)feat->y ), cvPoint( (int)feat->x-2, (int)feat->y ),
 			color, 1, 8, 0 );
-	cvLine( img, cvPoint( feat->x, feat->y+2 ), cvPoint( feat->x, feat->y-2 ),
+	cvLine( img, cvPoint( (int)feat->x, (int)feat->y+2 ), cvPoint( (int)feat->x, (int)feat->y-2 ),
 			color, 1, 8, 0 );
 }
 

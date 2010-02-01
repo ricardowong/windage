@@ -84,8 +84,8 @@ public:
 		p2 = (void*)featurePoint2;
 		delete featurePoint2;
 
-		sprintf(memoryAddress1, "%08X", p1);
-		sprintf(memoryAddress2, "%08X", p2);
+		sprintf_s(memoryAddress1, "%08X", p1);
+		sprintf_s(memoryAddress2, "%08X", p2);
 		compair += strcmp(memoryAddress1, memoryAddress2);
 
 		// windage SURF Feature Point
@@ -97,8 +97,8 @@ public:
 		p2 = (void*)wSURFPoint2;
 		delete wSURFPoint2;
 
-		sprintf(memoryAddress1, "%08X", p1);
-		sprintf(memoryAddress2, "%08X", p2);
+		sprintf_s(memoryAddress1, "%08X", p1);
+		sprintf_s(memoryAddress2, "%08X", p2);
 		compair += strcmp(memoryAddress1, memoryAddress2);
 
 		// SURF Feature Point
@@ -110,8 +110,8 @@ public:
 		p2 = (void*)surfPoint2;
 		delete surfPoint2;
 
-		sprintf(memoryAddress1, "%08X", p1);
-		sprintf(memoryAddress2, "%08X", p2);
+		sprintf_s(memoryAddress1, "%08X", p1);
+		sprintf_s(memoryAddress2, "%08X", p2);
 		compair += strcmp(memoryAddress1, memoryAddress2);
 
 		// SIFT Feature Point
@@ -123,8 +123,8 @@ public:
 		p2 = (void*)siftPoint2;
 		delete siftPoint2;
 
-		sprintf(memoryAddress1, "%08X", p1);
-		sprintf(memoryAddress2, "%08X", p2);
+		sprintf_s(memoryAddress1, "%08X", p1);
+		sprintf_s(memoryAddress2, "%08X", p2);
 		compair += strcmp(memoryAddress1, memoryAddress2);
 
 		(*message) = std::string(memoryAddress1) + std::string(",") + std::string(memoryAddress2);
@@ -143,6 +143,7 @@ public:
 		bool test = true;
 		double EPS = 1.0e-5;
 		int dimension = 36;
+		char tempMessage[100];
 
 		// checek the algorithm
 		CvRNG rng = cvRNG(cvGetTickCount());
@@ -269,7 +270,8 @@ public:
 
 		delete[] d;
 	
-		(*message) = std::string("");
+		sprintf_s(tempMessage, "");
+		(*message) = std::string(tempMessage);
 		return test;
 	}
 

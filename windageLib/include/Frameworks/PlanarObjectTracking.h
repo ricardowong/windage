@@ -66,7 +66,7 @@ namespace windage
 		class DLLEXPORT PlanarObjectTracking
 		{
 		protected:
-			static const int MIN_FEATURE_POINTS_COUNT = 10;
+			static const int MIN_FEATURE_POINTS_COUNT = 9;
 
 			windage::Calibration* cameraParameter;
 			IplImage* prevImage;
@@ -136,6 +136,13 @@ namespace windage
 			inline void AttatchEstimator(windage::Algorithms::HomographyEstimator* estimator){this->estimator = estimator;};
 			inline void AttatchChecker(windage::Algorithms::OutlierChecker* checker){this->checker = checker;};
 			inline void AttatchRefiner(windage::Algorithms::HomographyRefiner* refiner){this->refiner = refiner;};
+
+			inline windage::Algorithms::FeatureDetector* GetDetector(){return this->detector;};
+			inline windage::Algorithms::SearchTree* GetMatcher(){return this->matcher;};
+			inline windage::Algorithms::OpticalFlow* GetTracker(){return this->tracker;};
+			inline windage::Algorithms::HomographyEstimator* GetEstimator(){return this->estimator;};
+			inline windage::Algorithms::OutlierChecker* GetChecker(){return this->checker;};
+			inline windage::Algorithms::HomographyRefiner* GetRefiner(){return this->refiner;};
 
 			bool Initialize(int width, int height, double realWidth=640.0, double realHeight=480.0);
 			bool AttatchReferenceImage(IplImage* grayImage);

@@ -94,8 +94,8 @@ public:
 		detector2->DoExtractKeypointsDescriptor(grayImage);
 		delete detector2;
 
-		sprintf(memoryAddress1, "%08X", p1);
-		sprintf(memoryAddress2, "%08X", p2);
+		sprintf_s(memoryAddress1, "%08X", p1);
+		sprintf_s(memoryAddress2, "%08X", p2);
 		compair += strcmp(memoryAddress1, memoryAddress2);
 
 		(*message) = std::string(memoryAddress1) + std::string(",") + std::string(memoryAddress2);
@@ -125,14 +125,14 @@ public:
 			wSurfDetector.DoExtractKeypointsDescriptor(grayImage);
 			wSurfDetector.DrawKeypoints(resultImage, CV_RGB(255, 0, 0));
 
-			sprintf(tempMessage, "Windage SURF threshold : %.2lf", threshold);
+			sprintf_s(tempMessage, "Windage SURF threshold : %.2lf", threshold);
 			windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 20), 0.7, tempMessage);
 
 			cvShowImage("Windage SURF detector", resultImage);
 			cvWaitKey(1);
 		}
 		
-		(*message) = std::string("");
+		sprintf_s(tempMessage, "");(*message) = std::string(tempMessage);
 		return test;
 	}
 

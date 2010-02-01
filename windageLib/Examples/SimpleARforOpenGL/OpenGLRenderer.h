@@ -37,46 +37,46 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#ifndef _FEATURE_DETECTOR_H_
-#define _FEATURE_DETECTOR_H_
+#ifndef OPENGL_RENDERER_H
+#define OPENGL_RENDERER_H
 
-#include <vector>
-
+#include <GL/glut.h>
 #include <cv.h>
-#include "base.h"
 
 #include "Structures/Vector.h"
-#include "Structures/FeaturePoint.h"
+using namespace windage;
 
-namespace windage
+//#define DRAWPIXEL_MODE
+
+class OpenGLRenderer
 {
-	namespace Algorithms
-	{
-		class DLLEXPORT FeatureDetector
-		{
-		protected:
-			std::vector<windage::FeaturePoint> keypoints;
-			double threshold;
+public:
+	static void init(int width = 320, int height = 240, char * windowName = "OpenGL Renderer");
+//	static void idle();
+//	static void display();
 
-		public:
-			FeatureDetector()
-			{
-			}
-			virtual ~FeatureDetector()
-			{
-			}
+	static void setLight();
+	static void setMaterial(Vector4 color);
 
-			inline int GetKeypointsCount(){return (int)this->keypoints.size();};
-			inline std::vector<windage::FeaturePoint>* GetKeypoints(){return &this->keypoints;};
-			virtual bool DoExtractKeypointsDescriptor(IplImage* grayImage) = 0;
-			
-			inline void SetThreshold(double threshold){if(threshold > 0)this->threshold = threshold;};
-			inline double GetThreshold(){return this->threshold;};
+	static void drawClear();
+	static void drawBackground(IplImage* inputImage);
+	static void drawObject(GLfloat* projection, GLfloat* model_view, int markerId, double markerWidth);
 
-			void DrawKeypoint(IplImage* colorImage, FeaturePoint point, CvScalar color = CV_RGB(255, 0, 0));
-			void DrawKeypoints(IplImage* colorImage, CvScalar color = CV_RGB(255, 0, 0));
-		};
-	}
-}
+	static void mouse(int iButton, int iState, int x, int y);
+	static void motion(int x, int y);
+
+	static int cursorX;
+	static int cursorY;
+
+	enum EVENT_MODE{RENDER=1, CLICKED=2};
+	static EVENT_MODE mode;
+
+private:
+	static int windowWidth;
+	static int windowHeight;
+
+	static int cameraWidth;
+	static int cameraHeight;
+};
 
 #endif

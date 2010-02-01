@@ -44,7 +44,7 @@
 
 #include <windage.h>
 
-const int WIDTH = 640;
+const int WIDTH = 320;
 const int HEIGHT = (WIDTH * 3) / 4;
 const int FEATURE_COUNT = WIDTH*2;
 
@@ -72,7 +72,7 @@ void main()
 	calibration = new windage::Calibration();
 	detector = new windage::Algorithms::WSURFdetector();
 	opticalflow = new windage::Algorithms::OpticalFlow();
-	estimator = new windage::Algorithms::RANSACestimator();
+	estimator = new windage::Algorithms::ProSACestimator();
 	checker = new windage::Algorithms::OutlierChecker();
 	refiner = new windage::Algorithms::LMmethod();
 
@@ -81,6 +81,7 @@ void main()
 	opticalflow->Initialize(WIDTH, HEIGHT, cvSize(8, 8), 3);
 	estimator->SetReprojectionError(2.0);
 	checker->SetReprojectionError(2.0);
+	refiner->SetMaxIteration(10);
 
 	tracking.AttatchCalibration(calibration);
 	tracking.AttatchDetetor(detector);
@@ -134,6 +135,12 @@ void main()
 				tracking.DrawOutLine(resultImage, i, true);
 				windage::Calibration* calibrationTemp = tracking.GetCameraParameter(i);
 				calibrationTemp->DrawInfomation(resultImage, 100);
+				CvPoint centerPoint = calibrationTemp->ConvertWorld2Image(0.0, 0.0, 0.0);
+				
+				centerPoint.x += 5;
+				centerPoint.y += 10;
+				sprintf_s(message, "object #%d", i+1);
+				windage::Utils::DrawTextToImage(resultImage, centerPoint, 0.6, message);
 			}
 		}
 
@@ -141,15 +148,15 @@ void main()
 		logger.log("processingTime", processingTime);
 		logger.logNewLine();
 
-		sprintf(message, "Processing Time : %.2lf ms", processingTime);
+		sprintf_s(message, "Processing Time : %.2lf ms", processingTime);
 		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 20), 0.6, message);
-		sprintf(message, "Feature Count : %d, Threshold : %.0lf", keypointCount, threshold);
+		sprintf_s(message, "Feature Count : %d, Threshold : %.0lf", keypointCount, threshold);
 		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 40), 0.6, message);
-		sprintf(message, "Matching Count : %d", matchingCount);
+		sprintf_s(message, "Matching Count : %d", matchingCount);
 		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 60), 0.6, message);
 
-		sprintf(message, "Press 'Space' to track the current image", keypointCount, threshold);
-		windage::Utils::DrawTextToImage(resultImage, cvPoint(WIDTH-270, HEIGHT-10), 0.5, message);
+		sprintf_s(message, "Press 'Space' to add tracking the current image", keypointCount, threshold);
+		windage::Utils::DrawTextToImage(resultImage, cvPoint(WIDTH-315, HEIGHT-10), 0.5, message);
 		cvShowImage("result", resultImage);
 
 		char ch = cvWaitKey(1);
@@ -165,6 +172,7 @@ void main()
 			detector->SetThreshold(30.0);
 			tracking.AttatchReferenceImage(grayImage);
 			tracking.TrainingReference(4.0, 8);
+			detector->SetThreshold(threshold);
 			trained = true;
 			break;
 		}		

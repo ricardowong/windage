@@ -175,8 +175,8 @@ public:
 		tracking2->UpdateCamerapose(grayImage2);
 		delete tracking2;		
 
-		sprintf(memoryAddress1, "%08X", p1);
-		sprintf(memoryAddress2, "%08X", p2);
+		sprintf_s(memoryAddress1, "%08X", p1);
+		sprintf_s(memoryAddress2, "%08X", p2);
 		compair += strcmp(memoryAddress1, memoryAddress2);
 
 		(*message) = std::string(memoryAddress1) + std::string(",") + std::string(memoryAddress2);
@@ -227,7 +227,8 @@ public:
 		cvShowImage("Multiple Object Tracking Frameworks", resultImage);
 		cvWaitKey(3000);
 
-		(*message) = std::string("");
+		sprintf_s(tempMessage, "");
+		(*message) = std::string(tempMessage);
 		return test;
 	}
 

@@ -211,33 +211,36 @@ bool MultiplePlanarObjectTracking::UpdateCamerapose(IplImage* grayImage)
 	// pose estimate
 	for(int i=0; i<this->objectCount; i++)
 	{
-		this->estimator->AttatchReferencePoint(&(refMatchedKeypoints[i]));
-		this->estimator->AttatchScenePoint(&(sceMatchedKeypoints[i]));
-		this->estimator->Calculate();
-//		this->estimator->DecomposeHomography((this->cameraParameter[i]));
-
-		// outlier checker
-		this->checker->AttatchEstimator(this->estimator);
-		this->checker->Calculate();
-
-		// outlier rejection
-		for(int j=0; j<(int)refMatchedKeypoints[i].size(); j++)
+		if((int)refMatchedKeypoints[i].size() > MIN_FEATURE_POINTS_COUNT)
 		{
-			if(refMatchedKeypoints[i][j].IsOutlier() == true)
+			this->estimator->AttatchReferencePoint(&(refMatchedKeypoints[i]));
+			this->estimator->AttatchScenePoint(&(sceMatchedKeypoints[i]));
+			this->estimator->Calculate();
+	//		this->estimator->DecomposeHomography((this->cameraParameter[i]));
+
+			// outlier checker
+			this->checker->AttatchEstimator(this->estimator);
+			this->checker->Calculate();
+
+			// outlier rejection
+			for(int j=0; j<(int)refMatchedKeypoints[i].size(); j++)
 			{
-				refMatchedKeypoints[i].erase(refMatchedKeypoints[i].begin() + j);
-				sceMatchedKeypoints[i].erase(sceMatchedKeypoints[i].begin() + j);
-				j--;
+				if(refMatchedKeypoints[i][j].IsOutlier() == true)
+				{
+					refMatchedKeypoints[i].erase(refMatchedKeypoints[i].begin() + j);
+					sceMatchedKeypoints[i].erase(sceMatchedKeypoints[i].begin() + j);
+					j--;
+				}
 			}
+
+			// refinement
+			this->refiner->AttatchHomography(this->estimator->GetHomography());
+			this->refiner->AttatchReferencePoint(&(refMatchedKeypoints[i]));
+			this->refiner->AttatchScenePoint(&(sceMatchedKeypoints[i]));
+			this->refiner->Calculate();
+
+			this->estimator->DecomposeHomography((this->cameraParameter[i]));
 		}
-
-		// refinement
-		this->refiner->AttatchHomography(this->estimator->GetHomography());
-		this->refiner->AttatchReferencePoint(&(refMatchedKeypoints[i]));
-		this->refiner->AttatchScenePoint(&(sceMatchedKeypoints[i]));
-		this->refiner->Calculate();
-
-		this->estimator->DecomposeHomography((this->cameraParameter[i]));
 	}
 
 	

@@ -137,8 +137,8 @@ public:
 		tree2->Training(surfDetectorSce->GetKeypoints());
 		delete tree2;
 
-		sprintf(memoryAddress1, "%08X", p1);
-		sprintf(memoryAddress2, "%08X", p2);
+		sprintf_s(memoryAddress1, "%08X", p1);
+		sprintf_s(memoryAddress2, "%08X", p2);
 		compair += strcmp(memoryAddress1, memoryAddress2);
 
 		(*message) = std::string(memoryAddress1) + std::string(",") + std::string(memoryAddress2);
@@ -169,10 +169,10 @@ public:
 			if(index >= 0)
 			{
 				windage::Vector3 refPT = (*surfDetectorRef->GetKeypoints())[index].GetPoint();
-				CvPoint pointRef = cvPoint(refPT.x, refPT.y);
+				CvPoint pointRef = cvPoint((int)refPT.x, (int)refPT.y);
 
 				windage::Vector3 scePT = (*surfDetectorSce->GetKeypoints())[i].GetPoint();
-				CvPoint pointSce = cvPoint(scePT.x + width, scePT.y);
+				CvPoint pointSce = cvPoint((int)scePT.x + width, (int)scePT.y);
 
 				cvLine(resultImage, pointRef, pointSce, CV_RGB(0, 255, 0));
 			}
@@ -182,7 +182,8 @@ public:
 		cvShowImage("Spill tree search", resultImage);
 		cvWaitKey(1000);
 
-		(*message) = std::string("");
+		sprintf_s(tempMessage, "");
+		(*message) = std::string(tempMessage);
 		return test;
 	}
 

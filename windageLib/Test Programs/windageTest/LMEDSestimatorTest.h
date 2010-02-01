@@ -162,8 +162,8 @@ public:
 		estimator2->Calculate();
 		delete estimator2;
 
-		sprintf(memoryAddress1, "%08X", p1);
-		sprintf(memoryAddress2, "%08X", p2);
+		sprintf_s(memoryAddress1, "%08X", p1);
+		sprintf_s(memoryAddress2, "%08X", p2);
 		compair += strcmp(memoryAddress1, memoryAddress2);
 
 		(*message) = std::string(memoryAddress1) + std::string(",") + std::string(memoryAddress2);
@@ -208,14 +208,15 @@ public:
 		for(int i=0; i<4; i++)
 		{
 			int i2 = i==3?0:i+1;
-			cvLine(resultImage, cvPoint(width + drawScePoints[i].x, drawScePoints[i].y),
-								cvPoint(width + drawScePoints[i2].x, drawScePoints[i2].y), CV_RGB(0, 255, 0), 3);
+			cvLine(resultImage, cvPoint(width + (int)drawScePoints[i].x, (int)drawScePoints[i].y),
+								cvPoint(width + (int)drawScePoints[i2].x, (int)drawScePoints[i2].y), CV_RGB(0, 255, 0), 3);
 		}
 
 		cvShowImage("LMeDS estimator", resultImage);
 		cvWaitKey(1000);
 
-		(*message) = std::string("");
+		sprintf_s(tempMessage, "");
+		(*message) = std::string(tempMessage);
 		return test;
 	}
 
