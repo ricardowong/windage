@@ -40,7 +40,7 @@
 #ifndef _WINDAGE_BASE_H_
 #define _WINDAGE_BASE_H_
 
-//#define DYNAMIC_LIBRARY
+#define DYNAMIC_LIBRARY
 #ifdef DYNAMIC_LIBRARY
 	#define DLLEXPORT __declspec(dllexport)   
 	#define DLLIMPORT __declspec(dllimport)
