@@ -84,6 +84,7 @@ void main()
 	opticalflow->Initialize(WIDTH, HEIGHT, cvSize(8, 8), 3);
 	estimator->SetReprojectionError(2.0);
 	checker->SetReprojectionError(2.0);
+	refiner->SetMaxIteration(10);
 
 	tracking.AttatchCalibration(calibration);
 	tracking.AttatchDetetor(detector);
@@ -143,14 +144,14 @@ void main()
 		logger.log("processingTime", processingTime);
 		logger.logNewLine();
 
-		sprintf(message, "Processing Time : %.2lf ms", processingTime);
+		sprintf_s(message, "Processing Time : %.2lf ms", processingTime);
 		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 20), 0.6, message);
-		sprintf(message, "Feature Count : %d, Threshold : %.0lf", keypointCount, threshold);
+		sprintf_s(message, "Feature Count : %d, Threshold : %.0lf", keypointCount, threshold);
 		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 40), 0.6, message);
-		sprintf(message, "Matching Count : %d", matchingCount);
+		sprintf_s(message, "Matching Count : %d", matchingCount);
 		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 60), 0.6, message);
 
-		sprintf(message, "Press 'Space' to track the current image", keypointCount, threshold);
+		sprintf_s(message, "Press 'Space' to track the current image", keypointCount, threshold);
 		windage::Utils::DrawTextToImage(resultImage, cvPoint(WIDTH-270, HEIGHT-10), 0.5, message);
 		cvShowImage("result", resultImage);
 
@@ -167,6 +168,7 @@ void main()
 			detector->SetThreshold(30.0);
 			tracking.AttatchReferenceImage(grayImage);
 			tracking.TrainingReference(4.0, 8);
+			detector->SetThreshold(threshold);
 			trained = true;
 			break;
 		}		

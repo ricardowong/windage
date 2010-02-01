@@ -159,7 +159,7 @@ public:
 		checker->AttatchEstimator(estimator);
 		checker->Calculate();
 
-		for(int i=0; i<this->referencePoints.size(); i++)
+		for(int i=0; i<(int)this->referencePoints.size(); i++)
 		{
 			if(this->referencePoints[i].IsOutlier() == true)
 			{
@@ -202,8 +202,8 @@ public:
 		refiner2->Calculate();
 		delete refiner2;
 
-		sprintf(memoryAddress1, "%08X", p1);
-		sprintf(memoryAddress2, "%08X", p2);
+		sprintf_s(memoryAddress1, "%08X", p1);
+		sprintf_s(memoryAddress2, "%08X", p2);
 		compair += strcmp(memoryAddress1, memoryAddress2);
 
 		(*message) = std::string(memoryAddress1) + std::string(",") + std::string(memoryAddress2);
@@ -247,7 +247,7 @@ public:
 			errorR += image.getDistance(resultR);
 		}
 
-		sprintf(tempMessage, "original : %lf, refine : %lf", errorH, errorR);
+		sprintf_s(tempMessage, "original : %lf, refine : %lf", errorH, errorR);
 		(*message) = std::string(tempMessage);
 		if(errorH < errorR)
 			return false;

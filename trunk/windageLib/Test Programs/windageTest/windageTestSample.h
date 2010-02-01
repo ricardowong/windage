@@ -77,8 +77,8 @@ public:
 		p2 = (void*)i2;
 		cvReleaseImage(&i1);
 		
-		sprintf(memoryAddress1, "%08X", p1);
-		sprintf(memoryAddress2, "%08X", p2);
+		sprintf_s(memoryAddress1, "%08X", p1);
+		sprintf_s(memoryAddress2, "%08X", p2);
 
 		(*message) = std::string(memoryAddress1) + std::string(",") + std::string(memoryAddress2);
 		int compair = strcmp(memoryAddress1, memoryAddress2);
@@ -100,7 +100,7 @@ public:
 		random = random%10+1;
 
 		char temp[100];
-		sprintf(temp, "randomly fail : %u > 7", random);
+		sprintf_s(temp, "randomly fail : %u > 7", random);
 		(*message) = std::string(temp);
 
 		if(random > 7)

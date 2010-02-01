@@ -89,7 +89,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="COPY /Y &quot;$(OutDir)\$(ProjectName)d.exe&quot; &quot;$(SolutionDir)\..\..\runtime\$(ProjectName)d.exe&quot;"
+				CommandLine=""
 				ExcludedFromBuild="false"
 			/>
 		</Configuration>

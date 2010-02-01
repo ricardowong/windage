@@ -144,7 +144,7 @@ namespace windage
 		Matrix4 Inverse() const
 		{
 			double tmp[12];
-			double src[16];
+			double src[16] = {0};
 			double dst[16];
 			double det;
 

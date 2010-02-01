@@ -655,8 +655,8 @@ void wExtractSURF( const CvArr* _img, const CvArr* _mask,
             cvSeqRemove( keypoints, i );
             if ( _descriptors )
                 cvSeqRemove( descriptors, i );
-            k--;
-	    N--;
+//            k--;
+		    N--;
         }
     }
 

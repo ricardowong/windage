@@ -80,8 +80,8 @@ public:
 		p2 = (void*)calibration2;
 		delete calibration2;
 
-		sprintf(memoryAddress1, "%08X", p1);
-		sprintf(memoryAddress2, "%08X", p2);
+		sprintf_s(memoryAddress1, "%08X", p1);
+		sprintf_s(memoryAddress2, "%08X", p2);
 		compair += strcmp(memoryAddress1, memoryAddress2);
 
 		(*message) = std::string(memoryAddress1) + std::string(",") + std::string(memoryAddress2);
@@ -99,12 +99,14 @@ public:
 	{
 		bool test = true;
 		double EPS = 1.0e-5;
+		char tempMessage[100];
 
 		// checek the algorithm
 		CvRNG rng = cvRNG(cvGetTickCount());
 		double r11 = (double)1;//cvRandInt(&rng) % 200 - 100;
 	
-		(*message) = std::string("");
+		sprintf_s(tempMessage, "");
+		(*message) = std::string(tempMessage);
 		return test;
 	}
 

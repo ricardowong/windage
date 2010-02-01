@@ -85,3 +85,9 @@
 // Frameworks
 #include "Frameworks/PlanarObjectTracking.h"
 #include "Frameworks/MultiplePlanarObjectTracking.h"
+
+// Coordinator
+#include "Coordinator/AugmentedReality.h"
+
+#include "Coordinator/MultiCameraCoordinator.h"
+#include "Coordinator/MultiMarkerCoordinator.h"

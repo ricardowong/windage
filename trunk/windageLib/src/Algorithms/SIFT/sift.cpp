@@ -125,7 +125,7 @@ int _sift_features( IplImage* img, struct feature** feat, int intvls,
 
 	/* build scale space pyramid; smallest dimension of top level is ~4 pixels */
 	init_img = create_init_img( img, img_dbl, sigma );
-	octvs = log( (double)MIN( init_img->width, init_img->height ) ) / log(2.0) - 2;
+	octvs = (int)(log( (double)MIN( init_img->width, init_img->height ) ) / log(2.0) - 2);
 	gauss_pyr = build_gauss_pyr( init_img, octvs, intvls, sigma );
 	dog_pyr = build_dog_pyr( gauss_pyr, octvs, intvls );
 
@@ -175,7 +175,7 @@ IplImage* create_init_img( IplImage* img, int img_dbl, double sigma )
 	gray = convert_to_gray32( img );
 	if( img_dbl )
 	{
-		sig_diff = sqrt( sigma * sigma - SIFT_INIT_SIGMA * SIFT_INIT_SIGMA * 4 );
+		sig_diff = (float)sqrt( sigma * sigma - SIFT_INIT_SIGMA * SIFT_INIT_SIGMA * 4 );
 		dbl = cvCreateImage( cvSize( img->width*2, img->height*2 ),
 			IPL_DEPTH_32F, 1 );
 		cvResize( gray, dbl, CV_INTER_CUBIC );
@@ -185,7 +185,7 @@ IplImage* create_init_img( IplImage* img, int img_dbl, double sigma )
 	}
 	else
 	{
-		sig_diff = sqrt( sigma * sigma - SIFT_INIT_SIGMA * SIFT_INIT_SIGMA );
+		sig_diff = (float)sqrt( sigma * sigma - SIFT_INIT_SIGMA * SIFT_INIT_SIGMA );
 		cvSmooth( gray, gray, CV_GAUSSIAN, 0, 0, sig_diff, sig_diff );
 		return gray;
 	}
@@ -1057,7 +1057,7 @@ double*** descr_hist( IplImage* img, int r, int c, double ori,
 	bins_per_rad = n / PI2;
 	exp_denom = d * d * 0.5;
 	hist_width = SIFT_DESCR_SCL_FCTR * scl;
-	radius = hist_width * sqrt(2.0) * ( d + 1.0 ) * 0.5 + 0.5;
+	radius = (int)(hist_width * sqrt(2.0) * ( d + 1.0 ) * 0.5 + 0.5);
 	for( i = -radius; i <= radius; i++ )
 		for( j = -radius; j <= radius; j++ )
 		{
@@ -1178,7 +1178,7 @@ void hist_to_descr( double*** hist, int d, int n, struct feature* feat )
 	/* convert floating-point descriptor to integer valued descriptor */
 	for( i = 0; i < k; i++ )
 	{
-		int_val = SIFT_INT_DESCR_FCTR * feat->descr[i];
+		int_val = (int)(SIFT_INT_DESCR_FCTR * feat->descr[i]);
 		feat->descr[i] = MIN( 255, int_val );
 	}
 }

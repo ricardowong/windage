@@ -37,46 +37,55 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#ifndef _FEATURE_DETECTOR_H_
-#define _FEATURE_DETECTOR_H_
+#ifndef _AUGMENTED_REALITY_FOR_OSG_H_
+#define _AUGMENTED_REALITY_FOR_OSG_H_
 
-#include <vector>
-
-#include <cv.h>
 #include "base.h"
 
-#include "Structures/Vector.h"
-#include "Structures/FeaturePoint.h"
+#include "AugmentedReality.h"
+#include "Structures/Matrix.h"
 
 namespace windage
 {
-	namespace Algorithms
+	namespace Coordinator
 	{
-		class DLLEXPORT FeatureDetector
+		/**
+		 * @brief
+		 *		Class for Augmented Reality Tool at OSG Environment (hidding)
+		 * @author
+		 *		windage
+		 */
+		class DLLEXPORT ARForOSG : public AugmentedReality
 		{
-		protected:
-			std::vector<windage::FeaturePoint> keypoints;
-			double threshold;
+		private:
+			void Release();
+			int width;
+			int height;
+			windage::Matrix4 projectionMatrix;
+			windage::Matrix4 modelviewMatrix;
 
 		public:
-			FeatureDetector()
-			{
-			}
-			virtual ~FeatureDetector()
-			{
-			}
+			ARForOSG();
+			~ARForOSG();
 
-			inline int GetKeypointsCount(){return (int)this->keypoints.size();};
-			inline std::vector<windage::FeaturePoint>* GetKeypoints(){return &this->keypoints;};
-			virtual bool DoExtractKeypointsDescriptor(IplImage* grayImage) = 0;
-			
-			inline void SetThreshold(double threshold){if(threshold > 0)this->threshold = threshold;};
-			inline double GetThreshold(){return this->threshold;};
+			/**
+			 * @brief
+			 *		Initialize ARTool for OpenGL
+			 * @remark
+			 *		initialize ARTool for OpenGL Environment
+			 */
+			void Initialize(int width, int height);
 
-			void DrawKeypoint(IplImage* colorImage, FeaturePoint point, CvScalar color = CV_RGB(255, 0, 0));
-			void DrawKeypoints(IplImage* colorImage, CvScalar color = CV_RGB(255, 0, 0));
+			void SetProjectionMatrix();
+			void SetModelViewMatrix();
+			void DrawBackgroundTexture(IplImage* inputImage);
+
+			inline windage::Matrix4 GetProjectionMatrix(){return this->projectionMatrix;};
+			inline windage::Matrix4 GetModelViewMatrix(){return this->modelviewMatrix;};
+			static windage::Matrix4 CalculateModelViewMatrix(windage::Matrix4 extrinsic);
 		};
 	}
 }
+
 
 #endif

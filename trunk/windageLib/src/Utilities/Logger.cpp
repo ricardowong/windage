@@ -45,7 +45,7 @@ using namespace windage;
 Logger::Logger()
 {
 	char filename[100];
-	sprintf(filename, "log_%s.txt", Logger::getTimeString());
+	sprintf_s(filename, "log_%s.txt", Logger::getTimeString());
 	logging = new std::ofstream(filename);
 
 	fileStream = true;
@@ -55,9 +55,9 @@ Logger::Logger(char* filenameString, bool addTime)
 {
 	char filename[100];
 	if(addTime)
-		sprintf(filename, "%s_%s.txt", filenameString, Logger::getTimeString().c_str());
+		sprintf_s(filename, "%s_%s.txt", filenameString, Logger::getTimeString().c_str());
 	else
-		sprintf(filename, "%s", filenameString);
+		sprintf_s(filename, "%s", filenameString);
 	logging = new std::ofstream(filename);
 	fileStream = true;
 }
@@ -66,7 +66,7 @@ Logger::Logger(std::string filenameString, bool addTime)
 {
 	char filename[100];
 	if(addTime)
-		sprintf(filename, "%s_%s.txt", Logger::getTimeString());
+		sprintf_s(filename, "%s_%s.txt", Logger::getTimeString());
 	logging = new std::ofstream(filename);
 	fileStream = true;
 }
@@ -133,11 +133,11 @@ std::string Logger::getTimeString()
 {
 	time_t now;
 	time(&now);
-	struct tm *t;
-	t = localtime(&now);
+	struct tm *t = NULL;
+	localtime_s(t, &now);
 
 	char timestemp[100];
-	sprintf(timestemp, "%d-%d-%d_%d_%d_%d", t->tm_year+1900, t->tm_mon+1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
+	sprintf_s(timestemp, "%d-%d-%d_%d_%d_%d", t->tm_year+1900, t->tm_mon+1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
 
 	std::string result = std::string(timestemp);
 	return result;
