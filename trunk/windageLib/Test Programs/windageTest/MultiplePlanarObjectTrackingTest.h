@@ -43,9 +43,9 @@
 #include "windageTest.h"
 
 #include "windage.h"
-#include "Frameworks/MultipleObjectTracking.h"
+#include "Frameworks/MultiplePlanarObjectTracking.h"
 
-class MultipleObjectTrackingTest : public windageTest
+class MultiplePlanarObjectTrackingTest : public windageTest
 {
 private:
 	IplImage* inputImage1;
@@ -60,9 +60,10 @@ private:
 	windage::Algorithms::RANSACestimator* estimator;
 	windage::Algorithms::OpticalFlow* tracker;
 	windage::Algorithms::OutlierChecker* checker;
+	windage::Algorithms::LMmethod* refiner;
 
 public:
-	MultipleObjectTrackingTest() : windageTest("MultipleObjectTracking Test", "MultipleObjectTracking")
+	MultiplePlanarObjectTrackingTest() : windageTest("MultiplePlanarObjectTracking Test", "MultiplePlanarObjectTracking")
 	{
 		inputImage1 = NULL;
 		inputImage2 = NULL;
@@ -71,10 +72,11 @@ public:
 
 		detector = NULL;
 		estimator = NULL;
+		refiner = NULL;
 
 		this->Do();
 	}
-	~MultipleObjectTrackingTest()
+	~MultiplePlanarObjectTrackingTest()
 	{
 		if(inputImage1) cvReleaseImage(&inputImage1);
 		inputImage1 = NULL;
@@ -95,6 +97,8 @@ public:
 		estimator = NULL;
 		if(checker) delete checker;
 		checker = NULL;
+		if(refiner) delete refiner;
+		refiner = NULL;
 	}
 
 	bool Initialize(std::string* message)
@@ -118,6 +122,7 @@ public:
 		tracker = new windage::Algorithms::OpticalFlow();
 		estimator = new windage::Algorithms::RANSACestimator();
 		checker = new windage::Algorithms::OutlierChecker();
+		refiner = new windage::Algorithms::LMmethod();
 
 		calibration->Initialize(1200, 1200, 200, 160, 0, 0, 0, 0);
 		tracker->Initialize(imageSize.width, imageSize.height);
@@ -135,13 +140,14 @@ public:
 		void* p2 = 0;
 		int compair = 0;
 
-		windage::Frameworks::MultipleObjectTracking* tracking1 = new windage::Frameworks::MultipleObjectTracking();
+		windage::Frameworks::MultiplePlanarObjectTracking* tracking1 = new windage::Frameworks::MultiplePlanarObjectTracking();
 		p1 = (void*)tracking1;
 		tracking1->AttatchCalibration(this->calibration);
 		tracking1->AttatchDetetor(this->detector);
 		tracking1->AttatchTracker(this->tracker);
 		tracking1->AttatchEstimator(this->estimator);
 		tracking1->AttatchChecker(this->checker);
+		tracking1->AttatchRefiner(this->refiner);
 		tracking1->Initialize(imageSize.width, imageSize.height);
 		tracking1->AttatchReferenceImage(grayImage1);
 		tracking1->AttatchReferenceImage(grayImage1);
@@ -155,13 +161,14 @@ public:
 		tracking1->UpdateCamerapose(grayImage2);
 		delete tracking1;
 
-		windage::Frameworks::MultipleObjectTracking* tracking2 = new windage::Frameworks::MultipleObjectTracking();
+		windage::Frameworks::MultiplePlanarObjectTracking* tracking2 = new windage::Frameworks::MultiplePlanarObjectTracking();
 		p2 = (void*)tracking2;
 		tracking2->AttatchCalibration(this->calibration);
 		tracking2->AttatchDetetor(this->detector);
 		tracking2->AttatchTracker(this->tracker);
 		tracking2->AttatchEstimator(this->estimator);
 		tracking2->AttatchChecker(this->checker);
+		tracking2->AttatchRefiner(this->refiner);
 		tracking2->Initialize(imageSize.width, imageSize.height);
 		tracking2->AttatchReferenceImage(grayImage1);
 		tracking2->TrainingReference();
@@ -194,12 +201,13 @@ public:
 		cvCopyImage(inputImage2, resultImage);
 		cvNamedWindow("Multiple Object Tracking Frameworks");
 
-		windage::Frameworks::MultipleObjectTracking tracking;
+		windage::Frameworks::MultiplePlanarObjectTracking tracking;
 		tracking.AttatchCalibration(this->calibration);
 		tracking.AttatchDetetor(this->detector);
 		tracking.AttatchTracker(this->tracker);
 		tracking.AttatchEstimator(this->estimator);
 		tracking.AttatchChecker(this->checker);
+		tracking.AttatchRefiner(this->refiner);
 		tracking.Initialize(width, height, width, height);
 		tracking.AttatchReferenceImage(grayImage1);
 		tracking.AttatchReferenceImage(grayImage2);
@@ -219,6 +227,7 @@ public:
 		cvShowImage("Multiple Object Tracking Frameworks", resultImage);
 		cvWaitKey(3000);
 
+		(*message) = std::string("");
 		return test;
 	}
 

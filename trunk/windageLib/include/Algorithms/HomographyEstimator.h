@@ -69,7 +69,7 @@ namespace windage
 			{
 			}
 
-			inline windage::Matrix3 GetHomography(){return this->homography;};
+			inline windage::Matrix3* GetHomography(){return &this->homography;};
 			
 			windage::Vector3 ConvertObjectToImage(windage::Vector3 point = windage::Vector3(0.0, 0.0, 1.0))
 			{

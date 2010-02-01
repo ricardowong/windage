@@ -37,42 +37,36 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#include "colorIO.h"
-#include "windageTest.h"
+#ifndef _LM_METHOD_REFINER_H_
+#define _LM_METHOD_REFINER_H_
 
-void windageTest::Do()
+#include <vector>
+
+#include <cv.h>
+#include "base.h"
+
+#include "Structures/Matrix.h"
+#include "Structures/FeaturePoint.h"
+#include "Algorithms/HomographyRefiner.h"
+
+namespace windage
 {
-	std::string message;
-
-	std::cout << "--------------------------------------------------" << std::endl;
-	std::cout << this->testName << " (" << this->testClass << ")" << std::endl;
-		std::cout << "\t Initialize ....... ";
-	bool initialize = this->Initialize(&message);
-	if(initialize == true)
+	namespace Algorithms
 	{
-		std::cout << GREEN << "OK" << WHITE << std::endl;
-		
-		std::cout << "\t Memory Release ... ";
-		if(this->TestMemoryRelease(&message))
-			std::cout << GREEN << "OK" << WHITE << std::endl;
-		else
-			std::cout << RED << "FAIL" << WHITE << " (" << message << ")" << std::endl;
+		class DLLEXPORT LMmethod : public HomographyRefiner
+		{
+		protected:
+		public:
+			LMmethod() : HomographyRefiner()
+			{
+			}
+			~LMmethod()
+			{
+			}
 
-		std::cout << "\t Algorithm ........ ";
-		if(this->TestAlgorithm(&message))
-			std::cout << GREEN << "OK" << WHITE << " (" << message << ")" << std::endl;
-		else
-			std::cout << RED << "FAIL" << WHITE << " (" << message << ")" << std::endl;
-
-		std::cout << "\t Terminate ........ ";
-		if(this->Terminate(&message))
-			std::cout << GREEN << "OK" << WHITE << std::endl;
-		else
-			std::cout << RED << "FAIL" << WHITE << " (" << message << ")" << std::endl;
+			bool Calculate();
+		};
 	}
-	else
-	{
-			std::cout << RED << "FAIL" << WHITE << " (" << message << ")" << std::endl;
-	}
-	std::cout << BLUE << "done." << WHITE <<  std::endl;
 }
+
+#endif

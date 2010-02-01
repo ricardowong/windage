@@ -184,7 +184,7 @@ public:
 
 			tracker.TrackFeatures(image[index1], image[index2], points[index1], points[index2]);
 
-			for(int i=0; i<points[index1]->size(); i++)
+			for(unsigned int i=0; i<points[index1]->size(); i++)
 			{
 				windage::Vector3 tempPt1 = (*points[index2])[i].GetPoint();
 				windage::Vector3 tempPt2 = (*points[index1])[i].GetPoint();
@@ -197,7 +197,7 @@ public:
 			cvWaitKey(100);
 		}
 		
-		
+		(*message) = std::string("");
 		return test;
 	}
 

@@ -120,7 +120,7 @@ public:
 		searchTree = new windage::Algorithms::FLANNtree();
 		searchTree->Training(surfDetectorRef->GetKeypoints());
 		std::vector<windage::FeaturePoint>* pScenePoints = surfDetectorSce->GetKeypoints();
-		for(int i=0; i<pScenePoints->size(); i++)
+		for(unsigned int i=0; i<pScenePoints->size(); i++)
 		{
 			double distance = 1.0e10;
 			int index = searchTree->Matching((*pScenePoints)[i], &distance);
@@ -202,7 +202,7 @@ public:
 		int matchCount = 0;
 		std::vector<windage::FeaturePoint>* referencePoints = estimator->GetReferencePoint();
 		std::vector<windage::FeaturePoint>* scenePoints = estimator->GetScenePoint();
-		for(int i=0; i<scenePoints->size(); i++)
+		for(unsigned int i=0; i<scenePoints->size(); i++)
 		{
 			if((*scenePoints)[i].IsOutlier())
 			{
@@ -230,6 +230,7 @@ public:
 		cvShowImage("Outlier checker", resultImage);
 		cvWaitKey(1000);
 
+		(*message) = std::string("");
 		return test;
 	}
 

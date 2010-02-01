@@ -43,9 +43,9 @@
 #include "windageTest.h"
 
 #include "windage.h"
-#include "Frameworks/ObjectTracking.h"
+#include "Frameworks/PlanarObjectTracking.h"
 
-class ObjectTrackingTest : public windageTest
+class PlanarObjectTrackingTest : public windageTest
 {
 private:
 	IplImage* inputImage1;
@@ -59,9 +59,10 @@ private:
 	windage::Algorithms::FLANNtree* matcher;
 	windage::Algorithms::RANSACestimator* estimator;
 	windage::Algorithms::OutlierChecker* checker;
+	windage::Algorithms::LMmethod* refiner;
 
 public:
-	ObjectTrackingTest() : windageTest("ObjectTracking Test", "ObjectTracking")
+	PlanarObjectTrackingTest() : windageTest("PlanarObjectTracking Test", "PlanarObjectTracking")
 	{
 		inputImage1 = NULL;
 		inputImage2 = NULL;
@@ -71,10 +72,11 @@ public:
 		detector = NULL;
 		matcher = NULL;
 		estimator = NULL;
+		refiner = NULL;
 
 		this->Do();
 	}
-	~ObjectTrackingTest()
+	~PlanarObjectTrackingTest()
 	{
 		if(inputImage1) cvReleaseImage(&inputImage1);
 		inputImage1 = NULL;
@@ -95,6 +97,8 @@ public:
 		estimator = NULL;
 		if(checker) delete checker;
 		checker = NULL;
+		if(refiner) delete refiner;
+		refiner = NULL;
 	}
 
 	bool Initialize(std::string* message)
@@ -118,8 +122,10 @@ public:
 		matcher = new windage::Algorithms::FLANNtree();
 		estimator = new windage::Algorithms::RANSACestimator();
 		checker = new windage::Algorithms::OutlierChecker();
+		refiner = new windage::Algorithms::LMmethod();
 
 		calibration->Initialize(1200, 1200, 200, 160, 0, 0, 0, 0);
+		
 		return true;
 	}
 
@@ -134,13 +140,14 @@ public:
 		void* p2 = 0;
 		int compair = 0;
 
-		windage::Frameworks::ObjectTracking* tracking1 = new windage::Frameworks::ObjectTracking();
+		windage::Frameworks::PlanarObjectTracking* tracking1 = new windage::Frameworks::PlanarObjectTracking();
 		p1 = (void*)tracking1;
 		tracking1->AttatchCalibration(this->calibration);
 		tracking1->AttatchDetetor(this->detector);
 		tracking1->AttatchMatcher(this->matcher);
 		tracking1->AttatchEstimator(this->estimator);
 		tracking1->AttatchChecker(this->checker);
+		tracking1->AttatchRefiner(this->refiner);
 		tracking1->Initialize(imageSize.width, imageSize.height);
 		tracking1->AttatchReferenceImage(grayImage1);
 		tracking1->AttatchReferenceImage(grayImage1);
@@ -151,13 +158,14 @@ public:
 		tracking1->UpdateCamerapose(grayImage2);
 		delete tracking1;
 
-		windage::Frameworks::ObjectTracking* tracking2 = new windage::Frameworks::ObjectTracking();
+		windage::Frameworks::PlanarObjectTracking* tracking2 = new windage::Frameworks::PlanarObjectTracking();
 		p2 = (void*)tracking2;
 		tracking2->AttatchCalibration(this->calibration);
 		tracking2->AttatchDetetor(this->detector);
 		tracking2->AttatchMatcher(this->matcher);
 		tracking2->AttatchEstimator(this->estimator);
 		tracking2->AttatchChecker(this->checker);
+		tracking2->AttatchRefiner(this->refiner);
 		tracking2->Initialize(imageSize.width, imageSize.height);
 		tracking2->AttatchReferenceImage(grayImage1);
 		tracking2->TrainingReference();
@@ -190,12 +198,13 @@ public:
 		cvCopyImage(inputImage2, resultImage);
 		cvNamedWindow("Object Tracking Frameworks");
 
-		windage::Frameworks::ObjectTracking tracking;
+		windage::Frameworks::PlanarObjectTracking tracking;
 		tracking.AttatchCalibration(this->calibration);
 		tracking.AttatchDetetor(this->detector);
 		tracking.AttatchMatcher(this->matcher);
 		tracking.AttatchEstimator(this->estimator);
 		tracking.AttatchChecker(this->checker);
+		tracking.AttatchRefiner(this->refiner);
 
 		tracking.Initialize(width, height, width, height);
 		tracking.AttatchReferenceImage(grayImage1);
@@ -210,6 +219,7 @@ public:
 		cvShowImage("Object Tracking Frameworks", resultImage);
 		cvWaitKey(3000);
 
+		(*message) = std::string("");
 		return test;
 	}
 

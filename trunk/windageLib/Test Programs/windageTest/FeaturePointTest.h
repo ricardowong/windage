@@ -269,6 +269,7 @@ public:
 
 		delete[] d;
 	
+		(*message) = std::string("");
 		return test;
 	}
 

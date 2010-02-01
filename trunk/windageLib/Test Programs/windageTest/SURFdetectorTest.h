@@ -132,6 +132,7 @@ public:
 			cvWaitKey(1);
 		}
 		
+		(*message) = std::string("");
 		return test;
 	}
 

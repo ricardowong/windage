@@ -61,10 +61,9 @@ void main()
 	cvNamedWindow("result");
 
 	// create and initialize tracker
-	windage::Frameworks::PlanarObjectTracking tracking;
+	windage::Frameworks::MultiplePlanarObjectTracking tracking;
 	windage::Calibration* calibration;
 	windage::Algorithms::FeatureDetector* detector;
-	windage::Algorithms::SearchTree* searchtree;
 	windage::Algorithms::OpticalFlow* opticalflow;
 	windage::Algorithms::HomographyEstimator* estimator;
 	windage::Algorithms::OutlierChecker* checker;
@@ -72,7 +71,6 @@ void main()
 
 	calibration = new windage::Calibration();
 	detector = new windage::Algorithms::WSURFdetector();
-	searchtree = new windage::Algorithms::FLANNtree();
 	opticalflow = new windage::Algorithms::OpticalFlow();
 	estimator = new windage::Algorithms::RANSACestimator();
 	checker = new windage::Algorithms::OutlierChecker();
@@ -80,20 +78,17 @@ void main()
 
 	calibration->Initialize(WIDTH*1.2, WIDTH*1.2, WIDTH/2.0, HEIGHT/2.0, 0, 0, 0, 0);
 	detector->SetThreshold(30.0);
-	searchtree->SetRatio(0.7);
 	opticalflow->Initialize(WIDTH, HEIGHT, cvSize(8, 8), 3);
 	estimator->SetReprojectionError(2.0);
 	checker->SetReprojectionError(2.0);
 
 	tracking.AttatchCalibration(calibration);
 	tracking.AttatchDetetor(detector);
-	tracking.AttatchMatcher(searchtree);
 	tracking.AttatchTracker(opticalflow);
 	tracking.AttatchEstimator(estimator);
 	tracking.AttatchChecker(checker);
 	tracking.AttatchRefiner(refiner);
 
-	tracking.SetDitectionRatio(30);
 	tracking.Initialize(WIDTH, HEIGHT, (double)WIDTH, (double)HEIGHT);
 	
 	int keypointCount = 0;
@@ -133,11 +128,14 @@ void main()
 
 			// draw result
 //			detector->DrawKeypoints(resultImage);
-			tracking.DrawDebugInfo(resultImage);
-			tracking.DrawOutLine(resultImage, true);
-			calibration->DrawInfomation(resultImage, 100);
+			for(int i=0; i<tracking.GetObjectCount(); i++)
+			{
+				tracking.DrawDebugInfo(resultImage, i);
+				tracking.DrawOutLine(resultImage, i, true);
+				windage::Calibration* calibrationTemp = tracking.GetCameraParameter(i);
+				calibrationTemp->DrawInfomation(resultImage, 100);
+			}
 		}
-		matchingCount = tracking.GetMatchingCount();
 
 		processingTime = logger.calculateProcessTime();
 		logger.log("processingTime", processingTime);

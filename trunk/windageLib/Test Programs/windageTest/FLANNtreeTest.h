@@ -121,12 +121,12 @@ public:
 		tree1->Training(surfDetectorRef->GetKeypoints());
 		tree1->Training(surfDetectorRef->GetKeypoints());
 		std::vector<windage::FeaturePoint>* scenePoints = surfDetectorSce->GetKeypoints();
-		for(int i=0; i<scenePoints->size(); i++)
+		for(unsigned int i=0; i<scenePoints->size(); i++)
 		{
 			int index = tree1->Matching((*scenePoints)[i]);
 		}
 		tree1->Training(surfDetectorRef->GetKeypoints());
-		for(int i=0; i<scenePoints->size(); i++)
+		for(unsigned int i=0; i<scenePoints->size(); i++)
 		{
 			int index = tree1->Matching((*scenePoints)[i]);
 		}
@@ -162,7 +162,7 @@ public:
 		windage::Algorithms::FLANNtree flanntree;
 		flanntree.Training(surfDetectorRef->GetKeypoints());
 		std::vector<windage::FeaturePoint>* scenePoints = surfDetectorSce->GetKeypoints();
-		for(int i=0; i<scenePoints->size(); i++)
+		for(unsigned int i=0; i<scenePoints->size(); i++)
 		{
 			double distance = 1.0e10;
 			int index = flanntree.Matching((*scenePoints)[i], &distance);
@@ -182,6 +182,7 @@ public:
 		cvShowImage("FLANN tree search", resultImage);
 		cvWaitKey(1000);
 
+		(*message) = std::string("");
 		return test;
 	}
 

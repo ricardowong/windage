@@ -37,8 +37,8 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#ifndef _RANSAC_ESTIMATOR_TREE_H_
-#define _RANSAC_ESTIMATOR_TREE_H_
+#ifndef _RANSAC_ESTIMATOR_H_
+#define _RANSAC_ESTIMATOR_H_
 
 #include <vector>
 
