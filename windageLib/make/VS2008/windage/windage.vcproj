@@ -87,7 +87,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="COPY /Y &quot;$(OutDir)\$(ProjectName)d.dll&quot; &quot;$(SolutionDir)\..\..\lib\$(ProjectName)d.dll&quot;&#x0D;&#x0A;COPY /Y &quot;$(OutDir)\$(ProjectName)d.lib&quot; &quot;$(SolutionDir)\..\..\lib\$(ProjectName)d.lib&quot;"
+				CommandLine="COPY /Y &quot;$(OutDir)\$(ProjectName)d.dll&quot; &quot;$(SolutionDir)\..\..\lib\$(ProjectName)d.dll&quot;&#x0D;&#x0A;COPY /Y &quot;$(OutDir)\$(ProjectName)d.lib&quot; &quot;$(SolutionDir)\..\..\lib\$(ProjectName)d.lib&quot;&#x0D;&#x0A;"
 				ExcludedFromBuild="false"
 			/>
 		</Configuration>
@@ -165,7 +165,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="COPY /Y &quot;$(OutDir)\$(ProjectName).dll&quot; &quot;$(SolutionDir)\..\..\lib\$(ProjectName).dll&quot;&#x0D;&#x0A;COPY /Y &quot;$(OutDir)\$(ProjectName).lib&quot; &quot;$(SolutionDir)\..\..\lib\$(ProjectName).lib&quot;"
+				CommandLine="COPY /Y &quot;$(OutDir)\$(ProjectName).dll&quot; &quot;$(SolutionDir)\..\..\lib\$(ProjectName).dll&quot;&#x0D;&#x0A;COPY /Y &quot;$(OutDir)\$(ProjectName).lib&quot; &quot;$(SolutionDir)\..\..\lib\$(ProjectName).lib&quot;&#x0D;&#x0A;"
 				ExcludedFromBuild="false"
 			/>
 		</Configuration>
@@ -437,6 +437,30 @@
 				</File>
 				<File
 					RelativePath="..\..\..\include\Algorithms\OpticalFlow.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="TemplateTracker"
+				>
+				<File
+					RelativePath="..\..\..\src\Algorithms\HomographyESM.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\include\Algorithms\HomographyESM.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\src\Algorithms\InverseCompositional.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\include\Algorithms\InverseCompositional.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\include\Algorithms\TemplateMinimization.h"
 					>
 				</File>
 			</Filter>

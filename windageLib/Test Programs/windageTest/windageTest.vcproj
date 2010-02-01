@@ -219,6 +219,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\HomographyESMTest.h"
+				>
+			</File>
+			<File
+				RelativePath=".\InverseCompositionalTest.h"
+				>
+			</File>
+			<File
 				RelativePath=".\KDtreeTest.h"
 				>
 			</File>

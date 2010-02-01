@@ -270,8 +270,6 @@ public:
 
 		referencePoints.clear();
 		scenePoints.clear();
-		
-		cvDestroyWindow("Outlier checker");
 
 		return true;
 	}

@@ -42,18 +42,27 @@
 #include "VectorMatrixTest.h"
 #include "CalibrationTest.h"
 #include "FeaturePointTest.h"
+
 #include "SURFdetectorTest.h"
 #include "SIFTdetectorTest.h"
 #include "WSURFdetectorTest.h"
+
 #include "KDtreeTest.h"
 #include "SpilltreeTest.h"
 #include "FLANNtreeTest.h"
+
 #include "OpticalFlowTest.h"
+#include "HomographyESMTest.h"
+#include "InverseCompositionalTest.h"
+
 #include "RANSACestimatorTest.h"
 #include "ProSACestimatorTest.h"
 #include "LMeDSestimatorTest.h"
+
 #include "OutlierCheckerTest.h"
+
 #include "LMmethodTest.h"
+
 #include "PlanarObjectTrackingTest.h"
 #include "MultiplePlanarObjectTrackingTest.h"
 
@@ -74,6 +83,8 @@ void main()
 	FLANNtreeTest testFLANNtree;
 
 	OpticalFlowTest testOpticalFlow;
+	HomographyESMTest testHomographyESM;
+	InverseCompositionalTest testInverseCompositional;
 
 	RANSACestimatorTest testRANSACestimator;
 	ProSACestimatorTest testProSACestimator;
