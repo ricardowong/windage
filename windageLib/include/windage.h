@@ -68,8 +68,13 @@
 #include "Algorithms/PoseEstimator.h"
 #include "Algorithms/HomographyEstimator.h"
 #include "Algorithms/RANSACestimator.h"
+#include "Algorithms/ProSACestimator.h"
 #include "Algorithms/LMeDSestimator.h"
 #include "Algorithms/EPnPEstimator.h"
+
+// refiner
+#include "Algorithms/HomographyRefiner.h"
+#include "Algorithms/LMmethod.h"
 
 #include "Algorithms/OutlierChecker.h"
 
@@ -78,4 +83,5 @@
 #include "Utilities/Logger.h"
 
 // Frameworks
-#include "Frameworks/ObjectTracking.h"
+#include "Frameworks/PlanarObjectTracking.h"
+#include "Frameworks/MultiplePlanarObjectTracking.h"

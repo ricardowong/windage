@@ -104,6 +104,7 @@ public:
 		CvRNG rng = cvRNG(cvGetTickCount());
 		double r11 = (double)1;//cvRandInt(&rng) % 200 - 100;
 	
+		(*message) = std::string("");
 		return test;
 	}
 

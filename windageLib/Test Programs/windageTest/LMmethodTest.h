@@ -42,25 +42,40 @@
 
 #include "windageTest.h"
 #include "Algorithms/WSURFdetector.h"
-#include "Algorithms/Spilltree.h"
+#include "Algorithms/FLANNtree.h"
+#include "Algorithms/RANSACestimator.h"
+#include "Algorithms/OutlierChecker.h"
+#include "Algorithms/LMmethod.h"
 #include "Utilities/Utils.h"
 
-class SpilltreeTest : public windageTest
+class LMmethodTest : public windageTest
 {
 private:
 	IplImage* grayImage;
+	windage::Matrix3 homography;
+
 	windage::Algorithms::WSURFdetector* surfDetectorRef;
 	windage::Algorithms::WSURFdetector* surfDetectorSce;
+	windage::Algorithms::FLANNtree* searchTree;
+	windage::Algorithms::RANSACestimator* estimator;
+	windage::Algorithms::OutlierChecker* checker;
+
+	std::vector<windage::FeaturePoint> referencePoints;
+	std::vector<windage::FeaturePoint> scenePoints;
 
 public:
-	SpilltreeTest() : windageTest("Spilltree Test", "Spilltree")
+	LMmethodTest() : windageTest("LMmethod Refiner Test", "LMmethod")
 	{
 		grayImage = NULL;
 		surfDetectorRef = NULL;
 		surfDetectorSce = NULL;
+		searchTree = NULL;
+		estimator = NULL;
+		checker = NULL;
+
 		this->Do();
 	}
-	~SpilltreeTest()
+	~LMmethodTest()
 	{
 		if(grayImage) cvReleaseImage(&grayImage);
 		grayImage = NULL;
@@ -68,6 +83,15 @@ public:
 		surfDetectorRef = NULL;
 		if(surfDetectorSce) delete surfDetectorSce;
 		surfDetectorSce = NULL;
+		if(searchTree) delete searchTree;
+		searchTree = NULL;
+		if(estimator) delete estimator;
+		estimator = NULL;
+		if(checker) delete checker;
+		checker = NULL;
+
+		referencePoints.clear();
+		scenePoints.clear();
 	}
 
 	bool Initialize(std::string* message)
@@ -100,6 +124,51 @@ public:
 
 		cvResetImageROI(resultImage);
 
+		// matching : find corresponding points
+		searchTree = new windage::Algorithms::FLANNtree();
+		searchTree->Training(surfDetectorRef->GetKeypoints());
+		std::vector<windage::FeaturePoint>* pScenePoints = surfDetectorSce->GetKeypoints();
+		for(unsigned int i=0; i<pScenePoints->size(); i++)
+		{
+			double distance = 1.0e10;
+			int index = searchTree->Matching((*pScenePoints)[i], &distance);
+			if(index >= 0)
+			{
+				windage::FeaturePoint ref;
+				windage::FeaturePoint sce;
+
+				ref = (*surfDetectorRef->GetKeypoints())[index];
+				ref.SetDistance(distance);
+				sce = (*pScenePoints)[i];
+				sce.SetDistance(distance);
+
+				referencePoints.push_back(ref);
+				scenePoints.push_back(sce);
+			}
+		}
+
+		// Pose estimator
+		estimator = new windage::Algorithms::RANSACestimator();
+		estimator->AttatchReferencePoint(&this->referencePoints);
+		estimator->AttatchScenePoint(&this->scenePoints);
+		estimator->Calculate();
+
+		homography = (*estimator->GetHomography());
+
+		checker = new windage::Algorithms::OutlierChecker();
+		checker->AttatchEstimator(estimator);
+		checker->Calculate();
+
+		for(int i=0; i<this->referencePoints.size(); i++)
+		{
+			if(this->referencePoints[i].IsOutlier() == true)
+			{
+				this->referencePoints.erase(this->referencePoints.begin() + i);
+				this->scenePoints.erase(this->scenePoints.begin() + i);
+				i--;
+			}
+		}
+
 		return true;
 	}
 
@@ -114,28 +183,24 @@ public:
 		void* p2 = 0;
 		int compair = 0;
 
-		// Feature Point
-		windage::Algorithms::Spilltree* tree1 = new windage::Algorithms::Spilltree();
-		p1 = (void*)tree1;
-		tree1->Training(surfDetectorRef->GetKeypoints());
-		tree1->Training(surfDetectorRef->GetKeypoints());
-		tree1->Training(surfDetectorRef->GetKeypoints());
-		std::vector<windage::FeaturePoint>* scenePoints = surfDetectorSce->GetKeypoints();
-		for(unsigned int i=0; i<scenePoints->size(); i++)
-		{
-			int index = tree1->Matching((*scenePoints)[i]);
-		}
-		tree1->Training(surfDetectorRef->GetKeypoints());
-		for(unsigned int i=0; i<scenePoints->size(); i++)
-		{
-			int index = tree1->Matching((*scenePoints)[i]);
-		}
-		delete tree1;
+		windage::Matrix3 h1 = homography;
+		windage::Matrix3 h2 = homography;
 
-		windage::Algorithms::Spilltree* tree2 = new windage::Algorithms::Spilltree();
-		p2 = (void*)tree2;
-		tree2->Training(surfDetectorSce->GetKeypoints());
-		delete tree2;
+		windage::Algorithms::LMmethod* refiner1 = new windage::Algorithms::LMmethod();
+		p1 = (void*)refiner1;
+		refiner1->AttatchHomography(&h1);
+		refiner1->AttatchReferencePoint(&this->referencePoints);
+		refiner1->AttatchScenePoint(&this->scenePoints);
+		refiner1->Calculate();
+		delete refiner1;
+
+		windage::Algorithms::LMmethod* refiner2 = new windage::Algorithms::LMmethod();
+		p2 = (void*)refiner2;
+		refiner2->AttatchHomography(&h2);
+		refiner2->AttatchReferencePoint(&this->referencePoints);
+		refiner2->AttatchScenePoint(&this->scenePoints);
+		refiner2->Calculate();
+		delete refiner2;
 
 		sprintf(memoryAddress1, "%08X", p1);
 		sprintf(memoryAddress2, "%08X", p2);
@@ -157,32 +222,36 @@ public:
 		bool test = true;
 		char tempMessage[100];
 
-		int width = resultImage->width / 2;
-		
-		windage::Algorithms::Spilltree spilltree;
-		spilltree.Training(surfDetectorRef->GetKeypoints());
-		std::vector<windage::FeaturePoint>* scenePoints = surfDetectorSce->GetKeypoints();
-		for(unsigned int i=0; i<scenePoints->size(); i++)
+		windage::Matrix3 h = homography;
+
+		windage::Algorithms::LMmethod refiner;
+		refiner.AttatchHomography(&h);
+		refiner.AttatchReferencePoint(&this->referencePoints);
+		refiner.AttatchScenePoint(&this->scenePoints);
+		refiner.Calculate();
+
+		double errorH = 0.0;
+		double errorR = 0.0;
+		for(unsigned int i=0; i<this->referencePoints.size(); i++)
 		{
-			double distance = 1.0e10;
-			int index = spilltree.Matching((*scenePoints)[i], &distance);
-			if(index >= 0)
-			{
-				windage::Vector3 refPT = (*surfDetectorRef->GetKeypoints())[index].GetPoint();
-				CvPoint pointRef = cvPoint(refPT.x, refPT.y);
+			windage::Vector3 world = this->referencePoints[i].GetPoint();
+			windage::Vector3 image = this->scenePoints[i].GetPoint();
 
-				windage::Vector3 scePT = (*surfDetectorSce->GetKeypoints())[i].GetPoint();
-				CvPoint pointSce = cvPoint(scePT.x + width, scePT.y);
+			windage::Vector3 resultH = homography * world;
+			windage::Vector3 resultR = h * world;
 
-				cvLine(resultImage, pointRef, pointSce, CV_RGB(0, 255, 0));
-			}
+			resultH /= resultH.z;
+			resultR /= resultR.z;
+
+			errorH += image.getDistance(resultH);
+			errorR += image.getDistance(resultR);
 		}
 
-		cvNamedWindow("Spill tree search");
-		cvShowImage("Spill tree search", resultImage);
-		cvWaitKey(1000);
+		sprintf(tempMessage, "original : %lf, refine : %lf", errorH, errorR);
+		(*message) = std::string(tempMessage);
+		if(errorH < errorR)
+			return false;
 
-		(*message) = std::string("");
 		return test;
 	}
 
@@ -196,9 +265,15 @@ public:
 		surfDetectorRef = NULL;
 		if(surfDetectorSce) delete surfDetectorSce;
 		surfDetectorSce = NULL;
-		 
-		cvDestroyWindow("Spill tree search");
+		if(estimator) delete estimator;
+		estimator = NULL;
+
+		referencePoints.clear();
+		scenePoints.clear();
+		
+		cvDestroyWindow("Outlier checker");
 
 		return true;
 	}
 };
+

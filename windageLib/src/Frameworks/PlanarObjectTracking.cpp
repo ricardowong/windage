@@ -37,11 +37,11 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#include "Frameworks/ObjectTracking.h"
+#include "Frameworks/PlanarObjectTracking.h"
 using namespace windage;
 using namespace windage::Frameworks;
 
-bool ObjectTracking::Initialize(int width, int height, double realWidth, double realHeight)
+bool PlanarObjectTracking::Initialize(int width, int height, double realWidth, double realHeight)
 {
 	if(this->cameraParameter == NULL)
 		return false;
@@ -60,7 +60,7 @@ bool ObjectTracking::Initialize(int width, int height, double realWidth, double 
 	return true;
 }
 
-bool ObjectTracking::AttatchReferenceImage(IplImage* grayImage)
+bool PlanarObjectTracking::AttatchReferenceImage(IplImage* grayImage)
 {
 	if(grayImage == NULL)
 		return false;
@@ -72,7 +72,7 @@ bool ObjectTracking::AttatchReferenceImage(IplImage* grayImage)
 	return true;
 }
 
-bool ObjectTracking::TrainingReference(double scaleFactor, int scaleStep)
+bool PlanarObjectTracking::TrainingReference(double scaleFactor, int scaleStep)
 {
 	if(this->referenceImage == NULL)
 		return false;
@@ -120,7 +120,7 @@ bool ObjectTracking::TrainingReference(double scaleFactor, int scaleStep)
 	return true;
 }
 
-bool ObjectTracking::UpdateCamerapose(IplImage* grayImage)
+bool PlanarObjectTracking::UpdateCamerapose(IplImage* grayImage)
 {
 	if(initialize == false || trained == false)
 		return false;
@@ -176,25 +176,34 @@ bool ObjectTracking::UpdateCamerapose(IplImage* grayImage)
 		}
 	}
 
-	// pose estimate
-	this->estimator->AttatchReferencePoint(&refMatchedKeypoints);
-	this->estimator->AttatchScenePoint(&sceMatchedKeypoints);
-	this->estimator->Calculate();
-	this->estimator->DecomposeHomography(this->cameraParameter);
-
-	// outlier checker
-	this->checker->AttatchEstimator(this->estimator);
-	this->checker->Calculate();
-
-	int index = 0;
-	for(int i=0; i<(int)refMatchedKeypoints.size(); i++)
+	if((int)refMatchedKeypoints.size() > MIN_FEATURE_POINTS_COUNT)
 	{
-		if(refMatchedKeypoints[i].IsOutlier() == true)
+		// pose estimate
+		this->estimator->AttatchReferencePoint(&refMatchedKeypoints);
+		this->estimator->AttatchScenePoint(&sceMatchedKeypoints);
+		this->estimator->Calculate();
+
+		// outlier checker
+		this->checker->AttatchEstimator(this->estimator);
+		this->checker->Calculate();
+
+		int index = 0;
+		for(int i=0; i<(int)refMatchedKeypoints.size(); i++)
 		{
-			sceMatchedKeypoints.erase(sceMatchedKeypoints.begin() + i);
-			refMatchedKeypoints.erase(refMatchedKeypoints.begin() + i);
-			i--;
+			if(refMatchedKeypoints[i].IsOutlier() == true)
+			{
+				refMatchedKeypoints.erase(refMatchedKeypoints.begin() + i);
+				sceMatchedKeypoints.erase(sceMatchedKeypoints.begin() + i);
+				i--;
+			}
 		}
+
+		this->refiner->AttatchHomography(this->estimator->GetHomography());
+		this->refiner->AttatchReferencePoint(&refMatchedKeypoints);
+		this->refiner->AttatchScenePoint(&sceMatchedKeypoints);
+		this->refiner->Calculate();
+
+		this->estimator->DecomposeHomography(this->cameraParameter);
 	}
 
 	cvCopyImage(grayImage, this->prevImage);
@@ -203,7 +212,7 @@ bool ObjectTracking::UpdateCamerapose(IplImage* grayImage)
 	return true;
 }
 
-void ObjectTracking::DrawOutLine(IplImage* colorImage, bool drawCross)
+void PlanarObjectTracking::DrawOutLine(IplImage* colorImage, bool drawCross)
 {
 	int size = 4;
 	CvScalar color = CV_RGB(255, 0, 255);
@@ -229,7 +238,7 @@ void ObjectTracking::DrawOutLine(IplImage* colorImage, bool drawCross)
 	}
 }
 
-void ObjectTracking::DrawDebugInfo(IplImage* colorImage)
+void PlanarObjectTracking::DrawDebugInfo(IplImage* colorImage)
 {
 	int pointCount = (int)refMatchedKeypoints.size();
 	int r = 255;

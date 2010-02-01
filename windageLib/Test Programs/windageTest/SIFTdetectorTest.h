@@ -127,6 +127,7 @@ public:
 		cvShowImage("SIFT detector", resultImage);
 		cvWaitKey(1000);
 		
+		(*message) = std::string("");
 		return test;
 	}
 

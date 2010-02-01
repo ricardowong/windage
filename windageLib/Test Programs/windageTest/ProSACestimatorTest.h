@@ -42,25 +42,31 @@
 
 #include "windageTest.h"
 #include "Algorithms/WSURFdetector.h"
-#include "Algorithms/Spilltree.h"
+#include "Algorithms/FLANNtree.h"
+#include "Algorithms/ProSACestimator.h"
 #include "Utilities/Utils.h"
 
-class SpilltreeTest : public windageTest
+class ProSACestimatorTest : public windageTest
 {
 private:
 	IplImage* grayImage;
 	windage::Algorithms::WSURFdetector* surfDetectorRef;
 	windage::Algorithms::WSURFdetector* surfDetectorSce;
+	windage::Algorithms::FLANNtree* searchTree;
+
+	std::vector<windage::FeaturePoint> referencePoints;
+	std::vector<windage::FeaturePoint> scenePoints;
 
 public:
-	SpilltreeTest() : windageTest("Spilltree Test", "Spilltree")
+	ProSACestimatorTest() : windageTest("ProSACestimator Test", "ProSACestimator")
 	{
 		grayImage = NULL;
 		surfDetectorRef = NULL;
 		surfDetectorSce = NULL;
+		searchTree = NULL;
 		this->Do();
 	}
-	~SpilltreeTest()
+	~ProSACestimatorTest()
 	{
 		if(grayImage) cvReleaseImage(&grayImage);
 		grayImage = NULL;
@@ -68,6 +74,11 @@ public:
 		surfDetectorRef = NULL;
 		if(surfDetectorSce) delete surfDetectorSce;
 		surfDetectorSce = NULL;
+		if(searchTree) delete searchTree;
+		searchTree = NULL;
+
+		referencePoints.clear();
+		scenePoints.clear();
 	}
 
 	bool Initialize(std::string* message)
@@ -100,6 +111,29 @@ public:
 
 		cvResetImageROI(resultImage);
 
+		// matching : find corresponding points
+		searchTree = new windage::Algorithms::FLANNtree();
+		searchTree->Training(surfDetectorRef->GetKeypoints());
+		std::vector<windage::FeaturePoint>* pScenePoints = surfDetectorSce->GetKeypoints();
+		for(unsigned int i=0; i<pScenePoints->size(); i++)
+		{
+			double distance = 1.0e10;
+			int index = searchTree->Matching((*pScenePoints)[i], &distance);
+			if(index >= 0)
+			{
+				windage::FeaturePoint ref;
+				windage::FeaturePoint sce;
+
+				ref = (*surfDetectorRef->GetKeypoints())[index];
+				ref.SetDistance(distance);
+				sce = (*pScenePoints)[i];
+				sce.SetDistance(distance);
+
+				referencePoints.push_back(ref);
+				scenePoints.push_back(sce);
+			}
+		}
+
 		return true;
 	}
 
@@ -114,28 +148,19 @@ public:
 		void* p2 = 0;
 		int compair = 0;
 
-		// Feature Point
-		windage::Algorithms::Spilltree* tree1 = new windage::Algorithms::Spilltree();
-		p1 = (void*)tree1;
-		tree1->Training(surfDetectorRef->GetKeypoints());
-		tree1->Training(surfDetectorRef->GetKeypoints());
-		tree1->Training(surfDetectorRef->GetKeypoints());
-		std::vector<windage::FeaturePoint>* scenePoints = surfDetectorSce->GetKeypoints();
-		for(unsigned int i=0; i<scenePoints->size(); i++)
-		{
-			int index = tree1->Matching((*scenePoints)[i]);
-		}
-		tree1->Training(surfDetectorRef->GetKeypoints());
-		for(unsigned int i=0; i<scenePoints->size(); i++)
-		{
-			int index = tree1->Matching((*scenePoints)[i]);
-		}
-		delete tree1;
+		windage::Algorithms::ProSACestimator* estimator1 = new windage::Algorithms::ProSACestimator();
+		p1 = (void*)estimator1;
+		estimator1->AttatchReferencePoint(&this->referencePoints);
+		estimator1->AttatchScenePoint(&this->scenePoints);
+		estimator1->Calculate();
+		delete estimator1;
 
-		windage::Algorithms::Spilltree* tree2 = new windage::Algorithms::Spilltree();
-		p2 = (void*)tree2;
-		tree2->Training(surfDetectorSce->GetKeypoints());
-		delete tree2;
+		windage::Algorithms::ProSACestimator* estimator2 = new windage::Algorithms::ProSACestimator();
+		p2 = (void*)estimator2;
+		estimator2->AttatchReferencePoint(&this->referencePoints);
+		estimator2->AttatchScenePoint(&this->scenePoints);
+		estimator2->Calculate();
+		delete estimator2;
 
 		sprintf(memoryAddress1, "%08X", p1);
 		sprintf(memoryAddress2, "%08X", p2);
@@ -158,28 +183,36 @@ public:
 		char tempMessage[100];
 
 		int width = resultImage->width / 2;
+		int height = resultImage->height;
+
+		cvNamedWindow("ProSAC estimator");
 		
-		windage::Algorithms::Spilltree spilltree;
-		spilltree.Training(surfDetectorRef->GetKeypoints());
-		std::vector<windage::FeaturePoint>* scenePoints = surfDetectorSce->GetKeypoints();
-		for(unsigned int i=0; i<scenePoints->size(); i++)
+		windage::Algorithms::ProSACestimator estimator;
+		estimator.AttatchReferencePoint(&this->referencePoints);
+		estimator.AttatchScenePoint(&this->scenePoints);
+		estimator.Calculate();
+
+		windage::Vector3 drawRefPoints[4];
+		windage::Vector3 drawScePoints[4];
+		drawRefPoints[0].x = 0.0;	drawRefPoints[0].y = 0.0;		drawRefPoints[0].z = 1.0;
+		drawRefPoints[1].x = width; drawRefPoints[1].y = 0.0;		drawRefPoints[1].z = 1.0;
+		drawRefPoints[2].x = width; drawRefPoints[2].y = height;	drawRefPoints[2].z = 1.0;
+		drawRefPoints[3].x = 0.0;	drawRefPoints[3].y = height;	drawRefPoints[3].z = 1.0;
+
+		for(int i=0; i<4; i++)
 		{
-			double distance = 1.0e10;
-			int index = spilltree.Matching((*scenePoints)[i], &distance);
-			if(index >= 0)
-			{
-				windage::Vector3 refPT = (*surfDetectorRef->GetKeypoints())[index].GetPoint();
-				CvPoint pointRef = cvPoint(refPT.x, refPT.y);
-
-				windage::Vector3 scePT = (*surfDetectorSce->GetKeypoints())[i].GetPoint();
-				CvPoint pointSce = cvPoint(scePT.x + width, scePT.y);
-
-				cvLine(resultImage, pointRef, pointSce, CV_RGB(0, 255, 0));
-			}
+			drawScePoints[i] = estimator.ConvertObjectToImage(drawRefPoints[i]);
+			drawScePoints[i] /= drawScePoints[i].z;
 		}
 
-		cvNamedWindow("Spill tree search");
-		cvShowImage("Spill tree search", resultImage);
+		for(int i=0; i<4; i++)
+		{
+			int i2 = i==3?0:i+1;
+			cvLine(resultImage, cvPoint(width + drawScePoints[i].x, drawScePoints[i].y),
+								cvPoint(width + drawScePoints[i2].x, drawScePoints[i2].y), CV_RGB(0, 255, 0), 3);
+		}
+
+		cvShowImage("ProSAC estimator", resultImage);
 		cvWaitKey(1000);
 
 		(*message) = std::string("");
@@ -196,9 +229,13 @@ public:
 		surfDetectorRef = NULL;
 		if(surfDetectorSce) delete surfDetectorSce;
 		surfDetectorSce = NULL;
-		 
-		cvDestroyWindow("Spill tree search");
+
+		referencePoints.clear();
+		scenePoints.clear();
+		
+		cvDestroyWindow("ProSAC estimator");
 
 		return true;
 	}
 };
+

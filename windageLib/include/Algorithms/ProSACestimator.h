@@ -37,42 +37,82 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#include "colorIO.h"
-#include "windageTest.h"
+#ifndef _PROSAC_ESTIMATOR_H_
+#define _PROSAC_ESTIMATOR_H_
 
-void windageTest::Do()
+#include <vector>
+
+#include <cv.h>
+#include "base.h"
+
+#include "Algorithms/HomographyEstimator.h"
+
+namespace windage
 {
-	std::string message;
-
-	std::cout << "--------------------------------------------------" << std::endl;
-	std::cout << this->testName << " (" << this->testClass << ")" << std::endl;
-		std::cout << "\t Initialize ....... ";
-	bool initialize = this->Initialize(&message);
-	if(initialize == true)
+	namespace Algorithms
 	{
-		std::cout << GREEN << "OK" << WHITE << std::endl;
-		
-		std::cout << "\t Memory Release ... ";
-		if(this->TestMemoryRelease(&message))
-			std::cout << GREEN << "OK" << WHITE << std::endl;
-		else
-			std::cout << RED << "FAIL" << WHITE << " (" << message << ")" << std::endl;
+		class DLLEXPORT ProSACestimator : public HomographyEstimator
+		{
+		private:
+			int maxIteration;
+		public:
+			ProSACestimator() : HomographyEstimator()
+			{
+				this->reprojectionError = 2.0;
+				this->maxIteration = 1000;
+			}
+			~ProSACestimator()
+			{
+			}
 
-		std::cout << "\t Algorithm ........ ";
-		if(this->TestAlgorithm(&message))
-			std::cout << GREEN << "OK" << WHITE << " (" << message << ")" << std::endl;
-		else
-			std::cout << RED << "FAIL" << WHITE << " (" << message << ")" << std::endl;
+			inline void SetMaxIteration(int iteration){this->maxIteration = iteration;};
+			bool Calculate();
+		};
 
-		std::cout << "\t Terminate ........ ";
-		if(this->Terminate(&message))
-			std::cout << GREEN << "OK" << WHITE << std::endl;
-		else
-			std::cout << RED << "FAIL" << WHITE << " (" << message << ")" << std::endl;
+		// for stl sort
+		class MatchedPoint
+		{
+		public:
+			CvPoint2D64f pointScene;
+			CvPoint2D64f pointReference;
+			double distance;
+			bool isInlier;
+
+			MatchedPoint(CvPoint2D64f pointScene, CvPoint2D64f pointReference, double distance = 0.0)
+			{
+				this->pointScene = pointScene;
+				this->pointReference = pointReference;
+
+				this->distance = distance;
+				isInlier = false;
+			}
+
+			void operator=(class MatchedPoint oprd)
+			{
+				this->pointScene = oprd.pointScene;
+				this->pointReference = oprd.pointReference;
+				this->distance = oprd.distance;
+				this->isInlier = oprd.isInlier;
+			}
+
+			bool operator==(class MatchedPoint  oprd)
+			{
+				return this->distance == oprd.distance;
+			}
+			bool operator<(class MatchedPoint  oprd)
+			{
+				return this->distance < oprd.distance;
+			}
+		};
+
+		typedef struct _CompareDistanceLess
+		{
+			bool operator()(const windage::Algorithms::MatchedPoint& p, const windage::Algorithms::MatchedPoint& q) const
+			{
+				return p.distance < q.distance;
+			}
+		}CompareDistanceLess;
 	}
-	else
-	{
-			std::cout << RED << "FAIL" << WHITE << " (" << message << ")" << std::endl;
-	}
-	std::cout << BLUE << "done." << WHITE <<  std::endl;
 }
+
+#endif

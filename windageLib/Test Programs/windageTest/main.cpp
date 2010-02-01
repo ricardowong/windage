@@ -50,10 +50,13 @@
 #include "FLANNtreeTest.h"
 #include "OpticalFlowTest.h"
 #include "RANSACestimatorTest.h"
+#include "ProSACestimatorTest.h"
 #include "LMeDSestimatorTest.h"
 #include "OutlierCheckerTest.h"
-#include "ObjectTrackingTest.h"
-#include "MultipleObjectTrackingTest.h"
+#include "LMmethodTest.h"
+#include "PlanarObjectTrackingTest.h"
+#include "MultiplePlanarObjectTrackingTest.h"
+
 
 void main()
 {
@@ -73,12 +76,14 @@ void main()
 	OpticalFlowTest testOpticalFlow;
 
 	RANSACestimatorTest testRANSACestimator;
+	ProSACestimatorTest testProSACestimator;
 	LMeDSestimatorTest testLMeDSestimator;
 
 	OutlierCheckerTest testOutlierChecker;
+	LMmethodTest testLMmethod;
 
-	ObjectTrackingTest testObjectTracking;
-	MultipleObjectTrackingTest testMultipleObjectTracking;
+	PlanarObjectTrackingTest testPlanarObjectTracking;
+	MultiplePlanarObjectTrackingTest testMultiplePlanarObjectTracking;
 
 	std::cout << "terminate entire test routine!" << std::endl;
 	char ch;

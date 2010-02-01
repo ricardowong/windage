@@ -37,11 +37,11 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#include "Frameworks/MultipleObjectTracking.h"
+#include "Frameworks/MultiplePlanarObjectTracking.h"
 using namespace windage;
 using namespace windage::Frameworks;
 
-bool MultipleObjectTracking::Initialize(int width, int height, double realWidth, double realHeight)
+bool MultiplePlanarObjectTracking::Initialize(int width, int height, double realWidth, double realHeight)
 {
 	if(this->initialCamearParameter == NULL)
 		return false;
@@ -60,7 +60,7 @@ bool MultipleObjectTracking::Initialize(int width, int height, double realWidth,
 	return true;
 }
 
-bool MultipleObjectTracking::AttatchReferenceImage(IplImage* grayImage)
+bool MultiplePlanarObjectTracking::AttatchReferenceImage(IplImage* grayImage)
 {
 	if(grayImage == NULL)
 		return false;
@@ -90,7 +90,7 @@ bool MultipleObjectTracking::AttatchReferenceImage(IplImage* grayImage)
 	return true;
 }
 
-bool MultipleObjectTracking::TrainingReference(double scaleFactor, int scaleStep)
+bool MultiplePlanarObjectTracking::TrainingReference(double scaleFactor, int scaleStep)
 {
 	if(this->objectCount <= 0)
 		return false;
@@ -144,7 +144,7 @@ bool MultipleObjectTracking::TrainingReference(double scaleFactor, int scaleStep
 	return true;
 }
 
-bool MultipleObjectTracking::UpdateCamerapose(IplImage* grayImage)
+bool MultiplePlanarObjectTracking::UpdateCamerapose(IplImage* grayImage)
 {
 	if(initialize == false || trained == false)
 		return false;
@@ -156,7 +156,7 @@ bool MultipleObjectTracking::UpdateCamerapose(IplImage* grayImage)
 
 		for(int i=0; i<this->objectCount; i++)
 		{
-			for(int j=0; j<this->sceMatchedKeypoints[i].size(); j++)
+			for(unsigned int j=0; j<this->sceMatchedKeypoints[i].size(); j++)
 			{
 				sceneKeypoints1.push_back(this->sceMatchedKeypoints[i][j]);
 			}
@@ -168,7 +168,7 @@ bool MultipleObjectTracking::UpdateCamerapose(IplImage* grayImage)
 		for(int i=0; i<this->objectCount; i++)
 		{
 			int index = 0;
-			for(int j=0; j<this->sceMatchedKeypoints[i].size(); j++)
+			for(unsigned int j=0; j<this->sceMatchedKeypoints[i].size(); j++)
 			{
 				if(sceneKeypoints2[iter].IsOutlier() == false)
 				{
@@ -214,24 +214,36 @@ bool MultipleObjectTracking::UpdateCamerapose(IplImage* grayImage)
 		this->estimator->AttatchReferencePoint(&(refMatchedKeypoints[i]));
 		this->estimator->AttatchScenePoint(&(sceMatchedKeypoints[i]));
 		this->estimator->Calculate();
-		this->estimator->DecomposeHomography((this->cameraParameter[i]));
+//		this->estimator->DecomposeHomography((this->cameraParameter[i]));
 
 		// outlier checker
 		this->checker->AttatchEstimator(this->estimator);
 		this->checker->Calculate();
-	}
 
-	for(int i=0; i<this->objectCount; i++)
-	{
+		// outlier rejection
 		for(int j=0; j<(int)refMatchedKeypoints[i].size(); j++)
 		{
 			if(refMatchedKeypoints[i][j].IsOutlier() == true)
 			{
-				sceMatchedKeypoints[i].erase(sceMatchedKeypoints[i].begin() + j);
 				refMatchedKeypoints[i].erase(refMatchedKeypoints[i].begin() + j);
+				sceMatchedKeypoints[i].erase(sceMatchedKeypoints[i].begin() + j);
 				j--;
 			}
 		}
+
+		// refinement
+		this->refiner->AttatchHomography(this->estimator->GetHomography());
+		this->refiner->AttatchReferencePoint(&(refMatchedKeypoints[i]));
+		this->refiner->AttatchScenePoint(&(sceMatchedKeypoints[i]));
+		this->refiner->Calculate();
+
+		this->estimator->DecomposeHomography((this->cameraParameter[i]));
+	}
+
+	
+	for(int i=0; i<this->objectCount; i++)
+	{
+		
 	}
 
 	cvCopyImage(grayImage, this->prevImage);
@@ -242,7 +254,7 @@ bool MultipleObjectTracking::UpdateCamerapose(IplImage* grayImage)
 	return true;
 }
 
-void MultipleObjectTracking::DrawOutLine(IplImage* colorImage, int objectID, bool drawCross)
+void MultiplePlanarObjectTracking::DrawOutLine(IplImage* colorImage, int objectID, bool drawCross)
 {
 	int size = 4;
 	CvScalar color = CV_RGB(255, 0, 255);
@@ -270,7 +282,7 @@ void MultipleObjectTracking::DrawOutLine(IplImage* colorImage, int objectID, boo
 	}
 }
 
-void MultipleObjectTracking::DrawDebugInfo(IplImage* colorImage, int objectID)
+void MultiplePlanarObjectTracking::DrawDebugInfo(IplImage* colorImage, int objectID)
 {
 	int pointCount = (int)refMatchedKeypoints.size();
 	int r = 255;
@@ -280,7 +292,7 @@ void MultipleObjectTracking::DrawDebugInfo(IplImage* colorImage, int objectID)
 	int size = 4;
 	for(unsigned int i=0; i<refMatchedKeypoints[objectID].size(); i++)
 	{
-		CvPoint referencePoint = cvPoint((int)refMatchedKeypoints[objectID][i].GetPoint().x * colorImage->width/realWidth + colorImage->width/2,
+		CvPoint referencePoint = cvPoint((int)(refMatchedKeypoints[objectID][i].GetPoint().x * colorImage->width/realWidth + colorImage->width/2),
 									(int)(colorImage->height - refMatchedKeypoints[objectID][i].GetPoint().y * colorImage->height/realHeight - colorImage->height/2));
 		CvPoint imagePoint = cvPoint((int)sceMatchedKeypoints[objectID][i].GetPoint().x, (int)sceMatchedKeypoints[objectID][i].GetPoint().y);
 

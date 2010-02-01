@@ -1,10 +1,10 @@
-<?xml version="1.0" encoding="Windows-1252"?>
+<?xml version="1.0" encoding="ks_c_5601-1987"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="windageTest"
-	ProjectGUID="{D74C4D0D-B19F-4155-B0D8-B1171D91839A}"
-	RootNamespace="windageTest"
+	Name="MultipleObjectTracking"
+	ProjectGUID="{1E45E76B-4E96-4DBA-8EBB-212D2463065E}"
+	RootNamespace="MultipleObjectTracking"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
@@ -89,8 +89,6 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="COPY /Y &quot;$(OutDir)\$(ProjectName)d.exe&quot; &quot;$(SolutionDir)\..\..\runtime\$(ProjectName)d.exe&quot;"
-				ExcludedFromBuild="false"
 			/>
 		</Configuration>
 		<Configuration
@@ -170,7 +168,6 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				CommandLine="COPY /Y &quot;$(OutDir)\$(ProjectName).exe&quot; &quot;$(SolutionDir)\..\..\runtime\$(ProjectName).exe&quot;"
-				ExcludedFromBuild="false"
 			/>
 		</Configuration>
 	</Configurations>
@@ -183,95 +180,7 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\colorIO.h"
-				>
-			</File>
-			<File
 				RelativePath=".\main.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\windageTest.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\windageTest.h"
-				>
-			</File>
-			<File
-				RelativePath=".\windageTestSample.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="TestRoutine"
-			>
-			<File
-				RelativePath=".\CalibrationTest.h"
-				>
-			</File>
-			<File
-				RelativePath=".\FeaturePointTest.h"
-				>
-			</File>
-			<File
-				RelativePath=".\FLANNtreeTest.h"
-				>
-			</File>
-			<File
-				RelativePath=".\KDtreeTest.h"
-				>
-			</File>
-			<File
-				RelativePath=".\LMeDSestimatorTest.h"
-				>
-			</File>
-			<File
-				RelativePath=".\LMmethodTest.h"
-				>
-			</File>
-			<File
-				RelativePath=".\MultiplePlanarObjectTrackingTest.h"
-				>
-			</File>
-			<File
-				RelativePath=".\OpticalFlowTest.h"
-				>
-			</File>
-			<File
-				RelativePath=".\OutlierCheckerTest.h"
-				>
-			</File>
-			<File
-				RelativePath=".\PlanarObjectTrackingTest.h"
-				>
-			</File>
-			<File
-				RelativePath=".\ProSACestimatorTest.h"
-				>
-			</File>
-			<File
-				RelativePath=".\RANSACestimatorTest.h"
-				>
-			</File>
-			<File
-				RelativePath=".\SIFTdetectorTest.h"
-				>
-			</File>
-			<File
-				RelativePath=".\SpilltreeTest.h"
-				>
-			</File>
-			<File
-				RelativePath=".\SURFdetectorTest.h"
-				>
-			</File>
-			<File
-				RelativePath=".\VectorMatrixTest.h"
-				>
-			</File>
-			<File
-				RelativePath=".\WSURFdetectorTest.h"
 				>
 			</File>
 		</Filter>

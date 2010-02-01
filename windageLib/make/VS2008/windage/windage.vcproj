@@ -353,6 +353,14 @@
 						>
 					</File>
 					<File
+						RelativePath="..\..\..\src\Algorithms\ProSACestimator.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\..\include\Algorithms\ProSACestimator.h"
+						>
+					</File>
+					<File
 						RelativePath="..\..\..\src\Algorithms\RANSACestimator.cpp"
 						>
 					</File>
@@ -376,6 +384,18 @@
 				<Filter
 					Name="Refiner"
 					>
+					<File
+						RelativePath="..\..\..\include\Algorithms\HomographyRefiner.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\..\src\Algorithms\LMmethod.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\..\include\Algorithms\LMmethod.h"
+						>
+					</File>
 				</Filter>
 				<Filter
 					Name="OutlierRemover"
@@ -427,19 +447,19 @@
 			Name="Frameworks"
 			>
 			<File
-				RelativePath="..\..\..\src\Frameworks\MultipleObjectTracking.cpp"
+				RelativePath="..\..\..\src\Frameworks\MultiplePlanarObjectTracking.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\include\Frameworks\MultipleObjectTracking.h"
+				RelativePath="..\..\..\include\Frameworks\MultiplePlanarObjectTracking.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\src\Frameworks\ObjectTracking.cpp"
+				RelativePath="..\..\..\src\Frameworks\PlanarObjectTracking.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\include\Frameworks\ObjectTracking.h"
+				RelativePath="..\..\..\include\Frameworks\PlanarObjectTracking.h"
 				>
 			</File>
 		</Filter>

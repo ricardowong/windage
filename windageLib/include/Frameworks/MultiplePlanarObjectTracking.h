@@ -37,10 +37,11 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#ifndef _OBJECT_TRACKING_H_
-#define _OBJECT_TRACKING_H_
+#ifndef _MULTIPLE_PLANAR_OBJECT_TRACKING_H_
+#define _MULTIPLE_PLANAR_OBJECT_TRACKING_H_
 
 #include <vector>
+#include <map>
 
 #include <cv.h>
 #include "base.h"
@@ -54,21 +55,24 @@
 
 #include "Algorithms/FeatureDetector.h"
 #include "Algorithms/SearchTree.h"
+#include "Algorithms/FLANNtree.h"
 #include "Algorithms/OpticalFlow.h"
 #include "Algorithms/HomographyEstimator.h"
 #include "Algorithms/OutlierChecker.h"
+#include "Algorithms/HomographyRefiner.h"
+
+#define SearchTreeT windage::Algorithms::FLANNtree
 
 namespace windage
 {
 	namespace Frameworks
 	{
-		class DLLEXPORT ObjectTracking
+		class DLLEXPORT MultiplePlanarObjectTracking
 		{
 		protected:
-			windage::Calibration* cameraParameter;
+			windage::Calibration* initialCamearParameter;
+			std::vector<windage::Calibration*> cameraParameter;
 			IplImage* prevImage;
-			std::vector<windage::FeaturePoint> refMatchedKeypoints;
-			std::vector<windage::FeaturePoint> sceMatchedKeypoints;
 
 			int width;
 			int height;
@@ -78,65 +82,75 @@ namespace windage
 			int step;
 			int detectionRatio;
 
-			IplImage* referenceImage;
-			std::vector<windage::FeaturePoint> referenceRepository;
+			int objectCount;
+			std::vector<std::vector<windage::FeaturePoint>> refMatchedKeypoints;
+			std::vector<std::vector<windage::FeaturePoint>> sceMatchedKeypoints;
+
+			std::vector<IplImage*> referenceImage;
+			std::vector<std::vector<windage::FeaturePoint>> referenceRepository;
+			std::vector<SearchTreeT*> searchTree;
 
 			windage::Algorithms::FeatureDetector* detector;
-			windage::Algorithms::SearchTree* matcher;
 			windage::Algorithms::OpticalFlow* tracker;
 			windage::Algorithms::HomographyEstimator* estimator;
 			windage::Algorithms::OutlierChecker* checker;
+			windage::Algorithms::HomographyRefiner* refiner;
 
 			bool initialize;
 			bool trained;
 			
 		public:
-			ObjectTracking()
+			MultiplePlanarObjectTracking()
 			{
+				initialCamearParameter = NULL;
 				prevImage = NULL;
-				referenceImage = NULL;
 
-				cameraParameter = NULL;
+				objectCount = 0;
+
 				detector = NULL;
-				matcher = NULL;
 				estimator = NULL;
+				refiner = NULL;
 
 				initialize = false;
 				trained = false;
 
-				step = 1;
-				detectionRatio = 0;
+				step = 0;
+				detectionRatio = 0; // automatically allocation depend on reference count
 			}
-			virtual ~ObjectTracking()
+			virtual ~MultiplePlanarObjectTracking()
 			{
 				if(prevImage) cvReleaseImage(&prevImage);
 				prevImage = NULL;
-				if(referenceImage) cvReleaseImage(&referenceImage);
-				referenceImage = NULL;
 
-				this->referenceRepository.clear();
+				for(unsigned int i=0; i<this->referenceImage.size(); i++)
+					if(referenceImage[i]) cvReleaseImage(&referenceImage[i]);
+				this->referenceImage.clear();
+
+				for(unsigned int i=0; i<this->searchTree.size(); i++)
+					if(searchTree[i]) delete searchTree[i];
+				this->searchTree.clear();
 			}
 
 			inline void SetSize(int width, int height){this->width = width; this->height = height;};
 			inline CvSize GetSize(){return cvSize(this->width, this->height);};
-			inline void SetDitectionRatio(int ratio){this->detectionRatio=ratio; this->step=ratio+1;};
+			inline int GetObjectCount(){return this->objectCount;};
 
-			inline void AttatchCalibration(windage::Calibration* calibration){this->cameraParameter = calibration;};
-			inline windage::Calibration* GetCameraParameter(){return this->cameraParameter;};
+			inline void AttatchCalibration(windage::Calibration* calibration){this->initialCamearParameter = calibration;};
+			inline windage::Calibration* GetCameraParameter(int objectID){return this->cameraParameter[objectID];};
 			
 			inline void AttatchDetetor(windage::Algorithms::FeatureDetector* detector){this->detector = detector;};
-			inline void AttatchMatcher(windage::Algorithms::SearchTree* matcher){this->matcher = matcher;};
 			inline void AttatchTracker(windage::Algorithms::OpticalFlow* tracker){this->tracker = tracker;};
 			inline void AttatchEstimator(windage::Algorithms::HomographyEstimator* estimator){this->estimator = estimator;};
 			inline void AttatchChecker(windage::Algorithms::OutlierChecker* checker){this->checker = checker;};
+			inline void AttatchRefiner(windage::Algorithms::HomographyRefiner* refiner){this->refiner = refiner;};
 
 			bool Initialize(int width, int height, double realWidth=640.0, double realHeight=480.0);
 			bool AttatchReferenceImage(IplImage* grayImage);
 			bool TrainingReference(double scaleFactor=1.0, int scaleStep=1);
 
 			bool UpdateCamerapose(IplImage* grayImage);
-			void DrawOutLine(IplImage* colorImage, bool drawCross);
-			void DrawDebugInfo(IplImage* colorImage);
+			void DrawOutLine(IplImage* colorImage, int objectID, bool drawCross);
+			void DrawDebugInfo(IplImage* colorImage, int objectID);
 		};
 	}
 }

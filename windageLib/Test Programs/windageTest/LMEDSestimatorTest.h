@@ -115,7 +115,7 @@ public:
 		searchTree = new windage::Algorithms::FLANNtree();
 		searchTree->Training(surfDetectorRef->GetKeypoints());
 		std::vector<windage::FeaturePoint>* pScenePoints = surfDetectorSce->GetKeypoints();
-		for(int i=0; i<pScenePoints->size(); i++)
+		for(unsigned int i=0; i<pScenePoints->size(); i++)
 		{
 			double distance = 1.0e10;
 			int index = searchTree->Matching((*pScenePoints)[i], &distance);
@@ -185,7 +185,7 @@ public:
 		int width = resultImage->width / 2;
 		int height = resultImage->height;
 
-		cvNamedWindow("LMeDS estimator search");
+		cvNamedWindow("LMeDS estimator");
 		
 		windage::Algorithms::LMeDSestimator estimator;
 		estimator.AttatchReferencePoint(&this->referencePoints);
@@ -212,9 +212,10 @@ public:
 								cvPoint(width + drawScePoints[i2].x, drawScePoints[i2].y), CV_RGB(0, 255, 0), 3);
 		}
 
-		cvShowImage("LMeDS estimator search", resultImage);
+		cvShowImage("LMeDS estimator", resultImage);
 		cvWaitKey(1000);
 
+		(*message) = std::string("");
 		return test;
 	}
 
@@ -232,7 +233,7 @@ public:
 		referencePoints.clear();
 		scenePoints.clear();
 		
-		cvDestroyWindow("LMeDS estimator search");
+		cvDestroyWindow("LMeDS estimator");
 
 		return true;
 	}

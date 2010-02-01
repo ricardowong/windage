@@ -19,6 +19,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SingleObjectTracking", "..\
 		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B} = {BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MultipleObjectTracking", "..\..\Examples\MultipleObjectTracking\MultipleObjectTracking.vcproj", "{1E45E76B-4E96-4DBA-8EBB-212D2463065E}"
+	ProjectSection(ProjectDependencies) = postProject
+		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B} = {BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -37,6 +42,10 @@ Global
 		{55215990-D4D7-435D-8608-E6078C0F184F}.Debug|Win32.Build.0 = Debug|Win32
 		{55215990-D4D7-435D-8608-E6078C0F184F}.Release|Win32.ActiveCfg = Release|Win32
 		{55215990-D4D7-435D-8608-E6078C0F184F}.Release|Win32.Build.0 = Release|Win32
+		{1E45E76B-4E96-4DBA-8EBB-212D2463065E}.Debug|Win32.ActiveCfg = Debug|Win32
+		{1E45E76B-4E96-4DBA-8EBB-212D2463065E}.Debug|Win32.Build.0 = Debug|Win32
+		{1E45E76B-4E96-4DBA-8EBB-212D2463065E}.Release|Win32.ActiveCfg = Release|Win32
+		{1E45E76B-4E96-4DBA-8EBB-212D2463065E}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -45,5 +54,6 @@ Global
 		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B} = {8BF375E3-6F4C-4A37-AC13-05B53622449A}
 		{D74C4D0D-B19F-4155-B0D8-B1171D91839A} = {C89B9D79-0565-43FA-A9BA-FC5CB52972F1}
 		{55215990-D4D7-435D-8608-E6078C0F184F} = {88DDBFE1-5E4A-4B1B-A62F-1D38B81D8E64}
+		{1E45E76B-4E96-4DBA-8EBB-212D2463065E} = {88DDBFE1-5E4A-4B1B-A62F-1D38B81D8E64}
 	EndGlobalSection
 EndGlobal
