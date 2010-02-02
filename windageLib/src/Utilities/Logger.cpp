@@ -42,74 +42,118 @@
 #include "Utilities/Logger.h"
 using namespace windage;
 
-Logger::Logger()
-{
-	char filename[100];
-	sprintf_s(filename, "log_%s.txt", Logger::getTimeString());
-	logging = new std::ofstream(filename);
-
-	fileStream = true;
-}
-
-Logger::Logger(char* filenameString, bool addTime)
-{
-	char filename[100];
-	if(addTime)
-		sprintf_s(filename, "%s_%s.txt", filenameString, Logger::getTimeString().c_str());
-	else
-		sprintf_s(filename, "%s", filenameString);
-	logging = new std::ofstream(filename);
-	fileStream = true;
-}
-
-Logger::Logger(std::string filenameString, bool addTime)
-{
-	char filename[100];
-	if(addTime)
-		sprintf_s(filename, "%s_%s.txt", Logger::getTimeString());
-	logging = new std::ofstream(filename);
-	fileStream = true;
-}
-
-Logger::Logger(std::ostream* out)
-{
-	logging = out;
-	fileStream = false;
-}
-
-Logger::~Logger()
-{
-	if(fileStream)
-		((std::ofstream*)logging)->close();
-}
-
 void Logger::logNewLine()
 {
 	(*logging) << std::endl;
 }
 
-void Logger::log(char* data)
+void Logger::log(char* dataName, char* data)
 {
-	(*logging) << data << "\t";
+	(*logging) << dataName << EQUAL_TERM;
+	log(data);
 }
+
 void Logger::log(char* dataName, char data)
 {
-	(*logging) << dataName << "=" << data << "\t";
+	(*logging) << dataName << EQUAL_TERM;
+	log(data);
 }
 
 void Logger::log(char* dataName, int data)
 {
-	(*logging) << dataName << "=" << data << "\t";
+	(*logging) << dataName << EQUAL_TERM;
+	log(data);
 }
 
 void Logger::log(char* dataName, double data)
 {
-	(*logging) << dataName << "=" << data << "\t";
+	(*logging) << dataName << EQUAL_TERM;
+	log(data);
 }
 
 void Logger::log(char* dataName, float data)
 {
-	(*logging) << dataName << "=" << data << "\t";
+	(*logging) << dataName << EQUAL_TERM;
+	log(data);
+}
+
+void Logger::log(char* data)
+{
+	(*logging) << data << SPACING_TERM;
+}
+
+void Logger::log(char data)
+{
+	(*logging) << data << SPACING_TERM;
+}
+
+void Logger::log(int data)
+{
+	(*logging) << data << SPACING_TERM;
+}
+
+void Logger::log(double data)
+{
+	(*logging) << data << SPACING_TERM;
+}
+
+void Logger::log(float data)
+{
+	(*logging) << data << SPACING_TERM;
+}
+
+void Logger::log(windage::Vector2 data)
+{
+	(*logging) << data.x << SPACING_TERM << data.y << SPACING_TERM;
+}
+
+void Logger::log(windage::Vector3 data)
+{
+	(*logging) << data.x << SPACING_TERM << data.y << SPACING_TERM << data.z << SPACING_TERM;
+}
+
+void Logger::log(windage::Vector4 data)
+{
+	(*logging) << data.x << SPACING_TERM << data.y << SPACING_TERM << data.z << SPACING_TERM << data.w << SPACING_TERM;
+}
+
+void Logger::log(windage::Matrix2 data)
+{
+	int size = 2;
+	for(int y=0; y<size; y++)
+	{
+		for(int x=0; x<size; x++)
+		{
+			log(data.m[y][x]);
+		}
+		logNewLine();
+	}
+}
+
+void Logger::log(windage::Matrix3 data)
+{
+	int size = 3;
+	for(int y=0; y<size; y++)
+	{
+		for(int x=0; x<size; x++)
+		{
+			log(data.m[y][x]);
+		}
+		logNewLine();
+	}
+}
+
+void Logger::log(windage::Matrix4 data)
+{
+	int size = 4;
+	for(int y=0; y<size; y++)
+	{
+		for(int x=0; x<size; x++)
+		{
+			log(data.m[y][x]);
+		}
+		logNewLine();
+	}
 }
 
 void Logger::updateTickCount()
