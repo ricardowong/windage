@@ -335,6 +335,10 @@
 					RelativePath="..\..\..\include\Algorithms\Spilltree.h"
 					>
 				</File>
+				<Filter
+					Name="VocabularyTree"
+					>
+				</Filter>
 			</Filter>
 			<Filter
 				Name="PoseEstimator"
