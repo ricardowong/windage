@@ -46,6 +46,7 @@
 #include <cv.h>
 
 #include "base.h"
+#include "Structures/Matrix.h"
 
 namespace windage
 {
@@ -57,12 +58,42 @@ namespace windage
 	 */
 	class DLLEXPORT Logger
 	{
+	private:
+		char SPACING_TERM;
+		char EQUAL_TERM;
+
+		std::ostream* logging;	///< logging target (file or std::cout stream)
+		bool fileStream;
+		double tickCount;
+		double processTime;
+
 	public:
-		Logger();
-		Logger(char* filenameString, bool addTime=false);
-		Logger(std::string filenameString, bool addTime=false);
-		Logger(std::ostream* out);
-		~Logger();
+		Logger(char* filenameString="log", char* extention="txt", bool addTime=false)
+		{
+			SPACING_TERM = ' ';
+			EQUAL_TERM = '=';
+
+			char filename[100];
+			if(addTime)
+				sprintf_s(filename, "%s_%s.%s", filenameString, Logger::getTimeString().c_str(), extention);
+			else
+				sprintf_s(filename, "%s.%s", filenameString, extention);
+			logging = new std::ofstream(filename);
+			fileStream = true;
+		}
+		Logger(std::ostream* out)
+		{
+			SPACING_TERM = ' ';
+			EQUAL_TERM = '=';
+
+			logging = out;
+			fileStream = false;
+		}
+		~Logger()
+		{
+			if(fileStream)
+				((std::ofstream*)logging)->close();
+		}
 
 		/**
 		 * @defgroup Logging User Message Logging Method
@@ -74,11 +105,22 @@ namespace windage
 		 * @{
 		 */
 		void logNewLine();
-		void log(char* data);
+		void log(char* dataName, char* data);
 		void log(char* dataName, char data);
 		void log(char* dataName, int data);
 		void log(char* dataName, double data);
 		void log(char* dataName, float data);
+		void log(char* data);
+		void log(char data);
+		void log(int data);
+		void log(double data);
+		void log(float data);
+		void log(windage::Vector2 data);
+		void log(windage::Vector3 data);
+		void log(windage::Vector4 data);
+		void log(windage::Matrix2 data);
+		void log(windage::Matrix3 data);
+		void log(windage::Matrix4 data);
 		/** @} */
 
 		/**
@@ -88,6 +130,7 @@ namespace windage
 		 *		update tick count member value from update currnet tick count
 		 */
 		void updateTickCount();
+		inline double getProcessTime(){return processTime;};
 
 		/**
 		 * @brief
@@ -104,7 +147,6 @@ namespace windage
 		 *		calcuate FPS after calling updateTickCount method
 		 */
 		double calculateFPS();
-		inline double getProcessTime(){return processTime;};
 
 		/**
 		 * @brief
@@ -113,12 +155,7 @@ namespace windage
 		 *		return current time stemp
 		 */
 		static std::string getTimeString();
-
-	private:
-		std::ostream* logging;	///< logging target (file or std::cout stream)
-		bool fileStream;
-		double tickCount;
-		double processTime;
+	
 	};
 }
 
