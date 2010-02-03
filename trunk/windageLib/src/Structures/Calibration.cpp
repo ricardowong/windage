@@ -204,6 +204,25 @@ CvScalar Calibration::GetCameraPosition()
 	return cameraPos;
 }
 
+CvScalar Calibration::GetLookAt()
+{
+	CvScalar lookat = this->ConvertCamera2World(0.0, 0.0, 100.0);
+	return lookat;
+}
+
+CvScalar Calibration::GetUpPoint()
+{
+	CvScalar uppoint = this->ConvertCamera2World(0.0, -100.0, 0.0);
+	return uppoint;
+}
+
+CvScalar Calibration::GetRightPoint()
+{
+	CvScalar rightpoint = this->ConvertCamera2World(100.0, 0.0, 0.0);
+	return rightpoint;
+}
+
+
 int Calibration::ConvertWorld2Camera(CvMat* output, CvMat* input)
 {
 	cvMatMul(this->extrinsicMatrix, input, output);
@@ -272,18 +291,15 @@ int Calibration::ConvertCamera2World(CvMat* output, CvMat* input)
 	{
 		for(int x=0; x<3; x++)
 		{
-			cvSetReal2D(rotationMatrix, x, y, cvGetReal2D(this->extrinsicMatrix, x, y));
+			cvSetReal2D(rotationMatrix, y, x, cvGetReal2D(this->extrinsicMatrix, y, x));
 		}
 	}
 
 	CvMat* inversRotationMatrix = cvCreateMat(3, 3, CV_64FC1);
-	cvInvert(rotationMatrix, inversRotationMatrix);
-
-	cvMatMul(inversRotationMatrix, translationVector, translationVector);
+	cvTranspose(rotationMatrix, inversRotationMatrix);
 
 	CvMat* temp = cvCreateMat(3, 1, CV_64FC1);
 	cvSub(input, translationVector, temp);
-
 	cvMatMul(inversRotationMatrix, temp, output);
 
 	cvReleaseMat(&temp);
@@ -293,6 +309,28 @@ int Calibration::ConvertCamera2World(CvMat* output, CvMat* input)
 	cvReleaseMat(&translationVector);
 
 	return 1;
+}
+
+CvScalar Calibration::ConvertCamera2World(double x, double y, double z)
+{
+	CvMat* cameraCoordinate = cvCreateMat(3, 1, CV_64FC1);
+	CvMat* worldCoordinate = cvCreateMat(3, 1, CV_64FC1);
+
+	cvSetReal1D(cameraCoordinate, 0, x);
+	cvSetReal1D(cameraCoordinate, 1, y);
+	cvSetReal1D(cameraCoordinate, 2, z);
+
+	ConvertCamera2World(worldCoordinate, cameraCoordinate);
+
+	CvScalar worldPoint;
+	worldPoint.val[0] = cvGetReal1D(worldCoordinate, 0);
+	worldPoint.val[1] = cvGetReal1D(worldCoordinate, 1);
+	worldPoint.val[2] = cvGetReal1D(worldCoordinate, 2);
+
+	cvReleaseMat(&cameraCoordinate);
+	cvReleaseMat(&worldCoordinate);
+
+	return worldPoint;
 }
 
 int Calibration::ConvertImage2Camera(CvMat* output, CvMat* input, double z)

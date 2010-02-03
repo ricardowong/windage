@@ -41,8 +41,9 @@
 #include "windageTestSample.h"
 #include "VectorMatrixTest.h"
 #include "CalibrationTest.h"
-#include "FeaturePointTest.h"
+#include "RotationConverterTest.h"
 
+#include "FeaturePointTest.h"
 #include "SURFdetectorTest.h"
 #include "SIFTdetectorTest.h"
 #include "WSURFdetectorTest.h"
@@ -67,11 +68,13 @@
 #include "MultiplePlanarObjectTrackingTest.h"
 
 
+
 void main()
 {
 	windageTestSample testSample;
 	VectorMatrixTest testMatrixVector;
 	CalibrationTest testCalibration;
+	RotationConverterTest testRotationConverter;
 
 	FeaturePointTest testFeaturePoint;
 	SURFdetectorTest testSURFdetector;

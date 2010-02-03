@@ -126,6 +126,7 @@ namespace windage
 			inline CvSize GetSize(){return cvSize(this->width, this->height);};
 			inline void SetDitectionRatio(int ratio){this->detectionRatio=ratio; this->step=ratio+1;};
 			inline int GetMatchingCount(){return (int)this->refMatchedKeypoints.size();};
+			inline IplImage* GetReferenceImage(){return this->referenceImage;};
 
 			inline void AttatchCalibration(windage::Calibration* calibration){this->cameraParameter = calibration;};
 			inline windage::Calibration* GetCameraParameter(){return this->cameraParameter;};

@@ -102,7 +102,10 @@ namespace windage
 		void ConvertExtrinsicParameter(CvMat* rotationVector, CvMat* translationVector);
 
 		CvScalar GetCameraPosition();
-
+		CvScalar GetLookAt();
+		CvScalar GetUpPoint();
+		CvScalar GetRightPoint();
+		
 		/**
 		 * @defgroup CoordinateConvertor Coordinate Convertor
 		 * @brief
@@ -117,6 +120,7 @@ namespace windage
 		int ConvertWorld2Image(CvMat* output3vector, CvMat* input4vector);
 		CvPoint ConvertWorld2Image(double x, double y, double z);
 		int ConvertCamera2World(CvMat* output3vector, CvMat* input3vector);
+		CvScalar ConvertCamera2World(double x, double y, double z);
 		int ConvertImage2Camera(CvMat* output3vector, CvMat* input3vector, double z);
 		int ConvertImage2World(CvMat* output3vector, CvMat* input3vector, double z);
 		CvPoint2D64f ConvertImage2World(double ix, double iy, double wz=0.0);

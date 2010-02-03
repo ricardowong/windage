@@ -44,14 +44,14 @@
 #include <highgui.h>
 
 #include <windage.h>
-#include <Coordinator/ARForOpenGL.h>
-
 #include "OpenGLRenderer.h"
 
 const int WIDTH = 320;
 const int HEIGHT = (WIDTH * 3) / 4;
 const int RENDERING_WIDTH = 640;
 const int RENDERING_HEIGHT = (RENDERING_WIDTH * 3) / 4;
+
+const double VIRTUAL_CAMERA_DISTANCE = 800.0;
 
 windage::Logger* logging;
 double fps;
@@ -68,8 +68,8 @@ IplImage* grayImage = NULL;
 IplImage* resultImage = NULL;
 
 windage::Frameworks::PlanarObjectTracking* tracker = NULL;
-windage::Coordinator::AugmentedReality* artool = NULL;
 OpenGLRenderer* renderer = NULL;
+double angle = 0.0;
 
 windage::Frameworks::PlanarObjectTracking* CreateTracker()
 {
@@ -79,11 +79,11 @@ windage::Frameworks::PlanarObjectTracking* CreateTracker()
 	windage::Algorithms::FeatureDetector* detector = new windage::Algorithms::WSURFdetector();
 	windage::Algorithms::SearchTree* searchtree = new windage::Algorithms::FLANNtree();
 	windage::Algorithms::OpticalFlow* opticalflow = new windage::Algorithms::OpticalFlow();
-	windage::Algorithms::HomographyEstimator* estimator = new windage::Algorithms::ProSACestimator();
+	windage::Algorithms::HomographyEstimator* estimator = new windage::Algorithms::RANSACestimator();
 	windage::Algorithms::OutlierChecker* checker = new windage::Algorithms::OutlierChecker();
 	windage::Algorithms::HomographyRefiner* refiner = new windage::Algorithms::LMmethod();
 
-	calibration->Initialize(WIDTH*1.2, WIDTH*1.2, WIDTH/2.0, HEIGHT/2.0, 0, 0, 0, 0);
+	calibration->Initialize((double)WIDTH*1.2, (double)WIDTH*1.2, (double)WIDTH/2.0, (double)HEIGHT/2.0, 0, 0, 0, 0);
 	detector->SetThreshold(30.0);
 	searchtree->SetRatio(0.7);
 	opticalflow->Initialize(WIDTH, HEIGHT, cvSize(8, 8), 3);
@@ -122,11 +122,13 @@ void keyboard(unsigned char ch, int x, int y)
 	case 's':
 	case 'S':
 	case ' ':
+		renderer->AttatchReference(resizeImage);
 		TrainingRefereneImage(tracker, grayImage);
 		break;
 	case 'q':
 	case 'Q':
 		if(capture) cvReleaseCapture(&capture);
+		cvDestroyAllWindows();
 		exit(0);
 		break;
 	}
@@ -134,7 +136,10 @@ void keyboard(unsigned char ch, int x, int y)
 
 void idle(void)
 {
-        glutPostRedisplay();
+	angle += 1.0;
+	if(angle >= 360.0)
+		angle = 0.0;
+	glutPostRedisplay();
 }
 
 void display()
@@ -184,29 +189,32 @@ void display()
 
 	sprintf_s(message, "Press 'Space' to track the current image", keypointCount, threshold);
 	windage::Utils::DrawTextToImage(resultImage, cvPoint(WIDTH-270, HEIGHT-10), 0.5, message);
-	cvShowImage("result", resultImage);
+	cvShowImage("tracking information window", resultImage);
 
-	// draw real scene image
-	artool->DrawBackgroundTexture(resultImage);
-
-	// apply camera paramter for AR
-	artool->SetProjectionMatrix();
-	artool->SetModelViewMatrix();
+	// clear screen
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// draw virtual object
+	glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+	double radian = angle * CV_PI / 180.0;
+	double dx = sin(radian) * VIRTUAL_CAMERA_DISTANCE;
+	double dy = cos(radian) * VIRTUAL_CAMERA_DISTANCE;
+	gluLookAt(dx, dy, 800, 0.0, 0.0, 300.0, 0.0, 0.0, 1.0);
+
 	glPushMatrix();
 	{
-		renderer->setMaterial(windage::Vector4(255, 255, 255, 0.8));
-		glTranslated(0, 0, WIDTH/8);
-		glRotatef(90, 1, 0, 0);
+		// draw reference image & coordinate
+		renderer->DrawReference((double)WIDTH, (double)HEIGHT);
+		renderer->DrawAxis((double)WIDTH / 4.0);
 
-		glutWireTeapot(WIDTH/4);
-//		glutSolidTeapot(WIDTH/4);
+		// draw camera image & position
+		renderer->DrawCamera(tracker->GetCameraParameter(), resizeImage);
 	}
 	glPopMatrix();
 
 	glutSwapBuffers();
-	glutPostRedisplay();
 }
 
 void main()
@@ -219,6 +227,8 @@ void main()
 		exit(0);
 	}
 
+	cvNamedWindow("tracking information window");
+
 	resizeImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
 	grayImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 1);
 	resultImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
@@ -229,17 +239,11 @@ void main()
 	// create tracker
 	tracker = CreateTracker();
 
-	// create and initialize AR tool
-	artool = new windage::Coordinator::ARForOpenGL();
-	((windage::Coordinator::ARForOpenGL*)artool)->Initialize(WIDTH, HEIGHT, true);
-	artool->AttatchCameraParameter(tracker->GetCameraParameter());
-
 	// initialize rendering engine using GLUT
 	renderer = new OpenGLRenderer();
-	renderer->Initialize(RENDERING_WIDTH, RENDERING_HEIGHT, "windageLib Simple AR");
+	renderer->Initialize(RENDERING_WIDTH, RENDERING_HEIGHT, "windage Camera Tracjectory");
 	renderer->SetCameraSize(WIDTH, HEIGHT);
-	renderer->setLight();
-
+	
 	glutDisplayFunc(display);
 	glutIdleFunc(idle);
 	glutKeyboardFunc(keyboard);
@@ -247,4 +251,5 @@ void main()
 	glutMainLoop();
 
 	cvReleaseCapture(&capture);
+	cvDestroyAllWindows();
 }
