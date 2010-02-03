@@ -87,6 +87,8 @@
 #include "Frameworks/MultiplePlanarObjectTracking.h"
 
 // Coordinator
+#include "Coordinator/RotationConverter.h"
+
 #include "Coordinator/AugmentedReality.h"
 
 #include "Coordinator/MultiCameraCoordinator.h"

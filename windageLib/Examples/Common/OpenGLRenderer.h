@@ -42,41 +42,67 @@
 
 #include <GL/glut.h>
 #include <cv.h>
-
 #include "Structures/Vector.h"
-using namespace windage;
-
-//#define DRAWPIXEL_MODE
+#include "Structures/Calibration.h"
 
 class OpenGLRenderer
 {
+private:
+	static const int TEXTURE_SIZE = 512;
+	GLuint referenceTexture;
+	GLuint inputTexture;
+	IplImage* referenceImage;
+	IplImage* inputImage;
+
+	int width;
+	int height;
+	int cameraWidth;
+	int cameraHeight;
+
 public:
-	static void init(int width = 320, int height = 240, char * windowName = "OpenGL Renderer");
+	OpenGLRenderer()
+	{
+		referenceImage = cvCreateImage(cvSize(TEXTURE_SIZE, TEXTURE_SIZE), IPL_DEPTH_8U, 3);
+		inputImage = cvCreateImage(cvSize(TEXTURE_SIZE, TEXTURE_SIZE), IPL_DEPTH_8U, 3);
+
+		cvZero(referenceImage);
+		cvZero(inputImage);
+
+		glGenTextures(1, &referenceTexture);
+		glGenTextures(1, &inputTexture);
+	}
+	~OpenGLRenderer()
+	{
+		if(this->referenceImage) cvReleaseImage(&referenceImage);
+		referenceImage = NULL;
+		if(this->inputImage) cvReleaseImage(&inputImage);
+		inputImage = NULL;
+
+		if(referenceTexture) glDeleteTextures(1, &referenceTexture);
+		referenceTexture = 0;
+		if(inputTexture) glDeleteTextures(1, &inputTexture);
+		inputTexture = 0;
+	}
+
+	void Initialize(int width = 320, int height = 240, char * windowName = "OpenGL Renderer");
 //	static void idle();
 //	static void display();
 
-	static void setLight();
-	static void setMaterial(Vector4 color);
+	void setLight();
+	void setMaterial(windage::Vector4 color);
 
-	static void drawClear();
-	static void drawBackground(IplImage* inputImage);
-	static void drawObject(GLfloat* projection, GLfloat* model_view, int markerId, double markerWidth);
+	void drawClear();
+	void drawBackground(IplImage* inputImage);
+	void drawObject(GLfloat* projection, GLfloat* model_view, int markerId, double markerWidth);
 
-	static void mouse(int iButton, int iState, int x, int y);
-	static void motion(int x, int y);
+	inline void SetCameraSize(int width, int height){this->cameraWidth = width, this->cameraHeight = height;};
+	void DrawAxis(double size);
+	void AttatchReference(IplImage* image);
+	void DrawReference(double width, double height);
+	void DrawCamera(windage::Calibration* calibration, IplImage* image);
 
-	static int cursorX;
-	static int cursorY;
-
-	enum EVENT_MODE{RENDER=1, CLICKED=2};
-	static EVENT_MODE mode;
-
-private:
-	static int windowWidth;
-	static int windowHeight;
-
-	static int cameraWidth;
-	static int cameraHeight;
+	void mouse(int iButton, int iState, int x, int y);
+	void motion(int x, int y);
 };
 
 #endif

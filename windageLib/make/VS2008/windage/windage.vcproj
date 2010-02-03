@@ -512,6 +512,10 @@
 		<Filter
 			Name="Coordinator"
 			>
+			<File
+				RelativePath="..\..\..\include\Coordinator\RotationConverter.h"
+				>
+			</File>
 			<Filter
 				Name="AugmentedReality"
 				>

@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="SimpleARforOpenGL"
-	ProjectGUID="{CB071729-ABAB-4E0F-83C3-8EF7B1B56ED6}"
-	RootNamespace="SimpleARforOpenGL"
+	Name="CameraTracjectory"
+	ProjectGUID="{7974C387-4D43-4C1C-B9AD-DE81A9422FF5}"
+	RootNamespace="CameraTracjectory"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
@@ -167,7 +167,6 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				CommandLine="COPY /Y &quot;$(OutDir)\$(ProjectName).exe&quot; &quot;$(SolutionDir)\..\..\runtime\$(ProjectName).exe&quot;"
-				ExcludedFromBuild="false"
 			/>
 		</Configuration>
 	</Configurations>
