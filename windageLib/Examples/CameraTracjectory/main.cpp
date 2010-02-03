@@ -44,7 +44,7 @@
 #include <highgui.h>
 
 #include <windage.h>
-#include "OpenGLRenderer.h"
+#include "../Common/OpenGLRenderer.h"
 
 const int WIDTH = 320;
 const int HEIGHT = (WIDTH * 3) / 4;
