@@ -56,6 +56,15 @@ bool MultiplePlanarObjectTracking::Initialize(int width, int height, double real
 	if(prevImage) cvReleaseImage(&prevImage);
 	prevImage = cvCreateImage(cvSize(width, height), IPL_DEPTH_8U, 1);
 
+	if( this->initialCamearParameter	== NULL ||
+		this->detector					== NULL ||
+		this->tracker					== NULL ||
+		this->estimator					== NULL)
+	{
+		this->initialize = false;
+		return false;
+	}
+
 	this->initialize = true;
 	return true;
 }
@@ -93,6 +102,8 @@ bool MultiplePlanarObjectTracking::AttatchReferenceImage(IplImage* grayImage)
 bool MultiplePlanarObjectTracking::TrainingReference(double scaleFactor, int scaleStep)
 {
 	if(this->objectCount <= 0)
+		return false;
+	if(this->initialize == false)
 		return false;
 
 	int width = cvRound((double)this->referenceImage[this->objectCount-1]->width/scaleFactor);

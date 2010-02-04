@@ -37,6 +37,14 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
+/**
+ * @file	Logger.h
+ * @author	Woonhyuk Baek
+ * @version 1.0
+ * @date	2010.02.04
+ * @brief	It is log class for logging at processtime and programmer's message
+ */
+
 #ifndef _LOGGER_H_
 #define _LOGGER_H_
 
@@ -51,10 +59,16 @@
 namespace windage
 {
 	/**
+	 * @defgroup Utilities Utility classes
 	 * @brief
-	 *		Class for Logging at processtime and programmer's message
-	 * @author
-	 *		windage
+	 *		Utility classes
+	 * @addtogroup Utilities
+	 * @{
+	 */
+
+	/**
+	 * @brief	Class for Logging at processtime and programmer's message
+	 * @author	Woonhyuk Baek
 	 */
 	class DLLEXPORT Logger
 	{
@@ -96,11 +110,11 @@ namespace windage
 		}
 
 		/**
-		 * @defgroup Logging User Message Logging Method
+		 * @defgroup logging user message & data
 		 * @brief
 		 *		User Message Logging Method
 		 * @remark
-		 *		logging "dataName : data" or "data"
+		 *		logging "dataName=data" or "data"
 		 * @addtogroup Logging
 		 * @{
 		 */
@@ -124,6 +138,7 @@ namespace windage
 		/** @} */
 
 		/**
+		 * @fn	updateTickCount
 		 * @brief
 		 *		update Tick Count
 		 * @remark
@@ -133,6 +148,7 @@ namespace windage
 		inline double getProcessTime(){return processTime;};
 
 		/**
+		 * @fn	calculateProcessTime
 		 * @brief
 		 *		calcuate processing time
 		 * @remark
@@ -141,6 +157,7 @@ namespace windage
 		double calculateProcessTime();
 
 		/**
+		 * @fn	calculateFPS
 		 * @brief
 		 *		calcuate FPS
 		 * @remark
@@ -149,15 +166,14 @@ namespace windage
 		double calculateFPS();
 
 		/**
+		 * @fn	getTimeString
 		 * @brief
 		 *		get Time Stemp
 		 * @remark
 		 *		return current time stemp
 		 */
 		static std::string getTimeString();
-	
 	};
+	/** @} */ // addtogroup Utilities
 }
-
-
-#endif
+#endif // _LOGGER_H_

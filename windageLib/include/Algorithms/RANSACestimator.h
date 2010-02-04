@@ -60,7 +60,7 @@ namespace windage
 	namespace Algorithms
 	{
 		/**
-		 * @defgroup Algorithms algorithm classes
+		 * @defgroup Algorithms Algorithm classes
 		 * @brief
 		 *		algorithm classes
 		 * @addtogroup Algorithms
@@ -68,7 +68,7 @@ namespace windage
 		 */
 
 		/**
-		 * @defgroup AlgorithmsPoseEstimator camera pose estimator in 3D
+		 * @defgroup AlgorithmsPoseEstimator Pose Estimator
 		 * @brief
 				camera pose estimator in 3D
 		 * @addtogroup AlgorithmsPoseEstimator
@@ -76,7 +76,7 @@ namespace windage
 		 */
 
 		/**
-		 * @defgroup AlgorithmsHomography camera pose estimator in 2D using homography
+		 * @defgroup AlgorithmsHomography Homography Estimator
 		 * @brief
 				camera pose estimator in 2D using homography
 		 * @addtogroup AlgorithmsHomography
