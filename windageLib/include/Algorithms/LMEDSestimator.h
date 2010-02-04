@@ -2,8 +2,8 @@
  * PROJECT: windage Library
  * ========================================================================
  * This work is based on the original windage Library developed by
- *   Woonhyuk Baek
- *   Woontack Woo
+ *   Woonhyuk Baek (wbaek@gist.ac.kr / windage@live.com)
+ *   Woontack Woo (wwoo@gist.ac.kr)
  *   U-VR Lab, GIST of Gwangju in Korea.
  *   http://windage.googlecode.com/
  *   http://uvr.gist.ac.kr/
@@ -37,6 +37,14 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
+/**
+ * @file	LMedSestimator.h
+ * @author	Woonhyuk Baek
+ * @version 1.0
+ * @date	2010.02.04
+ * @brief	It is implemetation of homography estimation class to use Least Median of Squards techniq
+ */
+
 #ifndef _LMEDS_ESTIMATOR_TREE_H_
 #define _LMEDS_ESTIMATOR_TREE_H_
 
@@ -51,20 +59,61 @@ namespace windage
 {
 	namespace Algorithms
 	{
-		class DLLEXPORT LMeDSestimator : public HomographyEstimator
+		/**
+		 * @defgroup Algorithms algorithm classes
+		 * @brief
+		 *		algorithm classes
+		 * @addtogroup Algorithms
+		 * @{
+		 */
+
+		/**
+		 * @defgroup AlgorithmsPoseEstimator camera pose estimator in 3D
+		 * @brief
+				camera pose estimator in 3D
+		 * @addtogroup AlgorithmsPoseEstimator
+		 * @{
+		 */
+
+		/**
+		 * @defgroup AlgorithmsHomography camera pose estimator in 2D using homography
+		 * @brief
+				camera pose estimator in 2D using homography
+		 * @addtogroup AlgorithmsHomography
+		 * @{
+		 */
+
+		/**
+		 * @brief	class for homography estimation to use LMedS techniq
+		 * @author	Woonhyuk Baek
+		 */
+		class DLLEXPORT LMedSestimator : public HomographyEstimator
 		{
 		private:
 		public:
-			LMeDSestimator() : HomographyEstimator()
+			LMedSestimator() : HomographyEstimator()
 			{
 			}
-			~LMeDSestimator()
+			~LMedSestimator()
 			{
 			}
 
+			/**
+			 * @fn	Calculate
+			 * @brief
+			 *		Implimentation function to calculate homograpy using attatched pair set of input feature points and reference feature points
+			 * @remark
+			 *		update the homography member value
+			 * @warning
+			 *		the nubmer of referencePoints and the number of scenePoints is to be same
+			 * @return
+			 *		success or failure
+			 */
 			bool Calculate();
 		};
+		/** @} */ // addtogroup AlgorithmsHomographyEstimator
+		/** @} */ // addtogroup AlgorithmsPoseEstimator
+		/** @} */ // addtogroup Algorithms
 	}
 }
-
-#endif
+#endif // _LMEDS_ESTIMATOR_TREE_H_

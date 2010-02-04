@@ -2,8 +2,8 @@
  * PROJECT: windage Library
  * ========================================================================
  * This work is based on the original windage Library developed by
- *   Woonhyuk Baek
- *   Woontack Woo
+ *   Woonhyuk Baek (wbaek@gist.ac.kr / windage@live.com)
+ *   Woontack Woo (wwoo@gist.ac.kr)
  *   U-VR Lab, GIST of Gwangju in Korea.
  *   http://windage.googlecode.com/
  *   http://uvr.gist.ac.kr/
@@ -37,6 +37,14 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
+/**
+ * @file	RANSACestimator.h
+ * @author	Woonhyuk Baek
+ * @version 1.0
+ * @date	2010.02.04
+ * @brief	It is implemetation of homography estimation class to use RANdom SAmpling Consensus techniq
+ */
+
 #ifndef _RANSAC_ESTIMATOR_H_
 #define _RANSAC_ESTIMATOR_H_
 
@@ -51,6 +59,34 @@ namespace windage
 {
 	namespace Algorithms
 	{
+		/**
+		 * @defgroup Algorithms algorithm classes
+		 * @brief
+		 *		algorithm classes
+		 * @addtogroup Algorithms
+		 * @{
+		 */
+
+		/**
+		 * @defgroup AlgorithmsPoseEstimator camera pose estimator in 3D
+		 * @brief
+				camera pose estimator in 3D
+		 * @addtogroup AlgorithmsPoseEstimator
+		 * @{
+		 */
+
+		/**
+		 * @defgroup AlgorithmsHomography camera pose estimator in 2D using homography
+		 * @brief
+				camera pose estimator in 2D using homography
+		 * @addtogroup AlgorithmsHomography
+		 * @{
+		 */
+
+		/**
+		 * @brief	class for homography estimation to use RANSAC techniq
+		 * @author	Woonhyuk Baek
+		 */
 		class DLLEXPORT RANSACestimator : public HomographyEstimator
 		{
 		private:
@@ -63,9 +99,22 @@ namespace windage
 			{
 			}
 
+			/**
+			 * @fn	Calculate
+			 * @brief
+			 *		Implimentation function to calculate homograpy using attatched pair set of input feature points and reference feature points
+			 * @remark
+			 *		update the homography member value
+			 * @warning
+			 *		the nubmer of referencePoints and the number of scenePoints is to be same
+			 * @return
+			 *		success or failure
+			 */
 			bool Calculate();
 		};
+		/** @} */ // addtogroup AlgorithmsHomographyEstimator
+		/** @} */ // addtogroup AlgorithmsPoseEstimator
+		/** @} */ // addtogroup Algorithms
 	}
 }
-
-#endif
+#endif // _RANSAC_ESTIMATOR_H_

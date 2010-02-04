@@ -2,8 +2,8 @@
  * PROJECT: windage Library
  * ========================================================================
  * This work is based on the original windage Library developed by
- *   Woonhyuk Baek
- *   Woontack Woo
+ *   Woonhyuk Baek (wbaek@gist.ac.kr / windage@live.com)
+ *   Woontack Woo (wwoo@gist.ac.kr)
  *   U-VR Lab, GIST of Gwangju in Korea.
  *   http://windage.googlecode.com/
  *   http://uvr.gist.ac.kr/
@@ -37,6 +37,14 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
+/**
+ * @file	FeaturePoint.h
+ * @author	Woonhyuk Baek
+ * @version 1.0
+ * @date	2010.02.04
+ * @brief	It has feature point information
+ */
+
 #ifndef _FEATURE_POINT_H_
 #define _FEATURE_POINT_H_
 
@@ -48,23 +56,34 @@
 
 namespace windage
 {
+	/**
+	 * @defgroup Structures data structures
+	 * @brief
+	 *		data structures classes
+	 * @addtogroup Structures
+	 * @{
+	 */
+
+	/**
+	 * @brief	Class for feature points
+	 * @author	Woonhyuk Baek
+	 */
 	class DLLEXPORT FeaturePoint
 	{
 	protected:
-		windage::Vector3 point;
-		int objectID;
-		int size;
-		double dir;
-		double distance;
-		bool outlier;
+		windage::Vector3 point;	///< position of feature point (z-value is 1.0)
+		int objectID;			///< object id (initialize -1)
+		int size;				///< feature size
+		double dir;				///< feature orientation
+		double distance;		///< distance between matched descriptor
+		bool outlier;			///< checked outlier
 
-		// to check tracking
-		bool tracked;
-		int repositoryID;
+		bool tracked;			///< checed tracking to track feature
+		int repositoryID;		///< repository index to track feature
 		
 	public:
-		int DESCRIPTOR_DIMENSION;
-		std::vector<double> descriptor;
+		int DESCRIPTOR_DIMENSION;		///< descriptor dimention depend on feature characteristic
+		std::vector<double> descriptor;	///< storage for discriptor
 
 	public:
 		FeaturePoint()
@@ -85,6 +104,13 @@ namespace windage
 		{
 		}
 
+		/**
+		 * @fn	operator=
+		 * @brief
+		 *		overwriting assignment expression
+		 * @remark
+		 *		copy all data
+		 */
 		virtual void operator=(FeaturePoint oprd)
 		{
 			this->DESCRIPTOR_DIMENSION = oprd.DESCRIPTOR_DIMENSION;
@@ -102,6 +128,13 @@ namespace windage
 			this->repositoryID = oprd.GetRepositoryID();
 		}
 
+		/**
+		 * @fn	GetDistance
+		 * @brief
+		 *		calculate distance between other feature
+		 * @warning
+		 *		It is not save the distance value to current object valable
+		 */
 		virtual double GetDistance(FeaturePoint oprd)
 		{
 			if(this->DESCRIPTOR_DIMENSION != oprd.DESCRIPTOR_DIMENSION)
@@ -131,6 +164,7 @@ namespace windage
 		inline void SetRepositoryID(int id){this->repositoryID = id;};
 		inline int GetRepositoryID(){return this->repositoryID;};
 	};
+	/** @} */ // addtogroup Structures
 }
 
-#endif
+#endif // _FEATURE_POINT_H_

@@ -363,11 +363,11 @@
 						>
 					</File>
 					<File
-						RelativePath="..\..\..\src\Algorithms\LMeDSestimator.cpp"
+						RelativePath="..\..\..\src\Algorithms\LMedSestimator.cpp"
 						>
 					</File>
 					<File
-						RelativePath="..\..\..\include\Algorithms\LMeDSestimator.h"
+						RelativePath="..\..\..\include\Algorithms\LMedSestimator.h"
 						>
 					</File>
 					<File
@@ -533,10 +533,6 @@
 				</File>
 				<File
 					RelativePath="..\..\..\include\Coordinator\ARForOSG.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\..\src\Coordinator\AugmentedReality.cpp"
 					>
 				</File>
 				<File

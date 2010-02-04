@@ -2,8 +2,8 @@
  * PROJECT: windage Library
  * ========================================================================
  * This work is based on the original windage Library developed by
- *   Woonhyuk Baek
- *   Woontack Woo
+ *   Woonhyuk Baek (wbaek@gist.ac.kr / windage@live.com)
+ *   Woontack Woo (wwoo@gist.ac.kr)
  *   U-VR Lab, GIST of Gwangju in Korea.
  *   http://windage.googlecode.com/
  *   http://uvr.gist.ac.kr/
@@ -37,6 +37,14 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
+/**
+ * @file	EPnPestimator.h
+ * @author	Woonhyuk Baek
+ * @version 1.0
+ * @date	2010.02.04
+ * @brief	It is implemetation of camera pose estimator class to use EPnP techniq
+ */
+
 #ifndef _EPNP_ESTIMATOR_H_
 #define _EPNP_ESTIMATOR_H_
 
@@ -53,6 +61,26 @@ namespace windage
 {
 	namespace Algorithms
 	{
+		/**
+		 * @defgroup Algorithms algorithm classes
+		 * @brief
+		 *		algorithm classes
+		 * @addtogroup Algorithms
+		 * @{
+		 */
+
+		/**
+		 * @defgroup AlgorithmsPoseEstimator camera pose estimator in 3D
+		 * @brief
+				camera pose estimator in 3D
+		 * @addtogroup AlgorithmsPoseEstimator
+		 * @{
+		 */
+
+		/**
+		 * @brief	class for camera pose estimation in 3D using EPnP
+		 * @author	Woonhyuk Baek
+		 */
 		class DLLEXPORT EPnPEstimator : public PoseEstimator
 		{
 		protected:
@@ -64,9 +92,22 @@ namespace windage
 			{
 			}
 
+			/**
+			 * @fn	Calculate
+			 * @brief
+			 *		Implimentation function to calculate camera pose using attatched pair set of input feature points and reference feature points
+			 * @remark
+			 *		update the homography member value
+			 * @warning
+			 *		the nubmer of referencePoints and the number of scenePoints is to be same
+			 *		the referencePoints is to be not planar
+			 * @return
+			 *		success or failure
+			 */
 			bool Calculate();
 		};
+		/** @} */ // addtogroup AlgorithmsPoseEstimator
+		/** @} */ // addtogroup Algorithms
 	}
 }
-
-#endif
+#endif // _EPNP_ESTIMATOR_H_

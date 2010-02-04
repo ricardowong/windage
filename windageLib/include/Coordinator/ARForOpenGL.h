@@ -2,8 +2,8 @@
  * PROJECT: windage Library
  * ========================================================================
  * This work is based on the original windage Library developed by
- *   Woonhyuk Baek
- *   Woontack Woo
+ *   Woonhyuk Baek (wbaek@gist.ac.kr / windage@live.com)
+ *   Woontack Woo (wwoo@gist.ac.kr)
  *   U-VR Lab, GIST of Gwangju in Korea.
  *   http://windage.googlecode.com/
  *   http://uvr.gist.ac.kr/
@@ -37,6 +37,14 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
+/**
+ * @file	ARForOpenGL.h
+ * @author	Woonhyuk Baek
+ * @version 1.0
+ * @date	2010.02.04
+ * @brief	It is class to support AR applicaations using OPENGL(with GLUT)
+ */
+
 #ifndef _AUGMENTED_REALITY_FOR_OPENGL_H_
 #define _AUGMENTED_REALITY_FOR_OPENGL_H_
 
@@ -50,23 +58,35 @@ namespace windage
 	namespace Coordinator
 	{
 		/**
+		 * @defgroup Coordinator coordinator
 		 * @brief
-		 *		Class for Augmented Reality Tool at OpenGL Environment
-		 * @author
-		 *		windage
+		 *		coordinator classes
+		 * @addtogroup Coordinator
+		 * @{
+		 */
+
+		/**
+		 * @brief	Class for Augmented Reality Tool at OpenGL Environment
+		 * @author	Woonhyuk Baek
 		 */
 		class DLLEXPORT ARForOpenGL : public AugmentedReality
 		{
 		private:
 			GLuint backgroundTexture;	///< OpenGL Texture Pointer
-
 			void Release();
 
 		public:
-			ARForOpenGL();
-			~ARForOpenGL();
+			ARForOpenGL() : AugmentedReality()
+			{
+				backgroundTexture = 0;
+			};
+			~ARForOpenGL()
+			{
+				this->Release();
+			};
 
 			/**
+			 * @fn	Initialize
 			 * @brief
 			 *		Initialize ARTool for OpenGL
 			 * @remark
@@ -79,11 +99,34 @@ namespace windage
 							int textureWidth=512	///< input texture image size (width == height) (*necessary multiple of 4)
 							);
 
+			/**
+			 * @fn	DrawBackgroundTexture
+			 * @brief
+			 *		Draw Background Texture
+			 * @remark
+			 *		draw background image abstract method using input image
+			 */
 			void DrawBackgroundTexture(IplImage* inputImage);
+
+			/**
+			 * @fn	SetProjectionMatrix
+			 * @brief
+			 *		Set Projection Matrix
+			 * @remark
+			 *		set projection matrix abstract method using intrinsic matrix
+			 */
 			void SetProjectionMatrix();
+
+			/**
+			* @fn	SetModelViewMatrix
+			 * @brief
+			 *		Set ModelView Matrix
+			 * @remark
+			 *		set model-view matrix abstract method using extrinsic matrix
+			 */
 			void SetModelViewMatrix();
 		};
+		/** @} */ // * @addtogroup Coordinator
 	}
 }
-
-#endif
+#endif // _AUGMENTED_REALITY_FOR_OPENGL_H_

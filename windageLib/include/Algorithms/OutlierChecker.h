@@ -3,7 +3,7 @@
  * ========================================================================
  * This work is based on the original windage Library developed by
  *   Woonhyuk Baek
- *   Woontack Woo
+ *   Woontack Woo (wwoo@gist.ac.kr)
  *   U-VR Lab, GIST of Gwangju in Korea.
  *   http://windage.googlecode.com/
  *   http://uvr.gist.ac.kr/
@@ -37,6 +37,14 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
+/**
+ * @file	OutlierChecker.h
+ * @author	Woonhyuk Baek
+ * @version 1.0
+ * @date	2010.02.04
+ * @brief	It is implemetation to check whether outlier or not
+ */
+
 #ifndef _OUTLIER_REMOVER_TREE_H_
 #define _OUTLIER_REMOVER_TREE_H_
 
@@ -51,12 +59,23 @@ namespace windage
 {
 	namespace Algorithms
 	{
-		// only check not remove
+		/**
+		 * @defgroup Algorithms algorithm classes
+		 * @brief
+		 *		algorithm classes
+		 * @addtogroup Algorithms
+		 * @{
+		 */
+
+		/**
+		 * @brief	class to checke whether outlier or not base on homography estimator
+		 * @author	Woonhyuk Baek
+		 */
 		class DLLEXPORT OutlierChecker
 		{
 		private:
-			HomographyEstimator* homographyEstimator;
-			double reprojectionError;
+			HomographyEstimator* homographyEstimator;	///< homography Estimator to attatch reference pointer at out-side
+			double reprojectionError;					///< threshold to determin outlier or not
 
 		public:
 			OutlierChecker()
@@ -68,13 +87,31 @@ namespace windage
 			{
 			}
 
+			/**
+			 * @fn	AttatchEstimator
+			 * @brief
+			 *		attatch homograpy estimator to member pointer from out-side
+			 * @remark
+			 *		reference & scene points in homograpy estimator will be updated after calling the calculate function
+			 * @warning
+			 *		homograpy estimator is not create in-side at this class so do not release this pointer
+			 */
 			inline void AttatchEstimator(HomographyEstimator* homographyEstimator){this->homographyEstimator = homographyEstimator;};
+
 			inline void SetReprojectionError(double error){this->reprojectionError = error;};
 			inline double GetReprojectionError(){return this->reprojectionError;};
 
+			/**
+			 * @fn	Calculate
+			 * @brief
+			 *		calcuation function to determin wheter outlier or not
+			 *		using attatched pair set of input feature points and reference feature points in homograpy estimator
+			 * @return
+			 *		success or failure
+			 */
 			bool Calculate();
 		};
+		/** @} */ // addtogroup Algorithms
 	}
 }
-
-#endif
+#endif // _OUTLIER_REMOVER_TREE_H_

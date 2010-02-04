@@ -2,8 +2,8 @@
  * PROJECT: windage Library
  * ========================================================================
  * This work is based on the original windage Library developed by
- *   Woonhyuk Baek
- *   Woontack Woo
+ *   Woonhyuk Baek (wbaek@gist.ac.kr / windage@live.com)
+ *   Woontack Woo (wwoo@gist.ac.kr)
  *   U-VR Lab, GIST of Gwangju in Korea.
  *   http://windage.googlecode.com/
  *   http://uvr.gist.ac.kr/
@@ -56,7 +56,7 @@
 
 #include "RANSACestimatorTest.h"
 #include "ProSACestimatorTest.h"
-#include "LMeDSestimatorTest.h"
+#include "LMedSestimatorTest.h"
 
 #include "OutlierCheckerTest.h"
 
@@ -89,7 +89,7 @@ void main()
 
 	RANSACestimatorTest testRANSACestimator;
 	ProSACestimatorTest testProSACestimator;
-	LMeDSestimatorTest testLMeDSestimator;
+	LMedSestimatorTest testLMedSestimator;
 
 	OutlierCheckerTest testOutlierChecker;
 	LMmethodTest testLMmethod;

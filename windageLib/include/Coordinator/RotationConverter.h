@@ -2,8 +2,8 @@
  * PROJECT: windage Library
  * ========================================================================
  * This work is based on the original windage Library developed by
- *   Woonhyuk Baek
- *   Woontack Woo
+ *   Woonhyuk Baek (wbaek@gist.ac.kr / windage@live.com)
+ *   Woontack Woo (wwoo@gist.ac.kr)
  *   U-VR Lab, GIST of Gwangju in Korea.
  *   http://windage.googlecode.com/
  *   http://uvr.gist.ac.kr/
@@ -37,21 +37,42 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
+/**
+ * @file	RotationConverter.h
+ * @author	Woonhyuk Baek
+ * @version 1.0
+ * @date	2010.02.04
+ * @brief	It is abstract class to support rotation convertion using static functions
+ */
+
 #ifndef _ROTATION_CONVERTER_H_
 #define _ROTATION_CONVERTER_H_
 
+#include "Structures/Vector.h"
 #include "Structures/Matrix.h"
 
 namespace windage
 {
 	namespace Coordinator
 	{
-	
-		// refer : http://en.wikipedia.org/wiki/Rotation_representation
+		/**
+		 * @defgroup Coordinator coordinator
+		 * @brief
+		 *		coordinator classes
+		 * @addtogroup Coordinator
+		 * @{
+		 */
+
+		/**
+		 * @brief	Abstract class to convert rotation representation
+ 		 *			refer : http://en.wikipedia.org/wiki/Rotation_representation
+		 * @warning QuaternionToEuler function has temporary buf fix code
+		 * @author	Woonhyuk Baek
+		 */
 		class RotationConverter
 		{
 		private:
-			// abstract class to use static function only
+			/** can not create object to use only static function */
 			RotationConverter()
 			{
 			};
@@ -71,6 +92,9 @@ namespace windage
 				return quaternion;
 			}
 
+			/**
+			 * @warning QuaternionToEuler function has temporary buf fix code
+			 */
 			static windage::Vector3 QuaternionToEuler(windage::Vector4 quaternion)
 			{
 				windage::Vector3 euler;
@@ -134,7 +158,7 @@ namespace windage
 				return dcm;
 			}
 		};
+		/** @} */ // addtogroup Coordinator
 	}
 }
-
-#endif
+#endif // _ROTATION_CONVERTER_H_

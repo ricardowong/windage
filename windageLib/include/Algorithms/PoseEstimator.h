@@ -2,8 +2,8 @@
  * PROJECT: windage Library
  * ========================================================================
  * This work is based on the original windage Library developed by
- *   Woonhyuk Baek
- *   Woontack Woo
+ *   Woonhyuk Baek (wbaek@gist.ac.kr / windage@live.com)
+ *   Woontack Woo (wwoo@gist.ac.kr)
  *   U-VR Lab, GIST of Gwangju in Korea.
  *   http://windage.googlecode.com/
  *   http://uvr.gist.ac.kr/
@@ -37,6 +37,14 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
+/**
+ * @file	PoseEstimator.h
+ * @author	Woonhyuk Baek
+ * @version 1.0
+ * @date	2010.02.04
+ * @brief	It is abstract class for camera pose estimator
+ */
+
 #ifndef _POSE_ESTIMATOR_H_
 #define _POSE_ESTIMATOR_H_
 
@@ -53,14 +61,35 @@ namespace windage
 {
 	namespace Algorithms
 	{
+		/**
+		 * @defgroup Algorithms algorithm classes
+		 * @brief
+		 *		algorithm classes
+		 * @addtogroup Algorithms
+		 * @{
+		 */
+
+		/**
+		 * @defgroup AlgorithmsPoseEstimator camera pose estimator in 3D
+		 * @brief
+				camera pose estimator in 3D
+		 * @addtogroup AlgorithmsPoseEstimator
+		 * @{
+		 */
+
+		/**
+		 * @brief	Abstract class for camera pose estimation in 3D
+		 * @author	Woonhyuk Baek
+		 */
 		class DLLEXPORT PoseEstimator
 		{
 		protected:
-			windage::Calibration* cameraParameter;
-			double reprojectionError;
+			windage::Calibration* cameraParameter;	///< camera calibration parameter to attatch reference pointer at out-side
+			double reprojectionError;				///< threshold to determin outlier or not
 
-			std::vector<windage::FeaturePoint>* referencePoints;
-			std::vector<windage::FeaturePoint>* scenePoints;
+			/** the nubmer of referencePoints and the number of scenePoints is to be same */
+			std::vector<windage::FeaturePoint>* referencePoints;	///< reference feature pointers to attatch pointer at out-side
+			std::vector<windage::FeaturePoint>* scenePoints;		///< scene feature pointers to attatch pointer at out-side
 			
 		public:
 			PoseEstimator()
@@ -77,16 +106,42 @@ namespace windage
 				this->scenePoints = NULL;
 			}
 
+			/**
+			 * @fn	AttatchCameraParameter
+			 * @brief
+			 *		attatch camera parameter to member pointer from out-side
+			 * @remark
+			 *		camera parameter will be updated after calling the calculate function
+			 * @warning
+			 *		camera parameter is not create in-side at this class so do not release this pointer
+			 */
 			inline void AttatchCameraParameter(windage::Calibration* cameraParameter){this->cameraParameter = cameraParameter;};
-			inline windage::Calibration* GetCameraParameter(){return this->cameraParameter;};
 
-			inline void SetReprojectionError(double error){this->reprojectionError = error;};
-			inline double GetReprojectionError(){return this->reprojectionError;};
-			
+			/**
+			 * @fn	AttatchReferencePoint
+			 * @brief
+			 *		attatch reference points to member pointer from out-side
+			 * @warning
+			 *		the reference points is not create in-side at this class so do not release this pointer
+			 */
 			inline void AttatchReferencePoint(std::vector<windage::FeaturePoint>* referencePoints){this->referencePoints = referencePoints;};
+
+			/**
+			 * @fn	AttatchScenePoint
+			 * @brief
+			 *		attatch scene points to member pointer from out-side
+			 * @warning
+			 *		the scene points is not create in-side at this class so do not release this pointer
+			 */
 			inline void AttatchScenePoint(std::vector<windage::FeaturePoint>* scenePoints){this->scenePoints = scenePoints;};
+
+			inline windage::Calibration* GetCameraParameter(){return this->cameraParameter;};
 			inline std::vector<windage::FeaturePoint>* GetReferencePoint(){return this->referencePoints;};
 			inline std::vector<windage::FeaturePoint>* GetScenePoint(){return this->scenePoints;};
+		
+			inline void SetReprojectionError(double error){this->reprojectionError = error;};
+			inline double GetReprojectionError(){return this->reprojectionError;};
+
 
 			windage::Vector3 ConvertWorldToImage(windage::Vector3 point = windage::Vector3(0.0, 0.0, 0.0))
 			{
@@ -107,9 +162,19 @@ namespace windage
 				return windage::Vector3(worldPoint.x, worldPoint.y, z);
 			}
 
+			/**
+			 * @fn	Calculate
+			 * @brief
+			 *		abstract virtual function to calculate camera pose using attatched pair set of input feature points and reference feature points
+			 * @warning
+			 *		the nubmer of referencePoints and the number of scenePoints is to be same
+			 * @return
+			 *		success or failure
+			 */
 			virtual bool Calculate() = 0;
 		};
+		/** @} */ // addtogroup AlgorithmsPoseEstimator
+		/** @} */ // addtogroup Algorithms
 	}
 }
-
-#endif
+#endif // _POSE_ESTIMATOR_H_
