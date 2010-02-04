@@ -2,8 +2,8 @@
  * PROJECT: windage Library
  * ========================================================================
  * This work is based on the original windage Library developed by
- *   Woonhyuk Baek
- *   Woontack Woo
+ *   Woonhyuk Baek (wbaek@gist.ac.kr / windage@live.com)
+ *   Woontack Woo (wwoo@gist.ac.kr)
  *   U-VR Lab, GIST of Gwangju in Korea.
  *   http://windage.googlecode.com/
  *   http://uvr.gist.ac.kr/
@@ -37,6 +37,14 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
+/**
+ * @file	SURFdetector.h
+ * @author	Woonhyuk Baek
+ * @version 1.0
+ * @date	2010.02.04
+ * @brief	It is SURF feature detection & description class
+ */
+
 #ifndef _SURF_DETECTOR_H_
 #define _SURF_DETECTOR_H_
 
@@ -52,10 +60,29 @@ namespace windage
 {
 	namespace Algorithms
 	{
+		/**
+		 * @defgroup Algorithms algorithm classes
+		 * @brief
+		 *		algorithm classes
+		 * @addtogroup Algorithms
+		 * @{
+		 */
+
+		/**
+		 * @defgroup AlgorithmsFeatureDetector feature detector algorithm classes
+		 * @brief
+				feature detector algorithm classes
+		 * @addtogroup AlgorithmsFeatureDetector
+		 * @{
+		 */
+
+		/**
+		 * @brief	Class for SURF feature detector
+		 * @author	Woonhyuk Baek
+		 */
 		class DLLEXPORT SURFdetector : public FeatureDetector
 		{
 		private:
-			
 
 		public:
 			SURFdetector(double threshold = 1000.0) : FeatureDetector()
@@ -66,10 +93,21 @@ namespace windage
 			{
 			}
 
+			/**
+			 * @fn	DoExtractKeypointsDescriptor
+			 * @brief
+			 *		implemantation of SURF feature extraction & description
+			 * @remark
+			 *		the result is depend on threshold (member valuable)
+			 * @warning
+			 *		input image is always gray image (1-channel)
+			 * @return
+			 *		success or failure
+			 */
 			bool DoExtractKeypointsDescriptor(IplImage* grayImage);
 		};
+		/** @} */ // addtogroup AlgorithmsFeatureDetector
+		/** @} */ // addtogroup Algorithms
 	}
 }
-
-
-#endif
+#endif // _SURF_DETECTOR_H_

@@ -2,8 +2,8 @@
  * PROJECT: windage Library
  * ========================================================================
  * This work is based on the original windage Library developed by
- *   Woonhyuk Baek
- *   Woontack Woo
+ *   Woonhyuk Baek (wbaek@gist.ac.kr / windage@live.com)
+ *   Woontack Woo (wwoo@gist.ac.kr)
  *   U-VR Lab, GIST of Gwangju in Korea.
  *   http://windage.googlecode.com/
  *   http://uvr.gist.ac.kr/
@@ -37,6 +37,14 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
+/**
+ * @file	WSURFpoint.h
+ * @author	Woonhyuk Baek
+ * @version 1.0
+ * @date	2010.02.04
+ * @brief	It is windaeg SURF point data representation
+ */
+
 #ifndef _W_SURF_POINT_H_
 #define _W_SURF_POINT_H_
 
@@ -49,27 +57,31 @@
 
 namespace windage
 {
+	/**
+	 * @defgroup Structures data structures
+	 * @brief
+	 *		data structures classes
+	 * @addtogroup Structures
+	 * @{
+	 */
+
+	/**
+	 * @brief	Class for windage SURF feature points
+	 * @author	Woonhyuk Baek
+	 */
 	class DLLEXPORT WSURFpoint : public FeaturePoint
 	{
 	public:
 		WSURFpoint() : FeaturePoint()
 		{
+			/** windage SURF feature descriptor dimension is always 36 dimension */
 			this->DESCRIPTOR_DIMENSION = 36;
 			this->descriptor.resize(this->DESCRIPTOR_DIMENSION);
 		}
 		~WSURFpoint()
 		{
 		}
-
-		void operator=(WSURFpoint oprd)
-		{
-			this->DESCRIPTOR_DIMENSION = oprd.DESCRIPTOR_DIMENSION;
-			this->descriptor.resize(DESCRIPTOR_DIMENSION);
-
-			this->point = oprd.GetPoint();
-			this->objectID = oprd.GetObjectID();
-		}
 	};
+	/** @} */ // addtogroup Structures
 }
-
-#endif
+#endif // _W_SURF_POINT_H_

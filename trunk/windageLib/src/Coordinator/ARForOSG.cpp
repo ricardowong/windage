@@ -2,8 +2,8 @@
  * PROJECT: windage Library
  * ========================================================================
  * This work is based on the original windage Library developed by
- *   Woonhyuk Baek
- *   Woontack Woo
+ *   Woonhyuk Baek (wbaek@gist.ac.kr / windage@live.com)
+ *   Woontack Woo (wwoo@gist.ac.kr)
  *   U-VR Lab, GIST of Gwangju in Korea.
  *   http://windage.googlecode.com/
  *   http://uvr.gist.ac.kr/
@@ -40,18 +40,6 @@
 #include "Coordinator/ARForOSG.h"
 using namespace windage;
 using namespace windage::Coordinator;
-
-ARForOSG::ARForOSG()
-{
-	this->width = 640;
-	this->height = 480;
-	cameraParameter = NULL;
-}
-
-ARForOSG::~ARForOSG()
-{
-	this->Release();
-}
 
 void ARForOSG::Release()
 {
@@ -117,7 +105,7 @@ void ARForOSG::SetModelViewMatrix()
 	this->modelviewMatrix.m1[15]= 1.0;
 }
 
-windage::Matrix4 ARForOSG::CalculateModelViewMatrix(windage::Matrix4 extrinsic)
+windage::Matrix4 ARForOSG::ConvertModelViewMatrix(windage::Matrix4 extrinsic)
 {
 	windage::Matrix4 localModelView;
 

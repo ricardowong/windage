@@ -2,8 +2,8 @@
  * PROJECT: windage Library
  * ========================================================================
  * This work is based on the original windage Library developed by
- *   Woonhyuk Baek
- *   Woontack Woo
+ *   Woonhyuk Baek (wbaek@gist.ac.kr / windage@live.com)
+ *   Woontack Woo (wwoo@gist.ac.kr)
  *   U-VR Lab, GIST of Gwangju in Korea.
  *   http://windage.googlecode.com/
  *   http://uvr.gist.ac.kr/
@@ -43,10 +43,10 @@
 #include "windageTest.h"
 #include "Algorithms/WSURFdetector.h"
 #include "Algorithms/FLANNtree.h"
-#include "Algorithms/LMeDSestimator.h"
+#include "Algorithms/LMedSestimator.h"
 #include "Utilities/Utils.h"
 
-class LMeDSestimatorTest : public windageTest
+class LMedSestimatorTest : public windageTest
 {
 private:
 	IplImage* grayImage;
@@ -58,7 +58,7 @@ private:
 	std::vector<windage::FeaturePoint> scenePoints;
 
 public:
-	LMeDSestimatorTest() : windageTest("LMeDSestimator Test", "LMeDSestimator")
+	LMedSestimatorTest() : windageTest("LMedSestimator Test", "LMedSestimator")
 	{
 		grayImage = NULL;
 		surfDetectorRef = NULL;
@@ -66,7 +66,7 @@ public:
 		searchTree = NULL;
 		this->Do();
 	}
-	~LMeDSestimatorTest()
+	~LMedSestimatorTest()
 	{
 		if(grayImage) cvReleaseImage(&grayImage);
 		grayImage = NULL;
@@ -148,14 +148,14 @@ public:
 		void* p2 = 0;
 		int compair = 0;
 
-		windage::Algorithms::LMeDSestimator* estimator1 = new windage::Algorithms::LMeDSestimator();
+		windage::Algorithms::LMedSestimator* estimator1 = new windage::Algorithms::LMedSestimator();
 		p1 = (void*)estimator1;
 		estimator1->AttatchReferencePoint(&this->referencePoints);
 		estimator1->AttatchScenePoint(&this->scenePoints);
 		estimator1->Calculate();
 		delete estimator1;
 
-		windage::Algorithms::LMeDSestimator* estimator2 = new windage::Algorithms::LMeDSestimator();
+		windage::Algorithms::LMedSestimator* estimator2 = new windage::Algorithms::LMedSestimator();
 		p2 = (void*)estimator2;
 		estimator2->AttatchReferencePoint(&this->referencePoints);
 		estimator2->AttatchScenePoint(&this->scenePoints);
@@ -187,7 +187,7 @@ public:
 
 		cvNamedWindow("LMeDS estimator");
 		
-		windage::Algorithms::LMeDSestimator estimator;
+		windage::Algorithms::LMedSestimator estimator;
 		estimator.AttatchReferencePoint(&this->referencePoints);
 		estimator.AttatchScenePoint(&this->scenePoints);
 		estimator.Calculate();

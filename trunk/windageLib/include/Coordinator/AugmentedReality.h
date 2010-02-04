@@ -2,8 +2,8 @@
  * PROJECT: windage Library
  * ========================================================================
  * This work is based on the original windage Library developed by
- *   Woonhyuk Baek
- *   Woontack Woo
+ *   Woonhyuk Baek (wbaek@gist.ac.kr / windage@live.com)
+ *   Woontack Woo (wwoo@gist.ac.kr)
  *   U-VR Lab, GIST of Gwangju in Korea.
  *   http://windage.googlecode.com/
  *   http://uvr.gist.ac.kr/
@@ -37,6 +37,14 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
+/**
+ * @file	AugmentedReality.h
+ * @author	Woonhyuk Baek
+ * @version 1.0
+ * @date	2010.02.04
+ * @brief	It is abstract class to support AR applicaations
+ */
+
 #ifndef _AUGMENTED_REALITY_H_
 #define _AUGMENTED_REALITY_H_
 
@@ -48,10 +56,16 @@ namespace windage
 	namespace Coordinator
 	{
 		/**
+		 * @defgroup Coordinator coordinator
 		 * @brief
-		 *		Abstract Class for Augmented Reality
-		 * @author
-		 *		windage
+		 *		coordinator classes
+		 * @addtogroup Coordinator
+		 * @{
+		 */
+
+		/**
+		 * @brief	Abstract Class for Augmented Reality
+		 * @author	Woonhyuk Baek
 		 */
 		class DLLEXPORT AugmentedReality
 		{
@@ -68,11 +82,24 @@ namespace windage
 			virtual void Release() = 0;
 
 		public:
-			AugmentedReality();
-			virtual ~AugmentedReality();
+			AugmentedReality()
+			{
+				cameraParameter = NULL;
+
+				isFlip = false;
+				imageWidth = 0;
+				imageHeight = 0;
+				textureWidth = 0;
+
+				textureRepository = NULL;
+			};
+			virtual ~AugmentedReality()
+			{
+			}
 
 			/**
-			 * @brief
+			 * @fn	AttatchCameraParameter
+			 * @brie
 			 *		Attatch Camera Parameter
 			 * @remark
 			 *		attatch camera paramter only read and update from outside
@@ -90,6 +117,7 @@ namespace windage
 			 */
 
 			/**
+			 * @fn	DrawBackgroundTexture
 			 * @brief
 			 *		Draw Background Texture
 			 * @remark
@@ -98,23 +126,25 @@ namespace windage
 			virtual void DrawBackgroundTexture(IplImage* inputImage) = 0;
 			
 			/**
+			 * @fn	SetProjectionMatrix
 			 * @brief
 			 *		Set Projection Matrix
 			 * @remark
-			 *		set projection matrix abstract method using intrinsic matrix
+			 *		set projection matrix to OPNEGL parameter using intrinsic matrix
 			 */
 			virtual void SetProjectionMatrix() = 0;
 
 			/**
+			 * @fn	SetModelViewMatrix
 			 * @brief
 			 *		Set ModelView Matrix
 			 * @remark
-			 *		set model-view matrix abstract method using extrinsic matrix
+			 *		set model-view matrix to OPNEGL parameter using extrinsic matrix
 			 */
 			virtual void SetModelViewMatrix() = 0;
-			/** @} */
+			/** @} */ // * @addtogroup AugmentedRealityMethod
 		};
+		/** @} */ // * @addtogroup Coordinator
 	}
 }
-
-#endif
+#endif // _AUGMENTED_REALITY_H_

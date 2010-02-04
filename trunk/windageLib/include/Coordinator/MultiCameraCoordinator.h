@@ -2,8 +2,8 @@
  * PROJECT: windage Library
  * ========================================================================
  * This work is based on the original windage Library developed by
- *   Woonhyuk Baek
- *   Woontack Woo
+ *   Woonhyuk Baek (wbaek@gist.ac.kr / windage@live.com)
+ *   Woontack Woo (wwoo@gist.ac.kr)
  *   U-VR Lab, GIST of Gwangju in Korea.
  *   http://windage.googlecode.com/
  *   http://uvr.gist.ac.kr/
@@ -37,6 +37,14 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
+/**
+ * @file	MultiCameraCoordinator.h
+ * @author	Woonhyuk Baek
+ * @version 1.0
+ * @date	2010.02.04
+ * @brief	It is abstract class to calcuate relation of multi-cameras
+ */
+
 #ifndef _MULTI_CAMERA_COORDINATE_H_
 #define _MULTI_CAMERA_COORDINATE_H_
 
@@ -50,14 +58,49 @@ namespace windage
 {
 	namespace Coordinator
 	{
+		/**
+		 * @defgroup Coordinator coordinator
+		 * @brief
+		 *		coordinator classes
+		 * @addtogroup Coordinator
+		 * @{
+		 */
+
+		/**
+		 * @brief	Class for multi-camera coordination
+		 * @author	Woonhyuk Baek
+		 */
 		class DLLEXPORT MultiCameraCoordinator
 		{
 		public:
+			/**
+			 * @fn	GetTranslation
+			 * @brief
+			 *		static function to calculate translation from baseCalibration to toCalibration
+			 * @return
+			 *		translation vector
+			 */
 			static Vector3 GetTranslation(Calibration* baseCalibration, Calibration* toCalibration);
+
+			/**
+			 * @fn	GetRotation
+			 * @brief
+			 *		static function to calculate rotation from baseCalibration to toCalibration
+			 * @return
+			 *		rotation matrix
+			 */
 			static Matrix3 GetRotation(Calibration* baseCalibration, Calibration* toCalibration);
+
+			/**
+			 * @fn	CalculateExtrinsic
+			 * @brief
+			 *		static function to calculate extrinsic matrix base on baseCalibration using traslation and rotation
+			 * @return
+			 *		extrinsic matrix
+			 */
 			static Matrix4 CalculateExtrinsic(Calibration* baseCalibration, Matrix3 toRotation, Vector3 toTranslation);
 		};
+		/** @} */ // addtogroup Coordinator
 	}
 }
-
-#endif
+#endif // _MULTI_CAMERA_COORDINATE_H_

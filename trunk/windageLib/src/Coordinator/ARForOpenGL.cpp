@@ -2,8 +2,8 @@
  * PROJECT: windage Library
  * ========================================================================
  * This work is based on the original windage Library developed by
- *   Woonhyuk Baek
- *   Woontack Woo
+ *   Woonhyuk Baek (wbaek@gist.ac.kr / windage@live.com)
+ *   Woontack Woo (wwoo@gist.ac.kr)
  *   U-VR Lab, GIST of Gwangju in Korea.
  *   http://windage.googlecode.com/
  *   http://uvr.gist.ac.kr/
@@ -40,16 +40,6 @@
 #include "Coordinator/ARForOpenGL.h"
 using namespace windage;
 using namespace windage::Coordinator;
-
-ARForOpenGL::ARForOpenGL()
-{
-	textureRepository = NULL;
-	backgroundTexture = 0;
-}
-
-ARForOpenGL::~ARForOpenGL()
-{
-}
 
 void ARForOpenGL::Release()
 {

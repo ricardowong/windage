@@ -2,8 +2,8 @@
  * PROJECT: windage Library
  * ========================================================================
  * This work is based on the original windage Library developed by
- *   Woonhyuk Baek
- *   Woontack Woo
+ *   Woonhyuk Baek (wbaek@gist.ac.kr / windage@live.com)
+ *   Woontack Woo (wwoo@gist.ac.kr)
  *   U-VR Lab, GIST of Gwangju in Korea.
  *   http://windage.googlecode.com/
  *   http://uvr.gist.ac.kr/
@@ -37,30 +37,9 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#include "Structures/Calibration.h"
 #include "Structures/Matrix.h"
+#include "Structures/Calibration.h"
 using namespace windage;
-
-Calibration::Calibration()
-{
-	intrinsicMatrix = cvCreateMat(3, 3, CV_64FC1);
-	distortionCoefficients = cvCreateMat(4, 1, CV_64FC1);
-	extrinsicMatrix = cvCreateMat(4, 4, CV_64FC1);
-
-	cvmSetZero(intrinsicMatrix);
-	cvmSetZero(distortionCoefficients);
-	cvmSetZero(extrinsicMatrix);
-
-	dstMapX = NULL;
-	dstMapY = NULL;
-
-//	chessboardPoints = NULL;
-}
-
-Calibration::~Calibration()
-{
-	this->Release();
-}
 
 void Calibration::Release()
 {

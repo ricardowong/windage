@@ -2,8 +2,8 @@
  * PROJECT: windage Library
  * ========================================================================
  * This work is based on the original windage Library developed by
- *   Woonhyuk Baek
- *   Woontack Woo
+ *   Woonhyuk Baek (wbaek@gist.ac.kr / windage@live.com)
+ *   Woontack Woo (wwoo@gist.ac.kr)
  *   U-VR Lab, GIST of Gwangju in Korea.
  *   http://windage.googlecode.com/
  *   http://uvr.gist.ac.kr/
@@ -37,6 +37,17 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
+/**
+ * @file	Calibration.h
+ * @author	Woonhyuk Baek
+ * @version 1.0
+ * @date	2010.02.04
+ * @brief	It has camera information
+ *
+ *	- Data : intrinsic matrix, distortion coefficient, extrinsic matrix
+ *	- Functions : coordination converters, undistortion, draw camera parameter to image
+ */
+
 #ifndef _CALIBRATION_H_
 #define _CALIBRATION_H_
 
@@ -47,50 +58,81 @@
 namespace windage
 {
 	/**
+	 * @defgroup Structures data structures
 	 * @brief
-	 *		Class for Camera Parameter
-	 * @author
-	 *		windage
+	 *		data structures classes
+	 * @addtogroup Structures
+	 * @{
+	 */
+
+	/**
+	 * @brief	Class for camera parameter
+	 * @author	Woonhyuk Baek
 	 */
 	class DLLEXPORT Calibration
 	{
 	private:
-		double parameter[8];
+		double parameter[8];			///< intrinsic parameter (Camera coordinate to Image coordinate)
 
-		CvMat* intrinsicMatrix;			///< intrinsic parameter (Camera coordinate to Image coordinate)
+		CvMat* intrinsicMatrix;			///< intrinsic matrix (Camera coordinate to Image coordinate)
 		CvMat* distortionCoefficients;	///< distortion coefficient
-		CvMat* extrinsicMatrix;			///< extrinsic parameter (World coordinate to Camera coordinate)
+		CvMat* extrinsicMatrix;			///< extrinsic matrix (World coordinate to Camera coordinate)
 
 		IplImage* dstMapX;				///< pre-calculated data storage for map-based undistortion method
 		IplImage* dstMapY;				///< pre-calculated data storage for map-based undistortion method
 
+		/**
+		 * @fn	Release
+		 * @brief
+		 *		release all data memory
+		 * @remark
+		 *		it is necessary function to delete data and release memories
+		 */
 		void Release();
 		
 	public:
-		Calibration();
-		~Calibration();
-		
+		Calibration()
+		{
+			intrinsicMatrix = cvCreateMat(3, 3, CV_64FC1);
+			distortionCoefficients = cvCreateMat(4, 1, CV_64FC1);
+			extrinsicMatrix = cvCreateMat(4, 4, CV_64FC1);
+
+			cvmSetZero(intrinsicMatrix);
+			cvmSetZero(distortionCoefficients);
+			cvmSetZero(extrinsicMatrix);
+
+			dstMapX = NULL;
+			dstMapY = NULL;
+		}
+		~Calibration()
+		{
+			this->Release();
+		}
+
 		inline double* GetParameters(){return this->parameter;};
 		inline CvMat* GetIntrinsicMatrix(){return intrinsicMatrix;};
 		inline CvMat* GetDistortionCoefficients(){return distortionCoefficients;};
 		inline CvMat* GetExtrinsicMatrix(){return extrinsicMatrix;};
 
 		/**
+		 * @fn	Initialize
 		 * @brief
 		 *		initialize camera paramter (intrinsic parameter)
+		 * @sa	SetIntrinsicMatirx
+		 * @sa	SetDistortionCoefficients
 		 * @remark
-		 *		it is not necessary function 
+		 *		it is necessary function 
 		 *		can alternate SetIntrinsicMatirx and SetDistortionCoefficients functions but recommended
 		 */
 		void Initialize(
-						double fx, 				///< intrinsic parameter x focal length
-						double fy, 				///< intrinsic parameter y focal length
-						double cx, 				///< intrinsic parameter x principle point
-						double cy, 				///< intrinsic parameter y principle point
-						double d1, 				///< intrinsic parameter distortion factor1
-						double d2, 				///< intrinsic parameter distortion factor2
-						double d3, 				///< intrinsic parameter distortion factor3
-						double d4 				///< intrinsic parameter distortion factor4
+						double fx,		///< intrinsic parameter x focal length
+						double fy,		///< intrinsic parameter y focal length
+						double cx, 		///< intrinsic parameter x principle point
+						double cy, 		///< intrinsic parameter y principle point
+						double d1 = 0,	///< intrinsic parameter distortion factor1
+						double d2 = 0,	///< intrinsic parameter distortion factor2
+						double d3 = 0,	///< intrinsic parameter distortion factor3
+						double d4 = 0	///< intrinsic parameter distortion factor4
 						);
 
 		void SetIntrinsicMatirx(double fx, double fy, double cx, double cy);
@@ -107,12 +149,12 @@ namespace windage
 		CvScalar GetRightPoint();
 		
 		/**
-		 * @defgroup CoordinateConvertor Coordinate Convertor
+		 * @defgroup Calibration:CoordinateConvertor Coordinate Convertor
 		 * @brief
 		 *		Coordinate Convertor
 		 * @remark
 		 *		Coordinate Convert World, Camera, Image coordinate
-		 * @addtogroup CoordinateConvertor
+		 * @addtogroup Calibration:CoordinateConvertor
 		 * @{
 		 */
 		int ConvertWorld2Camera(CvMat* output4vector, CvMat* input4vector);
@@ -124,9 +166,10 @@ namespace windage
 		int ConvertImage2Camera(CvMat* output3vector, CvMat* input3vector, double z);
 		int ConvertImage2World(CvMat* output3vector, CvMat* input3vector, double z);
 		CvPoint2D64f ConvertImage2World(double ix, double iy, double wz=0.0);
-		/** @} */
+		/** @} */ // Calibration:CoordinateConvertor
 
 		/**
+		 * @fn	InitUndistortionMap
 		 * @brief
 		 *		initialize remapping data for map-based undistortion method
 		 * @remark
@@ -137,6 +180,7 @@ namespace windage
 									int height	///< input image height size
 								);
 		/**
+		 * @fn	Undistortion
 		 * @brief
 		 *		undistortion method
 		 * @remark
@@ -145,8 +189,15 @@ namespace windage
 		 */
 		void Undistortion(IplImage* input, IplImage* output);
 
+		/**
+		 * @fn	DrawInfomation
+		 * @brief
+		 *		draw camera information to image depend on intrinsic & extrinsic
+		 * @remark
+		 *		size is a relative value 
+		 */
 		void DrawInfomation(IplImage* colorImage, double size = 10.0);
 	};
-
+	/** @} */ // addtogroup Structures
 }
-#endif
+#endif // _CALIBRATION_H_

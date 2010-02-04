@@ -2,8 +2,8 @@
  * PROJECT: windage Library
  * ========================================================================
  * This work is based on the original windage Library developed by
- *   Woonhyuk Baek
- *   Woontack Woo
+ *   Woonhyuk Baek (wbaek@gist.ac.kr / windage@live.com)
+ *   Woontack Woo (wwoo@gist.ac.kr)
  *   U-VR Lab, GIST of Gwangju in Korea.
  *   http://windage.googlecode.com/
  *   http://uvr.gist.ac.kr/
@@ -37,6 +37,14 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
+/**
+ * @file	HomgraphyRefiner.h
+ * @author	Woonhyuk Baek
+ * @version 1.0
+ * @date	2010.02.04
+ * @brief	It is abstract class to refine homography
+ */
+
 #ifndef _HOMOGRAPHY_REFINER_H_
 #define _HOMOGRAPHY_REFINER_H_
 
@@ -52,14 +60,27 @@ namespace windage
 {
 	namespace Algorithms
 	{
+		/**
+		 * @defgroup Algorithms algorithm classes
+		 * @brief
+		 *		algorithm classes
+		 * @addtogroup Algorithms
+		 * @{
+		 */
+
+		/**
+		 * @brief	Abstract class to refine homography
+		 * @author	Woonhyuk Baek
+		 */
 		class DLLEXPORT HomographyRefiner
 		{
 		protected:
-			windage::Matrix3* homography;
-			int maxIteration;
+			windage::Matrix3* homography;	///< homography parameter to attatch reference pointer at out-side
+			int maxIteration;				///< the number of refinement iteration
 
-			std::vector<windage::FeaturePoint>* referencePoints;
-			std::vector<windage::FeaturePoint>* scenePoints;
+			/** the nubmer of referencePoints and the number of scenePoints is to be same */
+			std::vector<windage::FeaturePoint>* referencePoints;	// reference points to attatch reference pointer at out-side
+			std::vector<windage::FeaturePoint>* scenePoints;		// reference points to attatch reference pointer at out-side
 			
 		public:
 			HomographyRefiner()
@@ -76,17 +97,51 @@ namespace windage
 				this->scenePoints = NULL;
 			}
 
+			/**
+			 * @fn	AttatchHomography
+			 * @brief
+			 *		attatch homography parameter to member pointer from out-side
+			 * @remark
+			 *		homography parameter will be updated after calling the calculate function
+			 * @warning
+			 *		homography parameter is to be initialized using homography estimator
+			 *		homography parameter is not create in-side at this class so do not release this pointer
+			 */
 			inline void AttatchHomography(windage::Matrix3* homography){this->homography = homography;};
 			inline windage::Matrix3* GetHomography(){return this->homography;};
 
 			inline void SetMaxIteration(int iteration){this->maxIteration = iteration;};
 
+			/**
+			 * @fn	AttatchReferencePoint
+			 * @brief
+			 *		attatch reference points to member pointer from out-side
+			 * @warning
+			 *		the reference points is not create in-side at this class so do not release this pointer
+			 */
 			inline void AttatchReferencePoint(std::vector<windage::FeaturePoint>* referencePoints){this->referencePoints = referencePoints;};
+
+			/**
+			 * @fn	AttatchScenePoint
+			 * @brief
+			 *		attatch scene points to member pointer from out-side
+			 * @warning
+			 *		the scene points is not create in-side at this class so do not release this pointer
+			 */
 			inline void AttatchScenePoint(std::vector<windage::FeaturePoint>* scenePoints){this->scenePoints = scenePoints;};
 
+			/**
+			 * @fn	Calculate
+			 * @brief
+			 *		abstract virtual function to refinement homography using attatched initialized homography and pair set of input feature points and reference feature points
+			 * @warning
+			 *		the nubmer of referencePoints and the number of scenePoints is to be same
+			 * @return
+			 *		success or failure
+			 */
 			virtual bool Calculate() = 0;
 		};
+		/** @} */ // addtogroup Algorithms
 	}
 }
-
-#endif
+#endif // _HOMOGRAPHY_REFINER_H_

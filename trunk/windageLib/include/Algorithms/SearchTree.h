@@ -2,8 +2,8 @@
  * PROJECT: windage Library
  * ========================================================================
  * This work is based on the original windage Library developed by
- *   Woonhyuk Baek
- *   Woontack Woo
+ *   Woonhyuk Baek (wbaek@gist.ac.kr / windage@live.com)
+ *   Woontack Woo (wwoo@gist.ac.kr)
  *   U-VR Lab, GIST of Gwangju in Korea.
  *   http://windage.googlecode.com/
  *   http://uvr.gist.ac.kr/
@@ -37,6 +37,14 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
+/**
+ * @file	SearchTree.h
+ * @author	Woonhyuk Baek
+ * @version 1.0
+ * @date	2010.02.04
+ * @brief	It is abstract class for feature matching to use searching tree
+ */
+
 #ifndef _SEARCH_TREE_H_
 #define _SEARCH_TREE_H_
 
@@ -51,11 +59,31 @@ namespace windage
 {
 	namespace Algorithms
 	{
+		/**
+		 * @defgroup Algorithms algorithm classes
+		 * @brief
+		 *		algorithm classes
+		 * @addtogroup Algorithms
+		 * @{
+		 */
+
+		/**
+		 * @defgroup AlgorithmsSearchTree feature matching algorithm classes
+		 * @brief
+				feature matching algorithm classes
+		 * @addtogroup AlgorithmsSearchTree
+		 * @{
+		 */
+
+		/**
+		 * @brief	Abstract class for feature matching to use searching tree
+		 * @author	Woonhyuk Baek
+		 */
 		class DLLEXPORT SearchTree
 		{
 		protected:
-			int DESCRIPTOR_DATA_TYPE;
-			double nearestNeighbourhoodRatio;
+			int DESCRIPTOR_DATA_TYPE;			///< descriptor data type CV_32F / CV_64F
+			double nearestNeighbourhoodRatio;	///< ratio for nearest neigh bourhood : 0.7
 			
 		public:
 			SearchTree()
@@ -70,10 +98,40 @@ namespace windage
 			inline void SetRatio(double ratio){this->nearestNeighbourhoodRatio = ratio;};
 			inline double GetRatio(){return this->nearestNeighbourhoodRatio;};
 
-			virtual bool Training(std::vector<windage::FeaturePoint>* pointList) = 0;
-			virtual int Matching(windage::FeaturePoint point, double* difference = NULL) = 0;
+			/**
+			 * @fn	Training
+			 * @brief
+			 *		abstract virtual function to generate descriptor tree
+			 * @remark
+			 *		the result is each implementation class member storage
+			 * @warning
+			 *		pointList is not null
+			 * @return
+			 *		success or failure
+			 */
+			virtual bool Training(
+								  std::vector<windage::FeaturePoint>* pointList	///< feature point list to generate tree
+								  ) = 0;
+
+			/**
+			 * @fn	Matching
+			 * @brief
+			 *		abstract virtual function to match between input feature point and reference feature points
+			 * @remark
+			 *		the comparison is each implementation class member storage
+			 * @warning
+			 *		if difference is NULL pointer that not return the difference value
+			 * @return
+			 *		matched reference feature index
+			 *		reference parameter difference is distance between input feature and matched refernece point
+			 */
+			virtual int Matching(
+								 windage::FeaturePoint point,	///< input feature
+								 double* difference = NULL		///< output reference pointer
+								 ) = 0;
 		};
+		/** @} */ // addtogroup AlgorithmsSearchTree
+		/** @} */ // addtogroup Algorithms
 	}
 }
-
-#endif
+#endif // _SEARCH_TREE_H_

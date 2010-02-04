@@ -2,8 +2,8 @@
  * PROJECT: windage Library
  * ========================================================================
  * This work is based on the original windage Library developed by
- *   Woonhyuk Baek
- *   Woontack Woo
+ *   Woonhyuk Baek (wbaek@gist.ac.kr / windage@live.com)
+ *   Woontack Woo (wwoo@gist.ac.kr)
  *   U-VR Lab, GIST of Gwangju in Korea.
  *   http://windage.googlecode.com/
  *   http://uvr.gist.ac.kr/
@@ -37,6 +37,15 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
+/**
+ * @mainpage windageLib : Visual Object Recognition & Tracking Library
+ * @section INTRO
+ * - windageLib : Visual Object Recognition & Tracking Library
+ * @author	Woonhyuk Baek
+ * @version 1.0
+ * @date	2010.02.04
+ */
+
 // Structures
 #include "Structures/Vector.h"
 #include "Structures/Matrix.h"
@@ -69,7 +78,7 @@
 #include "Algorithms/HomographyEstimator.h"
 #include "Algorithms/RANSACestimator.h"
 #include "Algorithms/ProSACestimator.h"
-#include "Algorithms/LMeDSestimator.h"
+#include "Algorithms/LMedSestimator.h"
 #include "Algorithms/EPnPEstimator.h"
 
 // refiner
@@ -93,3 +102,4 @@
 
 #include "Coordinator/MultiCameraCoordinator.h"
 #include "Coordinator/MultiMarkerCoordinator.h"
+

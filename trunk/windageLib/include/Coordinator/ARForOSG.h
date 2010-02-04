@@ -2,8 +2,8 @@
  * PROJECT: windage Library
  * ========================================================================
  * This work is based on the original windage Library developed by
- *   Woonhyuk Baek
- *   Woontack Woo
+ *   Woonhyuk Baek (wbaek@gist.ac.kr / windage@live.com)
+ *   Woontack Woo (wwoo@gist.ac.kr)
  *   U-VR Lab, GIST of Gwangju in Korea.
  *   http://windage.googlecode.com/
  *   http://uvr.gist.ac.kr/
@@ -37,6 +37,14 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
+/**
+ * @file	ARForOSG.h
+ * @author	Woonhyuk Baek
+ * @version 1.0
+ * @date	2010.02.04
+ * @brief	It is class to support AR applicaations using OSG
+ */
+
 #ifndef _AUGMENTED_REALITY_FOR_OSG_H_
 #define _AUGMENTED_REALITY_FOR_OSG_H_
 
@@ -50,42 +58,93 @@ namespace windage
 	namespace Coordinator
 	{
 		/**
+		 * @defgroup Coordinator coordinator
 		 * @brief
-		 *		Class for Augmented Reality Tool at OSG Environment (hidding)
-		 * @author
-		 *		windage
+		 *		coordinator classes
+		 * @addtogroup Coordinator
+		 * @{
+		 */
+
+		/**
+		 * @brief	Class for Augmented Reality Tool at OSG Environment (hidding)
+		 * @warning	It need to convert windage matrix to OSG matrix for AR rednering
+		 * @author	Woonhyuk Baek
 		 */
 		class DLLEXPORT ARForOSG : public AugmentedReality
 		{
 		private:
-			void Release();
-			int width;
-			int height;
-			windage::Matrix4 projectionMatrix;
-			windage::Matrix4 modelviewMatrix;
+			int width;							///< rendering image width
+			int height;							///< rendering image height
+			windage::Matrix4 projectionMatrix;	///< update storage from calibration for OSG projection matrix
+			windage::Matrix4 modelviewMatrix;	///< update storage from calibration for OSG model-view matrix
 
+			void Release();
 		public:
-			ARForOSG();
-			~ARForOSG();
+			ARForOSG()
+			{
+				this->width = 640;
+				this->height = 480;
+				cameraParameter = NULL;
+			}
+			~ARForOSG()
+			{
+				this->Release();
+			}
 
 			/**
+			 * @fn	Initialize
 			 * @brief
-			 *		Initialize ARTool for OpenGL
+			 *		Initialize ARTool for OSG
 			 * @remark
-			 *		initialize ARTool for OpenGL Environment
+			 *		initialize ARTool for OSG Environment
 			 */
-			void Initialize(int width, int height);
+			void Initialize(
+							int width,	///< rendering image width
+							int height	///< rendering image height
+							);
 
-			void SetProjectionMatrix();
-			void SetModelViewMatrix();
+			/**
+			 * @fn	DrawBackgroundTexture
+			 * @brief
+			 *		Draw Background Texture
+			 * @warning
+			 *		do not work
+			 * @remark
+			 *		do not work
+			 */
 			void DrawBackgroundTexture(IplImage* inputImage);
+
+			/**
+			 * @fn	SetProjectionMatrix
+			 * @brief
+			 *		update projection matrix convert from intrsic matrix
+			 * @remark
+			 *		update to projectionMatrix member value
+			 */
+			void SetProjectionMatrix();
+
+			/**
+			 * @fn	SetModelViewMatrix
+			 * @brief
+			 *		update model-view matrix convert from extrinsic matrix
+			 * @remark
+			 *		update to modelviewMatrix member value
+			 */
+			void SetModelViewMatrix();
 
 			inline windage::Matrix4 GetProjectionMatrix(){return this->projectionMatrix;};
 			inline windage::Matrix4 GetModelViewMatrix(){return this->modelviewMatrix;};
-			static windage::Matrix4 CalculateModelViewMatrix(windage::Matrix4 extrinsic);
+
+			/**
+			 * @fn	ConvertModelViewMatrix
+			 * @brief
+			 *		static function to convert from extrinsic matrix to OSG model-view matrix
+			 * @return
+			 *		OSG model-view matrix
+			 */
+			static windage::Matrix4 ConvertModelViewMatrix(windage::Matrix4 extrinsic);
 		};
+		/** @} */ // * @addtogroup Coordinator
 	}
 }
-
-
-#endif
+#endif // _AUGMENTED_REALITY_FOR_OSG_H_

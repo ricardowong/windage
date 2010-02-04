@@ -2,8 +2,8 @@
  * PROJECT: windage Library
  * ========================================================================
  * This work is based on the original windage Library developed by
- *   Woonhyuk Baek
- *   Woontack Woo
+ *   Woonhyuk Baek (wbaek@gist.ac.kr / windage@live.com)
+ *   Woontack Woo (wwoo@gist.ac.kr)
  *   U-VR Lab, GIST of Gwangju in Korea.
  *   http://windage.googlecode.com/
  *   http://uvr.gist.ac.kr/
@@ -37,11 +37,11 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#include "Algorithms/LMeDSestimator.h"
+#include "Algorithms/LMedSestimator.h"
 using namespace windage;
 using namespace windage::Algorithms;
 
-bool LMeDSestimator::Calculate()
+bool LMedSestimator::Calculate()
 {
 	if(referencePoints == NULL || scenePoints == NULL)
 		return false;

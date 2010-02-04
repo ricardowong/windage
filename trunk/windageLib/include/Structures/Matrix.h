@@ -2,8 +2,8 @@
  * PROJECT: windage Library
  * ========================================================================
  * This work is based on the original windage Library developed by
- *   Woonhyuk Baek
- *   Woontack Woo
+ *   Woonhyuk Baek (wbaek@gist.ac.kr / windage@live.com)
+ *   Woontack Woo (wwoo@gist.ac.kr)
  *   U-VR Lab, GIST of Gwangju in Korea.
  *   http://windage.googlecode.com/
  *   http://uvr.gist.ac.kr/
@@ -37,9 +37,12 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-//----------------------------------------------------------------
-// 2x2,3x3,4x4 행렬 클래스
-//----------------------------------------------------------------
+/**
+ * @file	Matrix.h
+ * @author	Woonhyuk Baek
+ * @brief	2x2, 3x3, 4x4 Matrix structures
+ */
+
 #ifndef _WBAEK_MATRIX_H_
 #define _WBAEK_MATRIX_H_
 
@@ -49,10 +52,16 @@
 namespace windage
 {
 	/**
+	 * @defgroup Structures data structures
 	 * @brief
-	 *		Matrix4
-	 * @author
-	 *		windage
+	 *		data structures classes
+	 * @addtogroup Structures
+	 * @{
+	 */
+
+	/**
+	 * @brief	Matrix4
+	 * @author	Woonhyuk Baek
 	 */
 	struct Matrix4{
 		union{
@@ -251,10 +260,8 @@ namespace windage
 	};
 
 	/**
-	 * @brief
-	 *		Matrix3
-	 * @author
-	 *		windage
+	 * @brief	Matrix3
+	 * @author	Woonhyuk Baek
 	 */
 	struct Matrix3{
 		union{
@@ -353,10 +360,8 @@ namespace windage
 	};
 
 	/**
-	 * @brief
-	 *		Matrix2
-	 * @author
-	 *		windage
+	 * @brief	Matrix2
+	 * @author	Woonhyuk Baek
 	 */
 	struct Matrix2{
 		union{
@@ -423,5 +428,6 @@ namespace windage
 							-(this->m[1][0] * detM), this->m[0][0] * detM);
 		}
 	};
+	/** @} */ // addtogroup Structures
 }
-#endif
+#endif // _WBAEK_MATRIX_H_

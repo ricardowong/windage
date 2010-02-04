@@ -2,8 +2,8 @@
  * PROJECT: windage Library
  * ========================================================================
  * This work is based on the original windage Library developed by
- *   Woonhyuk Baek
- *   Woontack Woo
+ *   Woonhyuk Baek (wbaek@gist.ac.kr / windage@live.com)
+ *   Woontack Woo (wwoo@gist.ac.kr)
  *   U-VR Lab, GIST of Gwangju in Korea.
  *   http://windage.googlecode.com/
  *   http://uvr.gist.ac.kr/
@@ -37,6 +37,12 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
+/**
+ * @file	Vector.h
+ * @author	Woonhyuk Baek
+ * @brief	2x1, 3x1, 4x1 Vector structures
+ */
+
 #ifndef _WBAEK_VECTOR_H_
 #define _WBAEK_VECTOR_H_
 
@@ -46,10 +52,16 @@
 namespace windage
 {
 	/**
+	 * @defgroup Structures data structures
 	 * @brief
-	 *		Vector4
-	 * @author
-	 *		windage
+	 *		data structures classes
+	 * @addtogroup Structures
+	 * @{
+	 */
+
+	/**
+	 * @brief	Vector4
+	 * @author	Woonhyuk Baek
 	 */
 	struct Vector4{
 		union{
@@ -190,10 +202,8 @@ namespace windage
 	};
 
 	/**
-	 * @brief
-	 *		Vector3
-	 * @author
-	 *		windage
+	 * @brief	Vector3
+	 * @author	Woonhyuk Baek
 	 */
 	struct Vector3{
 		union{
@@ -323,10 +333,8 @@ namespace windage
 	};
 
 	/**
-	 * @brief
-	 *		Vector2
-	 * @author
-	 *		windage
+	 * @brief	Vector2
+	 * @author	Woonhyuk Baek
 	 */
 	struct Vector2{
 		union{
@@ -432,5 +440,6 @@ namespace windage
 			this->x = 0;
 		}
 	};
+	/** @} */ // addtogroup Structures
 }
-#endif
+#endif // _WBAEK_VECTOR_H_
