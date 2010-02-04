@@ -37,10 +37,16 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
+/**
+ * @file	fast.h
+ * @author	Woonhyuk Baek
+ * @version 1.0
+ * @date	2010.02.04
+ * @brief	wrapping and modifed FAST cornder detector
+ */
+
 #ifndef _FAST_H_
 #define _FAST_H_
-
-/** @cond */
 
 #define STEP_SIZE_X 1
 #define STEP_SIZE_Y 2
@@ -70,4 +76,4 @@ xy* fast12_detect_nonmax(const byte* im, int xsize, int ysize, int stride, int b
 
 xy* nonmax_suppression(const xy* corners, const int* scores, int num_corners, int* ret_num_nonmax);
 
-#endif
+#endif // _FAST_H_

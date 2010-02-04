@@ -37,11 +37,16 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
+/**
+ * @file	wsurf.h
+ * @author	Woonhyuk Baek
+ * @version 1.0
+ * @date	2010.02.04
+ * @brief	modifed windage FAST SURF
+ */
+
 #ifndef _W_FAST_SURF_H_
 #define _W_FAST_SURF_H_
-
-// modified SURF by windage
-/** @cond */
 
 #include <cv.h>
 #include <cxmisc.h>
