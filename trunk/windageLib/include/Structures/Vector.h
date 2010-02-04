@@ -52,7 +52,7 @@
 namespace windage
 {
 	/**
-	 * @defgroup Structures data structures
+	 * @defgroup Structures Data Structures
 	 * @brief
 	 *		data structures classes
 	 * @addtogroup Structures

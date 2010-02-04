@@ -37,6 +37,14 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
+/**
+ * @file	Utils.h
+ * @author	Woonhyuk Baek
+ * @version 1.0
+ * @date	2010.02.04
+ * @brief	It is utility classes
+ */
+
 #ifndef _UTILS_H_
 #define _UTILS_H_
 
@@ -47,15 +55,22 @@
 namespace windage
 {
 	/**
+	 * @defgroup Utilities Utility classes
 	 * @brief
-	 *		Utility Class
-	 * @author
-	 *		windage
+	 *		Utility classes
+	 * @addtogroup Utilities
+	 * @{
+	 */
+
+	/**
+	 * @brief	Utility Class
+	 * @author	Woonhyuk Baek
 	 */
 	class DLLEXPORT Utils
 	{
 	public:
 		/**
+		 * @fn	DrawTextToImage
 		 * @brief
 		 *		Draw Text To Image
 		 * @remark
@@ -63,6 +78,6 @@ namespace windage
 		 */
 		static void DrawTextToImage(IplImage* colorImage, CvPoint position, double scale, char* message);
 	};
+	/** @} */ // addtogroup Utilities
 }
-
-#endif
+#endif // _UTILS_H_

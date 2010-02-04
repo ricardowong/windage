@@ -59,7 +59,7 @@ namespace windage
 	namespace Coordinator
 	{
 		/**
-		 * @defgroup Coordinator coordinator
+		 * @defgroup Coordinator Coordinator
 		 * @brief
 		 *		coordinator classes
 		 * @addtogroup Coordinator

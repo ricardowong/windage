@@ -58,7 +58,7 @@
 namespace windage
 {
 	/**
-	 * @defgroup Structures data structures
+	 * @defgroup Structures Data Structures
 	 * @brief
 	 *		data structures classes
 	 * @addtogroup Structures
@@ -149,12 +149,12 @@ namespace windage
 		CvScalar GetRightPoint();
 		
 		/**
-		 * @defgroup Calibration:CoordinateConvertor Coordinate Convertor
+		 * @defgroup CalibrationCoordinateConvertor Coordinate Convertor
 		 * @brief
 		 *		Coordinate Convertor
 		 * @remark
 		 *		Coordinate Convert World, Camera, Image coordinate
-		 * @addtogroup Calibration:CoordinateConvertor
+		 * @addtogroup CalibrationCoordinateConvertor
 		 * @{
 		 */
 		int ConvertWorld2Camera(CvMat* output4vector, CvMat* input4vector);

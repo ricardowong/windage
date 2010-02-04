@@ -61,7 +61,7 @@ namespace windage
 	namespace Algorithms
 	{
 		/**
-		 * @defgroup Algorithms algorithm classes
+		 * @defgroup Algorithms Algorithm classes
 		 * @brief
 		 *		algorithm classes
 		 * @addtogroup Algorithms
@@ -69,7 +69,7 @@ namespace windage
 		 */
 
 		/**
-		 * @defgroup AlgorithmsFeatureDetector feature detector algorithm classes
+		 * @defgroup AlgorithmsFeatureDetector Feature Detector
 		 * @brief
 				feature detector algorithm classes
 		 * @addtogroup AlgorithmsFeatureDetector

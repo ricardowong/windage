@@ -37,6 +37,14 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
+/**
+ * @file	PlanarObjectTracking.h
+ * @author	Woonhyuk Baek
+ * @version 1.0
+ * @date	2010.02.04
+ * @brief	It is framework class for single planar object tracker
+ */
+
 #ifndef _PLANAR_OBJECT_TRACKING_H_
 #define _PLANAR_OBJECT_TRACKING_H_
 
@@ -63,36 +71,49 @@ namespace windage
 {
 	namespace Frameworks
 	{
+		/**
+		 * @defgroup Frameworks Framework classes
+		 * @brief
+		 *		framework classes
+		 * @addtogroup Frameworks
+		 * @{
+		 */
+
+		/**
+		 * @brief	single planar object tracker framework
+		 * @author	Woonhyuk Baek
+		 */
 		class DLLEXPORT PlanarObjectTracking
 		{
 		protected:
-			static const int MIN_FEATURE_POINTS_COUNT = 9;
+			static const int MIN_FEATURE_POINTS_COUNT = 9;			///< threshold to determin whether tracked or not
 
-			windage::Calibration* cameraParameter;
-			IplImage* prevImage;
-			std::vector<windage::FeaturePoint> refMatchedKeypoints;
-			std::vector<windage::FeaturePoint> sceMatchedKeypoints;
+			windage::Calibration* cameraParameter;					///< It is required elements that camera calibration parameter to attatch reference pointer at out-side
+			windage::Algorithms::FeatureDetector* detector;			///< It is required elements that feature detection algorithm to attatch reference pointer at out-side
+			windage::Algorithms::SearchTree* matcher;				///< It is required elements that feature matching algorithm to attatch reference pointer at out-side
+			windage::Algorithms::HomographyEstimator* estimator;	///< It is required elements that homography estimation algorithm to attatch reference pointer at out-side
 
-			int width;
-			int height;
-			double realWidth;
-			double realHeight;
+			windage::Algorithms::OpticalFlow* tracker;				///< It is optional elements that feature tracking algorithm to attatch reference pointer at out-side
+			windage::Algorithms::OutlierChecker* checker;			///< It is optional elements that outlier checker algorithm to attatch reference pointer at out-side
+			windage::Algorithms::HomographyRefiner* refiner;		///< It is optional elements that homography refinement algorithm to attatch reference pointer at out-side
 
-			int step;
-			int detectionRatio;
+			IplImage* prevImage;									///< gray image for feature tracking
+			std::vector<windage::FeaturePoint> refMatchedKeypoints;	///< matched point at reference image
+			std::vector<windage::FeaturePoint> sceMatchedKeypoints;	///< matched point at scene image
 
-			IplImage* referenceImage;
-			std::vector<windage::FeaturePoint> referenceRepository;
+			int width;												///< input image width
+			int height;												///< input image height
+			double realWidth;										///< tracking object width
+			double realHeight;										///< tracking object height
 
-			windage::Algorithms::FeatureDetector* detector;
-			windage::Algorithms::SearchTree* matcher;
-			windage::Algorithms::OpticalFlow* tracker;
-			windage::Algorithms::HomographyEstimator* estimator;
-			windage::Algorithms::OutlierChecker* checker;
-			windage::Algorithms::HomographyRefiner* refiner;
+			int step;												///< current step (detectionRatio < step = detection step)
+			int detectionRatio;										///< 1 / detection ratio for tracking step
 
-			bool initialize;
-			bool trained;
+			IplImage* referenceImage;								///< attatched reference image
+			std::vector<windage::FeaturePoint> referenceRepository;	///< reference keypoint repository
+
+			bool initialize;										///< checked initialized
+			bool trained;											///< checked trained
 			
 		public:
 			PlanarObjectTracking()
@@ -128,16 +149,91 @@ namespace windage
 			inline int GetMatchingCount(){return (int)this->refMatchedKeypoints.size();};
 			inline IplImage* GetReferenceImage(){return this->referenceImage;};
 
+			/**
+			 * @fn	AttatchCalibration
+			 * @brief
+			 *		attatch camera parameter to member pointer from out-side
+			 * @remark
+			 *		camera parameter is to be initialized at out-side
+			 * @warning
+			 *		It is required elements
+			 *		camera parameter is not create in-side at this class so do not release this pointer
+			 */
 			inline void AttatchCalibration(windage::Calibration* calibration){this->cameraParameter = calibration;};
-			inline windage::Calibration* GetCameraParameter(){return this->cameraParameter;};
 			
+			/**
+			 * @fn	AttatchDetetor
+			 * @brief
+			 *		attatch detection algorithm to member pointer from out-side
+			 * @remark
+			 *		detection algorithm is to be initialized at out-side
+			 * @warning
+			 *		It is required elements
+			 *		detection algorithm is not create in-side at this class so do not release this pointer
+			 */
 			inline void AttatchDetetor(windage::Algorithms::FeatureDetector* detector){this->detector = detector;};
+
+			/**
+			 * @fn	AttatchMatcher
+			 * @brief
+			 *		attatch matching algorithm to member pointer from out-side
+			 * @remark
+			 *		matching algorithm is to be initialized at out-side
+			 * @warning
+			 *		It is required elements
+			 *		matching algorithm is not create in-side at this class so do not release this pointer
+			 */
 			inline void AttatchMatcher(windage::Algorithms::SearchTree* matcher){this->matcher = matcher;};
-			inline void AttatchTracker(windage::Algorithms::OpticalFlow* tracker){this->tracker = tracker;};
+
+			/**
+			 * @fn	AttatchEstimator
+			 * @brief
+			 *		attatch homography estimation algorithm to member pointer from out-side
+			 * @remark
+			 *		estimation algorithm is to be initialized at out-side
+			 * @warning
+			 *		It is required elements
+			 *		homography estimation algorithm is not create in-side at this class so do not release this pointer
+			 */
 			inline void AttatchEstimator(windage::Algorithms::HomographyEstimator* estimator){this->estimator = estimator;};
+
+			/**
+			 * @fn	AttatchTracker
+			 * @brief
+			 *		attatch tracker algorithm to member pointer from out-side
+			 * @remark
+			 *		tracker algorithm is to be initialized at out-side
+			 * @warning
+			 *		It is optional elements
+			 *		tracker algorithm is not create in-side at this class so do not release this pointer
+			 */
+			inline void AttatchTracker(windage::Algorithms::OpticalFlow* tracker){this->tracker = tracker;};
+
+			/**
+			 * @fn	AttatchChecker
+			 * @brief
+			 *		attatch outlier checke algorithm to member pointer from out-side
+			 * @remark
+			 *		outlier checke algorithm is to be initialized at out-side
+			 * @warning
+			 *		It is optional elements
+			 *		outlier checke algorithm is not create in-side at this class so do not release this pointer
+			 */
 			inline void AttatchChecker(windage::Algorithms::OutlierChecker* checker){this->checker = checker;};
+
+			/**
+			 * @fn	AttatchRefiner
+			 * @brief
+			 *		attatch homography refinement algorithm to member pointer from out-side
+			 * @remark
+			 *		homography refinement algorithm is to be initialized at out-side
+			 * @warning
+			 *		It is optional elements
+			 *		homography refinement algorithm is not create in-side at this class so do not release this pointer
+			 */
 			inline void AttatchRefiner(windage::Algorithms::HomographyRefiner* refiner){this->refiner = refiner;};
 
+			inline windage::Calibration* GetCameraParameter(){return this->cameraParameter;};
 			inline windage::Algorithms::FeatureDetector* GetDetector(){return this->detector;};
 			inline windage::Algorithms::SearchTree* GetMatcher(){return this->matcher;};
 			inline windage::Algorithms::OpticalFlow* GetTracker(){return this->tracker;};
@@ -145,15 +241,66 @@ namespace windage
 			inline windage::Algorithms::OutlierChecker* GetChecker(){return this->checker;};
 			inline windage::Algorithms::HomographyRefiner* GetRefiner(){return this->refiner;};
 
-			bool Initialize(int width, int height, double realWidth=640.0, double realHeight=480.0);
-			bool AttatchReferenceImage(IplImage* grayImage);
-			bool TrainingReference(double scaleFactor=1.0, int scaleStep=1);
+			/**
+			 * @fn	Initialize
+			 * @brief
+			 *		initialize the parameter and arrange the algorithms
+			 * @warning
+			 *		It will be called after attatched required elements
+			 */
+			bool Initialize(int width,					///< input image width
+							int height,					///< input image height
+							double realWidth=640.0,		///< refenrece object width
+							double realHeight=480.0		///< reference object height
+							);
 
+			/**
+			 * @fn	AttatchReferenceImage
+			 * @brief
+			 *		attatch reference image
+			 * @warning
+			 *		reference image is always gray image (1-channel)
+			 */
+			bool AttatchReferenceImage(IplImage* grayImage);
+
+			/**
+			 * @fn	TrainingReference
+			 * @brief
+			 *		training the attatched reference image as multi-scale
+			 * @remark
+			 *		resize to (1.0 / scaleFactor) * (1 < eachStep <= scaleStep)
+			 * @warning
+			 *		It will be called after initilization and attatched required elements
+			 */
+			bool TrainingReference(	double scaleFactor=4.0,	///< resize scale factor
+									int scaleStep=8			///< resize scale step
+									);
+
+			/**
+			 * @fn	UpdateCamerapose
+			 * @brief
+			 *		calculate camera pose using input image
+			 * @warning
+			 *		input image is always gray image (1-channel)
+			 *		It will be called after initilization and training
+			 */
 			bool UpdateCamerapose(IplImage* grayImage);
+
+			/**
+			 * @fn	DrawOutLine
+			 * @brief
+			 *		draw recognized or tracked object outlier
+			 */
 			void DrawOutLine(IplImage* colorImage, bool drawCross);
+
+			/**
+			 * @fn	DrawDebugInfo
+			 * @brief
+			 *		draw matched feature points
+			 */
 			void DrawDebugInfo(IplImage* colorImage);
 		};
+		/** @} */ // addtogroup Frameworks
 	}
 }
-
-#endif
+#endif // _PLANAR_OBJECT_TRACKING_H_

@@ -56,6 +56,15 @@ bool PlanarObjectTracking::Initialize(int width, int height, double realWidth, d
 	if(prevImage) cvReleaseImage(&prevImage);
 	prevImage = cvCreateImage(cvSize(width, height), IPL_DEPTH_8U, 1);
 
+	if( this->cameraParameter	== NULL ||
+		this->detector			== NULL ||
+		this->matcher			== NULL ||
+		this->estimator			== NULL)
+	{
+		this->initialize = false;
+		return false;
+	}
+
 	this->initialize = true;
 	return true;
 }
@@ -75,6 +84,8 @@ bool PlanarObjectTracking::AttatchReferenceImage(IplImage* grayImage)
 bool PlanarObjectTracking::TrainingReference(double scaleFactor, int scaleStep)
 {
 	if(this->referenceImage == NULL)
+		return false;
+	if(this->initialize == false)
 		return false;
 
 	int width = cvRound((double)this->referenceImage->width/scaleFactor);
@@ -125,6 +136,9 @@ bool PlanarObjectTracking::UpdateCamerapose(IplImage* grayImage)
 	if(initialize == false || trained == false)
 		return false;
 
+	if(tracker == NULL)
+		this->SetDitectionRatio(0);
+	
 	if(this->detectionRatio < 1)
 	{
 		refMatchedKeypoints.clear();
@@ -184,24 +198,31 @@ bool PlanarObjectTracking::UpdateCamerapose(IplImage* grayImage)
 		this->estimator->Calculate();
 
 		// outlier checker
-		this->checker->AttatchEstimator(this->estimator);
-		this->checker->Calculate();
-
-		int index = 0;
-		for(int i=0; i<(int)refMatchedKeypoints.size(); i++)
+		if(checker)
 		{
-			if(refMatchedKeypoints[i].IsOutlier() == true)
-			{
-				refMatchedKeypoints.erase(refMatchedKeypoints.begin() + i);
-				sceMatchedKeypoints.erase(sceMatchedKeypoints.begin() + i);
-				i--;
-			}
-		}
+			this->checker->AttatchEstimator(this->estimator);
+			this->checker->Calculate();
 
-		this->refiner->AttatchHomography(this->estimator->GetHomography());
-		this->refiner->AttatchReferencePoint(&refMatchedKeypoints);
-		this->refiner->AttatchScenePoint(&sceMatchedKeypoints);
-		this->refiner->Calculate();
+			int index = 0;
+			for(int i=0; i<(int)refMatchedKeypoints.size(); i++)
+			{
+				if(refMatchedKeypoints[i].IsOutlier() == true)
+				{
+					refMatchedKeypoints.erase(refMatchedKeypoints.begin() + i);
+					sceMatchedKeypoints.erase(sceMatchedKeypoints.begin() + i);
+					i--;
+				}
+			}
+		}		
+
+		// refinement
+		if(refiner)
+		{
+			this->refiner->AttatchHomography(this->estimator->GetHomography());
+			this->refiner->AttatchReferencePoint(&refMatchedKeypoints);
+			this->refiner->AttatchScenePoint(&sceMatchedKeypoints);
+			this->refiner->Calculate();
+		}
 
 		this->estimator->DecomposeHomography(this->cameraParameter);
 	}
