@@ -147,11 +147,11 @@ namespace windage
 				this->isInlier = oprd.isInlier;
 			}
 
-			bool operator==(class MatchedPoint  oprd)
+			bool operator==(class MatchedPoint oprd)
 			{
 				return this->distance == oprd.distance;
 			}
-			bool operator<(class MatchedPoint  oprd)
+			bool operator<(class MatchedPoint &oprd)
 			{
 				return this->distance < oprd.distance;
 			}

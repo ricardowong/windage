@@ -72,7 +72,6 @@ void StereoReconstruction::CalculateNormalizedPoint()
 	}
 
 	reconstructionPoints.resize(n);
-	isInlierList.resize(n);
 }
 
 bool StereoReconstruction::CalibratedTriangulation(CvMat *matR, CvMat *matT, CvMat *ptL, CvMat *ptR, CvMat *pt3D)
@@ -340,13 +339,15 @@ int StereoReconstruction::ReconstructAll(CvMat *matE)
 		CalibratedTriangulation(_R, _t, testLPt, testRPt, testPt);
 
 		double ww = 1.0 / cvmGet(testPt, 3, 0);
+		windage::Vector4 tempPoint;
 		for(int j=0; j<4; j++)
-			this->reconstructionPoints[i].v[j] = cvmGet(testPt, j, 0) * ww;
+			tempPoint.v[j] = cvmGet(testPt, j, 0) * ww;
+		reconstructionPoints[i].SetPoint(tempPoint);
 
 		this->initialCameraParameter->ConvertWorld2Image(testLPt, testPt);
 		this->localCameraParameter->ConvertWorld2Image(testRPt, testPt);
 
-		if(this->reconstructionPoints[i].z < 0 || testRPt->data.db[2] < 0 || testLPt->data.db[2] < 0)
+		if(this->reconstructionPoints[i].GetPoint().z < 0 || testRPt->data.db[2] < 0 || testLPt->data.db[2] < 0)
 		{
 			//TRACE("%f %f %f\n", cvmGet(m_pt3D, 2, i), testRPt->data.db[2], testLPt->data.db[2]);
 			_bad_points++; /** check z-value */
@@ -376,17 +377,18 @@ int StereoReconstruction::CountInliers(double thresh, double *err)
 	int n = (int)this->reconstructionPoints.size();
 	for(int i=0; i<n; i++)
 	{
-		cvSetReal1D(tempPt, 0, this->reconstructionPoints[i].x);
-		cvSetReal1D(tempPt, 1, this->reconstructionPoints[i].y);
-		cvSetReal1D(tempPt, 2, this->reconstructionPoints[i].z);
-		cvSetReal1D(tempPt, 3, this->reconstructionPoints[i].w);
+		cvSetReal1D(tempPt, 0, this->reconstructionPoints[i].GetPoint().x);
+		cvSetReal1D(tempPt, 1, this->reconstructionPoints[i].GetPoint().y);
+		cvSetReal1D(tempPt, 2, this->reconstructionPoints[i].GetPoint().z);
+		cvSetReal1D(tempPt, 3, this->reconstructionPoints[i].GetPoint().w);
 
-		CvPoint rPT1 = this->initialCameraParameter->ConvertWorld2Image(this->reconstructionPoints[i].x, this->reconstructionPoints[i].y, this->reconstructionPoints[i].z);
+		windage::Vector4 wPT = this->reconstructionPoints[i].GetPoint();
+		CvPoint rPT1 = this->initialCameraParameter->ConvertWorld2Image(wPT.x, wPT.y, wPT.z);
 		cvSetReal1D(tpt1, 0, rPT1.x);
 		cvSetReal1D(tpt1, 1, rPT1.y);
 		cvSetReal1D(tpt1, 2, 1.0);
 
-		CvPoint rPT2 = this->localCameraParameter->ConvertWorld2Image(this->reconstructionPoints[i].x, this->reconstructionPoints[i].y, this->reconstructionPoints[i].z);
+		CvPoint rPT2 = this->localCameraParameter->ConvertWorld2Image(wPT.x, wPT.y, wPT.z);
 		cvSetReal1D(tpt2, 0, rPT2.x);
 		cvSetReal1D(tpt2, 1, rPT2.y);
 		cvSetReal1D(tpt2, 2, 1.0);
@@ -400,13 +402,13 @@ int StereoReconstruction::CountInliers(double thresh, double *err)
 		double localError =  (cvSqrt(le) + cvSqrt(re)) / 2.0;
 		if(localError < thresh)
 		{
-			this->isInlierList[i] = true;
+			this->reconstructionPoints[i].SetOutlier(false);
 			error += localError;
 			inliers++;
 		}
 		else
 		{
-			this->isInlierList[i] = false;
+			this->reconstructionPoints[i].SetOutlier(true);
 		}
 	}
 

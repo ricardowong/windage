@@ -85,15 +85,13 @@ public:
 	}
 
 	void Initialize(int width = 320, int height = 240, char * windowName = "OpenGL Renderer");
-//	static void idle();
-//	static void display();
 
-	void setLight();
-	void setMaterial(windage::Vector4 color);
+	void SetLight();
+	void SetMaterial(windage::Vector4 color);
 
-	void drawClear();
-	void drawBackground(IplImage* inputImage);
-	void drawObject(GLfloat* projection, GLfloat* model_view, int markerId, double markerWidth);
+	void DrawClear();
+	void DrawBackground(IplImage* inputImage);
+	void DrawObject(GLfloat* projection, GLfloat* model_view, int markerId, double markerWidth);
 
 	inline void SetCameraSize(int width, int height){this->cameraWidth = width, this->cameraHeight = height;};
 	void DrawAxis(double size);
@@ -101,8 +99,21 @@ public:
 	void DrawReference(double width, double height);
 	void DrawCamera(windage::Calibration* calibration, IplImage* image);
 
-	void mouse(int iButton, int iState, int x, int y);
-	void motion(int x, int y);
+	// overwriting
+	/*
+	virtual void idle()
+	{
+	}
+	virtual static void display()
+	{
+	}
+	virtual void mouse(int iButton, int iState, int x, int y)
+	{
+	}
+	virtual void motion(int x, int y)
+	{
+	}
+	*/
 };
 
 #endif

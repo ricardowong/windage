@@ -196,7 +196,7 @@ void display()
 	// draw virtual object
 	glPushMatrix();
 	{
-		renderer->setMaterial(windage::Vector4(255, 255, 255, 0.8));
+		renderer->SetMaterial(windage::Vector4(255, 255, 255, 0.8));
 		glTranslated(0, 0, WIDTH/8);
 		glRotatef(90, 1, 0, 0);
 
@@ -238,7 +238,7 @@ void main()
 	renderer = new OpenGLRenderer();
 	renderer->Initialize(RENDERING_WIDTH, RENDERING_HEIGHT, "windageLib Simple AR");
 	renderer->SetCameraSize(WIDTH, HEIGHT);
-	renderer->setLight();
+	renderer->SetLight();
 
 	glutDisplayFunc(display);
 	glutIdleFunc(idle);

@@ -103,9 +103,35 @@ public:
 
 		// checek the algorithm
 		CvRNG rng = cvRNG(cvGetTickCount());
-		double r11 = (double)1;//cvRandInt(&rng) % 200 - 100;
+		windage::Vector4 intrinsic;
+		windage::Vector4 distortion;
+		windage::Matrix4 extrinsic;
+		for(int i=0; i<4; i++)
+		{
+			intrinsic.v[i] = cvRandReal(&rng);
+			distortion.v[i] = cvRandReal(&rng);
+			for(int x=0; x<4; x++)
+				extrinsic.m[i][x] = cvRandReal(&rng);
+		}
+		
+		windage::Calibration calibration1;
+		calibration1.Initialize(intrinsic.x, intrinsic.y, intrinsic.z, intrinsic.w,
+								distortion.x, distortion.y, distortion.z, distortion.w);
+		calibration1.SetExtrinsicMatrix(extrinsic.m1);
+
+		windage::Calibration calibration2;
+		calibration2 = calibration1;
+
+		double error = 0.0;
+		for(int i=0; i<4; i++)
+		{
+			error += abs(calibration2.GetParameters()[i] - intrinsic.v[i]);
+			error += abs(calibration2.GetParameters()[4+i] - distortion.v[i]);
+			for(int x=0; x<4; x++)
+				error += abs(cvGetReal2D(calibration1.GetExtrinsicMatrix(), i, x) - cvGetReal2D(calibration2.GetExtrinsicMatrix(), i, x));
+		}
 	
-		sprintf_s(tempMessage, "");
+		sprintf_s(tempMessage, "error = %.2lf", error);
 		(*message) = std::string(tempMessage);
 		return test;
 	}

@@ -90,13 +90,7 @@ void Calibration::SetDistortionCoefficients(double d1, double d2, double d3, dou
 
 void Calibration::SetExtrinsicMatrix(CvMat* matrix)
 {
-	for(int y=0; y<4; y++)
-	{
-		for(int x=0; x<4; x++)
-		{
-			cvSetReal2D(this->extrinsicMatrix, y, x, cvGetReal2D(matrix, y, x));
-		}
-	}
+	cvCopy(matrix, this->extrinsicMatrix);
 }
 void Calibration::SetExtrinsicMatrix(float* matrix)
 {

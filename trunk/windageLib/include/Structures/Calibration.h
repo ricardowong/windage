@@ -111,10 +111,24 @@ namespace windage
 			this->Release();
 		}
 
+		/**
+		 * @fn	operator=
+		 * @brief
+		 *		overwriting assignment expression
+		 * @remark
+		 *		copy all data
+		 */
+		void operator=(Calibration &oprd)
+		{
+			this->Initialize(oprd.GetParameters()[0], oprd.GetParameters()[1], oprd.GetParameters()[2], oprd.GetParameters()[3],
+							 oprd.GetParameters()[4], oprd.GetParameters()[5], oprd.GetParameters()[6], oprd.GetParameters()[7]);
+			this->SetExtrinsicMatrix(oprd.GetExtrinsicMatrix());
+		}
+
 		inline double* GetParameters(){return this->parameter;};
-		inline CvMat* GetIntrinsicMatrix(){return intrinsicMatrix;};
-		inline CvMat* GetDistortionCoefficients(){return distortionCoefficients;};
-		inline CvMat* GetExtrinsicMatrix(){return extrinsicMatrix;};
+		inline CvMat* GetIntrinsicMatrix(){return this->intrinsicMatrix;};
+		inline CvMat* GetDistortionCoefficients(){return this->distortionCoefficients;};
+		inline CvMat* GetExtrinsicMatrix(){return this->extrinsicMatrix;};
 
 		/**
 		 * @fn	Initialize

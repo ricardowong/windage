@@ -176,6 +176,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\include\Structures\ReconstructionPoint.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\include\Structures\SIFTpoint.h"
 				>
 			</File>
@@ -549,6 +553,14 @@
 			</File>
 			<File
 				RelativePath="..\..\..\include\Reconstruction\BundleWrapper.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\Reconstruction\IncrementalReconstruction.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\include\Reconstruction\IncrementalReconstruction.h"
 				>
 			</File>
 			<File
