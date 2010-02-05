@@ -87,8 +87,8 @@ windage::Frameworks::PlanarObjectTracking* CreateTracker()
 	detector->SetThreshold(30.0);
 	searchtree->SetRatio(0.7);
 	opticalflow->Initialize(WIDTH, HEIGHT, cvSize(8, 8), 3);
-	estimator->SetReprojectionError(2.0);
-	checker->SetReprojectionError(2.0);
+	estimator->SetReprojectionError(10.0);
+	checker->SetReprojectionError(10.0);
 	refiner->SetMaxIteration(10);
 
 	tracker->AttatchCalibration(calibration);

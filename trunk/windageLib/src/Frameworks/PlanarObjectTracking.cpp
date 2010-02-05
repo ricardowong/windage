@@ -176,6 +176,7 @@ bool PlanarObjectTracking::UpdateCamerapose(IplImage* grayImage)
 
 		for(unsigned int i=0; i<sceneKeypoints->size(); i++)
 		{
+			int count = 0;
 			int index = this->matcher->Matching((*sceneKeypoints)[i]);
 			if(index >= 0)
 			{
@@ -187,6 +188,7 @@ bool PlanarObjectTracking::UpdateCamerapose(IplImage* grayImage)
 					refMatchedKeypoints.push_back(this->referenceRepository[index]);
 					sceMatchedKeypoints.push_back((*sceneKeypoints)[i]);
 				}
+				count++;
 			}
 		}
 	}
