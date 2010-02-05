@@ -557,7 +557,8 @@ bool StereoReconstruction::ComputeEssentialMatrixRANSAC(double* error)
 					{
 						cvCopy(EMat, essentialMatrix); 
 						pre_inlier = num_inlier;
-						*error = err;
+						if(error)
+							*error = err;
 					}
 
 				}

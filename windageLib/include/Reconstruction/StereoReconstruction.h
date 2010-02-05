@@ -37,6 +37,14 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
+/**
+ * @file	StereoReconstruction.h
+ * @author	Woonhyuk Baek
+ * @version 1.0
+ * @date	2010.02.04
+ * @brief	reconstruction class using matched feature at two view images
+ */
+
 #ifndef _STEREO_RECONSTRUCTION_H_
 #define _STEREO_RECONSTRUCTION_H_
 
@@ -55,23 +63,35 @@ namespace windage
 {
 	namespace Reconstruction
 	{
+		/**
+		 * @defgroup Reconstruction Reconstruction classes
+		 * @brief
+		 *		Reconstruction classes
+		 * @addtogroup Reconstruction
+		 * @{
+		 */
+
+		/**
+		 * @brief	reconstruction class using matched feature at two view images
+		 * @author	Woonhyuk Baek
+		 */
 		class DLLEXPORT StereoReconstruction
 		{
 		private:
-			double reprojectionError;
+			double reprojectionError;								///< threshold to determin outlier or not
 
-			windage::Calibration* initialCameraParameter;
-			windage::Calibration* localCameraParameter;
-			std::vector<windage::FeaturePoint>* matchedPoint1;
-			std::vector<windage::FeaturePoint>* matchedPoint2;
+			windage::Calibration* initialCameraParameter;			///< base camera parameter to attatch reference pointer at out-side
+			windage::Calibration* localCameraParameter;				///< updating camera parameter to attatch reference pointer at out-side
+			std::vector<windage::FeaturePoint>* matchedPoint1;		///< matched point list at first camera image to attatch reference pointer at out-side
+			std::vector<windage::FeaturePoint>* matchedPoint2;		///< matched point list at second camera image to attatch reference pointer at out-side
 
-			std::vector<windage::Vector3> normalizedMatchedPoint1;
-			std::vector<windage::Vector3> normalizedMatchedPoint2;
+			std::vector<windage::Vector3> normalizedMatchedPoint1;	///< normalized matched point list
+			std::vector<windage::Vector3> normalizedMatchedPoint2;	///< normalized matched point list
 
-			std::vector<bool> isInlierList;
-			std::vector<windage::Vector4> reconstructionPoints;
+			std::vector<bool> isInlierList;							///< inlier check list
+			std::vector<windage::Vector4> reconstructionPoints;		///< reconstructed point list
 
-			CvMat *essentialMatrix;
+			CvMat *essentialMatrix;									/// temporary essential matrix
 
 		public:
 			StereoReconstruction(void)
@@ -98,6 +118,13 @@ namespace windage
 			inline void AttatchMatchedPoint1(std::vector<windage::FeaturePoint>* matchedPoint1){this->matchedPoint1 = matchedPoint1;};
 			inline void AttatchMatchedPoint2(std::vector<windage::FeaturePoint>* matchedPoint2){this->matchedPoint2 = matchedPoint2;};
 
+			/**
+			 * @fn	CalculateNormalizedPoint
+			 * @brief
+			 *		convert matched point list to normalized matched point list
+			 * @warning
+			 *		It is required elements
+			 */
 			void CalculateNormalizedPoint();
 
 			bool CalibratedTriangulation(CvMat *matR, CvMat *matT, CvMat *ptL, CvMat *ptR, CvMat *pt3D);
@@ -106,8 +133,15 @@ namespace windage
 			int CountInliers(double thresh, double *err);
 
 			bool ComputeEssentialMatrix8Points(CvMat *pt1, CvMat *pt2, CvMat *EMat);
-			bool ComputeEssentialMatrixRANSAC(double* error);			
+
+			/**
+			 * @fn	ComputeEssentialMatrixRANSAC
+			 * @brief
+			 *		compute essential matrix and reconstruction 3D points
+			 */
+			bool ComputeEssentialMatrixRANSAC(double* error);
 		};
+		/** @} */ // addtogroup Reconstruction
 	}
 
 }

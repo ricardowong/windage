@@ -42,8 +42,8 @@
  * @author	Kiyoung Kim (kkim@gist.ac.kr)
  * @version 1.0
  * @brief	
- *		Perform Bundle adjustment using Sparse Bundle Adjustment Algorithm .
- *		borrow from kcvlib
+ *		Perform Bundle adjustment using Sparse Bundle Adjustment Algorithm
+ *		borrowed code from kcvlib
 */
 
 #ifndef _BUNDLE_WRAPPER_H_
@@ -58,8 +58,20 @@ namespace windage
 {
 	namespace Reconstruction
 	{
+		/**
+		 * @defgroup Reconstruction Reconstruction classes
+		 * @brief
+		 *		Reconstruction classes
+		 * @addtogroup Reconstruction
+		 * @{
+		 */
+
 		const double SBA_MAX_REPROJ_ERROR = 4.0; // max motion only reprojection error
 
+		/**
+		 * @brief	bundle adjustment class using SBA Algorithm
+		 * @author	Woonhyuk Baek
+		 */
 		class DLLEXPORT BundleWrapper
 		{
 		private:
@@ -103,6 +115,7 @@ namespace windage
 			static void calcImgProjJacRTS(double a[5],double v[3],double t[3],double M[3], double jacmRT[2][6],double jacmS[2][3]);
 			static void calcImgProjJacRT(double a[5],double v[3],double t[3],double M[3], double jacmRT[2][6]);
 		};
+		/** @} */ // addtogroup Reconstruction
 	}
 }
 #endif // _BUNDLE_WRAPPER_H_

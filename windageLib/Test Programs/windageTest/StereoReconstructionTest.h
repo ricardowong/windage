@@ -146,8 +146,8 @@ public:
 			}
 		}
 
-		calibration1->Initialize(533.428, 525.281, 267.741, 275.627, 0, 0, 0, 0);
-		calibration2->Initialize(533.428, 525.281, 267.741, 275.627, 0, 0, 0, 0);
+		calibration1->Initialize(1200, 1200, 200, 160, 0, 0, 0, 0);
+		calibration2->Initialize(1200, 1200, 200, 160, 0, 0, 0, 0);
 
 		return true;
 	}

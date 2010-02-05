@@ -79,8 +79,8 @@ void main()
 	calibration->Initialize(WIDTH*1.2, WIDTH*1.2, WIDTH/2.0, HEIGHT/2.0, 0, 0, 0, 0);
 	detector->SetThreshold(30.0);
 	opticalflow->Initialize(WIDTH, HEIGHT, cvSize(8, 8), 3);
-	estimator->SetReprojectionError(2.0);
-	checker->SetReprojectionError(2.0);
+	estimator->SetReprojectionError(10.0);
+	checker->SetReprojectionError(10.0);
 	refiner->SetMaxIteration(10);
 
 	tracking.AttatchCalibration(calibration);
