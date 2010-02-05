@@ -477,10 +477,17 @@ bool StereoReconstruction::ComputeEssentialMatrixRANSAC(double* error)
 {
 	// preparation
 	int n = (int)this->normalizedMatchedPoint1.size();
+	int sample_size = 8;
+	if(n < sample_size)
+	{
+		(*error) = -1.0;
+		return false;
+	}
+
 	int max_iter = 0, ci = 0;
 	int max_random_iters = 20;
 	int total_num = n;
-	int sample_size = 8;
+	
 
 	CvMat *EMat, *pt1, *pt2;
 	EMat  = cvCreateMat(3, 3, CV_64F);
@@ -575,7 +582,7 @@ bool StereoReconstruction::ComputeEssentialMatrixRANSAC(double* error)
 	/** final check */
 	DecomposeEMatrix(essentialMatrix);
 	int bnum = ReconstructAll(essentialMatrix);
-	CountInliers(this->reprojectionError, &err);
+	this->inlierCount = CountInliers(this->reprojectionError, &err);
 
 	cvReleaseMat(&pt1);
 	cvReleaseMat(&pt2);

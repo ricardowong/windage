@@ -115,6 +115,8 @@ namespace windage
 		{
 			this->DESCRIPTOR_DIMENSION = oprd.DESCRIPTOR_DIMENSION;
 			this->descriptor.resize(DESCRIPTOR_DIMENSION);
+			for(int i=0; i<DESCRIPTOR_DIMENSION; i++)
+				this->descriptor[i] = oprd.descriptor[i];
 
 			this->point = oprd.GetPoint();
 			this->objectID = oprd.GetObjectID();

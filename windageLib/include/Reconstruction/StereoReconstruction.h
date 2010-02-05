@@ -92,12 +92,14 @@ namespace windage
 			std::vector<windage::ReconstructionPoint> reconstructionPoints;		///< reconstructed point list
 
 			CvMat *essentialMatrix;									/// temporary essential matrix
+			int inlierCount;
 
 		public:
 			StereoReconstruction(void)
 			{
 				reprojectionError = 2.0;
 				essentialMatrix = cvCreateMat(3, 3, CV_64F);
+				inlierCount = 0;
 			}
 			~StereoReconstruction(void)
 			{
@@ -108,6 +110,7 @@ namespace windage
 			inline std::vector<windage::ReconstructionPoint>* GetReconstructionPoints(){return &this->reconstructionPoints;};
 			inline void SetReprojectionError(double error){this->reprojectionError = error;};
 			inline double GetReprojectionError(){return this->reprojectionError;};
+			inline int GetInlierCount(){return this->inlierCount;};
 
 			inline void AttatchBaseCameraParameter(windage::Calibration* cameraParameter){this->initialCameraParameter = cameraParameter;};
 			inline void AttatchUpdateCameraParameter(windage::Calibration* cameraParameter){this->localCameraParameter = cameraParameter;};

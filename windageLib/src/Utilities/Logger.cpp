@@ -156,6 +156,20 @@ void Logger::log(windage::Matrix4 data)
 	}
 }
 
+void Logger::log(CvMat* data)
+{
+	int row = data->rows;
+	int column = data->cols;
+	for(int y=0; y<row; y++)
+	{
+		for(int x=0; x<column; x++)
+		{
+			log(cvGetReal2D(data, y, x));
+		}
+		logNewLine();
+	}
+}
+
 void Logger::updateTickCount()
 {
 	tickCount = (double)cvGetTickCount();

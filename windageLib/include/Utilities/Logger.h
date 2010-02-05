@@ -135,6 +135,7 @@ namespace windage
 		void log(windage::Matrix2 data);
 		void log(windage::Matrix3 data);
 		void log(windage::Matrix4 data);
+		void log(CvMat* data);
 		/** @} */
 
 		/**
