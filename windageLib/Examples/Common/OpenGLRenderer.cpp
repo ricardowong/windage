@@ -69,12 +69,12 @@ void OpenGLRenderer::Initialize(int width, int height, char* windowName)
 	gluPerspective(60, (double)width/(double)height, 0.1, 10000.0);
 }
 
-void OpenGLRenderer::drawClear()
+void OpenGLRenderer::DrawClear()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void OpenGLRenderer::setLight()
+void OpenGLRenderer::SetLight()
 {
 	GLfloat diffuse0[]={1.0, 1.0, 1.0, 1.0};
 	GLfloat ambient0[]={1.0, 1.0, 1.0, 1.0};
@@ -92,7 +92,7 @@ void OpenGLRenderer::setLight()
 	glShadeModel(GL_SMOOTH);
 }
 
-void OpenGLRenderer::setMaterial(Vector4 color)
+void OpenGLRenderer::SetMaterial(Vector4 color)
 {
 	glEnable(GL_LIGHTING);
 
@@ -109,7 +109,7 @@ void OpenGLRenderer::setMaterial(Vector4 color)
 	glMaterialfv(GL_FRONT, GL_EMISSION, emission);
 }
 
-void OpenGLRenderer::drawObject(GLfloat* projection, GLfloat* model_view, int markerId=0, double markerWidth=80.0)
+void OpenGLRenderer::DrawObject(GLfloat* projection, GLfloat* model_view, int markerId=0, double markerWidth=80.0)
 {
 	if(markerId >= 0)
 	{
@@ -286,3 +286,4 @@ void OpenGLRenderer::DrawCamera(Calibration* calibration, IplImage* image)
 	glDisable(GL_TEXTURE_2D);
 	glEnable(GL_DEPTH_TEST);
 }
+

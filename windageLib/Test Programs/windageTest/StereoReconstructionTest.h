@@ -223,16 +223,16 @@ public:
 		double error = 0.0;
 		stereoReconstruction.CalculateNormalizedPoint();
 		stereoReconstruction.ComputeEssentialMatrixRANSAC(&error);
-		std::vector<windage::Vector4>* point3D = stereoReconstruction.GetReconstructionPoints();
+		std::vector<windage::ReconstructionPoint>* point3D = stereoReconstruction.GetReconstructionPoints();
 
 		int count = 0;
 		int n = (int)point3D->size();
 		for(int i=0; i<n; i++)
 		{
-			if((*stereoReconstruction.GetIsInlierChecker())[i])
+			if((*point3D)[i].IsOutlier() == false)
 			{
 				count++;
-//				std::cout << count << " : " << (*point3D)[i].x << " " << (*point3D)[i].y << " " << (*point3D)[i].z << " " << (*point3D)[i].w << std::endl;
+//				std::cout << count << " : " << (*point3D)[i].GetPoint().x << " " << (*point3D)[i].GetPoint().y << " " << (*point3D)[i].GetPoint().z << " " << (*point3D)[i].GetPoint().w << std::endl;
 			}
 		}
 

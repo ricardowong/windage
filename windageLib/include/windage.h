@@ -55,6 +55,8 @@
 #include "Structures/SIFTpoint.h"
 #include "Structures/WSURFpoint.h"
 
+#include "Structures/ReconstructionPoint.h"
+
 #include "Structures/Calibration.h"
 
 // Algorithms

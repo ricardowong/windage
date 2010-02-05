@@ -58,6 +58,7 @@
 #include "Structures/Matrix.h"
 #include "Structures/Calibration.h"
 #include "Structures/FeaturePoint.h"
+#include "Structures/ReconstructionPoint.h"
 
 namespace windage
 {
@@ -88,8 +89,7 @@ namespace windage
 			std::vector<windage::Vector3> normalizedMatchedPoint1;	///< normalized matched point list
 			std::vector<windage::Vector3> normalizedMatchedPoint2;	///< normalized matched point list
 
-			std::vector<bool> isInlierList;							///< inlier check list
-			std::vector<windage::Vector4> reconstructionPoints;		///< reconstructed point list
+			std::vector<windage::ReconstructionPoint> reconstructionPoints;		///< reconstructed point list
 
 			CvMat *essentialMatrix;									/// temporary essential matrix
 
@@ -105,8 +105,7 @@ namespace windage
 				essentialMatrix = NULL;
 			}
 
-			inline std::vector<bool>* GetIsInlierChecker(){return &this->isInlierList;};
-			inline std::vector<windage::Vector4>* GetReconstructionPoints(){return &this->reconstructionPoints;};
+			inline std::vector<windage::ReconstructionPoint>* GetReconstructionPoints(){return &this->reconstructionPoints;};
 			inline void SetReprojectionError(double error){this->reprojectionError = error;};
 			inline double GetReprojectionError(){return this->reprojectionError;};
 
