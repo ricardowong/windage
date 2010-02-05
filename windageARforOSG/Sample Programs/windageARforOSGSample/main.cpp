@@ -53,7 +53,7 @@
 #include <highgui.h>
 
 #include <windage.h>
-#include <AugmentedReality/ARForOSG.h>
+#include <Coordinator/ARForOSG.h>
 #include <windageARforOSG.h>
 
 #include <NVideoLayer.h>
@@ -61,7 +61,7 @@
 
 const int WIDTH = 640;
 const int HEIGHT = 480;
-const double intrinsicValues[8] = {1029.400, 1028.675, 316.524, 211.395, -0.206360, 0.238378, 0.001089, -0.000769};
+const double intrinsicValues[8] = {533.428, 525.281, 267.741, 275.627, 0, 0, 0, 0};
 
 windage::Logger* logging;
 double fps = 0;
@@ -77,8 +77,8 @@ const int ADAPTIVE_THRESHOLD_VALUE = 750;
 const int THRESHOLD_STEP = 1;
 
 CvCapture* capture;
-windage::ModifiedSURFTracker* tracker;
-windage::ARForOSG* arTool;
+windage::Frameworks::PlanarObjectTracking* tracker = NULL;
+windage::Coordinator::ARForOSG* arTool = NULL;
 IplImage* input;
 IplImage* gray;
 
@@ -105,6 +105,10 @@ public:
 					if(capture) cvReleaseCapture(&capture);
 					exit(0);
 					break;
+				case ' ':
+					tracker->AttatchReferenceImage(gray);
+					tracker->TrainingReference(4.0, 8);
+					break;
 				}
 			}
 			break;
@@ -115,23 +119,37 @@ public:
 	}
 };
 
-using namespace windage;
-windage::ModifiedSURFTracker* CreateTracker(IplImage* refImage, int index)
+windage::Frameworks::PlanarObjectTracking* CreateTracker()
 {
-	//set rectangle marker
-	windage::ModifiedSURFTracker* tracker = new windage::ModifiedSURFTracker();
-	tracker->Initialize(intrinsicValues[0], intrinsicValues[1], intrinsicValues[2], intrinsicValues[3], intrinsicValues[4], intrinsicValues[5], intrinsicValues[6], intrinsicValues[7], 30);
-	tracker->RegistReferenceImage(refImage, 640, 480, 4.0, 8);
-	tracker->SetPoseEstimationMethod(windage::LMEDS);
-	tracker->SetOutlinerRemove(true);
-	tracker->SetRefinement(true);
-	tracker->InitializeOpticalFlow(WIDTH, HEIGHT, 5, cvSize(8, 8), 3);
-	tracker->SetOpticalFlowRunning(true);
-	tracker->GetCameraParameter()->InitUndistortionMap(WIDTH, HEIGHT);
-	tracker->SetFeatureExtractThreshold(30);
+	windage::Frameworks::PlanarObjectTracking* tracker = new windage::Frameworks::PlanarObjectTracking();
 
-	tracker->SetSetpIndex(index);
-	
+	windage::Calibration* calibration = new windage::Calibration();
+	windage::Algorithms::FeatureDetector* detector = new windage::Algorithms::WSURFdetector();
+	windage::Algorithms::SearchTree* searchtree = new windage::Algorithms::FLANNtree();
+	windage::Algorithms::OpticalFlow* opticalflow = new windage::Algorithms::OpticalFlow();
+	windage::Algorithms::HomographyEstimator* estimator = new windage::Algorithms::ProSACestimator();
+	windage::Algorithms::OutlierChecker* checker = new windage::Algorithms::OutlierChecker();
+	windage::Algorithms::HomographyRefiner* refiner = new windage::Algorithms::LMmethod();
+
+	calibration->Initialize(WIDTH*1.2, WIDTH*1.2, WIDTH/2.0, HEIGHT/2.0, 0, 0, 0, 0);
+	detector->SetThreshold(30.0);
+	searchtree->SetRatio(0.7);
+	opticalflow->Initialize(WIDTH, HEIGHT, cvSize(8, 8), 3);
+	estimator->SetReprojectionError(10.0);
+	checker->SetReprojectionError(10.0);
+	refiner->SetMaxIteration(10);
+
+	tracker->AttatchCalibration(calibration);
+	tracker->AttatchDetetor(detector);
+	tracker->AttatchMatcher(searchtree);
+	tracker->AttatchTracker(opticalflow);
+	tracker->AttatchEstimator(estimator);
+	tracker->AttatchChecker(checker);
+	tracker->AttatchRefiner(refiner);
+
+	tracker->SetDitectionRatio(30);
+	tracker->Initialize(WIDTH, HEIGHT, (double)WIDTH, (double)HEIGHT);
+
 	return tracker;
 }
 
@@ -144,12 +162,12 @@ osg::Matrixd GetTrackerCoordinate()
 	cvCvtColor(input, gray, CV_BGRA2GRAY);
 
 	// call tracking algorithm
-	tracker->SetFeatureExtractThreshold(fastThreshold);
-	tracker->UpdateCameraPose(gray);
+	tracker->GetDetector()->SetThreshold(fastThreshold);
+	tracker->UpdateCamerapose(gray);
 	tracker->DrawDebugInfo(input);
 
-	int featureCount = tracker->GetFeatureCount();
-	int matchingCount = tracker->GetMatchedCount();
+	int featureCount = tracker->GetDetector()->GetKeypointsCount();
+	int matchingCount = tracker->GetMatchingCount();
 #ifdef ADAPTIVE_THRESHOLD
 	if(featureCount > ADAPTIVE_THRESHOLD_VALUE )	fastThreshold = MIN(MAX_FAST_THRESHOLD, fastThreshold+THRESHOLD_STEP);
 	else											fastThreshold = MAX(MIN_FAST_THRESHOLD, fastThreshold-THRESHOLD_STEP);
@@ -165,11 +183,11 @@ osg::Matrixd GetTrackerCoordinate()
 	}
 	char message[100];
 	sprintf(message, "FPS : %.2lf", fps);
-	windage::Utils::DrawTextToImage(input, cvPoint(20, 40), message);
+	windage::Utils::DrawTextToImage(input, cvPoint(20, 40), 0.7, message);
 	sprintf(message, "FAST feature count : %d, threashold : %d", featureCount, fastThreshold);
-	windage::Utils::DrawTextToImage(input, cvPoint(20, 60), message);
+	windage::Utils::DrawTextToImage(input, cvPoint(20, 60), 0.7, message);
 	sprintf(message, "Match count : %d", matchingCount);
-	windage::Utils::DrawTextToImage(input, cvPoint(20, 80), message);
+	windage::Utils::DrawTextToImage(input, cvPoint(20, 80), 0.7, message);
 
 	arTool->SetModelViewMatrix();
 
@@ -204,12 +222,11 @@ int main(int argc, char ** argv )
 	input = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
 	gray = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 1);
 
-	IplImage* referenceImage = cvLoadImage("reference1_320.png", 0);
-	tracker = CreateTracker(referenceImage, 0);
-	tracker->GetCameraParameter()->InitUndistortionMap(WIDTH, HEIGHT);
+//	IplImage* referenceImage = cvLoadImage("reference1_320.png", 0);
+	tracker = CreateTracker();
 
 	// initialize ar tool
-	arTool = new windage::ARForOSG();
+	arTool = new windage::Coordinator::ARForOSG();
 	arTool->Initialize(WIDTH, HEIGHT);
 	arTool->AttatchCameraParameter(tracker->GetCameraParameter());
 

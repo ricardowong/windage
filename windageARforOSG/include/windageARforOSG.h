@@ -49,7 +49,7 @@
 	#define DLLIMPORT
 #endif
 
-#include <Utils/wMatrix.h>
+#include <windage.h>
 #include <osg/Matrixd>
 
 namespace windageARTool
