@@ -36,6 +36,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CameraTracjectory", "..\..\
 		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B} = {BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SparseReconstruction", "..\..\Examples\SparseReconstruction\SparseReconstruction.vcproj", "{078F794F-B434-488B-829E-3D41676F2797}"
+	ProjectSection(ProjectDependencies) = postProject
+		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B} = {BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -66,6 +71,10 @@ Global
 		{7974C387-4D43-4C1C-B9AD-DE81A9422FF5}.Debug|Win32.Build.0 = Debug|Win32
 		{7974C387-4D43-4C1C-B9AD-DE81A9422FF5}.Release|Win32.ActiveCfg = Release|Win32
 		{7974C387-4D43-4C1C-B9AD-DE81A9422FF5}.Release|Win32.Build.0 = Release|Win32
+		{078F794F-B434-488B-829E-3D41676F2797}.Debug|Win32.ActiveCfg = Debug|Win32
+		{078F794F-B434-488B-829E-3D41676F2797}.Debug|Win32.Build.0 = Debug|Win32
+		{078F794F-B434-488B-829E-3D41676F2797}.Release|Win32.ActiveCfg = Release|Win32
+		{078F794F-B434-488B-829E-3D41676F2797}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -77,5 +86,6 @@ Global
 		{1E45E76B-4E96-4DBA-8EBB-212D2463065E} = {88DDBFE1-5E4A-4B1B-A62F-1D38B81D8E64}
 		{CB071729-ABAB-4E0F-83C3-8EF7B1B56ED6} = {88DDBFE1-5E4A-4B1B-A62F-1D38B81D8E64}
 		{7974C387-4D43-4C1C-B9AD-DE81A9422FF5} = {88DDBFE1-5E4A-4B1B-A62F-1D38B81D8E64}
+		{078F794F-B434-488B-829E-3D41676F2797} = {88DDBFE1-5E4A-4B1B-A62F-1D38B81D8E64}
 	EndGlobalSection
 EndGlobal
