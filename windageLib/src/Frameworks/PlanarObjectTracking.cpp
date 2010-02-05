@@ -51,7 +51,8 @@ bool PlanarObjectTracking::Initialize(int width, int height, double realWidth, d
 	this->realWidth = realWidth;
 	this->realHeight = realHeight;
 
-	this->checker->AttatchEstimator(this->estimator);
+	if(this->checker != NULL)
+		this->checker->AttatchEstimator(this->estimator);
 	
 	if(prevImage) cvReleaseImage(&prevImage);
 	prevImage = cvCreateImage(cvSize(width, height), IPL_DEPTH_8U, 1);

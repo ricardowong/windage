@@ -103,3 +103,5 @@
 #include "Coordinator/MultiCameraCoordinator.h"
 #include "Coordinator/MultiMarkerCoordinator.h"
 
+// Reconstruction
+#include "Reconstruction/StereoReconstruction.h"

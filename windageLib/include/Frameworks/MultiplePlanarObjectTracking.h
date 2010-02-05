@@ -133,6 +133,7 @@ namespace windage
 
 				detector = NULL;
 				estimator = NULL;
+				checker = NULL;
 				refiner = NULL;
 
 				initialize = false;

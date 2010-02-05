@@ -67,15 +67,17 @@
 #include "PlanarObjectTrackingTest.h"
 #include "MultiplePlanarObjectTrackingTest.h"
 
+#include "StereoReconstructionTest.h"
 
 
 void main()
 {
+
 	windageTestSample testSample;
 	VectorMatrixTest testMatrixVector;
 	CalibrationTest testCalibration;
 	RotationConverterTest testRotationConverter;
-
+/*
 	FeaturePointTest testFeaturePoint;
 	SURFdetectorTest testSURFdetector;
 //	SIFTdetectorTest testSIFTdetector;
@@ -98,6 +100,9 @@ void main()
 
 	PlanarObjectTrackingTest testPlanarObjectTracking;
 	MultiplePlanarObjectTrackingTest testMultiplePlanarObjectTracking;
+//*/
+
+	StereoReconstructionTest testStereoReconstruction;
 
 	cvNamedWindow("stop");
 	cvWaitKey(10*1000);

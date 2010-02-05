@@ -275,6 +275,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\StereoReconstructionTest.h"
+				>
+			</File>
+			<File
 				RelativePath=".\SURFdetectorTest.h"
 				>
 			</File>

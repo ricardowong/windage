@@ -152,7 +152,7 @@ public:
 		tracking1->AttatchReferenceImage(grayImage1);
 		tracking1->AttatchReferenceImage(grayImage1);
 		tracking1->AttatchReferenceImage(grayImage1);
-		tracking1->TrainingReference();
+		tracking1->TrainingReference(1.0, 1);
 		tracking1->UpdateCamerapose(grayImage2);
 		tracking1->UpdateCamerapose(grayImage2);
 		tracking1->UpdateCamerapose(grayImage2);
@@ -168,7 +168,7 @@ public:
 		tracking2->AttatchRefiner(this->refiner);
 		tracking2->Initialize(imageSize.width, imageSize.height);
 		tracking2->AttatchReferenceImage(grayImage1);
-		tracking2->TrainingReference();
+		tracking2->TrainingReference(1.0, 1);
 		tracking2->UpdateCamerapose(grayImage2);
 		delete tracking2;		
 
@@ -208,7 +208,7 @@ public:
 
 		tracking.Initialize(width, height, width, height);
 		tracking.AttatchReferenceImage(grayImage1);
-		tracking.TrainingReference();
+		tracking.TrainingReference(1.0, 1);
 
 		tracking.UpdateCamerapose(grayImage2);
 

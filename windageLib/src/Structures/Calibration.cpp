@@ -226,9 +226,9 @@ int Calibration::ConvertWorld2Image(CvMat* output, CvMat* input)
 
 	ConvertCamera2Image(output, cameraCoordinate3DPosition);
 
-	cvSetReal1D(output, 0, cvGetReal1D(output, 0) / cvGetReal1D(output, 2));
-	cvSetReal1D(output, 1, cvGetReal1D(output, 1) / cvGetReal1D(output, 2));
-	cvSetReal1D(output, 2, 1.0);
+	cvSetReal1D(output, 0, cvGetReal1D(output, 0));
+	cvSetReal1D(output, 1, cvGetReal1D(output, 1));
+	cvSetReal1D(output, 2, cvGetReal1D(output, 2));
 
 	cvReleaseMat(&cameraCoordinatePosition);
 	cvReleaseMat(&cameraCoordinate3DPosition);
@@ -247,9 +247,10 @@ CvPoint Calibration::ConvertWorld2Image(double x, double y, double z)
 	cvSetReal1D(worldCoordinate, 3, 1);
 	ConvertWorld2Image(imageCoordinate, worldCoordinate);
 
+	double ww = 1.0 / cvGetReal1D(imageCoordinate, 2);
 	CvPoint point;
-	point.x = cvRound(cvGetReal1D(imageCoordinate, 0));
-	point.y = cvRound(cvGetReal1D(imageCoordinate, 1));
+	point.x = cvRound(cvGetReal1D(imageCoordinate, 0) * ww);
+	point.y = cvRound(cvGetReal1D(imageCoordinate, 1) * ww);
 
 	cvReleaseMat(&imageCoordinate);
 	cvReleaseMat(&worldCoordinate);

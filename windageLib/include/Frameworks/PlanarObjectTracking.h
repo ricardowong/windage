@@ -125,6 +125,7 @@ namespace windage
 				detector = NULL;
 				matcher = NULL;
 				estimator = NULL;
+				checker = NULL;
 				refiner = NULL;
 
 				initialize = false;
