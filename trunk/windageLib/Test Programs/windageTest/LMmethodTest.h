@@ -232,7 +232,8 @@ public:
 
 		double errorH = 0.0;
 		double errorR = 0.0;
-		for(unsigned int i=0; i<this->referencePoints.size(); i++)
+		int count = (int)this->referencePoints.size();
+		for(int i=0; i<count; i++)
 		{
 			windage::Vector3 world = this->referencePoints[i].GetPoint();
 			windage::Vector3 image = this->scenePoints[i].GetPoint();
@@ -246,6 +247,9 @@ public:
 			errorH += image.getDistance(resultH);
 			errorR += image.getDistance(resultR);
 		}
+
+		errorH /= (double)count;
+		errorR /= (double)count;
 
 		sprintf_s(tempMessage, "original : %lf, refine : %lf", errorH, errorR);
 		(*message) = std::string(tempMessage);

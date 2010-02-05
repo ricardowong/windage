@@ -100,6 +100,8 @@ namespace windage
 			cvmSetZero(intrinsicMatrix);
 			cvmSetZero(distortionCoefficients);
 			cvmSetZero(extrinsicMatrix);
+			for(int i=0; i<4; i++)
+				cvSetReal2D(extrinsicMatrix, i, i, 1.0);
 
 			dstMapX = NULL;
 			dstMapY = NULL;
