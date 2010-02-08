@@ -41,6 +41,17 @@
 using namespace windage;
 using namespace windage::Reconstruction;
 
+#include "Reconstruction/BundleWrapper.h"
+
+bool IncrementalReconstruction::BundleAdjustment()
+{
+	BundleWrapper* bundler = new windage::Reconstruction::BundleWrapper();
+
+
+
+	return false;
+}
+
 void IncrementalReconstruction::AttatchFeaturePoint(std::vector<windage::FeaturePoint>* featurePoints)
 {
 	this->sceneCount++;

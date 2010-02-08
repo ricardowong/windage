@@ -100,9 +100,9 @@ void main()
 
 	PlanarObjectTrackingTest testPlanarObjectTracking;
 	MultiplePlanarObjectTrackingTest testMultiplePlanarObjectTracking;
-
-	StereoReconstructionTest testStereoReconstruction;
 //*/
+	StereoReconstructionTest testStereoReconstruction;
+
 	cvNamedWindow("stop");
 	cvWaitKey(10*1000);
 	cvDestroyAllWindows();

@@ -84,6 +84,7 @@ namespace windage
 		{
 		private:
 			int sceneCount;
+			int cameraCount;
 			windage::Calibration* initialCameraParameter;
 			std::vector<windage::Calibration*> cameraParameters;
 
@@ -95,6 +96,7 @@ namespace windage
 			IncrementalReconstruction()
 			{
 				sceneCount = 0;
+				cameraCount = 0;
 				initialCameraParameter = NULL;
 				searchtree = NULL;
 			}
@@ -109,6 +111,8 @@ namespace windage
 			inline void AttatchSearchTree(windage::Algorithms::SearchTree* matcher){this->searchtree = matcher;};
 			inline windage::Calibration* GetCameraParameter(int i){return cameraParameters[i];};
 			inline std::vector<windage::ReconstructionPoint>* GetReconstructedPoint(int i){return &(reconstructionPoints[i]);};
+
+			bool BundleAdjustment();
 			
 			void AttatchFeaturePoint(std::vector<windage::FeaturePoint>* featurePoints);
 			bool Calculate();
