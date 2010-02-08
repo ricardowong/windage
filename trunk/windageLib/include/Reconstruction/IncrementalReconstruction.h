@@ -83,8 +83,8 @@ namespace windage
 		class DLLEXPORT IncrementalReconstruction
 		{
 		private:
-			int sceneCount;
-			int cameraCount;
+			int attatchedCount;
+			int caculatedCount;
 			windage::Calibration* initialCameraParameter;
 			std::vector<windage::Calibration*> cameraParameters;
 
@@ -92,11 +92,17 @@ namespace windage
 
 			std::vector<std::vector<windage::ReconstructionPoint>> reconstructionPoints;
 			std::vector<std::vector<windage::FeaturePoint>> featurePointsList;
+
+			bool Matching(std::vector<windage::FeaturePoint>* feature1, std::vector<windage::FeaturePoint>* feature2,
+						  std::vector<windage::FeaturePoint>* matchedPoint1, std::vector<windage::FeaturePoint>* matchedPoint2);
+			int MatchingCount(std::vector<windage::FeaturePoint>* feature1, std::vector<windage::FeaturePoint>* feature2);
+			bool StereoReconstruction();
+			bool IncrementReconstruction(std::vector<windage::FeaturePoint>* feature);
 		public:
 			IncrementalReconstruction()
 			{
-				sceneCount = 0;
-				cameraCount = 0;
+				attatchedCount = 0;
+				caculatedCount = 0;
 				initialCameraParameter = NULL;
 				searchtree = NULL;
 			}
@@ -110,9 +116,9 @@ namespace windage
 			inline void AttatchCalibration(windage::Calibration* calibration){this->initialCameraParameter = calibration;};
 			inline void AttatchSearchTree(windage::Algorithms::SearchTree* matcher){this->searchtree = matcher;};
 			inline windage::Calibration* GetCameraParameter(int i){return cameraParameters[i];};
-			inline std::vector<windage::ReconstructionPoint>* GetReconstructedPoint(int i){return &(reconstructionPoints[i]);};
+			inline std::vector<windage::ReconstructionPoint>* GetReconstructedPoint(int i){return &reconstructionPoints[i];};
 
-			bool BundleAdjustment();
+			bool BundleAdjustment(int n);
 			
 			void AttatchFeaturePoint(std::vector<windage::FeaturePoint>* featurePoints);
 			bool Calculate();

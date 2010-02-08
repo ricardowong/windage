@@ -53,7 +53,7 @@ const int RENDERING_WIDTH = 640;
 const int RENDERING_HEIGHT = (RENDERING_WIDTH * 3) / 4;
 const double INTRINSIC_VALUES[8] = {WIDTH*0.8, WIDTH*0.8, WIDTH/2, HEIGHT/2, 0, 0, 0, 0};
 
-const int IMAGE_FILE_COUNT = 3;
+const int IMAGE_FILE_COUNT = 2;
 const char* IMAGE_FILE_NAME = "test%02d.jpg";
 //const char* IMAGE_FILE_NAME = "Test/testImage%d.png";
 const double VIRTUAL_CAMERA_DISTANCE = 0.5;
@@ -127,6 +127,12 @@ void display()
 			glEnd();
 		}
 
+		for(int i=0; i<IMAGE_FILE_COUNT; i++)
+		{
+//			renderer->DrawCamera(calibration[i], NULL);
+			renderer->DrawCameraAxis(calibration[i]);
+		}
+
 		renderer->DrawAxis((double)RENDERING_WIDTH / 4.0);
 
 	}
@@ -150,6 +156,9 @@ void main()
 
 	logging = new windage::Logger(&std::cout);
 	logging->log("initialize"); logging->logNewLine();
+
+	windage::Calibration initialCalibration;
+	initialCalibration.Initialize(INTRINSIC_VALUES[0], INTRINSIC_VALUES[1], INTRINSIC_VALUES[2], INTRINSIC_VALUES[3]);
 	
 	for(int i=0; i<IMAGE_FILE_COUNT; i++)
 	{
@@ -160,7 +169,7 @@ void main()
 	for(int i=0; i<IMAGE_FILE_COUNT-1; i++)
 	{
 		stereo[i] = new windage::Reconstruction::StereoReconstruction();
-		stereo[i]->AttatchBaseCameraParameter(calibration[0]);
+		stereo[i]->AttatchBaseCameraParameter(&initialCalibration);
 		stereo[i]->AttatchUpdateCameraParameter(calibration[i+1]);
 	}
 
@@ -208,7 +217,7 @@ void main()
 		matchedPoint[2*i].clear();
 		matchedPoint[2*i+1].clear();
 
-		windage::Algorithms::SearchTree* searchtree = new windage::Algorithms::FLANNtree(50);
+		windage::Algorithms::SearchTree* searchtree = new windage::Algorithms::FLANNtree(30);
 		searchtree->SetRatio(0.6);
 		searchtree->Training(&featurePoint[i]);
 		for(unsigned int j=0; j<featurePoint[i+1].size(); j++)
@@ -216,6 +225,9 @@ void main()
 			int index = searchtree->Matching(featurePoint[i+1][j]);
 			if(index >= 0)
 			{
+				featurePoint[i][index].SetRepositoryID(index);
+				featurePoint[i+1][j].SetRepositoryID(j);
+
 				matchedPoint[2*i].push_back(featurePoint[i][index]);
 				matchedPoint[2*i+1].push_back(featurePoint[i+1][j]);
 			}
@@ -229,7 +241,7 @@ void main()
 	for(int i=0; i<IMAGE_FILE_COUNT-1; i++)
 	{
 		logging->logNewLine();
-		logging->log("reconstruction"); logging->logNewLine();
+		logging->log("reconstruction "); logging->log(i); logging->log("-"); logging->log(i+1); logging->logNewLine();
 
 		stereo[i]->AttatchMatchedPoint1(&matchedPoint[2*i]);
 		stereo[i]->AttatchMatchedPoint2(&matchedPoint[2*i+1]);
