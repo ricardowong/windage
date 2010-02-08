@@ -69,15 +69,18 @@ namespace windage
 	class DLLEXPORT ReconstructionPoint
 	{
 	protected:
-		windage::Vector4 point; ///< position of reconstruction point (w-value is 1.0)
-		CvScalar color;			///< color of reconstruction point
-		int objectID;			///< object id (initialize -1)
-		int featureID;			///< feature id (initialize -1)
-		bool outlier;			///< checked outlier
+		windage::Vector4 point;		///< position of reconstruction point (w-value is 1.0)
+		windage::Vector3 imagePoint;///< position of original image point (z-value is 1.0)
+		CvScalar color;				///< color of reconstruction point
+		int objectID;				///< object id (initialize -1)
+		int featureID;				///< feature id (initialize -1)
+		bool outlier;				///< checked outlier
 
 	public:
 		ReconstructionPoint()
 		{
+			point = windage::Vector4(0.0, 0.0, 0.0, 1.0);
+			imagePoint = windage::Vector3(0.0, 0.0, 1.0);
 			color = CV_RGB(255, 255, 255);
 			objectID = -1;
 			featureID = -1;
@@ -96,8 +99,9 @@ namespace windage
 		 */
 		virtual void operator=(ReconstructionPoint oprd)
 		{
-			this->color = oprd.GetColor();
 			this->point = oprd.GetPoint();
+			this->imagePoint = oprd.GetImagePoint();
+			this->color = oprd.GetColor();
 			this->objectID = oprd.GetObjectID();
 			this->featureID = oprd.GetFeatureID();
 			this->outlier = oprd.IsOutlier();
@@ -105,6 +109,8 @@ namespace windage
 
 		inline void SetPoint(windage::Vector4 point){this->point = point;};
 		inline windage::Vector4 GetPoint(){return this->point;};
+		inline void SetImagePoint(windage::Vector3 point){this->imagePoint = point;};
+		inline windage::Vector3 GetImagePoint(){return this->imagePoint;};
 		inline void SetColor(CvScalar color=CV_RGB(255, 255, 2555)){this->color = color;};
 		inline CvScalar GetColor(){return this->color;};
 		inline void SetObjectID(int id){this->objectID = id;};

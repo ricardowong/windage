@@ -290,3 +290,47 @@ void OpenGLRenderer::DrawCamera(Calibration* calibration, IplImage* image)
 	}
 }
 
+void OpenGLRenderer::DrawCameraAxis(windage::Calibration* calibration, double size)
+{
+	CvScalar pt = calibration->GetCameraPosition();
+	CvScalar at = calibration->GetLookAt();
+	CvScalar up = calibration->GetUpPoint();
+	CvScalar ri = calibration->GetRightPoint();
+
+	Vector3 cameraPosition	= Vector3(pt.val[0], pt.val[1], pt.val[2]);
+	Vector3 lookAt			= Vector3(at.val[0], at.val[1], at.val[2]);
+	Vector3 upVector		= Vector3(up.val[0], up.val[1], up.val[2]);
+	Vector3 rightVector		= Vector3(ri.val[0], ri.val[1], ri.val[2]);
+	Vector3 point[4];
+
+	// translate relation value
+	lookAt -= cameraPosition;
+	upVector -= cameraPosition;
+	rightVector -= cameraPosition;
+	
+	lookAt *= size / lookAt.getLength();
+	upVector *= size / upVector.getLength();
+	rightVector *= size / rightVector.getLength();
+
+	// translate absolution value
+	lookAt += cameraPosition;
+	upVector += cameraPosition;	
+	rightVector += cameraPosition;
+
+	glBegin(GL_LINES);
+	{
+		glColor3f(1, 0, 0);
+		glVertex3f(cameraPosition.x, cameraPosition.y, cameraPosition.z);
+		glVertex3f(rightVector.x, rightVector.y, rightVector.z);
+
+		glColor3f(0, 1, 0);
+		glVertex3f(cameraPosition.x, cameraPosition.y, cameraPosition.z);
+		glVertex3f(upVector.x, upVector.y, upVector.z);
+
+		glColor3f(0, 0, 1);
+		glVertex3f(cameraPosition.x, cameraPosition.y, cameraPosition.z);
+		glVertex3f(lookAt.x, lookAt.y, lookAt.z);
+	}
+	glEnd();
+
+}

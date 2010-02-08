@@ -97,7 +97,8 @@ public:
 	void DrawAxis(double size);
 	void AttatchReference(IplImage* image);
 	void DrawReference(double width, double height);
-	void DrawCamera(windage::Calibration* calibration, IplImage* image);
+	void DrawCamera(windage::Calibration* calibration, IplImage* image = NULL);
+	void DrawCameraAxis(windage::Calibration* calibration, double size = 1.0);
 
 	// overwriting
 	/*

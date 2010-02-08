@@ -176,12 +176,6 @@ public:
 
 		windage::Reconstruction::StereoReconstruction* reconstruction2 = new windage::Reconstruction::StereoReconstruction();
 		p2 = (void*)reconstruction2;
-		reconstruction2->AttatchBaseCameraParameter(this->calibration1);
-		reconstruction2->AttatchUpdateCameraParameter(this->calibration2);
-		reconstruction2->AttatchMatchedPoint1(&this->refPoints);
-		reconstruction2->AttatchMatchedPoint2(&this->scePoints);
-		reconstruction2->CalculateNormalizedPoint();
-		reconstruction2->ComputeEssentialMatrixRANSAC(&error);
 		delete reconstruction2;
 
 		sprintf_s(memoryAddress1, "%08X", p1);
@@ -208,12 +202,13 @@ public:
 		for(int i=0; i<this->scePoints.size(); i++)
 		{
 			CvPoint pt1 = cvPoint(refPoints[i].GetPoint().x, refPoints[i].GetPoint().y);
-			CvPoint pt2 = cvPoint(scePoints[i].GetPoint().x, scePoints[i].GetPoint().y);
+			CvPoint pt2 = cvPoint(imageSize.width+scePoints[i].GetPoint().x, scePoints[i].GetPoint().y);
 
 			cvLine(resultImage, pt1, pt2, CV_RGB(255, 0, 0));
 		}
 		cvShowImage("matching", resultImage);
 //*/
+
 		windage::Reconstruction::StereoReconstruction stereoReconstruction;
 		stereoReconstruction.AttatchBaseCameraParameter(this->calibration1);
 		stereoReconstruction.AttatchUpdateCameraParameter(this->calibration2);
@@ -223,19 +218,9 @@ public:
 		double error = 0.0;
 		stereoReconstruction.CalculateNormalizedPoint();
 		stereoReconstruction.ComputeEssentialMatrixRANSAC(&error);
-		std::vector<windage::ReconstructionPoint>* point3D = stereoReconstruction.GetReconstructionPoints();
 
-		int count = 0;
-		int n = (int)point3D->size();
-		for(int i=0; i<n; i++)
-		{
-			if((*point3D)[i].IsOutlier() == false)
-			{
-				count++;
-//				std::cout << count << " : " << (*point3D)[i].GetPoint().x << " " << (*point3D)[i].GetPoint().y << " " << (*point3D)[i].GetPoint().z << " " << (*point3D)[i].GetPoint().w << std::endl;
-			}
-		}
-
+		int count = stereoReconstruction.GetInlierCount();
+		int n = (int)refPoints.size();
 		sprintf_s(tempMessage, "%d / %d - error : %.2lf", count, n, error);
 		(*message) = std::string(tempMessage);
 		return test;
