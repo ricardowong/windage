@@ -79,6 +79,7 @@ namespace windage
 		class DLLEXPORT StereoReconstruction
 		{
 		private:
+			const static int MAX_ITERATION = 500;					///< RANSAC max iteration count
 			double reprojectionError;								///< threshold to determin outlier or not
 
 			windage::Calibration* initialCameraParameter;			///< base camera parameter to attatch reference pointer at out-side

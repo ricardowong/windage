@@ -38,6 +38,7 @@
  * ======================================================================== */
 
 #include <iostream>
+#include <omp.h>
 
 #include <gl/glut.h>
 #include <cv.h>
@@ -46,22 +47,21 @@
 #include <windage.h>
 #include "../Common/OpenGLRenderer.h"
 
-const int WIDTH = 640;
+const int WIDTH = 1024;
 const int HEIGHT = (WIDTH * 3) / 4;
 const int RENDERING_WIDTH = 640;
 const int RENDERING_HEIGHT = (RENDERING_WIDTH * 3) / 4;
 const double INTRINSIC_VALUES[8] = {WIDTH*1.2, WIDTH*1.2, WIDTH/2, HEIGHT/2, 0, 0, 0, 0};
 
-const int IMAGE_FILE_COUNT = 2;
+const int IMAGE_FILE_COUNT = 3;
 const char* IMAGE_FILE_NAME = "test%02d.jpg";
-const double VIRTUAL_CAMERA_DISTANCE = 800.0;
+//const char* IMAGE_FILE_NAME = "Test/testImage%d.png";
+const double VIRTUAL_CAMERA_DISTANCE = 0.5;
+const double SCALE_FACTOR = 1.0;
 
 OpenGLRenderer* renderer = NULL;
-windage::Calibration* calibration1 = NULL;
-windage::Calibration* calibration2 = NULL;
-windage::Algorithms::FeatureDetector* detector = NULL;
-windage::Algorithms::SearchTree* searchtree = NULL;
-windage::Reconstruction::StereoReconstruction* stereo = NULL;
+windage::Calibration* calibration[IMAGE_FILE_COUNT];
+windage::Reconstruction::StereoReconstruction* stereo[IMAGE_FILE_COUNT-1];
 
 windage::Logger* logging;
 double threshold = 30.0;
@@ -100,29 +100,35 @@ void display()
 	double radian = angle * CV_PI / 180.0;
 	double dx = sin(radian) * VIRTUAL_CAMERA_DISTANCE;
 	double dy = cos(radian) * VIRTUAL_CAMERA_DISTANCE;
-	gluLookAt(dx, dy, 800, 0.0, 0.0, 300.0, 0.0, 0.0, 1.0);
+//	gluLookAt(dx, dy, VIRTUAL_CAMERA_DISTANCE, 0.0, 0.0, VIRTUAL_CAMERA_DISTANCE/2.0, 0.0, 0.0, 1.0);
+	gluLookAt(dx, dy, -VIRTUAL_CAMERA_DISTANCE, 0.0, 0.0, 100.0, 0.0, -1.0, 0.0);
+//	gluLookAt(0.0, radian - CV_PI, 0.0, 0.0, 0.0, 100.0, 0.0, -1.0, 0.0);
 
 	glPushMatrix();
 	{
-		std::vector<windage::ReconstructionPoint>* point3D = stereo->GetReconstructionPoints();
-
-		glPointSize(5.0f);
-		glBegin(GL_POINTS);
+		for(int i=0; i<IMAGE_FILE_COUNT-1; i++)
 		{
-			for(unsigned int i=0; i<point3D->size(); i++)
+			std::vector<windage::ReconstructionPoint>* point3D = stereo[i]->GetReconstructionPoints();
+
+			glPointSize(5.0f);
+			glBegin(GL_POINTS);
 			{
-				if((*point3D)[i].IsOutlier() == false)
+				for(unsigned int j=0; j<point3D->size(); j++)
 				{
-					CvScalar color = (*point3D)[i].GetColor();
-					windage::Vector4 point = (*point3D)[i].GetPoint();
-					glColor3f(color.val[2]/255.0, color.val[1]/255.0, color.val[0]/255.0);
-					glVertex3f(point.x, point.y, point.z);
+					if((*point3D)[j].IsOutlier() == false)
+					{
+						CvScalar color = (*point3D)[j].GetColor();
+						windage::Vector4 point = (*point3D)[j].GetPoint();
+						glColor3f(color.val[2]/255.0, color.val[1]/255.0, color.val[0]/255.0);
+						glVertex3f(point.x, point.y, point.z);
+					}
 				}
 			}
+			glEnd();
 		}
-		glEnd();
-		
+
 		renderer->DrawAxis((double)RENDERING_WIDTH / 4.0);
+
 	}
 	glPopMatrix();
 
@@ -140,22 +146,23 @@ void main()
 	featurePoint.resize(IMAGE_FILE_COUNT);
 
 	std::vector<std::vector<windage::FeaturePoint>> matchedPoint;
-	matchedPoint.resize(IMAGE_FILE_COUNT);
+	matchedPoint.resize((IMAGE_FILE_COUNT-1)*2);
 
 	logging = new windage::Logger(&std::cout);
 	logging->log("initialize"); logging->logNewLine();
 	
-	calibration1 = new windage::Calibration();
-	calibration2 = new windage::Calibration();
-	calibration1->Initialize(INTRINSIC_VALUES[0], INTRINSIC_VALUES[1], INTRINSIC_VALUES[2], INTRINSIC_VALUES[3]);
-	calibration2->Initialize(INTRINSIC_VALUES[0], INTRINSIC_VALUES[1], INTRINSIC_VALUES[2], INTRINSIC_VALUES[3]);
-	
-	stereo = new windage::Reconstruction::StereoReconstruction();
-	stereo->AttatchBaseCameraParameter(calibration1);
-	stereo->AttatchUpdateCameraParameter(calibration2);
+	for(int i=0; i<IMAGE_FILE_COUNT; i++)
+	{
+		calibration[i] = new windage::Calibration();
+		calibration[i]->Initialize(INTRINSIC_VALUES[0], INTRINSIC_VALUES[1], INTRINSIC_VALUES[2], INTRINSIC_VALUES[3]);
+	}
 
-	detector = new windage::Algorithms::SIFTdetector();
-	searchtree = new windage::Algorithms::FLANNtree();
+	for(int i=0; i<IMAGE_FILE_COUNT-1; i++)
+	{
+		stereo[i] = new windage::Reconstruction::StereoReconstruction();
+		stereo[i]->AttatchBaseCameraParameter(calibration[i]);
+		stereo[i]->AttatchUpdateCameraParameter(calibration[i+1]);
+	}
 
 	logging->logNewLine();
 	logging->log("load image & feature extract - matching"); logging->logNewLine();
@@ -169,94 +176,115 @@ void main()
 
 		cvCvtColor(inputImage[i], grayImage[i], CV_BGR2GRAY);
 
-		logging->log("\tload image : "); logging->log(filename); logging->logNewLine();
+		logging->log("\tload image "); logging->log(i); logging->log(" : "); logging->log(filename); logging->logNewLine();
 	}
 	
 	logging->logNewLine();
 	logging->log("\tfeature extract"); logging->logNewLine();
 
+	#pragma omp parallel for
 	for(int i=0; i<IMAGE_FILE_COUNT; i++)
 	{
+		windage::Algorithms::FeatureDetector* detector = new windage::Algorithms::SIFTdetector();
 		detector->DoExtractKeypointsDescriptor(grayImage[i]);
 		std::vector<windage::FeaturePoint>* temp = detector->GetKeypoints();
+
+		featurePoint[i].clear();
 		for(unsigned int j=0; j<temp->size(); j++)
 			featurePoint[i].push_back((*temp)[j]);
 
-		logging->log("\tkeypoint count : "); logging->log((int)featurePoint[i].size()); logging->logNewLine();
+		delete detector;
+
+		logging->log("\tkeypoint count "); logging->log(i); logging->log(" : "); logging->log((int)featurePoint[i].size()); logging->logNewLine();
 	}
 
-	logging->logNewLine();
-	logging->log("\tfeature matching"); logging->logNewLine();
-
-	searchtree->Training(&featurePoint[0]);
-	for(unsigned int i=0; i<featurePoint[1].size(); i++)
+	#pragma omp parallel for
+	for(int i=0; i<IMAGE_FILE_COUNT-1; i++)
 	{
-		int index = searchtree->Matching(featurePoint[1][i]);
-		if(index >= 0)
+		logging->logNewLine();
+		logging->log("matching "); logging->log(i); logging->log("-"); logging->log(i+1); logging->logNewLine();
+		logging->log("\tfeature matching"); logging->logNewLine();
+
+		matchedPoint[2*i].clear();
+		matchedPoint[2*i+1].clear();
+
+		windage::Algorithms::SearchTree* searchtree = new windage::Algorithms::FLANNtree(50);
+		searchtree->SetRatio(0.6);
+		searchtree->Training(&featurePoint[i]);
+		for(unsigned int j=0; j<featurePoint[i+1].size(); j++)
 		{
-			matchedPoint[0].push_back(featurePoint[0][index]);
-			matchedPoint[1].push_back(featurePoint[1][i]);
+			int index = searchtree->Matching(featurePoint[i+1][j]);
+			if(index >= 0)
+			{
+				matchedPoint[2*i].push_back(featurePoint[i][index]);
+				matchedPoint[2*i+1].push_back(featurePoint[i+1][j]);
+			}
 		}
+		delete searchtree;
+
+		int matchCount = (int)matchedPoint[2*i].size();
+		logging->log("\tmatching count : "); logging->log(matchCount); logging->logNewLine();
 	}
-	int matchCount = (int)matchedPoint[0].size();
-	logging->log("\tmatching count : "); logging->log(matchCount); logging->logNewLine();
 
-	logging->logNewLine();
-	logging->log("reconstruction"); logging->logNewLine();
-
-	stereo->AttatchMatchedPoint1(&matchedPoint[0]);
-	stereo->AttatchMatchedPoint2(&matchedPoint[1]);
-
-	double error = 0.0;
-	stereo->CalculateNormalizedPoint();
-	stereo->ComputeEssentialMatrixRANSAC(&error);
-	int inlierCount = stereo->GetInlierCount();
-	logging->log("\tinlier ratio : "); logging->log(inlierCount); logging->log("/"); logging->log(matchCount); logging->logNewLine();
-	logging->log("\terror : "); logging->log(error); logging->logNewLine();
-
-	logging->logNewLine();
-	logging->log("color matching"); logging->logNewLine();
-
-	std::vector<windage::ReconstructionPoint>* point3D = stereo->GetReconstructionPoints();
-	for(unsigned int i=0; i<point3D->size(); i++)
+	for(int i=0; i<IMAGE_FILE_COUNT-1; i++)
 	{
-		if((*point3D)[i].IsOutlier() == false)
-		{
-			CvScalar color1 = cvGet2D(inputImage[0], matchedPoint[0][i].GetPoint().y, matchedPoint[0][i].GetPoint().x);
-			CvScalar color2 = cvGet2D(inputImage[1], matchedPoint[1][i].GetPoint().y, matchedPoint[1][i].GetPoint().x);
+		logging->logNewLine();
+		logging->log("reconstruction"); logging->logNewLine();
 
-			(*point3D)[i].SetColor(CV_RGB(	(color1.val[2]+color2.val[2])/2,
-											(color1.val[1]+color2.val[1])/2,
-											(color1.val[0]+color2.val[0])/2 ) );
+		stereo[i]->AttatchMatchedPoint1(&matchedPoint[2*i]);
+		stereo[i]->AttatchMatchedPoint2(&matchedPoint[2*i+1]);
+
+		double error = 0.0;
+		stereo[i]->CalculateNormalizedPoint();
+		stereo[i]->ComputeEssentialMatrixRANSAC(&error);
+
+		int inlierCount = stereo[i]->GetInlierCount();
+		int matchCount = (int)matchedPoint[2*i].size();
+		logging->log("\tinlier ratio : "); logging->log(inlierCount); logging->log("/"); logging->log(matchCount); logging->logNewLine();
+		logging->log("\terror : "); logging->log(error); logging->logNewLine();
+	
+		logging->logNewLine();
+		logging->log("color matching"); logging->logNewLine();
+
+		std::vector<windage::ReconstructionPoint>* point3D = stereo[i]->GetReconstructionPoints();
+		for(unsigned int j=0; j<point3D->size(); j++)
+		{
+			if((*point3D)[j].IsOutlier() == false)
+			{
+				CvScalar color1 = cvGet2D(inputImage[i], matchedPoint[2*i][j].GetPoint().y, matchedPoint[2*i][j].GetPoint().x);
+				CvScalar color2 = cvGet2D(inputImage[i+1], matchedPoint[2*i+1][j].GetPoint().y, matchedPoint[2*i+1][j].GetPoint().x);
+
+				(*point3D)[j].SetColor(CV_RGB(	(color1.val[2]+color2.val[2])/2.0,
+												(color1.val[1]+color2.val[1])/2.0,
+												(color1.val[0]+color2.val[0])/2.0 ) );
+			}
 		}
 	}
 
 	logging->logNewLine();
 	logging->log("scale up"); logging->logNewLine();
 
-	for(unsigned int i=0; i<point3D->size(); i++)
+	for(int i=0; i<IMAGE_FILE_COUNT-1; i++)
 	{
-		(*point3D)[i].SetPoint((*point3D)[i].GetPoint() * 80.0);
+		std::vector<windage::ReconstructionPoint>* point3D = stereo[i]->GetReconstructionPoints();
+		for(unsigned int j=0; j<point3D->size(); j++)
+		{
+			(*point3D)[j].SetPoint((*point3D)[j].GetPoint() * SCALE_FACTOR);
+		}
 	}
 
 	logging->logNewLine();
 	logging->log("camera pose information"); logging->logNewLine();
 	logging->log("\tintrinsic"); logging->logNewLine();
-	logging->log(calibration1->GetIntrinsicMatrix());
-	logging->log("\tcamera1"); logging->logNewLine();
-	logging->log(calibration1->GetExtrinsicMatrix());
-	logging->log("\tcamera2"); logging->logNewLine();
-	logging->log(calibration2->GetExtrinsicMatrix());
-
-
+	logging->log(calibration[0]->GetIntrinsicMatrix());
+	for(int i=0; i<IMAGE_FILE_COUNT; i++)
+	{
+		logging->log("\tcamera parameter "); logging->log(i); logging->logNewLine();
+		logging->log(calibration[i]->GetExtrinsicMatrix());
+	}
+	
 	logging->logNewLine();
 	logging->log("draw result"); logging->logNewLine();
-
-
-	logging->logNewLine();
-	logging->log("release memory"); logging->logNewLine();
-	delete detector;	detector = NULL;
-	delete searchtree;	searchtree = NULL;
 
 	// initialize rendering engine using GLUT
 	renderer = new OpenGLRenderer();
