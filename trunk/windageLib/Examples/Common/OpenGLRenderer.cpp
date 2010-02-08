@@ -255,35 +255,38 @@ void OpenGLRenderer::DrawCamera(Calibration* calibration, IplImage* image)
 	glEnd();
 
 	// draw input image
-	cvResize(image, this->inputImage);
-	glBindTexture(GL_TEXTURE_2D, this->inputTexture);
+	if(image)
+	{
+		cvResize(image, this->inputImage);
+		glBindTexture(GL_TEXTURE_2D, this->inputTexture);
 
-	glEnable(GL_TEXTURE_2D);
-    glDisable(GL_BLEND);
-    glDisable(GL_LIGHTING);
+		glEnable(GL_TEXTURE_2D);
+		glDisable(GL_BLEND);
+		glDisable(GL_LIGHTING);
 
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-	glTexImage2D(	GL_TEXTURE_2D, 0, GL_RGB, inputImage->width, inputImage->height, 0, GL_BGR_EXT, GL_UNSIGNED_BYTE, inputImage->imageData);
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+		glTexImage2D(	GL_TEXTURE_2D, 0, GL_RGB, inputImage->width, inputImage->height, 0, GL_BGR_EXT, GL_UNSIGNED_BYTE, inputImage->imageData);
 
-	glColor3f(1.0f, 1.0f, 1.0f);
-    glBegin(GL_POLYGON);
-    {
-		glTexCoord2d(0,0);
-		glVertex3d(point[0].x, point[0].y, point[0].z);
+		glColor3f(1.0f, 1.0f, 1.0f);
+		glBegin(GL_POLYGON);
+		{
+			glTexCoord2d(0,0);
+			glVertex3d(point[0].x, point[0].y, point[0].z);
 
-		glTexCoord2d(1,0);
-		glVertex3d(point[1].x, point[1].y, point[1].z);
+			glTexCoord2d(1,0);
+			glVertex3d(point[1].x, point[1].y, point[1].z);
 
-		glTexCoord2d(1,1);
-		glVertex3d(point[2].x, point[2].y, point[2].z);
+			glTexCoord2d(1,1);
+			glVertex3d(point[2].x, point[2].y, point[2].z);
 
-		glTexCoord2d(0,1);
-		glVertex3d(point[3].x, point[3].y, point[3].z);
-    }
-    glEnd();
+			glTexCoord2d(0,1);
+			glVertex3d(point[3].x, point[3].y, point[3].z);
+		}
+		glEnd();
 
-	glDisable(GL_TEXTURE_2D);
-	glEnable(GL_DEPTH_TEST);
+		glDisable(GL_TEXTURE_2D);
+		glEnable(GL_DEPTH_TEST);
+	}
 }
 

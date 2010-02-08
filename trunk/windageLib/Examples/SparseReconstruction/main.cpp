@@ -47,11 +47,11 @@
 #include <windage.h>
 #include "../Common/OpenGLRenderer.h"
 
-const int WIDTH = 1024;
+const int WIDTH = 640;
 const int HEIGHT = (WIDTH * 3) / 4;
 const int RENDERING_WIDTH = 640;
 const int RENDERING_HEIGHT = (RENDERING_WIDTH * 3) / 4;
-const double INTRINSIC_VALUES[8] = {WIDTH*1.2, WIDTH*1.2, WIDTH/2, HEIGHT/2, 0, 0, 0, 0};
+const double INTRINSIC_VALUES[8] = {WIDTH*0.8, WIDTH*0.8, WIDTH/2, HEIGHT/2, 0, 0, 0, 0};
 
 const int IMAGE_FILE_COUNT = 3;
 const char* IMAGE_FILE_NAME = "test%02d.jpg";
@@ -66,7 +66,7 @@ windage::Reconstruction::StereoReconstruction* stereo[IMAGE_FILE_COUNT-1];
 windage::Logger* logging;
 double threshold = 30.0;
 double angle = 0.0;
-double angleStep = 0.5;
+double angleStep = 0.1;
 
 void keyboard(unsigned char ch, int x, int y)
 {
@@ -101,7 +101,7 @@ void display()
 	double dx = sin(radian) * VIRTUAL_CAMERA_DISTANCE;
 	double dy = cos(radian) * VIRTUAL_CAMERA_DISTANCE;
 //	gluLookAt(dx, dy, VIRTUAL_CAMERA_DISTANCE, 0.0, 0.0, VIRTUAL_CAMERA_DISTANCE/2.0, 0.0, 0.0, 1.0);
-	gluLookAt(dx, dy, -VIRTUAL_CAMERA_DISTANCE, 0.0, 0.0, 100.0, 0.0, -1.0, 0.0);
+	gluLookAt(dx, dy, -VIRTUAL_CAMERA_DISTANCE, 0.0, 0.0, 1000.0, 0.0, -1.0, 0.0);
 //	gluLookAt(0.0, radian - CV_PI, 0.0, 0.0, 0.0, 100.0, 0.0, -1.0, 0.0);
 
 	glPushMatrix();
@@ -160,7 +160,7 @@ void main()
 	for(int i=0; i<IMAGE_FILE_COUNT-1; i++)
 	{
 		stereo[i] = new windage::Reconstruction::StereoReconstruction();
-		stereo[i]->AttatchBaseCameraParameter(calibration[i]);
+		stereo[i]->AttatchBaseCameraParameter(calibration[0]);
 		stereo[i]->AttatchUpdateCameraParameter(calibration[i+1]);
 	}
 
@@ -198,7 +198,7 @@ void main()
 		logging->log("\tkeypoint count "); logging->log(i); logging->log(" : "); logging->log((int)featurePoint[i].size()); logging->logNewLine();
 	}
 
-	#pragma omp parallel for
+//	#pragma omp parallel for
 	for(int i=0; i<IMAGE_FILE_COUNT-1; i++)
 	{
 		logging->logNewLine();
