@@ -498,7 +498,7 @@ bool StereoReconstruction::ComputeEssentialMatrixRANSAC(double* error)
 	int pre_inlier = -1, num_inlier;
 	double pre_error = 10000, small_err = 0.0;
 		
-	max_iter = 1000;
+	max_iter = this->MAX_ITERATION;
 	int *idx = new int[sample_size];
 
 	double err = 0.0;

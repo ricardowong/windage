@@ -64,8 +64,8 @@ public:
 	windageTest(const std::string testName, const std::string testClass)
 	{
 		TEST_IMAGE_FILENAME = "Test/testReference.png";
-		REFERENCE_IMAGE_FILENAME = "Test/testImage1.png";
-		MATCHING_IMAGE_FILENAME = "Test/testImage2.png";
+		REFERENCE_IMAGE_FILENAME = "Test/testImage0.png";
+		MATCHING_IMAGE_FILENAME = "Test/testImage1.png";
 
 		this->testName = testName;
 		this->testClass = testClass;
