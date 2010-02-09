@@ -74,7 +74,7 @@ void main()
 	detector = new windage::Algorithms::WSURFdetector();
 	searchtree = new windage::Algorithms::FLANNtree();
 	opticalflow = new windage::Algorithms::OpticalFlow();
-	estimator = new windage::Algorithms::RANSACestimator();
+	estimator = new windage::Algorithms::ProSACestimator();
 	checker = new windage::Algorithms::OutlierChecker();
 	refiner = new windage::Algorithms::LMmethod();
 

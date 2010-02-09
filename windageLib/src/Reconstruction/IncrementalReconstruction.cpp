@@ -114,6 +114,7 @@ bool IncrementalReconstruction::StereoReconstruction(int index1, int index2)
 	double error = 0.0;
 	stereo.CalculateNormalizedPoint();
 	stereo.ComputeEssentialMatrixRANSAC(&error);
+	stereo.SetReprojectionError(this->reprojectionError);
 
 	std::vector<windage::ReconstructionPoint>* pose3D = stereo.GetReconstructionPoints();
 	int count = 0;
@@ -185,7 +186,7 @@ bool IncrementalReconstruction::IncrementReconstruction(std::vector<windage::Fea
 
 	// pose estimation using Epnp	
 	windage::Algorithms::EPnPRANSACestimator poseEstimator;
-	poseEstimator.SetReprojectionError(5.0);
+	poseEstimator.SetReprojectionError(this->reprojectionError);
 	poseEstimator.AttatchCameraParameter(this->cameraParameters[this->caculatedCount]);
 	poseEstimator.AttatchReferencePoint(&matchedPoint1);
 	poseEstimator.AttatchScenePoint(&matchedPoint2);
@@ -201,7 +202,12 @@ bool IncrementalReconstruction::IncrementReconstruction(std::vector<windage::Fea
 	}
 
 	// reconstruction points
-	
+	matchedPoint1.clear();
+	matchedPoint2.clear();
+	std::vector<windage::FeaturePoint>* feature = &this->featurePointsList[index];
+	this->Matching(feature, feature2, &matchedPoint1, &matchedPoint2);
+
+
 
 	// add & update points
 

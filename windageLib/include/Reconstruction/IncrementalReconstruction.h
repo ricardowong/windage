@@ -83,8 +83,10 @@ namespace windage
 		class DLLEXPORT IncrementalReconstruction
 		{
 		private:
+			double reprojectionError;
 			int attatchedCount;
 			int caculatedCount;
+
 			windage::Calibration* initialCameraParameter;
 			std::vector<windage::Calibration*> cameraParameters;
 
@@ -101,6 +103,7 @@ namespace windage
 		public:
 			IncrementalReconstruction()
 			{
+				reprojectionError = 5.0;
 				attatchedCount = 0;
 				caculatedCount = 0;
 				initialCameraParameter = NULL;
