@@ -79,7 +79,8 @@ namespace windage
 		class DLLEXPORT StereoReconstruction
 		{
 		private:
-			const static int MAX_ITERATION = 500;					///< RANSAC max iteration count
+			const static int MAX_ITERATION = 1000;					///< RANSAC max iteration count
+			double confidence;
 			double reprojectionError;								///< threshold to determin outlier or not
 
 			windage::Calibration* initialCameraParameter;			///< base camera parameter to attatch reference pointer at out-side
@@ -99,6 +100,7 @@ namespace windage
 			StereoReconstruction(void)
 			{
 				reprojectionError = 2.0;
+				this->confidence = 0.995;
 				essentialMatrix = cvCreateMat(3, 3, CV_64F);
 				inlierCount = 0;
 			}
@@ -111,6 +113,7 @@ namespace windage
 			inline std::vector<windage::ReconstructionPoint>* GetReconstructionPoints(){return &this->reconstructionPoints;};
 			inline void SetReprojectionError(double error){this->reprojectionError = error;};
 			inline double GetReprojectionError(){return this->reprojectionError;};
+			inline void SetConfidence(int confidence){this->confidence = confidence;};
 			inline int GetInlierCount(){return this->inlierCount;};
 
 			inline void AttatchBaseCameraParameter(windage::Calibration* cameraParameter){this->initialCameraParameter = cameraParameter;};

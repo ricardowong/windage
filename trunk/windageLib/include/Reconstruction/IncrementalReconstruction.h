@@ -96,7 +96,7 @@ namespace windage
 			bool Matching(std::vector<windage::FeaturePoint>* feature1, std::vector<windage::FeaturePoint>* feature2,
 						  std::vector<windage::FeaturePoint>* matchedPoint1, std::vector<windage::FeaturePoint>* matchedPoint2);
 			int MatchingCount(std::vector<windage::FeaturePoint>* feature1, std::vector<windage::FeaturePoint>* feature2);
-			bool StereoReconstruction();
+			bool StereoReconstruction(int index1 = 0, int index2 = 1);
 			bool IncrementReconstruction(std::vector<windage::FeaturePoint>* feature);
 		public:
 			IncrementalReconstruction()
@@ -118,6 +118,7 @@ namespace windage
 			inline windage::Calibration* GetCameraParameter(int i){return cameraParameters[i];};
 			inline std::vector<windage::ReconstructionPoint>* GetReconstructedPoint(int i){return &reconstructionPoints[i];};
 
+			double CheckReprojectionError(CvMat **RT, CvMat *pt3D, CvMat **pt2D, int n);
 			bool BundleAdjustment(int n);
 			
 			void AttatchFeaturePoint(std::vector<windage::FeaturePoint>* featurePoints);

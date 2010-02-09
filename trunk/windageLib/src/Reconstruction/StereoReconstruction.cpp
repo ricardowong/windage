@@ -43,6 +43,24 @@ using namespace windage::Reconstruction;
 
 #include <cv.h>
 
+int ERANSACUpdateNumIters(double p, double ep, int model_points, int max_iters)
+{
+	double num, denom;
+	p = MAX(p, 0.);
+    p = MIN(p, 1.);
+    ep = MAX(ep, 0.);
+    ep = MIN(ep, 1.);
+
+    // avoid inf's & nan's
+    num = MAX(1. - p, DBL_MIN);
+    denom = 1. - pow(1. - ep,model_points);
+	num = log(num);
+    denom = log(denom);
+    
+	int result = denom >= 0 || -num >= max_iters*(-denom) ? max_iters : cvRound(num/denom);
+	return result;
+}
+
 void StereoReconstruction::CalculateNormalizedPoint()
 {
 	windage::Matrix3 intrinsic;
@@ -477,8 +495,8 @@ bool StereoReconstruction::ComputeEssentialMatrixRANSAC(double* error)
 {
 	// preparation
 	int n = (int)this->normalizedMatchedPoint1.size();
-	int sample_size = 8;
-	if(n < sample_size)
+	const int SAMPLE_SIZE = 8;
+	if(n < SAMPLE_SIZE)
 	{
 		(*error) = -1.0;
 		return false;
@@ -488,18 +506,17 @@ bool StereoReconstruction::ComputeEssentialMatrixRANSAC(double* error)
 	int max_random_iters = 20;
 	int total_num = n;
 	
-
 	CvMat *EMat, *pt1, *pt2;
 	EMat  = cvCreateMat(3, 3, CV_64F);
-	pt1   = cvCreateMat(3, sample_size, CV_64F);
-	pt2   = cvCreateMat(3, sample_size, CV_64F);
+	pt1   = cvCreateMat(3, SAMPLE_SIZE, CV_64F);
+	pt2   = cvCreateMat(3, SAMPLE_SIZE, CV_64F);
 
 	CvRNG rng = cvRNG(cvGetTickCount());
 	int pre_inlier = -1, num_inlier;
 	double pre_error = 10000, small_err = 0.0;
 		
 	max_iter = this->MAX_ITERATION;
-	int *idx = new int[sample_size];
+	int *idx = new int[SAMPLE_SIZE];
 
 	double err = 0.0;
 	while(ci < max_iter)
@@ -507,7 +524,7 @@ bool StereoReconstruction::ComputeEssentialMatrixRANSAC(double* error)
 		/** select random number */
 		int snum = 0;
         bool bIn;
-        for(int i = 0; i < sample_size; i++ )
+        for(int i = 0; i < SAMPLE_SIZE; i++ )
         {
 			for(int k = 0; k <max_random_iters; k++ )
 			{
@@ -533,7 +550,7 @@ bool StereoReconstruction::ComputeEssentialMatrixRANSAC(double* error)
             }
         } /** done */
 
-		for(int i=0; i<sample_size; i++)
+		for(int i=0; i<SAMPLE_SIZE; i++)
 		{
 			cvmSet(pt1, 0, i, this->normalizedMatchedPoint1[idx[i]].x);
 			cvmSet(pt1, 1, i, this->normalizedMatchedPoint1[idx[i]].y);
@@ -568,12 +585,13 @@ bool StereoReconstruction::ComputeEssentialMatrixRANSAC(double* error)
 						pre_inlier = num_inlier;
 						if(error)
 							*error = err;
+
+						max_iter = ERANSACUpdateNumIters(this->confidence, (double)(n - num_inlier)/(double)n, SAMPLE_SIZE, max_iter);
 					}
 
 				}
 			}
 		}
-
 		ci++;
 	}
 

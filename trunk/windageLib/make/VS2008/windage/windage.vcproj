@@ -63,6 +63,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				LinkLibraryDependencies="true"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -133,6 +134,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				LinkLibraryDependencies="true"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -338,6 +340,14 @@
 						>
 					</File>
 					<File
+						RelativePath="..\..\..\src\Algorithms\EPnPRANSACestimator.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\..\include\Algorithms\EPnPRANSACestimator.h"
+						>
+					</File>
+					<File
 						RelativePath="..\..\..\src\Algorithms\HomographyEstimator.cpp"
 						>
 					</File>
@@ -453,26 +463,6 @@
 			</Filter>
 		</Filter>
 		<Filter
-			Name="Utilities"
-			>
-			<File
-				RelativePath="..\..\..\src\Utilities\Logger.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\include\Utilities\Logger.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\src\Utilities\Utils.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\include\Utilities\Utils.h"
-				>
-			</File>
-		</Filter>
-		<Filter
 			Name="Frameworks"
 			>
 			<File
@@ -569,6 +559,26 @@
 			</File>
 			<File
 				RelativePath="..\..\..\include\Reconstruction\StereoReconstruction.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="Utilities"
+			>
+			<File
+				RelativePath="..\..\..\src\Utilities\Logger.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\include\Utilities\Logger.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\Utilities\Utils.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\include\Utilities\Utils.h"
 				>
 			</File>
 		</Filter>

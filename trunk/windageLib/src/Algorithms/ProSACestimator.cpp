@@ -70,8 +70,6 @@ double ComputeReprojError(CvPoint2D64f refPoint, CvPoint2D64f scePoint, double* 
 
 bool ProSACestimator::Calculate()
 {
-	const double confidence = 0.7; // constant
-
 	if(referencePoints == NULL || scenePoints == NULL)
 		return false;
 	int n = (int)referencePoints->size();
@@ -168,7 +166,7 @@ bool ProSACestimator::Calculate()
 			bestCount = inlinerCount;
 			for(int k=0; k<9; k++)
 				bestHomography[k] = h[k];
-			maxIter = PROSACUpdateNumIters(confidence, (double)(count - inlinerCount)/(double)count, 4, maxIteration);
+			maxIter = PROSACUpdateNumIters(this->confidence, (double)(count - inlinerCount)/(double)count, 4, maxIteration);
 		}
 	}
 

@@ -90,11 +90,13 @@ namespace windage
 		class DLLEXPORT ProSACestimator : public HomographyEstimator
 		{
 		private:
+			double confidence;
 			int maxIteration;
 		public:
 			ProSACestimator() : HomographyEstimator()
 			{
 				this->reprojectionError = 2.0;
+				this->confidence = 0.995;
 				this->maxIteration = 1000;
 			}
 			~ProSACestimator()
@@ -102,6 +104,7 @@ namespace windage
 			}
 
 			inline void SetMaxIteration(int iteration){this->maxIteration = iteration;};
+			inline void SetConfidence(int confidence){this->confidence = confidence;};
 
 			/**
 			 * @fn	Calculate
