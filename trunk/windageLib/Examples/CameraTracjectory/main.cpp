@@ -79,7 +79,7 @@ windage::Frameworks::PlanarObjectTracking* CreateTracker()
 	windage::Algorithms::FeatureDetector* detector = new windage::Algorithms::WSURFdetector();
 	windage::Algorithms::SearchTree* searchtree = new windage::Algorithms::FLANNtree();
 	windage::Algorithms::OpticalFlow* opticalflow = new windage::Algorithms::OpticalFlow();
-	windage::Algorithms::HomographyEstimator* estimator = new windage::Algorithms::RANSACestimator();
+	windage::Algorithms::HomographyEstimator* estimator = new windage::Algorithms::ProSACestimator();
 	windage::Algorithms::OutlierChecker* checker = new windage::Algorithms::OutlierChecker();
 	windage::Algorithms::HomographyRefiner* refiner = new windage::Algorithms::LMmethod();
 
