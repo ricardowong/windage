@@ -72,6 +72,7 @@ namespace windage
 	{
 	protected:
 		windage::Vector3 point;	///< position of feature point (z-value is 1.0)
+		CvScalar color;			///< feature point color
 		int objectID;			///< object id (initialize -1)
 		int size;				///< feature size
 		double dir;				///< feature orientation
@@ -119,6 +120,7 @@ namespace windage
 				this->descriptor[i] = oprd.descriptor[i];
 
 			this->point = oprd.GetPoint();
+			this->color = oprd.GetColor();
 			this->objectID = oprd.GetObjectID();
 			this->size = oprd.GetSize();
 			this->dir = oprd.GetDir();
@@ -150,6 +152,8 @@ namespace windage
 
 		inline void SetPoint(windage::Vector3 point){this->point = point;};
 		inline windage::Vector3 GetPoint(){return this->point;};
+		inline void SetColor(CvScalar color){this->color = color;};
+		inline CvScalar GetColor(){return this->color;};
 		inline void SetObjectID(int id){this->objectID = id;};
 		inline int GetObjectID(){return this->objectID;};
 		inline void SetSize(int size){this->size = size;};

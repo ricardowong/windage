@@ -81,7 +81,8 @@
 #include "Algorithms/RANSACestimator.h"
 #include "Algorithms/ProSACestimator.h"
 #include "Algorithms/LMedSestimator.h"
-#include "Algorithms/EPnPEstimator.h"
+#include "Algorithms/EPnPestimator.h"
+#include "Algorithms/EPnPRANSACestimator.h"
 
 // refiner
 #include "Algorithms/HomographyRefiner.h"
@@ -107,3 +108,4 @@
 
 // Reconstruction
 #include "Reconstruction/StereoReconstruction.h"
+#include "Reconstruction/IncrementalReconstruction.h"

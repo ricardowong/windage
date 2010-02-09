@@ -37,13 +37,13 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#include "Algorithms/EPnPEstimator.h"
+#include "Algorithms/EPnPestimator.h"
 using namespace windage;
 using namespace windage::Algorithms;
 
 #include "Algorithms/epnp/epnp.h"
 
-bool EPnPEstimator::Calculate()
+bool EPnPestimator::Calculate()
 {
 	if(this->cameraParameter == NULL)
 		return false;

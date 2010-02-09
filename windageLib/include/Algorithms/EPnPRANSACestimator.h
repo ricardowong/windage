@@ -38,15 +38,15 @@
  * ======================================================================== */
 
 /**
- * @file	EPnPestimator.h
+ * @file	EPnPRANSACestimator.h
  * @author	Woonhyuk Baek
  * @version 1.0
- * @date	2010.02.04
- * @brief	It is implemetation of camera pose estimator class to use EPnP techniq
+ * @date	2010.02.09
+ * @brief	It is implemetation of camera pose estimator class to use EPnP & RANSAC techniq
  */
 
-#ifndef _EPNP_ESTIMATOR_H_
-#define _EPNP_ESTIMATOR_H_
+#ifndef _EPNP_RANSAC_ESTIMATOR_H_
+#define _EPNP_RANSAC_ESTIMATOR_H_
 
 #include <vector>
 
@@ -78,19 +78,27 @@ namespace windage
 		 */
 
 		/**
-		 * @brief	class for camera pose estimation in 3D using EPnP
+		 * @brief	class for camera pose estimation in 3D using EPnP & RANSAC
 		 * @author	Woonhyuk Baek
 		 */
-		class DLLEXPORT EPnPestimator : public PoseEstimator
+		class DLLEXPORT EPnPRANSACestimator : public PoseEstimator
 		{
 		protected:
+			double confidence;
+			int maxIteration;
 		public:
-			EPnPestimator() : PoseEstimator()
+			EPnPRANSACestimator() : PoseEstimator()
+			{
+				this->reprojectionError = 2.0;
+				this->confidence = 0.995;
+				this->maxIteration = 1000;
+			}
+			virtual ~EPnPRANSACestimator()
 			{
 			}
-			virtual ~EPnPestimator()
-			{
-			}
+
+			inline void SetMaxIteration(int iteration){this->maxIteration = iteration;};
+			inline void SetConfidence(int confidence){this->confidence = confidence;};
 
 			/**
 			 * @fn	Calculate
@@ -110,4 +118,4 @@ namespace windage
 		/** @} */ // addtogroup Algorithms
 	}
 }
-#endif // _EPNP_ESTIMATOR_H_
+#endif // _EPNP_RANSAC_ESTIMATOR_H_
