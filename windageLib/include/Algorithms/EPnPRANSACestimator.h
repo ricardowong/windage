@@ -91,7 +91,7 @@ namespace windage
 			{
 				this->reprojectionError = 2.0;
 				this->confidence = 0.995;
-				this->maxIteration = 1000;
+				this->maxIteration = 2000;
 			}
 			virtual ~EPnPRANSACestimator()
 			{

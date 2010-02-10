@@ -101,7 +101,7 @@ namespace windage
 			{
 				this->reprojectionError = 2.0;
 				this->confidence = 0.995;
-				this->maxIteration = 2000;
+				this->maxIteration = 5000;
 				essentialMatrix = cvCreateMat(3, 3, CV_64F);
 				inlierCount = 0;
 			}
