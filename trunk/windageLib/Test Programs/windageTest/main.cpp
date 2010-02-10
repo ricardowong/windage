@@ -77,7 +77,7 @@ void main()
 	VectorMatrixTest testMatrixVector;
 	CalibrationTest testCalibration;
 	RotationConverterTest testRotationConverter;
-/*
+//*
 	FeaturePointTest testFeaturePoint;
 	SURFdetectorTest testSURFdetector;
 //	SIFTdetectorTest testSIFTdetector;

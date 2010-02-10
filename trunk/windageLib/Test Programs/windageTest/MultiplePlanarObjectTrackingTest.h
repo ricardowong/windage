@@ -163,16 +163,16 @@ public:
 
 		windage::Frameworks::MultiplePlanarObjectTracking* tracking2 = new windage::Frameworks::MultiplePlanarObjectTracking();
 		p2 = (void*)tracking2;
-		tracking2->AttatchCalibration(this->calibration);
-		tracking2->AttatchDetetor(this->detector);
-		tracking2->AttatchTracker(this->tracker);
-		tracking2->AttatchEstimator(this->estimator);
-		tracking2->AttatchChecker(this->checker);
-		tracking2->AttatchRefiner(this->refiner);
-		tracking2->Initialize(imageSize.width, imageSize.height);
-		tracking2->AttatchReferenceImage(grayImage1);
-		tracking2->TrainingReference();
-		tracking2->UpdateCamerapose(grayImage2);
+		//tracking2->AttatchCalibration(this->calibration);
+		//tracking2->AttatchDetetor(this->detector);
+		//tracking2->AttatchTracker(this->tracker);
+		//tracking2->AttatchEstimator(this->estimator);
+		//tracking2->AttatchChecker(this->checker);
+		//tracking2->AttatchRefiner(this->refiner);
+		//tracking2->Initialize(imageSize.width, imageSize.height);
+		//tracking2->AttatchReferenceImage(grayImage1);
+		//tracking2->TrainingReference();
+		//tracking2->UpdateCamerapose(grayImage2);
 		delete tracking2;		
 
 		sprintf_s(memoryAddress1, "%08X", p1);
