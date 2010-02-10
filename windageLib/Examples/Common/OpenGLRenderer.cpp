@@ -203,7 +203,7 @@ void OpenGLRenderer::DrawReference(double width, double height)
 	glEnd();
 }
 
-void OpenGLRenderer::DrawCamera(Calibration* calibration, IplImage* image)
+void OpenGLRenderer::DrawCamera(Calibration* calibration, IplImage* image, double scale)
 {
 	CvScalar pt = calibration->GetCameraPosition();
 	CvScalar at = calibration->GetLookAt();
@@ -225,6 +225,10 @@ void OpenGLRenderer::DrawCamera(Calibration* calibration, IplImage* image)
 	upVector *= ((double)this->cameraHeight/2.0) / upVector.getLength();
 	rightVector *= ((double)this->cameraWidth/2.0) / rightVector.getLength();
 
+	lookAt *= scale;
+	upVector *= scale;
+	rightVector *= scale;
+
 	point[0] = cameraPosition + lookAt + upVector - rightVector;
 	point[1] = cameraPosition + lookAt + upVector + rightVector;
 	point[2] = cameraPosition + lookAt - upVector + rightVector;
@@ -235,6 +239,7 @@ void OpenGLRenderer::DrawCamera(Calibration* calibration, IplImage* image)
 	upVector += cameraPosition;	
 	rightVector += cameraPosition;
 
+	glLineWidth(3);
 	glColor3f(1, 1, 0);
 	glBegin(GL_LINES);
 	{

@@ -53,11 +53,13 @@ const int RENDERING_WIDTH = 640;
 const int RENDERING_HEIGHT = (RENDERING_WIDTH * 3) / 4;
 const double INTRINSIC_VALUES[8] = {WIDTH*0.8, WIDTH*0.8, WIDTH/2, HEIGHT/2, 0, 0, 0, 0};
 
-const int IMAGE_FILE_COUNT = 3;
-const char* IMAGE_FILE_NAME = "test%02d.jpg";
-//const char* IMAGE_FILE_NAME = "Test/testImage%d.png";
-const double VIRTUAL_CAMERA_DISTANCE = 0.5;
+const int IMAGE_FILE_COUNT = 10;
+const char* IMAGE_FILE_NAME = "Reconstruction/test%03d.jpg";
+double VIRTUAL_CAMERA_DISTANCE = 0.5;
 const double SCALE_FACTOR = 1.0;
+windage::Vector4 centerPoint;
+
+std::vector<IplImage*> inputImage;
 
 OpenGLRenderer* renderer = NULL;
 windage::Calibration* initialCalibration;
@@ -66,7 +68,7 @@ windage::Reconstruction::IncrementalReconstruction* reconstructor;
 windage::Logger* logging;
 double threshold = 30.0;
 double angle = 0.0;
-double angleStep = 0.1;
+double angleStep = 5.0;
 
 void keyboard(unsigned char ch, int x, int y)
 {
@@ -99,10 +101,8 @@ void display()
 
 	double radian = angle * CV_PI / 180.0;
 	double dx = sin(radian) * VIRTUAL_CAMERA_DISTANCE;
-	double dy = cos(radian) * VIRTUAL_CAMERA_DISTANCE;
-//	gluLookAt(dx, dy, VIRTUAL_CAMERA_DISTANCE, 0.0, 0.0, VIRTUAL_CAMERA_DISTANCE/2.0, 0.0, 0.0, 1.0);
-	gluLookAt(dx, dy, -VIRTUAL_CAMERA_DISTANCE, 0.0, 0.0, 1000.0, 0.0, -1.0, 0.0);
-//	gluLookAt(0.0, radian - CV_PI, 0.0, 0.0, 0.0, 100.0, 0.0, -1.0, 0.0);
+	double dz = cos(radian) * VIRTUAL_CAMERA_DISTANCE;
+	gluLookAt(centerPoint.x+dx, centerPoint.y-VIRTUAL_CAMERA_DISTANCE/2.0, centerPoint.z+dz, centerPoint.x, centerPoint.y, centerPoint.z, 0.0, -1.0, 0.0);
 
 	glPushMatrix();
 	{
@@ -129,7 +129,8 @@ void display()
 
 		for(int i=0; i<IMAGE_FILE_COUNT; i++)
 		{
-			renderer->DrawCameraAxis(reconstructor->GetCameraParameter(i));
+			renderer->DrawCamera(reconstructor->GetCameraParameter(i), inputImage[i], 0.0005);
+//			renderer->DrawCameraAxis(reconstructor->GetCameraParameter(i));
 		}
 
 		renderer->DrawAxis((double)RENDERING_WIDTH / 4.0);
@@ -142,7 +143,6 @@ void display()
 
 void main()
 {
-	std::vector<IplImage*> inputImage;
 	std::vector<IplImage*> grayImage;
 	inputImage.resize(IMAGE_FILE_COUNT);
 	grayImage.resize(IMAGE_FILE_COUNT);
@@ -207,6 +207,23 @@ void main()
 		reconstructor->AttatchFeaturePoint(&featurePoint[i]);
 	}
 	reconstructor->Calculate();
+
+
+	// calcuate center Point
+	int count = 0;
+	centerPoint = windage::Vector4(0.0, 0.0, 0.0, 0.0);
+	for(int i=0; i<IMAGE_FILE_COUNT-1; i++)
+	{
+		std::vector<windage::ReconstructionPoint>* point3D = reconstructor->GetReconstructedPoint(i);
+		for(unsigned int j=0; j<point3D->size(); j++)
+		{
+			centerPoint += (*point3D)[j].GetPoint();
+			count++;
+		}
+	}
+	centerPoint /= (double)count;
+	VIRTUAL_CAMERA_DISTANCE = centerPoint.getLength();
+	logging->log("reconstruction point count : ");logging->log(count); logging->logNewLine();
 
 	logging->logNewLine();
 	logging->log("camera pose information"); logging->logNewLine();
