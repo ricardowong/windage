@@ -93,8 +93,11 @@ namespace windage
 			windage::Algorithms::SearchTree* searchtree;
 
 			std::vector<std::vector<windage::ReconstructionPoint>> reconstructionPoints;
+			std::vector<std::vector<windage::FeaturePoint>> matchedPoints1List;
+			std::vector<std::vector<windage::FeaturePoint>> matchedPoints2List;
 			std::vector<std::vector<windage::FeaturePoint>> featurePointsList;
 
+			void LinearTriangulation(CvMat *leftProjectM, CvMat *rightProjectM, CvMat *leftP, CvMat *rightP,CvMat *reconstructedP);
 			bool Matching(std::vector<windage::FeaturePoint>* feature1, std::vector<windage::FeaturePoint>* feature2,
 						  std::vector<windage::FeaturePoint>* matchedPoint1, std::vector<windage::FeaturePoint>* matchedPoint2);
 			int MatchingCount(std::vector<windage::FeaturePoint>* feature1, std::vector<windage::FeaturePoint>* feature2);
