@@ -64,6 +64,7 @@
 			<Tool
 				Name="VCLibrarianTool"
 				LinkLibraryDependencies="true"
+				OutputFile="$(OutDir)\$(ProjectName)d.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"

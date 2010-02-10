@@ -68,7 +68,7 @@ windage::Reconstruction::IncrementalReconstruction* reconstructor;
 windage::Logger* logging;
 double threshold = 30.0;
 double angle = 0.0;
-double angleStep = 5.0;
+double angleStep = 1.0;
 
 void keyboard(unsigned char ch, int x, int y)
 {
