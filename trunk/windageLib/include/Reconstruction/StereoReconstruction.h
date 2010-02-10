@@ -79,7 +79,7 @@ namespace windage
 		class DLLEXPORT StereoReconstruction
 		{
 		private:
-			const static int MAX_ITERATION = 1000;					///< RANSAC max iteration count
+			int maxIteration;										///< RANSAC max iteration count
 			double confidence;
 			double reprojectionError;								///< threshold to determin outlier or not
 
@@ -99,8 +99,9 @@ namespace windage
 		public:
 			StereoReconstruction(void)
 			{
-				reprojectionError = 2.0;
+				this->reprojectionError = 2.0;
 				this->confidence = 0.995;
+				this->maxIteration = 2000;
 				essentialMatrix = cvCreateMat(3, 3, CV_64F);
 				inlierCount = 0;
 			}
