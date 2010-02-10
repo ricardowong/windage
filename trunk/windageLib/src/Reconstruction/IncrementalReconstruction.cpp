@@ -46,6 +46,72 @@ using namespace windage::Reconstruction;
 #include "Reconstruction/BundleWrapper.h"
 #include "Algorithms/EPnPRANSACestimator.h"
 
+// Simple linear triangulation method 
+// See "Multiple view geometry" written by R.Hartely
+void IncrementalReconstruction::LinearTriangulation(CvMat *leftProjectM, CvMat *rightProjectM, CvMat *leftP, CvMat *rightP,CvMat *reconstructedP)
+{
+	double x,y,x_,y_;
+	
+	// Linear algorithm AX = 0	// Refer to p298, Multiple Geomery .. /////////////////////////////
+	CvMat *A, *U, *VT, *D, *P1, *P2;
+	
+	// Make up A matrix ///////////////////////////////////////////////////////////////////////////
+	A = cvCreateMat(6, 4, CV_64F);
+	D = cvCreateMat(6, 4, CV_64F);
+	U = cvCreateMat(6, 6, CV_64F);
+	VT = cvCreateMat(4, 4, CV_64F);
+	
+	x  = cvmGet(leftP, 0, 0);
+	y  = cvmGet(leftP, 1, 0);
+	x_ = cvmGet(rightP, 0, 0); 
+	y_ = cvmGet(rightP, 1, 0);
+	
+	P1 = leftProjectM;
+	P2 = rightProjectM;
+
+	cvmSet(A, 0, 0, cvmGet(P1, 2, 0)*x - cvmGet(P1, 0, 0));
+	cvmSet(A, 0, 1, cvmGet(P1, 2, 1)*x - cvmGet(P1, 0, 1));
+	cvmSet(A, 0, 2, cvmGet(P1, 2, 2)*x - cvmGet(P1, 0, 2));
+	cvmSet(A, 0, 3, cvmGet(P1, 2, 3)*x - cvmGet(P1, 0, 3));
+	
+	cvmSet(A, 1, 0, cvmGet(P1, 2, 0)*y - cvmGet(P1, 1, 0));
+	cvmSet(A, 1, 1, cvmGet(P1, 2, 1)*y - cvmGet(P1, 1, 1));
+	cvmSet(A, 1, 2, cvmGet(P1, 2, 2)*y - cvmGet(P1, 1, 2));
+	cvmSet(A, 1, 3, cvmGet(P1, 2, 3)*y - cvmGet(P1, 1, 3));
+
+	cvmSet(A, 2, 0, cvmGet(P1, 1, 0)*x - cvmGet(P1, 0, 0)*y);
+	cvmSet(A, 2, 1, cvmGet(P1, 1, 1)*x - cvmGet(P1, 0, 1)*y);
+	cvmSet(A, 2, 2, cvmGet(P1, 1, 2)*x - cvmGet(P1, 0, 2)*y);
+	cvmSet(A, 2, 3, cvmGet(P1, 1, 3)*x - cvmGet(P1, 0, 3)*y);
+	
+	cvmSet(A, 3, 0, cvmGet(P2, 2, 0)*x_ - cvmGet(P2, 0, 0));
+	cvmSet(A, 3, 1, cvmGet(P2, 2, 1)*x_ - cvmGet(P2, 0, 1));
+	cvmSet(A, 3, 2, cvmGet(P2, 2, 2)*x_ - cvmGet(P2, 0, 2));
+	cvmSet(A, 3, 3, cvmGet(P2, 2, 3)*x_ - cvmGet(P2, 0, 3));
+	
+	cvmSet(A, 4, 0, cvmGet(P2, 2, 0)*y_ - cvmGet(P2, 1, 0));
+	cvmSet(A, 4, 1, cvmGet(P2, 2, 1)*y_ - cvmGet(P2, 1, 1));
+	cvmSet(A, 4, 2, cvmGet(P2, 2, 2)*y_ - cvmGet(P2, 1, 2));
+	cvmSet(A, 4, 3, cvmGet(P2, 2, 3)*y_ - cvmGet(P2, 1, 3));
+
+	cvmSet(A, 5, 0, cvmGet(P2, 1, 0)*x_ - cvmGet(P2, 0, 0)*y_);
+	cvmSet(A, 5, 1, cvmGet(P2, 1, 1)*x_ - cvmGet(P2, 0, 1)*y_);
+	cvmSet(A, 5, 2, cvmGet(P2, 1, 2)*x_ - cvmGet(P2, 0, 2)*y_);
+	cvmSet(A, 5, 3, cvmGet(P2, 1, 3)*x_ - cvmGet(P2, 0, 3)*y_);
+	
+	// Solve AX = 0 by using p564, SVD = UWVT /////////////////////////////////////////////////////
+	cvSVD(A, D, U, VT, CV_SVD_V_T);
+	
+	// Return the values //////////////////////////////////////////////////////////////////////////
+	for(int i=0; i<4; i++)
+		cvmSet(reconstructedP, i, 0, cvmGet(VT, 3, i));
+	
+	cvReleaseMat(&A);
+	cvReleaseMat(&D);
+	cvReleaseMat(&U);
+	cvReleaseMat(&VT);
+}
+
 bool IncrementalReconstruction::Matching(std::vector<windage::FeaturePoint>* feature1, std::vector<windage::FeaturePoint>* feature2, std::vector<windage::FeaturePoint>* matchedPoint1, std::vector<windage::FeaturePoint>* matchedPoint2)
 {
 	searchtree->Training(feature1);
@@ -122,33 +188,32 @@ bool IncrementalReconstruction::StereoReconstruction(int index1, int index2)
 	{
 		if((*pose3D)[i].IsOutlier() == false)
 		{
-			windage::ReconstructionPoint reconsturctionPoint1;
-			windage::ReconstructionPoint reconsturctionPoint2;
+			windage::ReconstructionPoint reconsturctionPoint;
 
-			reconsturctionPoint1.SetPoint((*pose3D)[i].GetPoint());
-			reconsturctionPoint2.SetPoint((*pose3D)[i].GetPoint());
-			reconsturctionPoint1.SetOutlier(false);
-			reconsturctionPoint2.SetOutlier(false);
-
-			reconsturctionPoint1.SetObjectID(index1);
-			reconsturctionPoint2.SetObjectID(index2);
-			reconsturctionPoint1.SetFeatureID(matchedPoint1[i].GetRepositoryID());
-			reconsturctionPoint2.SetFeatureID(matchedPoint2[i].GetRepositoryID());
-			reconsturctionPoint1.SetColor(matchedPoint1[i].GetColor());
-			reconsturctionPoint2.SetColor(matchedPoint2[i].GetColor());
-			reconsturctionPoint1.SetImagePoint(matchedPoint1[i].GetPoint());
-			reconsturctionPoint2.SetImagePoint(matchedPoint2[i].GetPoint());
+			reconsturctionPoint.SetPoint((*pose3D)[i].GetPoint());
+			reconsturctionPoint.SetOutlier(false);
+			
+			CvScalar color;
+			for(int j=0; j<3; j++)
+				color.val[j] = (matchedPoint1[i].GetColor().val[j] + matchedPoint2[i].GetColor().val[j])/2.0;
+			reconsturctionPoint.SetColor(color);
 
 			// reconstructed point is tracked
 			this->featurePointsList[index1][matchedPoint1[i].GetRepositoryID()].SetTracked(true);
 			this->featurePointsList[index2][matchedPoint2[i].GetRepositoryID()].SetTracked(true);
 
-			this->reconstructionPoints[index1].push_back(reconsturctionPoint1);
-			this->reconstructionPoints[index2].push_back(reconsturctionPoint2);
+			reconsturctionPoint.SetObjectID(index1);
+			this->matchedPoints1List[index1].push_back(matchedPoint1[i]);
+			this->matchedPoints2List[index1].push_back(matchedPoint2[i]);
+			this->reconstructionPoints[index1].push_back(reconsturctionPoint);
+			count++;
 		}
 	}
 
+	std::cout << std::endl;
 	std::cout << "stereo reconstruction : " << stereo.GetInlierCount() << " / " << matchedPoint2.size() << std::endl;
+	std::cout << "add stereo reconstruction points : " << count << std::endl;
+	std::cout << std::endl;
 
 	this->caculatedCount = 2;
 	return true;
@@ -161,19 +226,17 @@ bool IncrementalReconstruction::IncrementReconstruction(std::vector<windage::Fea
 
 	// find max matching scene
 	// temporary index;
-	int index = this->caculatedCount - 1;
+	int index = this->caculatedCount - 2;
 
 	// matching
 	std::vector<windage::FeaturePoint> feature1;
 	for(unsigned int i=0; i<this->reconstructionPoints[index].size(); i++)
 	{
-		int featureID = this->reconstructionPoints[index][i].GetFeatureID();
 		windage::Vector4 point3D = this->reconstructionPoints[index][i].GetPoint();
 
-		feature1.push_back(this->featurePointsList[index][featureID]);
+		feature1.push_back(this->matchedPoints2List[index][i]);
 		feature1[i].SetPoint(windage::Vector3(point3D.x, point3D.y, point3D.z));
 	}
-
 	std::vector<windage::FeaturePoint>* feature2 = feature;
 
 	std::vector<windage::FeaturePoint> matchedPoint1;
@@ -204,14 +267,100 @@ bool IncrementalReconstruction::IncrementReconstruction(std::vector<windage::Fea
 	// reconstruction points
 	matchedPoint1.clear();
 	matchedPoint2.clear();
-	std::vector<windage::FeaturePoint>* feature = &this->featurePointsList[index];
+	std::vector<windage::FeaturePoint>* feature = &this->featurePointsList[index+1];
 	this->Matching(feature, feature2, &matchedPoint1, &matchedPoint2);
 
+	// add 3d points
+	CvMat* inverseIntrinsic = cvCreateMat(3, 3, CV_64F);
+	cvInvert(this->initialCameraParameter->GetIntrinsicMatrix(), inverseIntrinsic);
+	CvMat* extrinsic1 = cvCreateMat(3, 4, CV_64F);
+	CvMat* extrinsic2 = cvCreateMat(3, 4, CV_64F);
+	double value;
+	for(int y=0; y<3; y++)
+	{
+		for(int x=0; x<3; x++)
+		{
+			value = cvGetReal2D(this->cameraParameters[index+1]->GetExtrinsicMatrix(), y, x);
+			cvSetReal2D(extrinsic1, y, x, value);
 
+			value = cvGetReal2D(this->cameraParameters[this->caculatedCount]->GetExtrinsicMatrix(), y, x);
+			cvSetReal2D(extrinsic2, y, x, value);
+		}
+		value = cvGetReal2D(this->cameraParameters[index+1]->GetExtrinsicMatrix(), y, 3);
+		cvSetReal2D(extrinsic1, y, 3, value);
 
-	// add & update points
+		value = cvGetReal2D(this->cameraParameters[this->caculatedCount]->GetExtrinsicMatrix(), y, 3);
+		cvSetReal2D(extrinsic2, y, 3, value);
+	}
 
-	std::cout << "increament reconstruction : " << intlierCount << " / " << matchedPoint2.size() << std::endl;
+	CvMat *leftP, *rightP, *nrP3D;
+	leftP  = cvCreateMat(3, 1, CV_64F);
+	rightP = cvCreateMat(3, 1, CV_64F);
+	nrP3D  = cvCreateMat(4, 1, CV_64F);
+
+	int count = 0;
+	for(unsigned int i=0; i<matchedPoint1.size(); i++)
+	{
+		cvmSet(leftP, 0, 0, matchedPoint1[i].GetPoint().x);
+		cvmSet(leftP, 1, 0, matchedPoint1[i].GetPoint().y);
+		cvmSet(leftP, 2, 0, 1.0);
+
+		cvmSet(rightP, 0, 0, matchedPoint2[i].GetPoint().x);
+		cvmSet(rightP, 1, 0, matchedPoint2[i].GetPoint().y);
+		cvmSet(rightP, 2, 0, 1.0);
+
+		// normalized
+		cvMatMul(inverseIntrinsic, leftP, leftP);
+		cvMatMul(inverseIntrinsic, rightP, rightP);
+
+		LinearTriangulation(extrinsic1, extrinsic2, leftP, rightP, nrP3D);
+
+		nrP3D->data.db[0] /= nrP3D->data.db[3];
+		nrP3D->data.db[1] /= nrP3D->data.db[3];
+		nrP3D->data.db[2] /= nrP3D->data.db[3];
+		nrP3D->data.db[3] /= nrP3D->data.db[3];
+
+		CvPoint lpt = this->cameraParameters[index+1]->ConvertWorld2Image(nrP3D->data.db[0], nrP3D->data.db[1], nrP3D->data.db[2]);
+		CvPoint rpt = this->cameraParameters[this->caculatedCount]->ConvertWorld2Image(nrP3D->data.db[0], nrP3D->data.db[1], nrP3D->data.db[2]);
+
+		double errorL = pow((matchedPoint1[i].GetPoint().x - (double)lpt.x), 2) + pow((matchedPoint1[i].GetPoint().y - (double)lpt.y), 2);
+		double errorR = pow((matchedPoint2[i].GetPoint().x - (double)rpt.x), 2) + pow((matchedPoint2[i].GetPoint().y - (double)rpt.y), 2);
+
+		if(errorL + errorR < this->reprojectionError * 2)
+		{
+			windage::ReconstructionPoint reconsturctionPoint;
+
+			reconsturctionPoint.SetPoint(windage::Vector4(nrP3D->data.db[0], nrP3D->data.db[1], nrP3D->data.db[2], 1.0));
+			reconsturctionPoint.SetOutlier(false);
+			
+			CvScalar color;
+			for(int j=0; j<3; j++)
+				color.val[j] = (matchedPoint1[i].GetColor().val[j] + matchedPoint2[i].GetColor().val[j])/2.0;
+
+			reconsturctionPoint.SetColor(color);
+
+			// reconstructed point is tracked
+			this->featurePointsList[index+1][matchedPoint1[i].GetRepositoryID()].SetTracked(true);
+			this->featurePointsList[this->caculatedCount][matchedPoint2[i].GetRepositoryID()].SetTracked(true);
+
+			reconsturctionPoint.SetObjectID(index+1);
+			this->matchedPoints1List[index+1].push_back(matchedPoint1[i]);
+			this->matchedPoints2List[index+1].push_back(matchedPoint2[i]);
+			this->reconstructionPoints[index+1].push_back(reconsturctionPoint);
+			count++;
+		}
+	}
+
+	std::cout << std::endl;
+	std::cout << "increament pose estimation : " << intlierCount << " / " << matchedPoint2.size() << std::endl;
+	std::cout << "add increment reconstruction points : " << count << std::endl;
+	std::cout << std::endl;
+
+	cvReleaseMat(&inverseIntrinsic);
+	cvReleaseMat(&leftP);
+	cvReleaseMat(&rightP);
+	cvReleaseMat(&nrP3D);
+
 
 	this->caculatedCount++;
 	return true;
@@ -254,13 +403,13 @@ bool IncrementalReconstruction::BundleAdjustment(int n)
 	CvMat *pt3D, **pt2D, **RT;
 	
 	int pointcount = 0;
-	for(int i=0; i<n; i++)
+	for(int i=0; i<n-1; i++)
 		pointcount += (int)this->reconstructionPoints[i].size();
 
 	// set 3d points
 	pt3D = cvCreateMat(4, pointcount, CV_64F);
 	int count = 0;
-	for(int i=0; i<n; i++)
+	for(int i=0; i<n-1; i++)
 	{
 		for(unsigned int j=0; j<this->reconstructionPoints[i].size(); j++)
 		{
@@ -281,35 +430,34 @@ bool IncrementalReconstruction::BundleAdjustment(int n)
 	for(int i=0; i<n; i++)
 	{
 		pt2D[i] = cvCreateMat(3, pointcount, CV_64F);
+
+		for(int j=0; j<pointcount; j++)
+		{
+			cvmSet(pt2D[i], 0, j, -1.0);
+			cvmSet(pt2D[i], 1, j, -1.0);
+			cvmSet(pt2D[i], 2, j, 1.0);
+		}
 	}
 
 	count = 0;
-	for(int i=0; i<n; i++)
+	for(int i=0; i<n-1; i++)
 	{
-		int preCount = 0;
-		int j = 0;
-		for(; j<count; j++)
+		for(unsigned int j=0; j<this->reconstructionPoints[i].size(); j++)
 		{
-			cvmSet(pt2D[i], 0, j, -1.0);
-			cvmSet(pt2D[i], 1, j, -1.0);
-			cvmSet(pt2D[i], 2, j, 1.0);
-			preCount++;
-		}
-		for(; j<(int)this->reconstructionPoints[i].size()+preCount; j++)
-		{
-			windage::Vector3 point2D = this->reconstructionPoints[i][j-preCount].GetImagePoint();
-			point2D /= point2D.z;
-			cvmSet(pt2D[i], 0, j, point2D.x);
-			cvmSet(pt2D[i], 1, j, point2D.y);
-			cvmSet(pt2D[i], 2, j, point2D.z);
+			windage::Vector3 imagePoint1 = this->matchedPoints1List[i][j].GetPoint();
+			windage::Vector3 imagePoint2 = this->matchedPoints2List[i][j].GetPoint();
+			imagePoint1 /= imagePoint1.z;
+			imagePoint2 /= imagePoint2.z;
+
+			cvmSet(pt2D[i], 0, count, imagePoint1.x);
+			cvmSet(pt2D[i], 1, count, imagePoint1.y);
+			cvmSet(pt2D[i], 2, count, imagePoint1.z);
+
+			cvmSet(pt2D[i+1], 0, count, imagePoint2.x);
+			cvmSet(pt2D[i+1], 1, count, imagePoint2.y);
+			cvmSet(pt2D[i+1], 2, count, imagePoint2.z);
 
 			count++;
-		}
-		for(; j<pointcount; j++)
-		{
-			cvmSet(pt2D[i], 0, j, -1.0);
-			cvmSet(pt2D[i], 1, j, -1.0);
-			cvmSet(pt2D[i], 2, j, 1.0);
 		}
 	}
 
@@ -338,7 +486,7 @@ bool IncrementalReconstruction::BundleAdjustment(int n)
 
 	// update 3d points
 	count = 0;
-	for(int i=0; i<n; i++)
+	for(int i=0; i<n-1; i++)
 	{
 		for(unsigned int j=0; j<this->reconstructionPoints[i].size(); j++)
 		{
@@ -386,7 +534,9 @@ void IncrementalReconstruction::AttatchFeaturePoint(std::vector<windage::Feature
 	this->attatchedCount++;
 	this->cameraParameters.resize(this->attatchedCount);
 	this->featurePointsList.resize(this->attatchedCount);
-	this->reconstructionPoints.resize(this->attatchedCount);
+	this->matchedPoints1List.resize(this->attatchedCount - 1);
+	this->matchedPoints2List.resize(this->attatchedCount - 1);
+	this->reconstructionPoints.resize(this->attatchedCount - 1);
 
 	double fx = this->initialCameraParameter->GetParameters()[0];
 	double fy = this->initialCameraParameter->GetParameters()[1];

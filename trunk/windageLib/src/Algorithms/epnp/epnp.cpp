@@ -577,7 +577,7 @@ void epnp::qr_solve(CvMat * A, CvMat * b, CvMat * X)
 
     if (eta == 0) {
       A1[k] = A2[k] = 0.0;
-      cerr << "God damnit, A is singular, this shouldn't happen." << endl;
+//      cerr << "God damnit, A is singular, this shouldn't happen." << endl;
       return;
     } else {
       double * ppAik = ppAkk, sum = 0.0, inv_eta = 1. / eta;
