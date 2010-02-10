@@ -55,8 +55,6 @@
 #include "Structures/SIFTpoint.h"
 #include "Structures/WSURFpoint.h"
 
-#include "Structures/ReconstructionPoint.h"
-
 #include "Structures/Calibration.h"
 
 // Algorithms
@@ -105,7 +103,3 @@
 
 #include "Coordinator/MultiCameraCoordinator.h"
 #include "Coordinator/MultiMarkerCoordinator.h"
-
-// Reconstruction
-#include "Reconstruction/StereoReconstruction.h"
-#include "Reconstruction/IncrementalReconstruction.h"
