@@ -20,7 +20,7 @@
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionDir)../../bin/"
 			IntermediateDirectory="$(SolutionDir)../../BuildLog/$(ProjectName)/$(ConfigurationName)"
-			ConfigurationType="4"
+			ConfigurationType="2"
 			CharacterSet="1"
 			>
 			<Tool
@@ -42,7 +42,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="/MP"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../include&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.0/include&quot;;&quot;$(SolutionDir)../../component/GLUT/include&quot;;&quot;$(SolutionDir)../../component/SBA-1.5/include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../include&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.0/include&quot;;&quot;$(SolutionDir)../../component/GLUT/include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;WINDAGE_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -62,11 +62,16 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLibrarianTool"
-				LinkLibraryDependencies="true"
+				Name="VCLinkerTool"
+				AdditionalDependencies="cv200.lib cxcore200.lib highgui200.lib"
+				OutputFile="$(OutDir)\$(ProjectName)d.dll"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)../../component/OpenCV 2.0/lib&quot;;&quot;$(SolutionDir)../../component/GLUT/lib&quot;"
 			/>
 			<Tool
 				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -78,6 +83,9 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
 				Name="VCPostBuildEventTool"
 				CommandLine="COPY /Y &quot;$(OutDir)\$(ProjectName)d.lib&quot; &quot;$(SolutionDir)\..\..\lib\$(ProjectName)d.lib&quot;&#x0D;&#x0A;"
 				ExcludedFromBuild="false"
@@ -87,7 +95,7 @@
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)../../bin/"
 			IntermediateDirectory="$(SolutionDir)../../BuildLog/$(ProjectName)/$(ConfigurationName)"
-			ConfigurationType="4"
+			ConfigurationType="2"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
 			>
@@ -114,7 +122,7 @@
 				FavorSizeOrSpeed="1"
 				EnableFiberSafeOptimizations="false"
 				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../include&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.0/include&quot;;&quot;$(SolutionDir)../../component/GLUT/include&quot;;&quot;$(SolutionDir)../../component/SBA-1.5/include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../include&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.0/include&quot;;&quot;$(SolutionDir)../../component/GLUT/include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;WINDAGE_EXPORTS"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -133,11 +141,15 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLibrarianTool"
-				LinkLibraryDependencies="true"
+				Name="VCLinkerTool"
+				AdditionalDependencies="cv200.lib cxcore200.lib highgui200.lib"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)../../component/OpenCV 2.0/lib&quot;;&quot;$(SolutionDir)../../component/GLUT/lib&quot;"
 			/>
 			<Tool
 				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -147,6 +159,9 @@
 			/>
 			<Tool
 				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -175,10 +190,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\include\Structures\Matrix.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\include\Structures\ReconstructionPoint.h"
 				>
 			</File>
 			<File
@@ -437,30 +448,6 @@
 					>
 				</File>
 			</Filter>
-			<Filter
-				Name="TemplateTracker"
-				>
-				<File
-					RelativePath="..\..\..\src\Algorithms\HomographyESM.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\..\include\Algorithms\HomographyESM.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\..\src\Algorithms\InverseCompositional.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\..\include\Algorithms\InverseCompositional.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\..\include\Algorithms\TemplateMinimization.h"
-					>
-				</File>
-			</Filter>
 		</Filter>
 		<Filter
 			Name="Frameworks"
@@ -533,34 +520,6 @@
 					>
 				</File>
 			</Filter>
-		</Filter>
-		<Filter
-			Name="Reconstruction"
-			>
-			<File
-				RelativePath="..\..\..\src\Reconstruction\BundleWrapper.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\include\Reconstruction\BundleWrapper.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\src\Reconstruction\IncrementalReconstruction.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\include\Reconstruction\IncrementalReconstruction.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\src\Reconstruction\StereoReconstruction.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\include\Reconstruction\StereoReconstruction.h"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Utilities"
