@@ -106,7 +106,7 @@ namespace windage
 		public:
 			IncrementalReconstruction()
 			{
-				reprojectionError = 5.0;
+				reprojectionError = 2.0;
 				attatchedCount = 0;
 				caculatedCount = 0;
 				initialCameraParameter = NULL;
