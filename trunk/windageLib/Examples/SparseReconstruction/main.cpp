@@ -65,6 +65,7 @@ OpenGLRenderer* renderer = NULL;
 windage::Calibration* initialCalibration;
 windage::Reconstruction::IncrementalReconstruction* reconstructor;
 
+int CalculationStep = 2;
 windage::Logger* logging;
 double threshold = 30.0;
 double angle = 0.0;
@@ -74,6 +75,11 @@ void keyboard(unsigned char ch, int x, int y)
 {
 	switch(ch)
 	{
+	case 'a':
+	case 'A':
+		reconstructor->Calculate(CalculationStep);
+		CalculationStep++;
+		break;
 	case 'q':
 	case 'Q':
 		cvDestroyAllWindows();
@@ -160,8 +166,8 @@ void main()
 	initialCalibration->Initialize(INTRINSIC_VALUES[0], INTRINSIC_VALUES[1], INTRINSIC_VALUES[2], INTRINSIC_VALUES[3]);
 
 	reconstructor = new windage::Reconstruction::IncrementalReconstruction();
-	reconstructor->SetConfidence(0.99995);
-	reconstructor->SetMaxIteration(5000);
+	reconstructor->SetConfidence(0.995);
+	reconstructor->SetMaxIteration(2000);
 	reconstructor->SetReprojectionError(2.0);
 
 	reconstructor->AttatchCalibration(initialCalibration);
@@ -210,7 +216,8 @@ void main()
 	{
 		reconstructor->AttatchFeaturePoint(&featurePoint[i]);
 	}
-	reconstructor->Calculate();
+	reconstructor->Calculate(CalculationStep);
+	CalculationStep++;
 
 
 	// calcuate center Point

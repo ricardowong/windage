@@ -139,7 +139,7 @@ namespace windage
 			bool BundleAdjustment(int n);
 			
 			void AttatchFeaturePoint(std::vector<windage::FeaturePoint>* featurePoints);
-			bool Calculate();
+			bool Calculate(int n = -1);
 		};
 	}
 }
