@@ -63,8 +63,6 @@ int RANSACUpdateNumIters(double p, double ep, int model_points, int max_iters)
 
 bool EPnPRANSACestimator::Calculate()
 {
-	const double confidence = 0.99; // constant
-
 	if(this->cameraParameter == NULL)
 		return false;
 	const int SAMPLE_SIZE = 5;
@@ -170,7 +168,7 @@ bool EPnPRANSACestimator::Calculate()
 			{
 				pre_inlier_checker[i] = inliers_checker[i];
 			}
-			max_iters = RANSACUpdateNumIters(confidence, (double)(n - num_inliers)/(double)n, SAMPLE_SIZE, max_iters);
+			max_iters = RANSACUpdateNumIters(this->confidence, (double)(n - num_inliers)/(double)n, SAMPLE_SIZE, max_iters);
 		}
 		
 		iter++;
