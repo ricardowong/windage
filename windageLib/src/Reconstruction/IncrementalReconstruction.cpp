@@ -557,20 +557,39 @@ void IncrementalReconstruction::AttatchFeaturePoint(std::vector<windage::Feature
 	}
 }
 
-bool IncrementalReconstruction::Calculate()
+bool IncrementalReconstruction::Calculate(int n)
 {
+	if(n == 1)
+		return false;
+	if(n > this->attatchedCount)
+		return false;
 	if(this->attatchedCount < 2)
 		return false;
 	if(this->initialCameraParameter == NULL)
 		return false;
 
-	this->StereoReconstruction();
-	this->BundleAdjustment(2);
-
-	for(int i=2; i<this->attatchedCount; i++)
+	if(n > 0)
 	{
-		this->IncrementReconstruction(&this->featurePointsList[i]);
-		this->BundleAdjustment(i+1);
+		if(n == 2)
+		{
+			this->StereoReconstruction();
+//			this->BundleAdjustment(2);
+		}
+		else
+		{
+			this->IncrementReconstruction(&this->featurePointsList[n-1]);
+//			this->BundleAdjustment(n);
+		}
+	}
+	else
+	{
+		this->StereoReconstruction();
+//		this->BundleAdjustment(2);
+		for(int i=2; i<this->attatchedCount; i++)
+		{
+			this->IncrementReconstruction(&this->featurePointsList[i]);
+//			this->BundleAdjustment(i+1);
+		}
 	}
 
 	return true;
