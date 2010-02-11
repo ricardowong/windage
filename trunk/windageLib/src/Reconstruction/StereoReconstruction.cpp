@@ -573,12 +573,12 @@ bool StereoReconstruction::ComputeEssentialMatrixRANSAC(double* error)
 				/** reconstruct all pt */
 				int _bad_pt = ReconstructAll(EMat);
 
-				//if(_bad_pt == 0) /** check decomposition is good or not */
-				{
-					/** count inliers */
-					err = 0.0;
-					num_inlier = CountInliers(this->reprojectionError, &err);
+				/** count inliers */
+				err = 0.0;
+				num_inlier = CountInliers(this->reprojectionError, &err);
 
+				if(num_inlier > _bad_pt * 10) /** check decomposition is good or not */
+				{
 					if(num_inlier > pre_inlier)
 					{
 						cvCopy(EMat, essentialMatrix); 
@@ -588,8 +588,8 @@ bool StereoReconstruction::ComputeEssentialMatrixRANSAC(double* error)
 
 						max_iter = ERANSACUpdateNumIters(this->confidence, (double)(n - num_inlier)/(double)n, SAMPLE_SIZE, max_iter);
 					}
-
 				}
+
 			}
 		}
 		ci++;

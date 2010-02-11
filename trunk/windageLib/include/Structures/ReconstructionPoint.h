@@ -70,6 +70,7 @@ namespace windage
 	{
 	protected:
 		windage::Vector4 point;		///< position of reconstruction point (w-value is 1.0)
+		std::vector<windage::FeaturePoint> featureList;
 		CvScalar color;				///< color of reconstruction point
 		int objectID;				///< object id (initialize -1)
 		bool outlier;				///< checked outlier
@@ -78,6 +79,7 @@ namespace windage
 		ReconstructionPoint()
 		{
 			point = windage::Vector4(0.0, 0.0, 0.0, 1.0);
+			this->featureList.clear();
 			color = CV_RGB(255, 255, 255);
 			objectID = -1;
 			outlier = false;
@@ -96,6 +98,12 @@ namespace windage
 		virtual void operator=(ReconstructionPoint oprd)
 		{
 			this->point = oprd.GetPoint();
+
+			std::vector<windage::FeaturePoint>* featureList = oprd.GetFeatureList();
+			this->featureList.clear();
+			for(unsigned int i=0; i<featureList->size(); i++)
+				this->featureList.push_back((*featureList)[i]);
+
 			this->color = oprd.GetColor();
 			this->objectID = oprd.GetObjectID();
 			this->outlier = oprd.IsOutlier();
@@ -103,6 +111,10 @@ namespace windage
 
 		inline void SetPoint(windage::Vector4 point){this->point = point;};
 		inline windage::Vector4 GetPoint(){return this->point;};
+		inline void AddFeaturePoint(windage::FeaturePoint feature){this->featureList.push_back(feature);};
+		inline std::vector<windage::FeaturePoint>* GetFeatureList(){return &this->featureList;};
+		inline windage::FeaturePoint GetFeature(int i){return this->featureList[i];};
+
 		inline void SetColor(CvScalar color=CV_RGB(255, 255, 2555)){this->color = color;};
 		inline CvScalar GetColor(){return this->color;};
 		inline void SetObjectID(int id){this->objectID = id;};
