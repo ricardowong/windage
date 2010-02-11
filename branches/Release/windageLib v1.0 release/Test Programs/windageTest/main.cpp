@@ -68,7 +68,6 @@
 
 void main()
 {
-
 	windageTestSample testSample;
 	VectorMatrixTest testMatrixVector;
 	CalibrationTest testCalibration;
