@@ -95,9 +95,7 @@ namespace windage
 
 			windage::Algorithms::SearchTree* searchtree;
 
-			std::vector<std::vector<windage::ReconstructionPoint>> reconstructionPoints;
-			std::vector<std::vector<windage::FeaturePoint>> matchedPoints1List;
-			std::vector<std::vector<windage::FeaturePoint>> matchedPoints2List;
+			std::vector<windage::ReconstructionPoint> reconstructionPoints;
 			std::vector<std::vector<windage::FeaturePoint>> featurePointsList;
 
 			void LinearTriangulation(CvMat *leftProjectM, CvMat *rightProjectM, CvMat *leftP, CvMat *rightP,CvMat *reconstructedP);
@@ -105,7 +103,7 @@ namespace windage
 						  std::vector<windage::FeaturePoint>* matchedPoint1, std::vector<windage::FeaturePoint>* matchedPoint2);
 			int MatchingCount(std::vector<windage::FeaturePoint>* feature1, std::vector<windage::FeaturePoint>* feature2);
 			bool StereoReconstruction(int index1 = 0, int index2 = 1);
-			bool IncrementReconstruction(std::vector<windage::FeaturePoint>* feature);
+			bool IncrementReconstruction();
 		public:
 			IncrementalReconstruction()
 			{
@@ -133,13 +131,14 @@ namespace windage
 			inline void AttatchSearchTree(windage::Algorithms::SearchTree* matcher){this->searchtree = matcher;};
 
 			inline windage::Calibration* GetCameraParameter(int i){return cameraParameters[i];};
-			inline std::vector<windage::ReconstructionPoint>* GetReconstructedPoint(int i){return &reconstructionPoints[i];};
+			inline std::vector<windage::ReconstructionPoint>* GetReconstructedPoint(){return &reconstructionPoints;};
 
 			double CheckReprojectionError(CvMat **RT, CvMat *pt3D, CvMat **pt2D, int n);
 			bool BundleAdjustment(int n);
 			
 			void AttatchFeaturePoint(std::vector<windage::FeaturePoint>* featurePoints);
-			bool Calculate(int n = -1);
+			bool CalculateStep(int step = -1);
+			bool CalculateAll();
 		};
 	}
 }

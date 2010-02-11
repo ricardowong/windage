@@ -77,8 +77,23 @@ void keyboard(unsigned char ch, int x, int y)
 	{
 	case 'a':
 	case 'A':
-		reconstructor->Calculate(CalculationStep);
+		reconstructor->CalculateStep(CalculationStep);
 		CalculationStep++;
+
+		{
+			// calcuate center Point
+			int count = 0;
+			centerPoint = windage::Vector4(0.0, 0.0, 0.0, 0.0);
+			std::vector<windage::ReconstructionPoint>* point3D = reconstructor->GetReconstructedPoint();
+			for(unsigned int j=0; j<point3D->size(); j++)
+			{
+				centerPoint += (*point3D)[j].GetPoint();
+				count++;
+			}
+			centerPoint /= (double)count;
+			VIRTUAL_CAMERA_DISTANCE = centerPoint.getLength();
+			logging->log("reconstruction point count : ");logging->log(count); logging->logNewLine();
+		}
 		break;
 	case 'q':
 	case 'Q':
@@ -112,25 +127,24 @@ void display()
 
 	glPushMatrix();
 	{
-		for(int i=0; i<IMAGE_FILE_COUNT-1; i++)
-		{
-			std::vector<windage::ReconstructionPoint>* point3D = reconstructor->GetReconstructedPoint(i);
+		std::vector<windage::ReconstructionPoint>* point3D = reconstructor->GetReconstructedPoint();
 
-			glPointSize(5.0f);
-			glBegin(GL_POINTS);
+		for(unsigned int j=0; j<point3D->size(); j++)
+		{
+			if((*point3D)[j].IsOutlier() == false)
 			{
-				for(unsigned int j=0; j<point3D->size(); j++)
+				int size = (int)(*point3D)[j].GetFeatureList()->size();
+				glPointSize(size * 2);
+
+				glBegin(GL_POINTS);
 				{
-					if((*point3D)[j].IsOutlier() == false)
-					{
-						CvScalar color = (*point3D)[j].GetColor();
-						windage::Vector4 point = (*point3D)[j].GetPoint();
-						glColor3f(color.val[2]/255.0, color.val[1]/255.0, color.val[0]/255.0);
-						glVertex3f(point.x, point.y, point.z);
-					}
+					CvScalar color = (*point3D)[j].GetColor();
+					windage::Vector4 point = (*point3D)[j].GetPoint();
+					glColor3f(color.val[2]/255.0, color.val[1]/255.0, color.val[0]/255.0);
+					glVertex3f(point.x, point.y, point.z);
 				}
+				glEnd();
 			}
-			glEnd();
 		}
 
 		for(int i=0; i<IMAGE_FILE_COUNT; i++)
@@ -166,8 +180,8 @@ void main()
 	initialCalibration->Initialize(INTRINSIC_VALUES[0], INTRINSIC_VALUES[1], INTRINSIC_VALUES[2], INTRINSIC_VALUES[3]);
 
 	reconstructor = new windage::Reconstruction::IncrementalReconstruction();
-	reconstructor->SetConfidence(0.995);
-	reconstructor->SetMaxIteration(2000);
+	reconstructor->SetConfidence(0.9995);
+	reconstructor->SetMaxIteration(5000);
 	reconstructor->SetReprojectionError(2.0);
 
 	reconstructor->AttatchCalibration(initialCalibration);
@@ -216,36 +230,24 @@ void main()
 	{
 		reconstructor->AttatchFeaturePoint(&featurePoint[i]);
 	}
-	reconstructor->Calculate(CalculationStep);
+//	reconstructor->CalculateAll();
+	reconstructor->CalculateStep(CalculationStep);
 	CalculationStep++;
 
 
 	// calcuate center Point
 	int count = 0;
 	centerPoint = windage::Vector4(0.0, 0.0, 0.0, 0.0);
-	for(int i=0; i<IMAGE_FILE_COUNT-1; i++)
+	std::vector<windage::ReconstructionPoint>* point3D = reconstructor->GetReconstructedPoint();
+	for(unsigned int j=0; j<point3D->size(); j++)
 	{
-		std::vector<windage::ReconstructionPoint>* point3D = reconstructor->GetReconstructedPoint(i);
-		for(unsigned int j=0; j<point3D->size(); j++)
-		{
-			centerPoint += (*point3D)[j].GetPoint();
-			count++;
-		}
+		centerPoint += (*point3D)[j].GetPoint();
+		count++;
 	}
 	centerPoint /= (double)count;
 	VIRTUAL_CAMERA_DISTANCE = centerPoint.getLength();
 	logging->log("reconstruction point count : ");logging->log(count); logging->logNewLine();
 
-	logging->logNewLine();
-	logging->log("camera pose information"); logging->logNewLine();
-	logging->log("\tintrinsic"); logging->logNewLine();
-	logging->log(initialCalibration->GetIntrinsicMatrix());
-	for(int i=0; i<IMAGE_FILE_COUNT; i++)
-	{
-		logging->log("\tcamera parameter "); logging->log(i); logging->logNewLine();
-		logging->log(reconstructor->GetCameraParameter(i)->GetExtrinsicMatrix());
-	}
-	
 	logging->logNewLine();
 	logging->log("draw result"); logging->logNewLine();
 
