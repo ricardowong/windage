@@ -84,6 +84,9 @@ namespace windage
 		{
 		private:
 			double reprojectionError;
+			double confidence;
+			int maxIteration;
+
 			int attatchedCount;
 			int caculatedCount;
 
@@ -106,7 +109,10 @@ namespace windage
 		public:
 			IncrementalReconstruction()
 			{
-				reprojectionError = 2.0;
+				this->reprojectionError = 2.0;
+				this->confidence = 0.995;
+				this->maxIteration = 2000;
+
 				attatchedCount = 0;
 				caculatedCount = 0;
 				initialCameraParameter = NULL;
@@ -119,8 +125,13 @@ namespace windage
 				cameraParameters.clear();
 			}
 
+			inline void SetReprojectionError(double error){this->reprojectionError = error;};
+			inline void SetMaxIteration(int iteration){this->maxIteration = iteration;};
+			inline void SetConfidence(double confidence){this->confidence = confidence;};
+
 			inline void AttatchCalibration(windage::Calibration* calibration){this->initialCameraParameter = calibration;};
 			inline void AttatchSearchTree(windage::Algorithms::SearchTree* matcher){this->searchtree = matcher;};
+
 			inline windage::Calibration* GetCameraParameter(int i){return cameraParameters[i];};
 			inline std::vector<windage::ReconstructionPoint>* GetReconstructedPoint(int i){return &reconstructionPoints[i];};
 

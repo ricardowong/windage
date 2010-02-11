@@ -160,6 +160,10 @@ void main()
 	initialCalibration->Initialize(INTRINSIC_VALUES[0], INTRINSIC_VALUES[1], INTRINSIC_VALUES[2], INTRINSIC_VALUES[3]);
 
 	reconstructor = new windage::Reconstruction::IncrementalReconstruction();
+	reconstructor->SetConfidence(0.99995);
+	reconstructor->SetMaxIteration(5000);
+	reconstructor->SetReprojectionError(2.0);
+
 	reconstructor->AttatchCalibration(initialCalibration);
 	reconstructor->AttatchSearchTree(new windage::Algorithms::FLANNtree());
 

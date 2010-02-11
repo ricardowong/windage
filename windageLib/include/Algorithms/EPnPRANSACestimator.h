@@ -98,7 +98,7 @@ namespace windage
 			}
 
 			inline void SetMaxIteration(int iteration){this->maxIteration = iteration;};
-			inline void SetConfidence(int confidence){this->confidence = confidence;};
+			inline void SetConfidence(double confidence){this->confidence = confidence;};
 
 			/**
 			 * @fn	Calculate

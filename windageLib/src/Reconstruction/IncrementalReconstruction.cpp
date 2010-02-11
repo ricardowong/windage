@@ -171,6 +171,10 @@ bool IncrementalReconstruction::StereoReconstruction(int index1, int index2)
 		return false;
 
 	windage::Reconstruction::StereoReconstruction stereo;
+	stereo.SetReprojectionError(this->reprojectionError);
+	stereo.SetConfidence(this->confidence);
+	stereo.SetMaxIteration(this->maxIteration);
+
 	stereo.AttatchBaseCameraParameter(this->GetCameraParameter(index1));
 	stereo.AttatchUpdateCameraParameter(this->GetCameraParameter(index2));
 
@@ -180,7 +184,6 @@ bool IncrementalReconstruction::StereoReconstruction(int index1, int index2)
 	double error = 0.0;
 	stereo.CalculateNormalizedPoint();
 	stereo.ComputeEssentialMatrixRANSAC(&error);
-	stereo.SetReprojectionError(this->reprojectionError);
 
 	std::vector<windage::ReconstructionPoint>* pose3D = stereo.GetReconstructionPoints();
 	int count = 0;
@@ -250,6 +253,9 @@ bool IncrementalReconstruction::IncrementReconstruction(std::vector<windage::Fea
 	// pose estimation using Epnp	
 	windage::Algorithms::EPnPRANSACestimator poseEstimator;
 	poseEstimator.SetReprojectionError(this->reprojectionError);
+	poseEstimator.SetConfidence(this->confidence);
+	poseEstimator.SetMaxIteration(this->maxIteration);
+
 	poseEstimator.AttatchCameraParameter(this->cameraParameters[this->caculatedCount]);
 	poseEstimator.AttatchReferencePoint(&matchedPoint1);
 	poseEstimator.AttatchScenePoint(&matchedPoint2);
