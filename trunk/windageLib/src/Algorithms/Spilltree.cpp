@@ -46,7 +46,7 @@ bool Spilltree::Training(std::vector<windage::FeaturePoint>* pointList)
 	if(pointList == NULL)
 		return false;
 
-	int count = pointList->size();
+	int count = (int)pointList->size();
 	if(count <= 0)
 		return false;
 

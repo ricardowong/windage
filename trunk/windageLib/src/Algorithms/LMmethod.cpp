@@ -50,7 +50,7 @@ bool LMmethod::Calculate()
 	if(this->referencePoints == NULL || this->scenePoints == NULL)
 		return false;
 
-	int n =this->referencePoints->size();
+	int n = (int)this->referencePoints->size();
 	if(n < 4)
 		return false;
 

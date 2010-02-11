@@ -20,7 +20,7 @@
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionDir)../../bin/"
 			IntermediateDirectory="$(SolutionDir)../../BuildLog/$(ProjectName)/$(ConfigurationName)"
-			ConfigurationType="4"
+			ConfigurationType="2"
 			CharacterSet="1"
 			>
 			<Tool
@@ -40,17 +40,19 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalOptions="/MP"
+				AdditionalOptions="/MP /Ylsymbol"
 				Optimization="0"
 				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../include&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.0/include&quot;;&quot;$(SolutionDir)../../component/GLUT/include&quot;;&quot;$(SolutionDir)../../component/SBA-1.5/include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;WINDAGE_EXPORTS"
-				MinimalRebuild="true"
+				MinimalRebuild="false"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
+				BufferSecurityCheck="false"
 				OpenMP="false"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				DebugInformationFormat="4"
+				Detect64BitPortabilityProblems="false"
+				DebugInformationFormat="1"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -62,12 +64,16 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLibrarianTool"
-				LinkLibraryDependencies="true"
-				OutputFile="$(OutDir)\$(ProjectName)d.lib"
+				Name="VCLinkerTool"
+				AdditionalDependencies="cv200.lib cxcore200.lib highgui200.lib glut32.lib sba.lib cblas.lib clapack.lib f2c.lib"
+				OutputFile="$(OutDir)\$(ProjectName)d.dll"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)../../component/OpenCV 2.0/lib&quot;;&quot;$(SolutionDir)../../component/GLUT/lib&quot;;&quot;$(SolutionDir)../../component/SBA-1.5/lib&quot;"
 			/>
 			<Tool
 				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -79,8 +85,11 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="COPY /Y &quot;$(OutDir)\$(ProjectName)d.lib&quot; &quot;$(SolutionDir)\..\..\lib\$(ProjectName)d.lib&quot;&#x0D;&#x0A;"
+				CommandLine="COPY /Y &quot;$(OutDir)\$(ProjectName)d.lib&quot; &quot;$(SolutionDir)\..\..\lib\$(ProjectName)d.lib&quot;&#x0D;&#x0A;COPY /Y &quot;$(OutDir)\$(ProjectName)d.dll&quot; &quot;$(SolutionDir)\..\..\runtime\$(ProjectName)d.dll&quot;&#x0D;&#x0A;"
 				ExcludedFromBuild="false"
 			/>
 		</Configuration>
@@ -88,7 +97,7 @@
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)../../bin/"
 			IntermediateDirectory="$(SolutionDir)../../BuildLog/$(ProjectName)/$(ConfigurationName)"
-			ConfigurationType="4"
+			ConfigurationType="2"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
 			>
@@ -118,11 +127,13 @@
 				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../include&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.0/include&quot;;&quot;$(SolutionDir)../../component/GLUT/include&quot;;&quot;$(SolutionDir)../../component/SBA-1.5/include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;WINDAGE_EXPORTS"
 				RuntimeLibrary="2"
+				BufferSecurityCheck="false"
 				EnableFunctionLevelLinking="true"
 				OpenMP="true"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				DebugInformationFormat="3"
+				Detect64BitPortabilityProblems="false"
+				DebugInformationFormat="0"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -134,11 +145,15 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLibrarianTool"
-				LinkLibraryDependencies="true"
+				Name="VCLinkerTool"
+				AdditionalDependencies="cv200.lib cxcore200.lib highgui200.lib glut32.lib sba.lib cblas.lib clapack.lib f2c.lib"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)../../component/OpenCV 2.0/lib&quot;;&quot;$(SolutionDir)../../component/GLUT/lib&quot;;&quot;$(SolutionDir)../../component/SBA-1.5/lib&quot;"
 			/>
 			<Tool
 				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -150,8 +165,11 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="COPY /Y &quot;$(OutDir)\$(ProjectName).lib&quot; &quot;$(SolutionDir)\..\..\lib\$(ProjectName).lib&quot;"
+				CommandLine="COPY /Y &quot;$(OutDir)\$(ProjectName).lib&quot; &quot;$(SolutionDir)\..\..\lib\$(ProjectName).lib&quot;&#x0D;&#x0A;COPY /Y &quot;$(OutDir)\$(ProjectName).dll&quot; &quot;$(SolutionDir)\..\..\runtime\$(ProjectName).dll&quot;"
 				ExcludedFromBuild="false"
 			/>
 		</Configuration>

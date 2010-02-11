@@ -198,8 +198,8 @@ bool ProSACestimator::Calculate()
 			}
 		}
 
-		CvMat consensusReferencePoints = cvMat(1, consensusReference.size(), CV_64FC2, &(consensusReference[0]));
-		CvMat consensusObjectPoints = cvMat(1, consensusObject.size(), CV_64FC2, &(consensusObject[0]));
+		CvMat consensusReferencePoints = cvMat(1, (int)consensusReference.size(), CV_64FC2, &(consensusReference[0]));
+		CvMat consensusObjectPoints = cvMat(1, (int)consensusObject.size(), CV_64FC2, &(consensusObject[0]));
 		
 		cvFindHomography(&consensusReferencePoints, &consensusObjectPoints, &_h);
 

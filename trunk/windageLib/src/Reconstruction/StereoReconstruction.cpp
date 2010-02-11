@@ -76,7 +76,7 @@ void StereoReconstruction::CalculateNormalizedPoint()
 
 	intrinsic = intrinsic.Inverse();
 	
-	int n = this->matchedPoint1->size();
+	int n = (int)this->matchedPoint1->size();
 	for(int i=0; i<n; i++)
 	{
 		windage::Vector3 point1 = (*this->matchedPoint1)[i].GetPoint();

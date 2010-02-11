@@ -101,7 +101,7 @@ namespace windage
 			{
 				this->reprojectionError = 2.0;
 				this->confidence = 0.995;
-				this->maxIteration = 5000;
+				this->maxIteration = 2000;
 				essentialMatrix = cvCreateMat(3, 3, CV_64F);
 				inlierCount = 0;
 			}
@@ -114,7 +114,8 @@ namespace windage
 			inline std::vector<windage::ReconstructionPoint>* GetReconstructionPoints(){return &this->reconstructionPoints;};
 			inline void SetReprojectionError(double error){this->reprojectionError = error;};
 			inline double GetReprojectionError(){return this->reprojectionError;};
-			inline void SetConfidence(int confidence){this->confidence = confidence;};
+			inline void SetMaxIteration(int iteration){this->maxIteration = iteration;};
+			inline void SetConfidence(double confidence){this->confidence = confidence;};
 			inline int GetInlierCount(){return this->inlierCount;};
 
 			inline void AttatchBaseCameraParameter(windage::Calibration* cameraParameter){this->initialCameraParameter = cameraParameter;};
