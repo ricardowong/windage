@@ -160,6 +160,7 @@ namespace windage
 		void ConvertExtrinsicParameter(CvMat* rotationVector, CvMat* translationVector);
 
 		CvScalar GetCameraPosition();
+		void SetCameraPosition(CvScalar position);
 		CvScalar GetLookAt();
 		CvScalar GetUpPoint();
 		CvScalar GetRightPoint();

@@ -61,6 +61,7 @@
 #include "Structures/ReconstructionPoint.h"
 
 #include "Algorithms/SearchTree.h"
+#include "Algorithms/PoseEstimator.h"
 
 #include "Reconstruction/StereoReconstruction.h"
 
@@ -94,6 +95,7 @@ namespace windage
 			std::vector<windage::Calibration*> cameraParameters;
 
 			windage::Algorithms::SearchTree* searchtree;
+			windage::Algorithms::PoseEstimator* estimator;
 
 			std::vector<windage::ReconstructionPoint> reconstructionPoints;
 			std::vector<std::vector<windage::FeaturePoint>> featurePointsList;
@@ -115,6 +117,7 @@ namespace windage
 				caculatedCount = 0;
 				initialCameraParameter = NULL;
 				searchtree = NULL;
+				estimator = NULL;
 			}
 			~IncrementalReconstruction()
 			{
@@ -129,6 +132,7 @@ namespace windage
 
 			inline void AttatchCalibration(windage::Calibration* calibration){this->initialCameraParameter = calibration;};
 			inline void AttatchSearchTree(windage::Algorithms::SearchTree* matcher){this->searchtree = matcher;};
+			inline void AttatchEstimator(windage::Algorithms::PoseEstimator* estimator){this->estimator = estimator;};
 
 			inline windage::Calibration* GetCameraParameter(int i){return cameraParameters[i];};
 			inline std::vector<windage::ReconstructionPoint>* GetReconstructedPoint(){return &reconstructionPoints;};

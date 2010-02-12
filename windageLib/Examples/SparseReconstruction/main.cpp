@@ -180,12 +180,13 @@ void main()
 	initialCalibration->Initialize(INTRINSIC_VALUES[0], INTRINSIC_VALUES[1], INTRINSIC_VALUES[2], INTRINSIC_VALUES[3]);
 
 	reconstructor = new windage::Reconstruction::IncrementalReconstruction();
-	reconstructor->SetConfidence(0.9995);
-	reconstructor->SetMaxIteration(5000);
+	reconstructor->SetConfidence(0.995);
+	reconstructor->SetMaxIteration(2000);
 	reconstructor->SetReprojectionError(2.0);
 
 	reconstructor->AttatchCalibration(initialCalibration);
 	reconstructor->AttatchSearchTree(new windage::Algorithms::FLANNtree());
+	reconstructor->AttatchEstimator(new windage::Algorithms::EPnPRANSACestimator());
 
 	logging->logNewLine();
 	logging->log("load image & feature extract - matching"); logging->logNewLine();

@@ -57,8 +57,11 @@
 #include "RANSACestimatorTest.h"
 #include "ProSACestimatorTest.h"
 #include "LMedSestimatorTest.h"
+#include "OpenCVRANSACestimatorTest.h"
 
 #include "OutlierCheckerTest.h"
+
+#include "KalmanFilterTest.h"
 
 #include "LMmethodTest.h"
 #include "HomographyESMTest.h"
@@ -77,7 +80,7 @@ void main()
 	VectorMatrixTest testMatrixVector;
 	CalibrationTest testCalibration;
 	RotationConverterTest testRotationConverter;
-//*
+/*
 	FeaturePointTest testFeaturePoint;
 	SURFdetectorTest testSURFdetector;
 //	SIFTdetectorTest testSIFTdetector;
@@ -92,6 +95,10 @@ void main()
 	RANSACestimatorTest testRANSACestimator;
 	ProSACestimatorTest testProSACestimator;
 	LMedSestimatorTest testLMedSestimator;
+//*/
+	OpenCVRANSACestimatorTest testOpenCVRANSACestimator;
+/*
+	KalmanFilterTest testKalmanFilter;
 
 	OutlierCheckerTest testOutlierChecker;
 	LMmethodTest testLMmethod;
@@ -100,9 +107,9 @@ void main()
 
 	PlanarObjectTrackingTest testPlanarObjectTracking;
 	MultiplePlanarObjectTrackingTest testMultiplePlanarObjectTracking;
-//*/
-	StereoReconstructionTest testStereoReconstruction;
 
+//	StereoReconstructionTest testStereoReconstruction;
+//*/
 	cvNamedWindow("stop");
 	cvWaitKey(10*1000);
 	cvDestroyAllWindows();

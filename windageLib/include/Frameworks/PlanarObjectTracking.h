@@ -66,6 +66,7 @@
 #include "Algorithms/HomographyEstimator.h"
 #include "Algorithms/OutlierChecker.h"
 #include "Algorithms/HomographyRefiner.h"
+#include "Algorithms/KalmanFilter.h"
 
 namespace windage
 {
@@ -96,6 +97,8 @@ namespace windage
 			windage::Algorithms::OpticalFlow* tracker;				///< It is optional elements that feature tracking algorithm to attatch reference pointer at out-side
 			windage::Algorithms::OutlierChecker* checker;			///< It is optional elements that outlier checker algorithm to attatch reference pointer at out-side
 			windage::Algorithms::HomographyRefiner* refiner;		///< It is optional elements that homography refinement algorithm to attatch reference pointer at out-side
+			windage::Algorithms::KalmanFilter* filter;				///< It is optional elements that kalman filter algorithm to attatch reference pointer at out-side
+			int filterStep;
 
 			IplImage* prevImage;									///< gray image for feature tracking
 			std::vector<windage::FeaturePoint> refMatchedKeypoints;	///< matched point at reference image
@@ -127,6 +130,9 @@ namespace windage
 				estimator = NULL;
 				checker = NULL;
 				refiner = NULL;
+				filter = NULL;
+
+				filterStep = 10;
 
 				initialize = false;
 				trained = false;
@@ -147,6 +153,7 @@ namespace windage
 			inline void SetSize(int width, int height){this->width = width; this->height = height;};
 			inline CvSize GetSize(){return cvSize(this->width, this->height);};
 			inline void SetDitectionRatio(int ratio){this->detectionRatio=ratio; this->step=ratio+1;};
+			inline void SetFilterSetp(int step){this->filterStep = step;};
 			inline int GetMatchingCount(){return (int)this->refMatchedKeypoints.size();};
 			inline IplImage* GetReferenceImage(){return this->referenceImage;};
 
@@ -233,6 +240,18 @@ namespace windage
 			 *		homography refinement algorithm is not create in-side at this class so do not release this pointer
 			 */
 			inline void AttatchRefiner(windage::Algorithms::HomographyRefiner* refiner){this->refiner = refiner;};
+
+			/**
+			 * @fn	AttatchRefiner
+			 * @brief
+			 *		attatch kalman filter algorithm to member pointer from out-side
+			 * @remark
+			 *		kalman filter algorithm is to be initialized at out-side
+			 * @warning
+			 *		It is optional elements
+			 *		kalman filter algorithm is not create in-side at this class so do not release this pointer
+			 */
+			inline void AttatchFilter(windage::Algorithms::KalmanFilter* filter){this->filter = filter;};
 
 			inline windage::Calibration* GetCameraParameter(){return this->cameraParameter;};
 			inline windage::Algorithms::FeatureDetector* GetDetector(){return this->detector;};

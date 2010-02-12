@@ -38,29 +38,74 @@
  * ======================================================================== */
 
 /**
- * @file	base.h
+ * @file	KalmanFilter.h
  * @author	Woonhyuk Baek
  * @version 1.0
- * @date	2010.02.04
- * @brief	header file is positively necessary for making library
- * @warning to insert every library files without exception
+ * @date	2010.02.12
+ * @brief	It is implemetation of kalman filter class to prevent zitering
  */
 
-#ifndef _WINDAGE_BASE_H_
-#define _WINDAGE_BASE_H_
+#ifndef _KALMAN_FILTER_H_
+#define _KALMAN_FILTER_H_
 
-#define DYNAMIC_LIBRARY
-#ifdef DYNAMIC_LIBRARY
-	#define DLLEXPORT __declspec(dllexport)   
-	#define DLLIMPORT __declspec(dllimport)
+#include <vector>
 
-	#pragma warning(disable : 4251)
-	#pragma warning(disable : 4786)
-#else
-	#define DLLEXPORT 
-	#define DLLIMPORT   
-#endif
+#include <cv.h>
+#include "base.h"
 
-#include <iostream>
+#include "Structures/Vector.h"
+#include "Structures/Calibration.h"
 
-#endif
+namespace windage
+{
+	namespace Algorithms
+	{
+		/**
+		 * @defgroup Algorithms Algorithm classes
+		 * @brief
+		 *		algorithm classes
+		 * @addtogroup Algorithms
+		 * @{
+		 */
+
+		/**
+		 * @defgroup AlgorithmsPoseEstimator Pose Estimator
+		 * @brief
+				camera pose estimator in 3D
+		 * @addtogroup AlgorithmsPoseEstimator
+		 * @{
+		 */
+
+		/**
+		 * @brief	class for kalman filtering to prevent zitering
+		 * @author	Woonhyuk Baek
+		 */
+		class DLLEXPORT KalmanFilter
+		{
+		private:
+			/** Tx, Ty, Tz, dTx, dTy, dTz */
+			CvKalman* kalman;
+			CvMat* measurement;
+
+		public:
+			KalmanFilter()
+			{
+				kalman = cvCreateKalman( 6, 3, 0 );
+				measurement = cvCreateMat( 3, 1, CV_32FC1 );
+				this->Initialize();
+			}
+			~KalmanFilter()
+			{
+				if(kalman) cvReleaseKalman(&kalman);
+				if(measurement) cvReleaseMat(&measurement);
+			}
+
+			void Initialize();
+			windage::Vector3 Predict();
+			bool Correct(windage::Vector3 T);
+		};
+		/** @} */ // addtogroup AlgorithmsPoseEstimator
+		/** @} */ // addtogroup Algorithms
+	}
+}
+#endif // _KALMAN_FILTER_H_

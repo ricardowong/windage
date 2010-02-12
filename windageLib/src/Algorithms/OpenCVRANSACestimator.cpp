@@ -37,17 +37,15 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#include "Algorithms/EPnPRANSACestimator.h"
+#include "Algorithms/OpenCVRANSACestimator.h"
 using namespace windage;
 using namespace windage::Algorithms;
 
-#include "Algorithms/epnp/epnp.h"
-
-bool EPnPRANSACestimator::Calculate()
+bool OpenCVRANSACestimator::Calculate()
 {
 	if(this->cameraParameter == NULL)
 		return false;
-	const int SAMPLE_SIZE = 5;
+	const int SAMPLE_SIZE = 6;
 	int n = (int)this->referencePoints->size();
 	if(n < SAMPLE_SIZE)
 		return false;
@@ -63,19 +61,24 @@ bool EPnPRANSACestimator::Calculate()
 	CvRNG rng = cvRNG(cvGetTickCount());
 	int pre_inliers = 0;
 
+	CvMat* samplingRef = cvCreateMat(SAMPLE_SIZE, 3, CV_64FC1);
+	CvMat* samplingSce = cvCreateMat(SAMPLE_SIZE, 2, CV_64FC1);
+
+	CvMat* translationVector = cvCreateMat(3, 1, CV_64FC1);
+	CvMat* rotationVector = cvCreateMat(3, 1, CV_64FC1);
+	CvMat* rotationMatrix = cvCreateMat(3, 3, CV_64FC1);
+	CvMat* extrinsicMatrix = cvCreateMat(4, 4, CV_64FC1);
+	cvSetIdentity(extrinsicMatrix);
+
 	windage::Calibration tempCalibration;
 	tempCalibration.Initialize(fx, fy, cx, cy);
-	
-	// Pose estimation using PnP alogrithm from EPFL
-	epnp* _epnp = new epnp;
-	_epnp->set_internal_parameters(cx, cy, fx, fy);
 
 	std::vector<bool> inliers_checker;		inliers_checker.resize(n);
 	std::vector<bool> pre_inlier_checker;	pre_inlier_checker.resize(n);
 
 	int iter = 0;
 	int max_iters = this->maxIteration;
-	while(iter<max_iters)
+	while(iter < max_iters)
 	{
 		// sampling
 		for(int i=0; i<SAMPLE_SIZE; i++)
@@ -95,34 +98,38 @@ bool EPnPRANSACestimator::Calculate()
 			idx[i] = tempIndex;
 		}
 
-		// estimation
-		_epnp->set_maximum_number_of_correspondences(SAMPLE_SIZE);
-		_epnp->reset_correspondences();
-
 		for(int i=0; i<SAMPLE_SIZE; i++)
 		{
 			windage::Vector3 ref = (*this->referencePoints)[idx[i]].GetPoint();
 			windage::Vector3 sce = (*this->scenePoints)[idx[i]].GetPoint();
 
-			_epnp->add_correspondence(ref.x, ref.y, ref.z, sce.x, sce.y);
+			cvSetReal2D(samplingRef, i, 0, ref.x);
+			cvSetReal2D(samplingRef, i, 1, ref.y);
+			cvSetReal2D(samplingRef, i, 2, ref.z);
+
+			cvSetReal2D(samplingSce, i, 0, sce.x);
+			cvSetReal2D(samplingSce, i, 1, sce.y);
 		}
 
-		double _R[3][3], _t[3];
-		_epnp->compute_pose(_R, _t);
+		cvFindExtrinsicCameraParams2(samplingRef, samplingSce,
+			tempCalibration.GetIntrinsicMatrix(), tempCalibration.GetDistortionCoefficients(),
+			rotationVector, translationVector);
 
-		double extrinsic[16];
-		for(int y=0; y<3; y++)
+		// convert vector to matrix
+		for(int i=0; i < 3; i++) 
 		{
-			for(int x=0; x<3; x++)
-			{
-				extrinsic[y*4+x] = _R[y][x];
-			}
-			extrinsic[y*4+3] = _t[y];
-		}
-		extrinsic[12] = extrinsic[13] = extrinsic[14] = 0.0;
-		extrinsic[15] = 1.0;
+			cvSetReal2D(extrinsicMatrix, i, 3, cvGetReal1D(translationVector, i));
+		} 
 
-		tempCalibration.SetExtrinsicMatrix(extrinsic);
+		cvRodrigues2(rotationVector, rotationMatrix);
+		for(int i=0; i<3; i++)
+		{
+			for(int j=0; j<3; j++)
+			{
+				cvSetReal2D(extrinsicMatrix, i, j, cvGetReal2D(rotationMatrix, i, j)); 
+			}
+		}
+		tempCalibration.SetExtrinsicMatrix(extrinsicMatrix);
 
 		//count inlier
 		int num_inliers = 0;
@@ -156,42 +163,49 @@ bool EPnPRANSACestimator::Calculate()
 		iter++;
 	}
 
-	// update pose using inlers	
-	_epnp->set_maximum_number_of_correspondences(pre_inliers);
-	_epnp->reset_correspondences();
+	// update pose using inlers
+	cvReleaseMat(&samplingRef);
+	cvReleaseMat(&samplingSce);
+	samplingRef = cvCreateMat(pre_inliers, 3, CV_64FC1);
+	samplingSce = cvCreateMat(pre_inliers, 2, CV_64FC1);
+
+	int count = 0;
 	for(int i=0; i<n; i++)
 	{
 		if(pre_inlier_checker[i])
 		{
-			double _X, _Y, _Z, _u, _v;
-			_X = (*this->referencePoints)[i].GetPoint().x;
-			_Y = (*this->referencePoints)[i].GetPoint().y;
-			_Z = (*this->referencePoints)[i].GetPoint().z;
-			_u = (*this->scenePoints)[i].GetPoint().x;
-			_v = (*this->scenePoints)[i].GetPoint().y;
+			windage::Vector3 ref = (*this->referencePoints)[i].GetPoint();
+			windage::Vector3 sce = (*this->scenePoints)[i].GetPoint();
 
-			_epnp->add_correspondence(_X, _Y, _Z, _u, _v);
+			cvSetReal2D(samplingRef, count, 0, ref.x);
+			cvSetReal2D(samplingRef, count, 1, ref.y);
+			cvSetReal2D(samplingRef, count, 2, ref.z);
+
+			cvSetReal2D(samplingSce, count, 0, sce.x);
+			cvSetReal2D(samplingSce, count, 1, sce.y);
+			count++;
 		}
 	}
 
-	// compute pose
-	double _R[3][3], _t[3];
-	double _rerror  = _epnp->compute_pose(_R, _t);
-	delete _epnp;
+	cvFindExtrinsicCameraParams2(samplingRef, samplingSce,
+			tempCalibration.GetIntrinsicMatrix(), tempCalibration.GetDistortionCoefficients(),
+			rotationVector, translationVector);
 
-	double extrinsic[16];
-	for(int y=0; y<3; y++)
+	// convert vector to matrix
+	for(int i=0; i < 3; i++) 
 	{
-		for(int x=0; x<3; x++)
-		{
-			extrinsic[y*4+x] = _R[y][x];
-		}
-		extrinsic[y*4+3] = _t[y];
-	}
-	extrinsic[12] = extrinsic[13] = extrinsic[14] = 0.0;
-	extrinsic[15] = 1.0;
+		cvSetReal2D(extrinsicMatrix, i, 3, cvGetReal1D(translationVector, i));
+	} 
 
-	this->cameraParameter->SetExtrinsicMatrix(extrinsic);
+	cvRodrigues2(rotationVector, rotationMatrix);
+	for(int i=0; i<3; i++)
+	{
+		for(int j=0; j<3; j++)
+		{
+			cvSetReal2D(extrinsicMatrix, i, j, cvGetReal2D(rotationMatrix, i, j)); 
+		}
+	}
+	this->cameraParameter->SetExtrinsicMatrix(extrinsicMatrix);
 
 	// count inlier
 	int num_inliers = 0;
@@ -217,5 +231,12 @@ bool EPnPRANSACestimator::Calculate()
 		}
 	}
 
+	cvReleaseMat(&samplingRef);
+	cvReleaseMat(&samplingSce);
+
+	cvReleaseMat(&translationVector);
+	cvReleaseMat(&rotationVector);
+	cvReleaseMat(&rotationMatrix);
+	cvReleaseMat(&extrinsicMatrix);
 	return true;
 }

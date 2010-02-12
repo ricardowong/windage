@@ -37,30 +37,45 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-/**
- * @file	base.h
- * @author	Woonhyuk Baek
- * @version 1.0
- * @date	2010.02.04
- * @brief	header file is positively necessary for making library
- * @warning to insert every library files without exception
- */
+#include "Algorithms/KalmanFilter.h"
+using namespace windage;
+using namespace windage::Algorithms;
 
-#ifndef _WINDAGE_BASE_H_
-#define _WINDAGE_BASE_H_
+void KalmanFilter::Initialize()
+{
+	const float A[] = { 1, 0, 0, 1, 0, 0,
+						0, 1, 0, 0, 1, 0,
+						0, 0, 1, 0, 0, 1,
+						0, 0, 0, 1, 0, 0,
+						0, 0, 0, 0, 1, 0,
+						0, 0, 0, 0, 0, 1,};
 
-#define DYNAMIC_LIBRARY
-#ifdef DYNAMIC_LIBRARY
-	#define DLLEXPORT __declspec(dllexport)   
-	#define DLLIMPORT __declspec(dllimport)
+	memcpy( this->kalman->transition_matrix->data.fl, A, sizeof(A));
+	cvSetIdentity( this->kalman->measurement_matrix, cvRealScalar(1) );
+	cvSetIdentity( this->kalman->process_noise_cov, cvRealScalar(1e-5) );
+	cvSetIdentity( this->kalman->measurement_noise_cov, cvRealScalar(1e-1) );
+	cvSetIdentity( this->kalman->error_cov_post, cvRealScalar(1));
+}
 
-	#pragma warning(disable : 4251)
-	#pragma warning(disable : 4786)
-#else
-	#define DLLEXPORT 
-	#define DLLIMPORT   
-#endif
+windage::Vector3 KalmanFilter::Predict()
+{
+	windage::Vector3 prediction;
 
-#include <iostream>
+	const CvMat* predictionMat = cvKalmanPredict( this->kalman, 0 );
 
-#endif
+	prediction.x = (double)predictionMat->data.fl[0];
+	prediction.y = (double)predictionMat->data.fl[1];
+	prediction.z = (double)predictionMat->data.fl[2];
+
+	return prediction;
+}
+
+bool KalmanFilter::Correct(windage::Vector3 T)
+{
+	measurement->data.fl[0] = (float)T.x;
+	measurement->data.fl[1] = (float)T.y;
+	measurement->data.fl[2] = (float)T.z;
+
+	cvKalmanCorrect( kalman, measurement );
+	return true;
+}

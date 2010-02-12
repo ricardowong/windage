@@ -142,7 +142,7 @@ void Calibration::ConvertExtrinsicParameter(CvMat* rotationVector, CvMat* transl
 CvScalar Calibration::GetCameraPosition()
 {
 	CvScalar cameraPos;
-//*
+
 	windage::Matrix3 rotation;
 	rotation.m[0][0] = cvGetReal2D(this->extrinsicMatrix, 0, 0);
 	rotation.m[0][1] = cvGetReal2D(this->extrinsicMatrix, 1, 0);
@@ -161,20 +161,43 @@ CvScalar Calibration::GetCameraPosition()
 	translation.y = cvGetReal2D(this->extrinsicMatrix, 1, 3);
 	translation.z = cvGetReal2D(this->extrinsicMatrix, 2, 3);
 
-//	rotation = rotation.Transpose();
 	translation = -translation;
 	windage::Vector3 temp = rotation * translation;
 
 	cameraPos.val[0] = temp.x;
 	cameraPos.val[1] = temp.y;
 	cameraPos.val[2] = temp.z;
-//*/
-/*
-	cameraPos.val[0] = cvGetReal2D(this->extrinsicMatrix, 0, 3);
-	cameraPos.val[1] = cvGetReal2D(this->extrinsicMatrix, 1, 3);
-	cameraPos.val[2] = cvGetReal2D(this->extrinsicMatrix, 2, 3);
-//*/
+
 	return cameraPos;
+}
+
+void Calibration::SetCameraPosition(CvScalar position)
+{
+	windage::Matrix3 rotation;
+	rotation.m[0][0] = cvGetReal2D(this->extrinsicMatrix, 0, 0);
+	rotation.m[0][1] = cvGetReal2D(this->extrinsicMatrix, 1, 0);
+	rotation.m[0][2] = cvGetReal2D(this->extrinsicMatrix, 2, 0);
+
+	rotation.m[1][0] = cvGetReal2D(this->extrinsicMatrix, 0, 1);
+	rotation.m[1][1] = cvGetReal2D(this->extrinsicMatrix, 1, 1);
+	rotation.m[1][2] = cvGetReal2D(this->extrinsicMatrix, 2, 1);
+
+	rotation.m[2][0] = cvGetReal2D(this->extrinsicMatrix, 0, 2);
+	rotation.m[2][1] = cvGetReal2D(this->extrinsicMatrix, 1, 2);
+	rotation.m[2][2] = cvGetReal2D(this->extrinsicMatrix, 2, 2);
+
+	windage::Vector3 translation;
+	translation.x = position.val[0];
+	translation.y = position.val[1];
+	translation.z = position.val[2];
+
+	rotation = rotation.Transpose();
+	translation = rotation * translation;
+	translation = -translation;
+
+	cvSetReal2D(this->extrinsicMatrix, 0, 3, translation.x);
+	cvSetReal2D(this->extrinsicMatrix, 1, 3, translation.y);
+	cvSetReal2D(this->extrinsicMatrix, 2, 3, translation.z);
 }
 
 CvScalar Calibration::GetLookAt()

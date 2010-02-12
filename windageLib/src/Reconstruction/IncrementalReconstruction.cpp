@@ -44,7 +44,6 @@ using namespace windage::Reconstruction;
 #include <iostream>
 
 #include "Reconstruction/BundleWrapper.h"
-#include "Algorithms/EPnPRANSACestimator.h"
 
 // Simple linear triangulation method 
 // See "Multiple view geometry" written by R.Hartely
@@ -257,16 +256,11 @@ bool IncrementalReconstruction::IncrementReconstruction()
 	if(matchedPoint1.size() < 10)
 		return false;
 
-	// pose estimation using Epnp	
-	windage::Algorithms::EPnPRANSACestimator poseEstimator;
-	poseEstimator.SetReprojectionError(this->reprojectionError);
-	poseEstimator.SetConfidence(this->confidence);
-	poseEstimator.SetMaxIteration(this->maxIteration);
-
-	poseEstimator.AttatchCameraParameter(this->cameraParameters[this->caculatedCount]);
-	poseEstimator.AttatchReferencePoint(&matchedPoint1);
-	poseEstimator.AttatchScenePoint(&matchedPoint2);
-	poseEstimator.Calculate();
+	// pose estimation
+	this->estimator->AttatchCameraParameter(this->cameraParameters[this->caculatedCount]);
+	this->estimator->AttatchReferencePoint(&matchedPoint1);
+	this->estimator->AttatchScenePoint(&matchedPoint2);
+	this->estimator->Calculate();
 
 	int intlierCount = 0;
 	for(unsigned int i=0; i<matchedPoint1.size(); i++)

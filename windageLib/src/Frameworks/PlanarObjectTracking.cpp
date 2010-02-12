@@ -228,6 +228,26 @@ bool PlanarObjectTracking::UpdateCamerapose(IplImage* grayImage)
 		}
 
 		this->estimator->DecomposeHomography(this->cameraParameter);
+
+		// filtering
+		if(filter)
+		{
+			windage::Vector3 T;
+			T.x = this->cameraParameter->GetCameraPosition().val[0];
+			T.y = this->cameraParameter->GetCameraPosition().val[1];
+			T.z = this->cameraParameter->GetCameraPosition().val[2];
+
+			for(int j=0; j<filterStep; j++)
+			{
+				filter->Predict();
+				filter->Correct(T);
+			}
+
+			windage::Vector3 prediction = filter->Predict();
+			filter->Correct(T);
+
+			this->cameraParameter->SetCameraPosition(cvScalar(prediction.x, prediction.y, prediction.z));
+		}
 	}
 
 	cvCopyImage(grayImage, this->prevImage);
