@@ -82,6 +82,7 @@ windage::Frameworks::PlanarObjectTracking* CreateTracker()
 	windage::Algorithms::HomographyEstimator* estimator = new windage::Algorithms::ProSACestimator();
 	windage::Algorithms::OutlierChecker* checker = new windage::Algorithms::OutlierChecker();
 	windage::Algorithms::HomographyRefiner* refiner = new windage::Algorithms::LMmethod();
+	windage::Algorithms::KalmanFilter* filter = new windage::Algorithms::KalmanFilter();
 
 	calibration->Initialize((double)WIDTH*1.2, (double)WIDTH*1.2, (double)WIDTH/2.0, (double)HEIGHT/2.0, 0, 0, 0, 0);
 	detector->SetThreshold(30.0);
@@ -98,6 +99,7 @@ windage::Frameworks::PlanarObjectTracking* CreateTracker()
 	tracker->AttatchEstimator(estimator);
 	tracker->AttatchChecker(checker);
 	tracker->AttatchRefiner(refiner);
+	tracker->AttatchFilter(filter);
 
 	tracker->SetDitectionRatio(30);
 	tracker->Initialize(WIDTH, HEIGHT, (double)WIDTH, (double)HEIGHT);

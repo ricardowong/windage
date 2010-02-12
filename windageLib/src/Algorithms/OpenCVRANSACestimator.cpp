@@ -45,7 +45,7 @@ bool OpenCVRANSACestimator::Calculate()
 {
 	if(this->cameraParameter == NULL)
 		return false;
-	const int SAMPLE_SIZE = 6;
+	const int SAMPLE_SIZE = 7;
 	int n = (int)this->referencePoints->size();
 	if(n < SAMPLE_SIZE)
 		return false;
@@ -162,6 +162,9 @@ bool OpenCVRANSACestimator::Calculate()
 		
 		iter++;
 	}
+
+	if(pre_inliers < SAMPLE_SIZE)
+		return false;
 
 	// update pose using inlers
 	cvReleaseMat(&samplingRef);

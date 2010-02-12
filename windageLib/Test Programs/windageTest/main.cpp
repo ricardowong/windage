@@ -64,8 +64,6 @@
 #include "KalmanFilterTest.h"
 
 #include "LMmethodTest.h"
-#include "HomographyESMTest.h"
-#include "InverseCompositionalTest.h"
 
 #include "PlanarObjectTrackingTest.h"
 #include "MultiplePlanarObjectTrackingTest.h"
@@ -80,10 +78,10 @@ void main()
 	VectorMatrixTest testMatrixVector;
 	CalibrationTest testCalibration;
 	RotationConverterTest testRotationConverter;
-/*
+
 	FeaturePointTest testFeaturePoint;
 	SURFdetectorTest testSURFdetector;
-//	SIFTdetectorTest testSIFTdetector;
+	SIFTdetectorTest testSIFTdetector;
 	WSURFdetectorTest testWSURFdetector;
 
 	KDtreeTest testKDtree;
@@ -95,21 +93,18 @@ void main()
 	RANSACestimatorTest testRANSACestimator;
 	ProSACestimatorTest testProSACestimator;
 	LMedSestimatorTest testLMedSestimator;
-//*/
 	OpenCVRANSACestimatorTest testOpenCVRANSACestimator;
-/*
+
 	KalmanFilterTest testKalmanFilter;
 
 	OutlierCheckerTest testOutlierChecker;
 	LMmethodTest testLMmethod;
-	HomographyESMTest testHomographyESM;
-	InverseCompositionalTest testInverseCompositional;
 
 	PlanarObjectTrackingTest testPlanarObjectTracking;
 	MultiplePlanarObjectTrackingTest testMultiplePlanarObjectTracking;
 
-//	StereoReconstructionTest testStereoReconstruction;
-//*/
+	StereoReconstructionTest testStereoReconstruction;
+
 	cvNamedWindow("stop");
 	cvWaitKey(10*1000);
 	cvDestroyAllWindows();

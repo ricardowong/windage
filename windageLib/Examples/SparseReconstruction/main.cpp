@@ -55,6 +55,7 @@ const double INTRINSIC_VALUES[8] = {WIDTH*0.8, WIDTH*0.8, WIDTH/2, HEIGHT/2, 0, 
 
 const int IMAGE_FILE_COUNT = 10;
 const char* IMAGE_FILE_NAME = "Reconstruction/test%03d.jpg";
+//const char* IMAGE_FILE_NAME = "Test/testImage%d.png";
 double VIRTUAL_CAMERA_DISTANCE = 0.5;
 const double SCALE_FACTOR = 1.0;
 windage::Vector4 centerPoint;
@@ -186,7 +187,10 @@ void main()
 
 	reconstructor->AttatchCalibration(initialCalibration);
 	reconstructor->AttatchSearchTree(new windage::Algorithms::FLANNtree());
-	reconstructor->AttatchEstimator(new windage::Algorithms::EPnPRANSACestimator());
+
+	windage::Algorithms::OpenCVRANSACestimator* estimator = new windage::Algorithms::OpenCVRANSACestimator();
+	estimator->SetMaxIteration(2000);
+	reconstructor->AttatchEstimator(estimator);
 
 	logging->logNewLine();
 	logging->log("load image & feature extract - matching"); logging->logNewLine();
