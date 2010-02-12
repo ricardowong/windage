@@ -468,30 +468,6 @@
 					>
 				</File>
 			</Filter>
-			<Filter
-				Name="TemplateTracker"
-				>
-				<File
-					RelativePath="..\..\..\src\Algorithms\HomographyESM.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\..\include\Algorithms\HomographyESM.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\..\src\Algorithms\InverseCompositional.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\..\..\include\Algorithms\InverseCompositional.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\..\include\Algorithms\TemplateMinimization.h"
-					>
-				</File>
-			</Filter>
 		</Filter>
 		<Filter
 			Name="Frameworks"
