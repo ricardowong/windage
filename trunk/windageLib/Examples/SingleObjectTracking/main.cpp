@@ -69,6 +69,7 @@ void main()
 	windage::Algorithms::HomographyEstimator* estimator;
 	windage::Algorithms::OutlierChecker* checker;
 	windage::Algorithms::HomographyRefiner* refiner;
+	windage::Algorithms::KalmanFilter* filter;
 
 	calibration = new windage::Calibration();
 	detector = new windage::Algorithms::WSURFdetector();
@@ -77,6 +78,7 @@ void main()
 	estimator = new windage::Algorithms::ProSACestimator();
 	checker = new windage::Algorithms::OutlierChecker();
 	refiner = new windage::Algorithms::LMmethod();
+	filter = new windage::Algorithms::KalmanFilter();
 
 	calibration->Initialize(WIDTH*1.2, WIDTH*1.2, WIDTH/2.0, HEIGHT/2.0, 0, 0, 0, 0);
 	detector->SetThreshold(30.0);
@@ -93,6 +95,7 @@ void main()
 	tracking.AttatchEstimator(estimator);
 	tracking.AttatchChecker(checker);
 	tracking.AttatchRefiner(refiner);
+//	tracking.AttatchFilter(filter);
 
 	tracking.SetDitectionRatio(30);
 	tracking.Initialize(WIDTH, HEIGHT, (double)WIDTH, (double)HEIGHT);

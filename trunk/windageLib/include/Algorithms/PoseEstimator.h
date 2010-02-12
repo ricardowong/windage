@@ -172,6 +172,32 @@ namespace windage
 			 *		success or failure
 			 */
 			virtual bool Calculate() = 0;
+
+			/**
+			 * @fn	RANSACUpdateNumIters
+			 * @brief
+			 *		to calculate RANSAC iteration number
+			 * @return
+			 *		max iteration numbers
+			 */
+			int RANSACUpdateNumIters(double p, double ep, int model_points, int max_iters)
+			{
+				double num, denom;
+				p = MAX(p, 0.);
+				p = MIN(p, 1.);
+				ep = MAX(ep, 0.);
+				ep = MIN(ep, 1.);
+
+				// avoid inf's & nan's
+				num = MAX(1. - p, DBL_MIN);
+				denom = 1. - pow(1. - ep,model_points);
+				num = log(num);
+				denom = log(denom);
+			    
+				int result = denom >= 0 || -num >= max_iters*(-denom) ? max_iters : cvRound(num/denom);
+				return result;
+			}
+
 		};
 		/** @} */ // addtogroup AlgorithmsPoseEstimator
 		/** @} */ // addtogroup Algorithms

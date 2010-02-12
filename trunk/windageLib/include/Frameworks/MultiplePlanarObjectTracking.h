@@ -68,6 +68,7 @@
 #include "Algorithms/HomographyEstimator.h"
 #include "Algorithms/OutlierChecker.h"
 #include "Algorithms/HomographyRefiner.h"
+#include "Algorithms/KalmanFilter.h"
 
 /** pre-selected search tree algorithm whenever can change other search tree algorithm  */
 #define SearchTreeT windage::Algorithms::FLANNtree
@@ -103,6 +104,9 @@ namespace windage
 
 			std::vector<windage::Calibration*> cameraParameter;		///< the number of camera pose is dynamic that is the result camera pose of recodnized and tracked object
 			std::vector<SearchTreeT*> searchTree;					///< the number of matching algorithm is dynamic that is training of the reference image
+			std::vector<windage::Algorithms::KalmanFilter*> filters;///< the number of filtering algorithm is dynamic that is training of the reference image
+			bool useFilter;
+			int filterStep;
 
 			IplImage* prevImage;									///< gray image for feature tracking
 			std::vector<std::vector<windage::FeaturePoint>> refMatchedKeypoints;	///< matched point at reference image
@@ -136,6 +140,9 @@ namespace windage
 				checker = NULL;
 				refiner = NULL;
 
+				useFilter = true;
+				filterStep = 10;
+
 				initialize = false;
 				trained = false;
 
@@ -155,10 +162,16 @@ namespace windage
 				for(unsigned int i=0; i<this->searchTree.size(); i++)
 					if(searchTree[i]) delete searchTree[i];
 				this->searchTree.clear();
+
+				for(unsigned int i=0; i<this->filters.size(); i++)
+					if(filters[i]) delete filters[i];
+				this->filters.clear();
 			}
 
 			inline void SetSize(int width, int height){this->width = width; this->height = height;};
 			inline CvSize GetSize(){return cvSize(this->width, this->height);};
+			inline void SetFilter(bool use){this->useFilter = use;};
+			inline void SetFilterSetp(int step){this->filterStep = step;};
 			inline int GetObjectCount(){return this->objectCount;};
 
 			/**

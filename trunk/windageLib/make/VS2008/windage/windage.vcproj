@@ -65,6 +65,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				OutputFile="$(OutDir)\$(ProjectName)d.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -374,6 +375,14 @@
 						>
 					</File>
 					<File
+						RelativePath="..\..\..\src\Algorithms\OpenCVRANSACestimator.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\..\include\Algorithms\OpenCVRANSACestimator.h"
+						>
+					</File>
+					<File
 						RelativePath="..\..\..\include\Algorithms\PoseEstimator.h"
 						>
 					</File>
@@ -431,6 +440,18 @@
 					</File>
 					<File
 						RelativePath="..\..\..\include\Algorithms\OutlierChecker.h"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="Filter"
+					>
+					<File
+						RelativePath="..\..\..\src\Algorithms\KalmanFilter.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\..\include\Algorithms\KalmanFilter.h"
 						>
 					</File>
 				</Filter>

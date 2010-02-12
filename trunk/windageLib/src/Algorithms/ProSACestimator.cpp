@@ -41,24 +41,6 @@
 using namespace windage;
 using namespace windage::Algorithms;
 
-int PROSACUpdateNumIters(double p, double ep, int model_points, int max_iters)
-{
-	double num, denom;
-	p = MAX(p, 0.);
-    p = MIN(p, 1.);
-    ep = MAX(ep, 0.);
-    ep = MIN(ep, 1.);
-
-    // avoid inf's & nan's
-    num = MAX(1. - p, DBL_MIN);
-    denom = 1. - pow(1. - ep,model_points);
-	num = log(num);
-    denom = log(denom);
-    
-	int result = denom >= 0 || -num >= max_iters*(-denom) ? max_iters : cvRound(num/denom);
-	return result;
-}
-
 double ComputeReprojError(CvPoint2D64f refPoint, CvPoint2D64f scePoint, double* homography)
 {
 	double ww = 1./(homography[6] * refPoint.x + homography[7] * refPoint.y + homography[8]);
@@ -166,7 +148,7 @@ bool ProSACestimator::Calculate()
 			bestCount = inlinerCount;
 			for(int k=0; k<9; k++)
 				bestHomography[k] = h[k];
-			maxIter = PROSACUpdateNumIters(this->confidence, (double)(count - inlinerCount)/(double)count, 4, maxIteration);
+			maxIter = this->RANSACUpdateNumIters(this->confidence, (double)(count - inlinerCount)/(double)count, 4, maxIteration);
 		}
 	}
 

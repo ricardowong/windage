@@ -227,6 +227,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\KalmanFilterTest.h"
+				>
+			</File>
+			<File
 				RelativePath=".\KDtreeTest.h"
 				>
 			</File>
@@ -240,6 +244,10 @@
 			</File>
 			<File
 				RelativePath=".\MultiplePlanarObjectTrackingTest.h"
+				>
+			</File>
+			<File
+				RelativePath=".\OpenCVRANSACestimatorTest.h"
 				>
 			</File>
 			<File

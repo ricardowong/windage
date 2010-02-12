@@ -43,7 +43,7 @@
  * - windageLib : Visual Object Recognition & Tracking Library
  * @author	Woonhyuk Baek
  * @version 1.0
- * @date	2010.02.04
+ * @date	2010.02.12
  */
 
 // Structures
@@ -83,12 +83,15 @@
 #include "Algorithms/LMedSestimator.h"
 #include "Algorithms/EPnPestimator.h"
 #include "Algorithms/EPnPRANSACestimator.h"
+#include "Algorithms/OpenCVRANSACestimator.h"
 
 // refiner
 #include "Algorithms/HomographyRefiner.h"
 #include "Algorithms/LMmethod.h"
 
 #include "Algorithms/OutlierChecker.h"
+
+#include "Algorithms/KalmanFilter.h"
 
 // Utilities
 #include "Utilities/Utils.h"

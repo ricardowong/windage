@@ -92,8 +92,12 @@ bool MultiplePlanarObjectTracking::AttatchReferenceImage(IplImage* grayImage)
 	this->referenceRepository.resize(this->objectCount);
 	this->refMatchedKeypoints.resize(this->objectCount);
 	this->sceMatchedKeypoints.resize(this->objectCount);
+
 	this->searchTree.resize(this->objectCount);
 	this->searchTree[this->objectCount-1] = new SearchTreeT();
+
+	this->filters.resize(this->objectCount);
+	this->filters[this->objectCount-1] = new windage::Algorithms::KalmanFilter();
 
 	this->detectionRatio = this->objectCount;
 
@@ -246,12 +250,35 @@ bool MultiplePlanarObjectTracking::UpdateCamerapose(IplImage* grayImage)
 			}
 
 			// refinement
-			this->refiner->AttatchHomography(this->estimator->GetHomography());
-			this->refiner->AttatchReferencePoint(&(refMatchedKeypoints[i]));
-			this->refiner->AttatchScenePoint(&(sceMatchedKeypoints[i]));
-			this->refiner->Calculate();
+			if(this->refiner)
+			{
+				this->refiner->AttatchHomography(this->estimator->GetHomography());
+				this->refiner->AttatchReferencePoint(&(refMatchedKeypoints[i]));
+				this->refiner->AttatchScenePoint(&(sceMatchedKeypoints[i]));
+				this->refiner->Calculate();
+			}
 
 			this->estimator->DecomposeHomography((this->cameraParameter[i]));
+
+			// filtering
+			if(this->useFilter)
+			{
+				windage::Vector3 T;
+				T.x = this->cameraParameter[i]->GetCameraPosition().val[0];
+				T.y = this->cameraParameter[i]->GetCameraPosition().val[1];
+				T.z = this->cameraParameter[i]->GetCameraPosition().val[2];
+
+				for(int j=0; j<filterStep; j++)
+				{
+					filters[i]->Predict();
+					filters[i]->Correct(T);
+				}
+
+				windage::Vector3 prediction = filters[i]->Predict();
+				filters[i]->Correct(T);
+
+				this->cameraParameter[i]->SetCameraPosition(cvScalar(prediction.x, prediction.y, prediction.z));
+			}
 		}
 	}
 
