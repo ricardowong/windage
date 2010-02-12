@@ -43,17 +43,15 @@
 #include <cv.h>
 #include <highgui.h>
 
+#include <ESMlibry.h>
+
+#include "../Algorithms/wMatrix.h"
 #include "../Utils/Utils.h"
-#include "../Algorithms/homographyESM.h"
-#include "../Algorithms/InverseCompositional.h"
 
-#define USE_ESM 1
-#define USE_IC 0
+const int IMAGE_SEQ_COUNT = 200;
+const char* IMAGE_SEQ_FILE_NAME = "seq/im%03d.pgm";
 
-const int GAUSSIAN_BLUR = 3;
-
-const int WIDTH = 320;
-const int HEIGHT = 240;
+const int GAUSSIAN_BLUR = 5;
 
 const int TEMPLATE_WIDTH = 150;
 const int TEMPLATE_HEIGHT = 150;
@@ -91,85 +89,99 @@ void  main()
 	cvNamedWindow("result");
 
 	// initialize
-	int width = WIDTH;
-	int height = HEIGHT;
+	sprintf(message, IMAGE_SEQ_FILE_NAME, 0);
+	IplImage* saveImage = cvLoadImage(message, 0);
+	if(GAUSSIAN_BLUR > 0)
+		cvSmooth(saveImage, saveImage, CV_GAUSSIAN, GAUSSIAN_BLUR, GAUSSIAN_BLUR);
+
+	int width = saveImage->width;
+	int height = saveImage->height;
 	int startX = (width-TEMPLATE_WIDTH)/2;
 	int startY = (height-TEMPLATE_HEIGHT)/2;
+	double q = TEMPLATE_WIDTH * TEMPLATE_HEIGHT;
 	
 	IplImage* inputImage = NULL;
-	IplImage* grayImage = cvCreateImage(cvSize(width, height), IPL_DEPTH_8U, 1);
 	IplImage* resultImage = cvCreateImage(cvSize(width, height), IPL_DEPTH_8U, 3);
 	IplImage* templateImage = cvCreateImage(cvSize(TEMPLATE_WIDTH, TEMPLATE_HEIGHT), IPL_DEPTH_8U, 1);
 	IplImage* samplingImage = NULL;
 
-	// initial template & homography
+	// set template image
 	CvRect rect = cvRect(startX, startY, TEMPLATE_WIDTH, TEMPLATE_HEIGHT);
+	cvSetImageROI(saveImage, rect);
+	cvCopyImage(saveImage, templateImage);
+	cvShowImage("template", templateImage);
+	cvResetImageROI(saveImage);
+//	cvReleaseImage(&saveImage);
+
+	// initial homography
 	windage::Matrix3 homography(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
 	homography._13 = startX;
 	homography._23 = startY;
 	windage::Matrix3 e = homography;
 
-	// Template based Tracking using Inverse Compositional
-#if USE_IC
-	windage::InverseCompositional* tracker = new windage::InverseCompositional(TEMPLATE_WIDTH, TEMPLATE_HEIGHT);
-#endif
-#if USE_ESM
-	windage::HomographyESM* tracker = new windage::HomographyESM(TEMPLATE_WIDTH, TEMPLATE_HEIGHT);
-#endif
-	tracker->SetInitialHomography(e);
+	// Template based Tracking using Homography ESM
+	imageStruct I;
+	trackStruct T;
+	int miter = 5,  mprec = 2;   
 
-	// homography update stack
-	std::vector<windage::Matrix3> homographyList;
+	I.cols = saveImage->width;
+	I.rows = saveImage->height;
+	I.clrs = 1;
+	I.data = new float[I.cols * I.rows];
+	for(int y=0; y<saveImage->height; y++)
+	{
+		for(int x=0; x<saveImage->width; x++)
+		{
+			I.data[y*saveImage->width + x] = cvGetReal2D(saveImage, y, x);
+		}
+	}
+	MallTrack (&T, &I, startX, startY, TEMPLATE_WIDTH, TEMPLATE_HEIGHT, miter, mprec);
 
-	// camera
-	CvCapture* capture = cvCaptureFromCAM(CV_CAP_ANY);
-
-	bool isTrained = false;
+	double sumTime = 0.0;
+	int sumIter = 0;
 	bool processing =true;
+	int k = 0;
 	while(processing)
 	{
-		inputImage = cvRetrieveFrame(capture);
-		cvResize(inputImage, resultImage);
-		cvCvtColor(resultImage, grayImage, CV_BGR2GRAY);
-		
+		if(k >= IMAGE_SEQ_COUNT)
+			processing = false;
+
+		// load image
+		if(inputImage) cvReleaseImage(&inputImage);
+		sprintf(message, IMAGE_SEQ_FILE_NAME, k);
+		inputImage = cvLoadImage(message, 0);
 		if(GAUSSIAN_BLUR > 0)
-			cvSmooth(grayImage, grayImage, CV_GAUSSIAN, GAUSSIAN_BLUR, GAUSSIAN_BLUR);
+			cvSmooth(inputImage, inputImage, CV_GAUSSIAN, GAUSSIAN_BLUR, GAUSSIAN_BLUR);
+
+		cvCvtColor(inputImage, resultImage, CV_GRAY2BGR);
 
 		// processing
 		int64 startTime = cvGetTickCount();
-		
-		double error = 0.0;
-		double delta = 1.0;
-		int iter = 0;
-		homographyList.clear();
-		for(iter=0; iter<MAX_ITERATION; iter++)
+
+		for(int y=0; y<inputImage->height; y++)
 		{
-			error = tracker->UpdateHomography(grayImage, &delta);
-			homography = tracker->GetHomography();
-			homographyList.push_back(homography);
-
-			if(delta < HOMOGRAPHY_DELTA)
-				break;
+			for(int x=0; x<inputImage->width; x++)
+			{
+				I.data[y*saveImage->width + x] = cvGetReal2D(inputImage, y, x);
+			}
 		}
+		MakeTrack (&T, &I);
+		k++;
+		
+		for(int i=0; i<9; i++)
+			homography.m1[i] = T.homog[i];
+
 		int64 endTime = cvGetTickCount();
-		samplingImage = tracker->GetSamplingImage();
-
+		
 		// draw result
-		int count = homographyList.size();
-		for(int i=0; i<count; i++)
- 			DrawResult(resultImage, homographyList[i], CV_RGB(((count-i)/(double)count) * 255.0, (i/(double)count) * 255.0, 0), 1);
- 		
-		double processingTime = (endTime - startTime)/(cvGetTickFrequency() * 1000.0);
-		sprintf(message, "processing time : %.2lf ms (%02d iter), error : %.2lf", processingTime, iter, error);
-		std::cout << message << std::endl;
+		DrawResult(resultImage, homography, CV_RGB(255.0, 0, 0), 1);
 
-#if USE_IC
-		windage::Utils::DrawTextToImage(resultImage, cvPoint(5, 15), "Inverse Compositional", 0.6);
-#endif
-#if USE_ESM
-		windage::Utils::DrawTextToImage(resultImage, cvPoint(5, 15), "Efficient Second-order Minimization", 0.6);
-#endif
-		windage::Utils::DrawTextToImage(resultImage, cvPoint(5, 35), message, 0.6);
+		double processingTime = (endTime - startTime)/(cvGetTickFrequency() * 1000.0);
+		sprintf(message, "%03d >> processing time : %.2lf ms", k, processingTime);
+		std::cout << message << std::endl;
+		sumTime += processingTime;
+
+		windage::Utils::DrawTextToImage(resultImage, cvPoint(5, 15), message, 0.6);
 
 		// draw image
 		cvShowImage("sampling", samplingImage);
@@ -179,38 +191,32 @@ void  main()
 		switch(ch)
 		{
 		case ' ':
-			cvSetImageROI(grayImage, rect);
-			cvCopyImage(grayImage, templateImage);
-			cvShowImage("template", templateImage);
-			cvResetImageROI(grayImage);
-
-			tracker->AttatchTemplateImage(templateImage);
-			tracker->SetInitialHomography(e);
-			tracker->Initialize();
+			{
+				char tempch = cvWaitKey(0);
+				if(tempch == 's' || tempch == 'S')
+				{
+					cvSaveImage("ESMAlgorithm.jpg", resultImage);
+				}
+			}
 			break;
-		case 'r':
-		case 'R':
-			delete tracker;
-			tracker = NULL;
-#if USE_IC
-			tracker = new windage::InverseCompositional(TEMPLATE_WIDTH, TEMPLATE_HEIGHT);
-#endif
-#if USE_ESM
-			tracker = new windage::HomographyESM(TEMPLATE_WIDTH, TEMPLATE_HEIGHT);
-#endif
-			tracker->SetInitialHomography(e);
+		case 'i':
+		case 'I':
+			k++;
+			break;
+		case 'o':
+		case 'O':
+			k-=5;
 			break;
 		case 'q':
 		case 'Q':
 			processing = false;
 			break;
 		}
-
 	}
 
-	cvReleaseCapture(&capture);
+	std::cout << "average iteration : " << sumIter/(double)IMAGE_SEQ_COUNT << std::endl;
+	std::cout << "average processing ime : " << sumTime/(double)IMAGE_SEQ_COUNT << " ms" << std::endl;
 
-	cvReleaseImage(&grayImage);
 	cvReleaseImage(&resultImage);
 	cvDestroyAllWindows();
 }
