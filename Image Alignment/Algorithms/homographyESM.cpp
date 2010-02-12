@@ -170,7 +170,7 @@ double HomographyESM::UpdateHomography(IplImage* image, double* delta)
 			cvSetReal2D(samplingImage, y, x, value);
 
 			Vector2 tempdwI = Vector2();
-/*
+//*
 			double I1 = -1.0;
 			double I2 = -1.0;
 

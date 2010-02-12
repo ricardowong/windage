@@ -9,6 +9,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CompaireAlgorithms", "Compa
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TemplatebasedTracking", "TemplatebasedTracking\TemplatebasedTracking.vcproj", "{51F23356-7E14-4D3D-A1F1-1B90159E5C0A}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ESMkitExample", "ESMkitExample\ESMkitExample.vcproj", "{9B130A1E-6C54-409A-9BDA-90404D3150B9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -31,6 +33,10 @@ Global
 		{51F23356-7E14-4D3D-A1F1-1B90159E5C0A}.Debug|Win32.Build.0 = Debug|Win32
 		{51F23356-7E14-4D3D-A1F1-1B90159E5C0A}.Release|Win32.ActiveCfg = Release|Win32
 		{51F23356-7E14-4D3D-A1F1-1B90159E5C0A}.Release|Win32.Build.0 = Release|Win32
+		{9B130A1E-6C54-409A-9BDA-90404D3150B9}.Debug|Win32.ActiveCfg = Debug|Win32
+		{9B130A1E-6C54-409A-9BDA-90404D3150B9}.Debug|Win32.Build.0 = Debug|Win32
+		{9B130A1E-6C54-409A-9BDA-90404D3150B9}.Release|Win32.ActiveCfg = Release|Win32
+		{9B130A1E-6C54-409A-9BDA-90404D3150B9}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
