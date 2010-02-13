@@ -75,7 +75,8 @@ namespace windage
 	public:
 		HomographyESM(int width=150, int height=150) : TemplateMinimization(width, height)
 		{
-			this->HOMOGRAPHY_DELTA = 5.0;
+			this->PARAMETER_AMPLIFICATION = 1.0;
+			this->HOMOGRAPHY_DELTA = 1.0e-3;
 
 			this->q = (this->width/this->SAMPLING_STEP) * (this->height/this->SAMPLING_STEP) - (int)(2*this->DELTA) + 2;
 			this->p = HOMOGRAPHY_COUNT - 1;

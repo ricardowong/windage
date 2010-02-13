@@ -40,6 +40,8 @@
 #include "homographyESM.h"
 using namespace windage;
 
+#include <omp.h>
+
 bool HomographyESM::AttatchTemplateImage(IplImage* image)
 {
 	if(this->templateImage == NULL)
@@ -101,6 +103,7 @@ bool HomographyESM::Initialize()
 			// dw(x) / dx (2xp jacobian matrix)
 			point1.x = x;
 			point1.y = y;
+			point1.z = 1.0;
 
 			// TODO! replace homography derivation
 			for(int i=0; i<this->p; i++)
@@ -113,7 +116,9 @@ bool HomographyESM::Initialize()
 
 				out1 = tempHomography1 * point1;
 				out2 = tempHomography2 * point1;
-				out1 = (out2 - out1)/(2*DELTA);
+				out1 /= out1.z;
+				out2 /= out2.z;
+				out1 = (out2 - out1)/(2*HOMOGRAPHY_DELTA);
 
 				windage::Vector2 temp(out1.x, out1.y);
 				dwx[index][i] = temp;
@@ -126,8 +131,6 @@ bool HomographyESM::Initialize()
 	isInitialize = true;
 	return true;
 }
-
-#include <iostream>
 
 double HomographyESM::UpdateHomography(IplImage* image, double* delta)
 {
@@ -170,13 +173,20 @@ double HomographyESM::UpdateHomography(IplImage* image, double* delta)
 			cvSetReal2D(samplingImage, y, x, value);
 
 			Vector2 tempdwI = Vector2();
+
+			double I1 = -1;
+			double I2 = -1;
 //*
-			double I1 = -1.0;
-			double I2 = -1.0;
+			if( 0 < ix+DELTA && ix+DELTA < image->width && 0 < iy && iy < image->height)
+				I1 = cvGetReal2D(image, iy, ix+DELTA);
+			if( 0 < ix && ix < image->width && 0 < iy+DELTA && iy+DELTA < image->height)
+				I2 = cvGetReal2D(image, iy+DELTA, ix);
 
-			// TODO! : replace to sobel image
+			tempdwI.x = (I1 - value)/DELTA;
+			tempdwI.y = (I2 - value)/DELTA;
+//*/
+/*
 			// dI(w(p)) / dp (1x2 gradient of image)
-
 			point1.x = x - DELTA;
 			point1.y = y;
 			point2.x = x + DELTA;

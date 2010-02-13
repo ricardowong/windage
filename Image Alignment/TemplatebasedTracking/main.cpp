@@ -55,8 +55,8 @@ const int GAUSSIAN_BLUR = 3;
 const int WIDTH = 320;
 const int HEIGHT = 240;
 
-const int TEMPLATE_WIDTH = 150;
-const int TEMPLATE_HEIGHT = 150;
+const int TEMPLATE_WIDTH = 100;
+const int TEMPLATE_HEIGHT = 100;
 const double HOMOGRAPHY_DELTA = 0.01;
 const int MAX_ITERATION = 50;
 
@@ -148,8 +148,8 @@ void  main()
 			homography = tracker->GetHomography();
 			homographyList.push_back(homography);
 
-			if(delta < HOMOGRAPHY_DELTA)
-				break;
+//			if(delta < HOMOGRAPHY_DELTA)
+//				break;
 		}
 		int64 endTime = cvGetTickCount();
 		samplingImage = tracker->GetSamplingImage();

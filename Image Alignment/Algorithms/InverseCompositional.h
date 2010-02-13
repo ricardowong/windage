@@ -68,6 +68,8 @@ namespace windage
 	public:
 		InverseCompositional(int width=150, int height=150) : TemplateMinimization(width, height)
 		{
+			this->PARAMETER_AMPLIFICATION = 3.0;
+
 			// Create matrices.
 			pStDesc = cvCreateImage(cvSize(width, height), IPL_DEPTH_32F, 4);
 			
