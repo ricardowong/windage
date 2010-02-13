@@ -71,16 +71,52 @@ windage::Logger* logging;
 double threshold = 30.0;
 double angle = 0.0;
 double angleStep = 1.0;
+int featureId = -1;
 
 void keyboard(unsigned char ch, int x, int y)
 {
+	char temp = (char)ch;
 	switch(ch)
 	{
+	case '-':
+		featureId = -1;
+		break;
+	case '0':
+	case '1':
+	case '2':
+	case '3':
+	case '4':
+	case '5':
+	case '6':
+	case '7':
+	case '8':
+	case '9':
+		featureId = atoi(&temp);
+		break;
+	case 'r':
+	case 'R':
+		CalculationStep = 2;
+		reconstructor->CalculateStep(CalculationStep);
+		CalculationStep++;
+		{
+			// calcuate center Point
+			int count = 0;
+			centerPoint = windage::Vector4(0.0, 0.0, 0.0, 0.0);
+			std::vector<windage::ReconstructionPoint>* point3D = reconstructor->GetReconstructedPoint();
+			for(unsigned int j=0; j<point3D->size(); j++)
+			{
+				centerPoint += (*point3D)[j].GetPoint();
+				count++;
+			}
+			centerPoint /= (double)count;
+			VIRTUAL_CAMERA_DISTANCE = centerPoint.getLength();
+			logging->log("reconstruction point count : ");logging->log(count); logging->logNewLine();
+		}
+		break;
 	case 'a':
 	case 'A':
 		reconstructor->CalculateStep(CalculationStep);
 		CalculationStep++;
-
 		{
 			// calcuate center Point
 			int count = 0;
@@ -137,9 +173,18 @@ void display()
 				int size = (int)(*point3D)[j].GetFeatureList()->size();
 				glPointSize(size * 2);
 
+				bool found = false;
+				for(int k=0; k<size; k++)
+					if((*point3D)[j].GetFeature(k).GetObjectID() == featureId)
+						found = true;
+
 				glBegin(GL_POINTS);
 				{
-					CvScalar color = (*point3D)[j].GetColor();
+					CvScalar color;
+					if(found)
+						color = cvScalar(0, 0, 255);
+					else
+						color = (*point3D)[j].GetColor();
 					windage::Vector4 point = (*point3D)[j].GetPoint();
 					glColor3f(color.val[2]/255.0, color.val[1]/255.0, color.val[0]/255.0);
 					glVertex3f(point.x, point.y, point.z);
