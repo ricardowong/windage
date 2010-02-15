@@ -148,7 +148,9 @@ bool ProSACestimator::Calculate()
 			bestCount = inlinerCount;
 			for(int k=0; k<9; k++)
 				bestHomography[k] = h[k];
-			maxIter = this->RANSACUpdateNumIters(this->confidence, (double)(count - inlinerCount)/(double)count, 4, maxIteration);
+
+			if(this->confidence > 0)
+				maxIter = this->RANSACUpdateNumIters(this->confidence, (double)(count - inlinerCount)/(double)count, 4, maxIteration);
 		}
 	}
 

@@ -51,11 +51,13 @@ const int WIDTH = 640;
 const int HEIGHT = (WIDTH * 3) / 4;
 const int RENDERING_WIDTH = 640;
 const int RENDERING_HEIGHT = (RENDERING_WIDTH * 3) / 4;
-const double INTRINSIC_VALUES[8] = {WIDTH*0.8, WIDTH*0.8, WIDTH/2, HEIGHT/2, 0, 0, 0, 0};
+//const double INTRINSIC_VALUES[8] = {WIDTH*0.8, WIDTH*0.8, WIDTH/2, HEIGHT/2, 0, 0, 0, 0};
+const double INTRINSIC_VALUES[8] = {1520.4, 1525.9, 302.32, 246.87, 0, 0, 0, 0};
 
-const int IMAGE_FILE_COUNT = 10;
-const char* IMAGE_FILE_NAME = "Reconstruction/test%03d.jpg";
-//const char* IMAGE_FILE_NAME = "Test/testImage%d.png";
+const int START_INDEX = 1;
+const int IMAGE_FILE_COUNT = 16;
+//const char* IMAGE_FILE_NAME = "Reconstruction/test%03d.jpg";
+const char* IMAGE_FILE_NAME = "templeSparseRing/templeSR%04d.png";
 double VIRTUAL_CAMERA_DISTANCE = 0.5;
 const double SCALE_FACTOR = 1.0;
 windage::Vector4 centerPoint;
@@ -132,6 +134,7 @@ void keyboard(unsigned char ch, int x, int y)
 			logging->log("reconstruction point count : ");logging->log(count); logging->logNewLine();
 		}
 		break;
+	case 27:
 	case 'q':
 	case 'Q':
 		cvDestroyAllWindows();
@@ -226,30 +229,35 @@ void main()
 	initialCalibration->Initialize(INTRINSIC_VALUES[0], INTRINSIC_VALUES[1], INTRINSIC_VALUES[2], INTRINSIC_VALUES[3]);
 
 	reconstructor = new windage::Reconstruction::IncrementalReconstruction();
-	reconstructor->SetConfidence(0.995);
+	reconstructor->SetConfidence(-1.0);
 	reconstructor->SetMaxIteration(2000);
 	reconstructor->SetReprojectionError(2.0);
 
 	reconstructor->AttatchCalibration(initialCalibration);
 	reconstructor->AttatchSearchTree(new windage::Algorithms::FLANNtree());
 
-	windage::Algorithms::OpenCVRANSACestimator* estimator = new windage::Algorithms::OpenCVRANSACestimator();
+	windage::Algorithms::EPnPRANSACestimator* estimator = new windage::Algorithms::EPnPRANSACestimator();
+//	windage::Algorithms::OpenCVRANSACestimator* estimator = new windage::Algorithms::OpenCVRANSACestimator();
+	estimator->SetConfidence(0.995);
 	estimator->SetMaxIteration(2000);
+	estimator->SetReprojectionError(2.0);
 	reconstructor->AttatchEstimator(estimator);
 
 	logging->logNewLine();
 	logging->log("load image & feature extract - matching"); logging->logNewLine();
 	
 	char filename[100];
-	for(int i=0; i<IMAGE_FILE_COUNT; i++)
+	int index = 0;
+	for(int i=START_INDEX; i<IMAGE_FILE_COUNT+START_INDEX; i++)
 	{
 		sprintf_s(filename, IMAGE_FILE_NAME, i);
-		inputImage[i] = cvLoadImage(filename);
-		grayImage[i] = cvCreateImage(cvGetSize(inputImage[i]), IPL_DEPTH_8U, 1);
+		inputImage[index] = cvLoadImage(filename);
+		grayImage[index] = cvCreateImage(cvGetSize(inputImage[index]), IPL_DEPTH_8U, 1);
 
-		cvCvtColor(inputImage[i], grayImage[i], CV_BGR2GRAY);
+		cvCvtColor(inputImage[index], grayImage[index], CV_BGR2GRAY);
 
-		logging->log("\tload image "); logging->log(i); logging->log(" : "); logging->log(filename); logging->logNewLine();
+		logging->log("\tload image "); logging->log(index); logging->log(" : "); logging->log(filename); logging->logNewLine();
+		index++;
 	}
 	
 	logging->logNewLine();

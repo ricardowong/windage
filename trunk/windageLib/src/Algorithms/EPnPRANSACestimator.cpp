@@ -150,7 +150,9 @@ bool EPnPRANSACestimator::Calculate()
 			{
 				pre_inlier_checker[i] = inliers_checker[i];
 			}
-			max_iters = this->RANSACUpdateNumIters(this->confidence, (double)(n - num_inliers)/(double)n, SAMPLE_SIZE, max_iters);
+
+			if(this->confidence > 0)
+				max_iters = this->RANSACUpdateNumIters(this->confidence, (double)(n - num_inliers)/(double)n, SAMPLE_SIZE, max_iters);
 		}
 		
 		iter++;

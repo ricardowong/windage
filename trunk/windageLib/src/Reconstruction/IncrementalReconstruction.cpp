@@ -221,12 +221,44 @@ bool IncrementalReconstruction::StereoReconstruction(int index1, int index2)
 
 bool IncrementalReconstruction::IncrementReconstruction()
 {
+	const int MINIMUM_MATCHING_COUNT = 9;
 	if(this->caculatedCount < 2)
 		return false;
 
-	// find max matching scene
-	// temporary index;
-	int index = this->caculatedCount - 1;
+	// find best matching scene
+	int index = 0;
+	int maxCount = 0;
+	for(int k=0; k<this->caculatedCount; k++)
+	{
+		std::vector<windage::FeaturePoint> reconstructedFeature;
+		for(unsigned int i=0; i<this->reconstructionPoints.size(); i++)
+		{
+			windage::Vector4 point3D = this->reconstructionPoints[i].GetPoint();
+			std::vector<windage::FeaturePoint>* features = this->reconstructionPoints[i].GetFeatureList();
+			for(unsigned int j=0; j<features->size(); j++)
+			{
+				if((*features)[j].GetObjectID() == k)
+				{
+					reconstructedFeature.push_back((*features)[j]);
+					int idx = reconstructedFeature.size() - 1;
+					reconstructedFeature[idx].SetRepositoryID(i);
+					reconstructedFeature[idx].SetPoint(windage::Vector3(point3D.x, point3D.y, point3D.z));
+				}
+			}		
+		}
+
+		if((int)reconstructedFeature.size() > MINIMUM_MATCHING_COUNT)
+		{
+			int matchedCount = this->MatchingCount(&reconstructedFeature, &this->featurePointsList[this->caculatedCount]);
+			if(maxCount < matchedCount)
+			{
+				maxCount = matchedCount;
+				index = k;
+			}
+		}
+	}
+	std::cout << std::endl;
+	std::cout << "best matching image index : " << index  << "(" << maxCount << ")" << std::endl;
 
 	// matching
 	std::vector<windage::FeaturePoint> feature1;
@@ -244,7 +276,6 @@ bool IncrementalReconstruction::IncrementReconstruction()
 				feature1[idx].SetPoint(windage::Vector3(point3D.x, point3D.y, point3D.z));
 			}
 		}		
-		
 	}
 	std::vector<windage::FeaturePoint>* feature2 = &this->featurePointsList[this->caculatedCount];
 
@@ -253,8 +284,11 @@ bool IncrementalReconstruction::IncrementReconstruction()
 
 	this->Matching(&feature1, feature2, &matchedPoint1, &matchedPoint2);
 
-	if(matchedPoint1.size() < 10)
+	if((int)matchedPoint1.size() < MINIMUM_MATCHING_COUNT)
+	{
+		this->caculatedCount++;
 		return false;
+	}
 
 	// pose estimation
 	this->estimator->AttatchCameraParameter(this->cameraParameters[this->caculatedCount]);
@@ -373,7 +407,6 @@ bool IncrementalReconstruction::IncrementReconstruction()
 	cvReleaseMat(&leftP);
 	cvReleaseMat(&rightP);
 	cvReleaseMat(&nrP3D);
-
 
 	this->caculatedCount++;
 	return true;

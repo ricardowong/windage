@@ -586,7 +586,8 @@ bool StereoReconstruction::ComputeEssentialMatrixRANSAC(double* error)
 						if(error)
 							*error = err;
 
-						max_iter = ERANSACUpdateNumIters(this->confidence, (double)(n - num_inlier)/(double)n, SAMPLE_SIZE, max_iter);
+						if(this->confidence > 0)
+							max_iter = ERANSACUpdateNumIters(this->confidence, (double)(n - num_inlier)/(double)n, SAMPLE_SIZE, max_iter);
 					}
 				}
 
