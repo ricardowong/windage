@@ -52,13 +52,14 @@ const int HEIGHT = (WIDTH * 3) / 4;
 const int RENDERING_WIDTH = 640;
 const int RENDERING_HEIGHT = (RENDERING_WIDTH * 3) / 4;
 //const double INTRINSIC_VALUES[8] = {WIDTH*0.8, WIDTH*0.8, WIDTH/2, HEIGHT/2, 0, 0, 0, 0};
-const double INTRINSIC_VALUES[8] = {1520.4, 1525.9, 302.32, 246.87, 0, 0, 0, 0};
+const double INTRINSIC_VALUES[8] = {1520.40, 1525.90, 302.32, 246.87, 0, 0, 0, 0};
 
 const int START_INDEX = 1;
-const int IMAGE_FILE_COUNT = 16;
+const int IMAGE_FILE_COUNT = 45;
 //const char* IMAGE_FILE_NAME = "Reconstruction/test%03d.jpg";
-const char* IMAGE_FILE_NAME = "templeSparseRing/templeSR%04d.png";
+const char* IMAGE_FILE_NAME = "templeOrder/templeR%04d.png";
 double VIRTUAL_CAMERA_DISTANCE = 0.5;
+double VIRTUAL_CAMERA_DISTANCE_STEP = 0.1;
 const double SCALE_FACTOR = 1.0;
 windage::Vector4 centerPoint;
 
@@ -70,10 +71,27 @@ windage::Reconstruction::IncrementalReconstruction* reconstructor;
 
 int CalculationStep = 2;
 windage::Logger* logging;
+double renderingPixelScale = 1.0;
 double threshold = 30.0;
 double angle = 0.0;
 double angleStep = 1.0;
 int featureId = -1;
+
+void mouse(int button, int state, int x, int y)
+{
+	if(state == GLUT_DOWN)
+	{
+		switch(button)
+		{
+		case GLUT_LEFT_BUTTON:
+			VIRTUAL_CAMERA_DISTANCE += VIRTUAL_CAMERA_DISTANCE_STEP;
+			break;
+		case GLUT_RIGHT_BUTTON:
+			VIRTUAL_CAMERA_DISTANCE -= VIRTUAL_CAMERA_DISTANCE_STEP;
+			break;
+		}
+	}
+}
 
 void keyboard(unsigned char ch, int x, int y)
 {
@@ -117,8 +135,26 @@ void keyboard(unsigned char ch, int x, int y)
 		break;
 	case 'a':
 	case 'A':
-		reconstructor->CalculateStep(CalculationStep);
-		CalculationStep++;
+		if(reconstructor->CalculateStep(CalculationStep))
+			CalculationStep++;
+		{
+			// calcuate center Point
+			int count = 0;
+			centerPoint = windage::Vector4(0.0, 0.0, 0.0, 0.0);
+			std::vector<windage::ReconstructionPoint>* point3D = reconstructor->GetReconstructedPoint();
+			for(unsigned int j=0; j<point3D->size(); j++)
+			{
+				centerPoint += (*point3D)[j].GetPoint();
+				count++;
+			}
+			centerPoint /= (double)count;
+			VIRTUAL_CAMERA_DISTANCE = centerPoint.getLength();
+			logging->log("reconstruction point count : ");logging->log(count); logging->logNewLine();
+		}
+		break;
+	case 's':
+	case 'S':
+		reconstructor->CalculateStep(CalculationStep-1);
 		{
 			// calcuate center Point
 			int count = 0;
@@ -174,7 +210,7 @@ void display()
 			if((*point3D)[j].IsOutlier() == false)
 			{
 				int size = (int)(*point3D)[j].GetFeatureList()->size();
-				glPointSize(size * 2);
+				glPointSize(renderingPixelScale);
 
 				bool found = false;
 				for(int k=0; k<size; k++)
@@ -196,9 +232,10 @@ void display()
 			}
 		}
 
-		for(int i=0; i<IMAGE_FILE_COUNT; i++)
+		for(int i=0; i<CalculationStep-1; i++)
 		{
-			renderer->DrawCamera(reconstructor->GetCameraParameter(i), inputImage[i], 0.0005);
+//			renderer->DrawCamera(reconstructor->GetCameraParameter(i), inputImage[i], 0.0005);
+			renderer->DrawCamera(reconstructor->GetCameraParameter(i), NULL, 0.0005);
 //			renderer->DrawCameraAxis(reconstructor->GetCameraParameter(i));
 		}
 
@@ -229,12 +266,15 @@ void main()
 	initialCalibration->Initialize(INTRINSIC_VALUES[0], INTRINSIC_VALUES[1], INTRINSIC_VALUES[2], INTRINSIC_VALUES[3]);
 
 	reconstructor = new windage::Reconstruction::IncrementalReconstruction();
-	reconstructor->SetConfidence(-1.0);
+	reconstructor->SetConfidence(0.9995);
 	reconstructor->SetMaxIteration(2000);
 	reconstructor->SetReprojectionError(2.0);
 
 	reconstructor->AttatchCalibration(initialCalibration);
-	reconstructor->AttatchSearchTree(new windage::Algorithms::FLANNtree());
+
+	windage::Algorithms::SearchTree* tree = new windage::Algorithms::FLANNtree(50);
+	tree->SetRatio(0.6);
+	reconstructor->AttatchSearchTree(tree);
 
 	windage::Algorithms::EPnPRANSACestimator* estimator = new windage::Algorithms::EPnPRANSACestimator();
 //	windage::Algorithms::OpenCVRANSACestimator* estimator = new windage::Algorithms::OpenCVRANSACestimator();
@@ -267,6 +307,7 @@ void main()
 	for(int i=0; i<IMAGE_FILE_COUNT; i++)
 	{
 		windage::Algorithms::FeatureDetector* detector = new windage::Algorithms::SIFTdetector();
+//		detector->SetThreshold(500.0);
 		detector->DoExtractKeypointsDescriptor(grayImage[i]);
 		std::vector<windage::FeaturePoint>* temp = detector->GetKeypoints();
 
@@ -288,9 +329,10 @@ void main()
 	{
 		reconstructor->AttatchFeaturePoint(&featurePoint[i]);
 	}
-//	reconstructor->CalculateAll();
-	reconstructor->CalculateStep(CalculationStep);
-	CalculationStep++;
+	reconstructor->CalculateAll();
+	CalculationStep = IMAGE_FILE_COUNT;
+//	reconstructor->CalculateStep(CalculationStep);
+//	CalculationStep++;
 
 
 	// calcuate center Point
@@ -316,6 +358,7 @@ void main()
 	glutDisplayFunc(display);
 	glutIdleFunc(idle);
 	glutKeyboardFunc(keyboard);
+	glutMouseFunc(mouse);
 
 	glutMainLoop();
 

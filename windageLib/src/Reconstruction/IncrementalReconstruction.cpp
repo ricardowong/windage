@@ -226,11 +226,13 @@ bool IncrementalReconstruction::IncrementReconstruction()
 		return false;
 
 	// find best matching scene
-	int index = 0;
+	int index = this->caculatedCount - 1;
+/*
 	int maxCount = 0;
 	for(int k=0; k<this->caculatedCount; k++)
 	{
 		std::vector<windage::FeaturePoint> reconstructedFeature;
+		reconstructedFeature.clear();
 		for(unsigned int i=0; i<this->reconstructionPoints.size(); i++)
 		{
 			windage::Vector4 point3D = this->reconstructionPoints[i].GetPoint();
@@ -259,6 +261,7 @@ bool IncrementalReconstruction::IncrementReconstruction()
 	}
 	std::cout << std::endl;
 	std::cout << "best matching image index : " << index  << "(" << maxCount << ")" << std::endl;
+//*/
 
 	// matching
 	std::vector<windage::FeaturePoint> feature1;
@@ -278,6 +281,12 @@ bool IncrementalReconstruction::IncrementReconstruction()
 		}		
 	}
 	std::vector<windage::FeaturePoint>* feature2 = &this->featurePointsList[this->caculatedCount];
+
+	if((int)feature1.size() < MINIMUM_MATCHING_COUNT)
+	{
+		this->caculatedCount++;
+		return false;
+	}
 
 	std::vector<windage::FeaturePoint> matchedPoint1;
 	std::vector<windage::FeaturePoint> matchedPoint2;
@@ -593,6 +602,7 @@ bool IncrementalReconstruction::CalculateStep(int step)
 	}
 	else
 	{
+		this->caculatedCount = step-1;
 		this->IncrementReconstruction();
 		this->BundleAdjustment(this->caculatedCount);
 	}
@@ -613,8 +623,11 @@ bool IncrementalReconstruction::CalculateAll()
 	for(int i=3; i<this->attatchedCount; i++)
 	{
 		this->IncrementReconstruction();
-		this->BundleAdjustment(i);
+
+		if(i % 5 == 0)
+			this->BundleAdjustment(i);
 	}
+	this->BundleAdjustment(this->attatchedCount-1);
 
 	return true;
 }
