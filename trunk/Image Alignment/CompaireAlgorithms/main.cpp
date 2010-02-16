@@ -54,7 +54,7 @@ const int GAUSSIAN_BLUR = 5;
 
 const int TEMPLATE_WIDTH = 150;
 const int TEMPLATE_HEIGHT = 150;
-const double HOMOGRAPHY_DELTA = 0.01;
+const float HOMOGRAPHY_DELTA = 0.01;
 const int MAX_ITERATION = 50;
 
 void DrawResult(IplImage* image, windage::Matrix3 homography, CvScalar color = CV_RGB(255, 0, 0), int thickness = 1, int size = TEMPLATE_WIDTH)
@@ -74,10 +74,10 @@ void DrawResult(IplImage* image, windage::Matrix3 homography, CvScalar color = C
 	outPoint3 /= outPoint3.z;
 	outPoint4 /= outPoint4.z;
 
-	cvLine(image, cvPoint(outPoint1.x, outPoint1.y), cvPoint(outPoint2.x, outPoint2.y), color, thickness);
-	cvLine(image, cvPoint(outPoint2.x, outPoint2.y), cvPoint(outPoint3.x, outPoint3.y), color, thickness);		
-	cvLine(image, cvPoint(outPoint3.x, outPoint3.y), cvPoint(outPoint4.x, outPoint4.y), color, thickness);
-	cvLine(image, cvPoint(outPoint4.x, outPoint4.y), cvPoint(outPoint1.x, outPoint1.y), color, thickness);
+	cvLine(image, cvPoint((int)outPoint1.x, (int)outPoint1.y), cvPoint((int)outPoint2.x, (int)outPoint2.y), color, thickness);
+	cvLine(image, cvPoint((int)outPoint2.x, (int)outPoint2.y), cvPoint((int)outPoint3.x, (int)outPoint3.y), color, thickness);		
+	cvLine(image, cvPoint((int)outPoint3.x, (int)outPoint3.y), cvPoint((int)outPoint4.x, (int)outPoint4.y), color, thickness);
+	cvLine(image, cvPoint((int)outPoint4.x, (int)outPoint4.y), cvPoint((int)outPoint1.x, (int)outPoint1.y), color, thickness);
 }
 
 void  main()
@@ -89,7 +89,7 @@ void  main()
 	cvNamedWindow("result");
 
 	// initialize
-	sprintf(message, IMAGE_SEQ_FILE_NAME, 0);
+	sprintf_s(message, IMAGE_SEQ_FILE_NAME, 0);
 	IplImage* saveImage = cvLoadImage(message, 0);
 	if(GAUSSIAN_BLUR > 0)
 		cvSmooth(saveImage, saveImage, CV_GAUSSIAN, GAUSSIAN_BLUR, GAUSSIAN_BLUR);
@@ -98,7 +98,7 @@ void  main()
 	int height = saveImage->height;
 	int startX = (width-TEMPLATE_WIDTH)/2;
 	int startY = (height-TEMPLATE_HEIGHT)/2;
-	double q = TEMPLATE_WIDTH * TEMPLATE_HEIGHT;
+	float q = TEMPLATE_WIDTH * TEMPLATE_HEIGHT;
 	
 	IplImage* inputImage = NULL;
 	IplImage* resultImage = cvCreateImage(cvSize(width, height), IPL_DEPTH_8U, 3);
@@ -136,8 +136,8 @@ void  main()
 
 	int sumIterESM = 0;
 	int sumIterIC = 0;
-	double sumErrorESM = 0.0;
-	double sumErrorIC = 0.0;
+	float sumErrorESM = 0.0;
+	float sumErrorIC = 0.0;
 
 	bool processing =true;
 	int k = 0;
@@ -148,7 +148,7 @@ void  main()
 
 		// load image
 		if(inputImage) cvReleaseImage(&inputImage);
-		sprintf(message, IMAGE_SEQ_FILE_NAME, k);
+		sprintf_s(message, IMAGE_SEQ_FILE_NAME, k);
 		inputImage = cvLoadImage(message, 0);
 		if(GAUSSIAN_BLUR > 0)
 			cvSmooth(inputImage, inputImage, CV_GAUSSIAN, GAUSSIAN_BLUR, GAUSSIAN_BLUR);
@@ -160,11 +160,11 @@ void  main()
 
 		// processing
 		int64 startTimeESM = cvGetTickCount();
-		double errorESM = 0.0;
+		float errorESM = 0.0;
 		int iterESM = 0;
 		for(iterESM=0; iterESM<MAX_ITERATION; iterESM++)
 		{
-			double delta = 1.0;
+			float delta = 1.0;
 			errorESM = esm->UpdateHomography(inputImage, &delta);
 			homographyESM = esm->GetHomography();
 			esmHomographyList.push_back(homographyESM);
@@ -178,11 +178,11 @@ void  main()
 		int64 endTimeESM = cvGetTickCount();
 
 		int64 startTimeIC = cvGetTickCount();
-		double errorIC = 0.0;
+		float errorIC = 0.0;
 		int iterIC = 0;
 		for(iterIC=0; iterIC<MAX_ITERATION; iterIC++)
 		{
-			double delta = 1.0;
+			float delta = 1.0;
 			errorIC = ic->UpdateHomography(inputImage, &delta);
 			homographyIC = ic->GetHomography();
 			icHomographyList.push_back(homographyIC);
@@ -199,22 +199,22 @@ void  main()
 		int count;
 		count = esmHomographyList.size();
 		for(int i=0; i<count; i++)
-			DrawResult(resultImage, esmHomographyList[i], CV_RGB((i/(double)count) * 255.0, ((count-i)/(double)count) * 255.0, ((count-i)/(double)count) * 255.0), 1, TEMPLATE_WIDTH*(2.0/3.0));
+			DrawResult(resultImage, esmHomographyList[i], CV_RGB((i/(float)count) * 255.0, ((count-i)/(float)count) * 255.0, ((count-i)/(float)count) * 255.0), 1, TEMPLATE_WIDTH*(2.0/3.0));
 		count = icHomographyList.size();
 		for(int i=0; i<count; i++)
-			DrawResult(resultImage, icHomographyList[i], CV_RGB(((count-i)/(double)count) * 255.0, ((count-i)/(double)count) * 255.0, (i/(double)count) * 255.0), 1, TEMPLATE_WIDTH*(4.0/3.0));
+			DrawResult(resultImage, icHomographyList[i], CV_RGB(((count-i)/(float)count) * 255.0, ((count-i)/(float)count) * 255.0, (i/(float)count) * 255.0), 1, TEMPLATE_WIDTH*(4.0/3.0));
 
 		char message[500];
-		double processingTimeESM = (endTimeESM - startTimeESM)/(cvGetTickFrequency() * 1000.0);
-		double processingTimeIC = (endTimeIC - startTimeIC)/(cvGetTickFrequency() * 1000.0);
-		sprintf(message, "ESM (error : %.2lf, %d iter, %.2lf ms), IC (error : %.2lf, %d iter, %.2lf ms)",
+		float processingTimeESM = (endTimeESM - startTimeESM)/(cvGetTickFrequency() * 1000.0);
+		float processingTimeIC = (endTimeIC - startTimeIC)/(cvGetTickFrequency() * 1000.0);
+		sprintf_s(message, "ESM (error : %.2lf, %d iter, %.2lf ms), IC (error : %.2lf, %d iter, %.2lf ms)",
 			errorESM, iterESM, processingTimeESM, errorIC, iterIC, processingTimeIC);
 		std::cout << message << std::endl;
 
 		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 60), message, 0.5);
-		sprintf(message, "press 'I' key to get next image");
+		sprintf_s(message, "press 'I' key to get next image");
 		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 20), message, 0.5);
-		sprintf(message, "red line is ESM algorithm & blue line is Inverse Compositional algorithm");
+		sprintf_s(message, "red line is ESM algorithm & blue line is Inverse Compositional algorithm");
 		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 40), message, 0.5 );
  		
 		// draw image
@@ -240,8 +240,8 @@ void  main()
 		k++;
 	}
 
-	std::cout << "ESM iter : " << sumIterESM/(double)IMAGE_SEQ_COUNT << " error : " << sumErrorESM/(double)IMAGE_SEQ_COUNT << std::endl;
-	std::cout << "IC iter : " << sumIterIC/(double)IMAGE_SEQ_COUNT << " error : " << sumErrorIC/(double)IMAGE_SEQ_COUNT << std::endl;
+	std::cout << "ESM iter : " << sumIterESM/(float)IMAGE_SEQ_COUNT << " error : " << sumErrorESM/(float)IMAGE_SEQ_COUNT << std::endl;
+	std::cout << "IC iter : " << sumIterIC/(float)IMAGE_SEQ_COUNT << " error : " << sumErrorIC/(float)IMAGE_SEQ_COUNT << std::endl;
 
 	cvReleaseImage(&resultImage);
 	cvDestroyAllWindows();

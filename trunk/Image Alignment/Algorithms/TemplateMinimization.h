@@ -51,7 +51,7 @@ namespace windage
 	{
 	protected:
 		static const int DELTA = 1;
-		double PARAMETER_AMPLIFICATION;
+		float PARAMETER_AMPLIFICATION;
 		int SAMPLING_STEP;
 		Matrix3 homography;
 
@@ -66,7 +66,7 @@ namespace windage
 	public:
 		TemplateMinimization(int width=150, int height=150)
 		{
-			this->SAMPLING_STEP = 3;
+			this->SAMPLING_STEP = 2;
 
 			this->width = width;
 			this->height = height;
@@ -88,8 +88,8 @@ namespace windage
 			if(samplingImage)	cvReleaseImage(&samplingImage);
 		}
 
-		inline void SetParameterAmplification(double amplification){this->PARAMETER_AMPLIFICATION = amplification;};
-//		inline void SetSamplingStep(double step){this->SAMPLING_STEP = step;};
+		inline void SetParameterAmplification(float amplification){this->PARAMETER_AMPLIFICATION = amplification;};
+//		inline void SetSamplingStep(float step){this->SAMPLING_STEP = step;};
 		
 		inline CvSize GetTemplateSize(){return cvSize(this->width, this->height);};
 		inline IplImage* GetTemplateImage(){return this->templateImage;};
@@ -100,7 +100,7 @@ namespace windage
 		
 		virtual bool AttatchTemplateImage(IplImage* image) = 0;
 		virtual bool Initialize() = 0;
-		virtual double UpdateHomography(IplImage* image, double* delta = NULL) = 0;
+		virtual float UpdateHomography(IplImage* image, float* delta = NULL) = 0;
 	};
 }
 

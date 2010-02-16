@@ -89,7 +89,7 @@ void  main()
 	cvNamedWindow("result");
 
 	// initialize
-	sprintf(message, IMAGE_SEQ_FILE_NAME, 0);
+	sprintf_s(message, IMAGE_SEQ_FILE_NAME, 0);
 	IplImage* saveImage = cvLoadImage(message, 0);
 	if(GAUSSIAN_BLUR > 0)
 		cvSmooth(saveImage, saveImage, CV_GAUSSIAN, GAUSSIAN_BLUR, GAUSSIAN_BLUR);
@@ -148,7 +148,7 @@ void  main()
 
 		// load image
 		if(inputImage) cvReleaseImage(&inputImage);
-		sprintf(message, IMAGE_SEQ_FILE_NAME, k);
+		sprintf_s(message, IMAGE_SEQ_FILE_NAME, k);
 		inputImage = cvLoadImage(message, 0);
 		if(GAUSSIAN_BLUR > 0)
 			cvSmooth(inputImage, inputImage, CV_GAUSSIAN, GAUSSIAN_BLUR, GAUSSIAN_BLUR);
@@ -177,7 +177,7 @@ void  main()
 		DrawResult(resultImage, homography, CV_RGB(255.0, 0, 0), 1);
 
 		double processingTime = (endTime - startTime)/(cvGetTickFrequency() * 1000.0);
-		sprintf(message, "%03d >> processing time : %.2lf ms", k, processingTime);
+		sprintf_s(message, "%03d >> processing time : %.2lf ms", k, processingTime);
 		std::cout << message << std::endl;
 		sumTime += processingTime;
 

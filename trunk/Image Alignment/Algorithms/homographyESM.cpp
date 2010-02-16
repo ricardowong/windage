@@ -81,21 +81,21 @@ bool HomographyESM::Initialize()
 	{
 		for(int x=DELTA; x<templateImage->width-DELTA; x+= SAMPLING_STEP)
 		{
-			double I1 = -1.0;
-			double I2 = -1.0;
+			float I1 = -1.0;
+			float I2 = -1.0;
 
 			// se
-			double value = cvGetReal2D(templateImage, y, x);
+			float value = (float)CV_IMAGE_ELEM(templateImage, unsigned char, y, x);
 			se[index] = value;
 
 			// d(I(p))/d(p) (1x2 gradient of image)
 			Vector2 tempdI;
-			I1 = cvGetReal2D(templateImage, y, x - DELTA);
-			I2 = cvGetReal2D(templateImage, y, x + DELTA);
+			I1 = (float)CV_IMAGE_ELEM(templateImage, unsigned char, y, x - DELTA);
+			I2 = (float)CV_IMAGE_ELEM(templateImage, unsigned char, y, x + DELTA);
 			tempdI.x = (I2 - I1)/(2*DELTA);
 
-			I1 = cvGetReal2D(templateImage, y - DELTA, x);
-			I2 = cvGetReal2D(templateImage, y + DELTA, x);
+			I1 = (float)CV_IMAGE_ELEM(templateImage, unsigned char, y - DELTA, x);
+			I2 = (float)CV_IMAGE_ELEM(templateImage, unsigned char, y + DELTA, x);
 			tempdI.y = (I2 - I1)/(2*DELTA);
 
 			dI[index] = tempdI;
@@ -132,7 +132,7 @@ bool HomographyESM::Initialize()
 	return true;
 }
 
-double HomographyESM::UpdateHomography(IplImage* image, double* delta)
+float HomographyESM::UpdateHomography(IplImage* image, float* delta)
 {
 	if(isInitialize == false)
 		return -1.0;
@@ -144,96 +144,51 @@ double HomographyESM::UpdateHomography(IplImage* image, double* delta)
 		return -1.0;
 
 	// update homography
-	Vector3 point, point1, point2, out, out1, out2;
-	point.z = 1.0;
-	point1.z = 1.0;
-	point2.z = 1.0;
-
-	int ix, iy;
 	int index = 0;
+//	#pragma omp parallel for 
 	for(int y=DELTA; y<templateImage->height-DELTA; y+= SAMPLING_STEP)
 	{
+		Vector3 point, out;
+		int ix, iy;
+		Vector2 tempdwI;
+		unsigned char I1 = 0;
+		unsigned char I2 = 0;
+		unsigned char value = 0;
+
 		for(int x=DELTA; x<templateImage->width-DELTA; x+= SAMPLING_STEP)
 		{
+//			int index = ((y-DELTA)/SAMPLING_STEP) * ((templateImage->width-DELTA-1)/SAMPLING_STEP) + ((x-DELTA)/SAMPLING_STEP);
+
 			point.x = x;
 			point.y = y;
+			point.z = 1.0;
 			out = this->homography * point;
-			out /= out.z;
+			float ww = 1.0f/(float)out.z;
+			out *= ww;
 
-			ix = cvRound(out.x);
-			iy = cvRound(out.y);
+			ix = (int)(out.x);
+			iy = (int)(out.y);
+			ww = 1.0f/DELTA;
 
 			// sxc
-			double value = -1.0;
-			if( 0 < ix && ix < image->width && 0 < iy && iy < image->height)
-				value = cvGetReal2D(image, iy, ix);
-			sxc[index] = value;
+			if( 0 < ix && ix+DELTA < image->width && 0 < iy && iy+DELTA < image->height)
+			{
+				value = CV_IMAGE_ELEM(image, unsigned char, iy, ix);
+				I1 = CV_IMAGE_ELEM(image, unsigned char, iy, ix+DELTA);
+				I2 = CV_IMAGE_ELEM(image, unsigned char, iy+DELTA, ix);
+			}
+			sxc[index] = (float)value;
+			tempdwI.x = (float)(I1 - value)*ww;
+			tempdwI.y = (float)(I2 - value)*ww;
 
 			// for debuging
-			cvSetReal2D(samplingImage, y, x, value);
+			CV_IMAGE_ELEM(samplingImage, unsigned char, y, x) = value;
 
-			Vector2 tempdwI = Vector2();
-
-			double I1 = -1;
-			double I2 = -1;
-//*
-			if( 0 < ix+DELTA && ix+DELTA < image->width && 0 < iy && iy < image->height)
-				I1 = cvGetReal2D(image, iy, ix+DELTA);
-			if( 0 < ix && ix < image->width && 0 < iy+DELTA && iy+DELTA < image->height)
-				I2 = cvGetReal2D(image, iy+DELTA, ix);
-
-			tempdwI.x = (I1 - value)/DELTA;
-			tempdwI.y = (I2 - value)/DELTA;
-//*/
-/*
-			// dI(w(p)) / dp (1x2 gradient of image)
-			point1.x = x - DELTA;
-			point1.y = y;
-			point2.x = x + DELTA;
-			point2.y = y;
-			out1 = this->homography * point1;
-			out2 = this->homography * point2;
-			out1 /= out1.z;
-			out2 /= out2.z;
-
-			I1 = -1.0;
-			I2 = -1.0;
-			ix = cvRound(out1.x);
-			iy = cvRound(out1.y);
-			if( 0 < ix && ix < image->width && 0 < iy && iy < image->height)
-				I1 = cvGetReal2D(image, iy, ix);
-			ix = cvRound(out2.x);
-			iy = cvRound(out2.y);
-			if( 0 < ix && ix < image->width && 0 < iy && iy < image->height)
-				I2 = cvGetReal2D(image, iy, ix);
-			tempdwI.x = (I2 - I1)/(2*DELTA);
-
-			point1.x = x;
-			point1.y = y - DELTA;
-			point2.x = x;
-			point2.y = y + DELTA;
-			out1 = this->homography * point1;
-			out2 = this->homography * point2;
-			out1 /= out1.z;
-			out2 /= out2.z;
-
-			I1 = -1.0;
-			I2 = -1.0;
-			ix = cvRound(out1.x);
-			iy = cvRound(out1.y);
-			if( 0 < ix && ix < image->width && 0 < iy && iy < image->height)
-				I1 = cvGetReal2D(image, iy, ix);
-			ix = cvRound(out2.x);
-			iy = cvRound(out2.y);
-			if( 0 < ix && ix < image->width && 0 < iy && iy < image->height)
-				I2 = cvGetReal2D(image, iy, ix);
-			tempdwI.y = (I2 - I1)/(2*DELTA);
-//*/
 			// Jsum = J(e) + J(xc)
+			windage::Vector2 tempJ = (dI[index] + tempdwI);
 			for(int i=0; i<this->p; i++)
 			{
-				double value = (dI[index] + tempdwI) * dwx[index][i];
-				cvSetReal2D(JacobianSum, index, i, value);
+				CV_MAT_ELEM((*JacobianSum), float, index, i) = (float)(tempJ * dwx[index][i]);
 			}
 
 			index++;
@@ -241,29 +196,33 @@ double HomographyESM::UpdateHomography(IplImage* image, double* delta)
 	}
 
 	// delta_s
-	double error = 0.0;
+	float error = 0.0;
 	for(int i=0; i<this->q; i++)
 	{
-		double value = (sxc[i] - se[i]);
-		cvSetReal2D(dS, i, 0, value);
+		float value = (sxc[i] - se[i]);
+		CV_MAT_ELEM((*dS), float, i, 0) = value;
 		error += abs(value);
 	}
 	error /= this->q ;
 
 	// pseudo-invers
+//*
 	cvTranspose(JacobianSum, JacobianSumT);
 	cvMatMul(JacobianSumT, JacobianSum, Jacobian);
 	cvMatMul(JacobianSumT, dS, JacobianTdS);
 
-	double inv_res = cvInvert(Jacobian, JacobianInvers, CV_SVD_SYM);
+	double inv_res = cvInvert(Jacobian, JacobianInvers, CV_CHOLESKY);
 	cvMatMul(JacobianInvers, JacobianTdS, dx);
-
-
+//*/
+/*
+	cvInvert(JacobianSum, JacobianSumT, cv::DECOMP_SVD);
+	cvMatMul(JacobianSumT, dS, JacobianTdS);
+//*/
 	// update homography
-	double tempDelta = 0.0;
+	float tempDelta = 0.0;
 	for(int i=0; i<this->p; i++)
 	{
-		double value = -2.0 * cvGetReal1D(dx, i) * PARAMETER_AMPLIFICATION;
+		float value = -2.0f * CV_MAT_ELEM((*dx), float, 0, i) * PARAMETER_AMPLIFICATION;
 		this->homography.m1[i] += value;
 
 		tempDelta += abs(value);

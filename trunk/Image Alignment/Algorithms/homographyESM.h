@@ -51,7 +51,7 @@ namespace windage
 	class HomographyESM : public TemplateMinimization
 	{
 	private:
-		double HOMOGRAPHY_DELTA;
+		float HOMOGRAPHY_DELTA;
 		static const int HOMOGRAPHY_COUNT = 9;
 
 		int q;
@@ -61,8 +61,8 @@ namespace windage
 		std::vector<Vector2> dwI;
 		std::vector<std::vector<Vector2>> dwx;
 
-		std::vector<double> se;
-		std::vector<double> sxc;
+		std::vector<float> se;
+		std::vector<float> sxc;
 
 		CvMat* JacobianSum;
 		CvMat* JacobianSumT;
@@ -76,18 +76,18 @@ namespace windage
 		HomographyESM(int width=150, int height=150) : TemplateMinimization(width, height)
 		{
 			this->PARAMETER_AMPLIFICATION = 1.0;
-			this->HOMOGRAPHY_DELTA = 1.0e-3;
+			this->HOMOGRAPHY_DELTA = 1.0e-3f;
 
-			this->q = (this->width/this->SAMPLING_STEP) * (this->height/this->SAMPLING_STEP) - (int)(2*this->DELTA) + 2;
+			this->q = ((this->width-this->DELTA*2)/this->SAMPLING_STEP) * ((this->height-this->DELTA*2)/this->SAMPLING_STEP);
 			this->p = HOMOGRAPHY_COUNT - 1;
 
-			JacobianSum		= cvCreateMat(q, p, CV_64F);
-			JacobianSumT	= cvCreateMat(p, q, CV_64F);
-			Jacobian		= cvCreateMat(p, p, CV_64F);
-			JacobianInvers	= cvCreateMat(p, p, CV_64F);
-			dS				= cvCreateMat(q, 1, CV_64F);
-			JacobianTdS		= cvCreateMat(p, 1, CV_64F);
-			dx				= cvCreateMat(p, 1, CV_64F);
+			JacobianSum		= cvCreateMat(q, p, CV_32F);
+			JacobianSumT	= cvCreateMat(p, q, CV_32F);
+			Jacobian		= cvCreateMat(p, p, CV_32F);
+			JacobianInvers	= cvCreateMat(p, p, CV_32F);
+			dS				= cvCreateMat(q, 1, CV_32F);
+			JacobianTdS		= cvCreateMat(p, 1, CV_32F);
+			dx				= cvCreateMat(p, 1, CV_32F);
 
 			cvZero(JacobianSum);
 			cvZero(JacobianSumT);
@@ -112,7 +112,7 @@ namespace windage
 		
 		bool AttatchTemplateImage(IplImage* image);
 		bool Initialize();
-		double UpdateHomography(IplImage* image, double* delta = NULL);
+		float UpdateHomography(IplImage* image, float* delta = NULL);
 	};
 }
 

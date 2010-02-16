@@ -71,11 +71,11 @@ bool InverseCompositional::Initialize()
 		for(int x=0; x<this->width; x+=SAMPLING_STEP)
 		{
 			// Evaluate gradient of T.
-			double Tx = cvGetReal2D(pGradTx, y, x);
-			double Ty = cvGetReal2D(pGradTy, y, x);
+			float Tx = (float)cvGetReal2D(pGradTx, y, x);
+			float Ty = (float)cvGetReal2D(pGradTy, y, x);
 
 			// Calculate steepest descent image's element.
-			double stdesc[4];
+			float stdesc[4];
 			stdesc[0] = -Tx*y+Ty*x;
 			stdesc[1] = Tx;
 			stdesc[2] = Ty;
@@ -88,8 +88,7 @@ bool InverseCompositional::Initialize()
 			{
 				for(int m=0; m<4; m++)
 				{
-					double value = cvGetReal2D(H, l, m);
-					cvSetReal2D(H, l, m, value + (stdesc[l] * stdesc[m]));
+					CV_MAT_ELEM((*H), float, l, m) += (stdesc[l] * stdesc[m]);
 				} 
 			}
 		}	
@@ -119,7 +118,7 @@ void InverseCompositional::SetInitialHomography(Matrix3 homography)
 	{
 		for(int x=0; x<3; x++)
 		{
-			cvSetReal2D(W, y, x , this->homography.m[y][x]);
+			CV_MAT_ELEM((*W), float, y, x) = (float)this->homography.m[y][x];
 		}
 	}
 }
@@ -131,14 +130,14 @@ Matrix3 InverseCompositional::GetHomography()
 	{
 		for(int x=0; x<3; x++)
 		{
-			this->homography.m[y][x] = cvGetReal2D(W, y, x);
+			this->homography.m[y][x] = (double)CV_MAT_ELEM((*W), float, y, x);
 		}
 	}
 
 	return this->homography;
 }
 
-double InverseCompositional::UpdateHomography(IplImage* image, double* delta)
+float InverseCompositional::UpdateHomography(IplImage* image, float* delta)
 {
 	if(isInitialize == false)
 		return -1.0;
@@ -149,7 +148,7 @@ double InverseCompositional::UpdateHomography(IplImage* image, double* delta)
 	if(image->nChannels != 1)
 		return -1.0;
 
-	double error = 0.0;
+	float error = 0.0;
 //	cvSetIdentity(W);
 
 	int ix, iy;
@@ -166,21 +165,23 @@ double InverseCompositional::UpdateHomography(IplImage* image, double* delta)
 			// get value
 			point.x = x;
 			point.y = y;
+			point.z = 1.0;
 			out = this->homography * point;
-			out /= out.z;
-
-			ix = cvRound(out.x);
-			iy = cvRound(out.y);
+			float ww = 1.0f/(float)out.z;
+			out *= ww;
+			
+			ix = (int)(out.x);
+			iy = (int)(out.y);
 
 			if( 0 < ix && ix < image->width && 0 < iy && iy < image->height)
 			{
 				pixel_count++;
 
-				double value = cvGetReal2D(image, iy, ix);
-				cvSetReal2D(samplingImage, y, x, value);
+				float value = (float)CV_IMAGE_ELEM(image, unsigned char, iy, ix);
+				CV_IMAGE_ELEM(samplingImage, unsigned char, y, x) = (unsigned char)value;
 
 				// Calculate image difference D = I(W(x,p))-T(x).
-				double D = value - cvGetReal2D(this->templateImage, y, x);
+				float D = value - (float)CV_IMAGE_ELEM(this->templateImage, unsigned char, y, x);
 
 				// Update mean error value.
 				error += abs(D);
@@ -189,8 +190,8 @@ double InverseCompositional::UpdateHomography(IplImage* image, double* delta)
 				CvScalar stdesc = cvGet2D(pStDesc, y, x);
 				for(int i=0; i<4; i++)
 				{
-					double value = cvGetReal1D(b, i);
-					cvSetReal1D(b, i, value + (stdesc.val[i] * D));
+					float value = CV_MAT_ELEM((*b), float, i, 0);
+					CV_MAT_ELEM((*b), float, i, 0) = value + ((float)stdesc.val[i] * D);
 				} 
 			}
 		}
@@ -202,14 +203,14 @@ double InverseCompositional::UpdateHomography(IplImage* image, double* delta)
 
 	// Find parameter increment. 
 	cvGEMM(iH, b, 1, 0, 0, delta_p);
-	float delta_wz = CV_MAT_ELEM(*delta_p, float, 0, 0) * (float)PARAMETER_AMPLIFICATION;
-	float delta_tx = CV_MAT_ELEM(*delta_p, float, 1, 0) * (float)PARAMETER_AMPLIFICATION;
-	float delta_ty = CV_MAT_ELEM(*delta_p, float, 2, 0) * (float)PARAMETER_AMPLIFICATION;
-	float delta_s  = CV_MAT_ELEM(*delta_p, float, 3, 0) * (float)PARAMETER_AMPLIFICATION;
+	float delta_wz = CV_MAT_ELEM(*delta_p, float, 0, 0) * PARAMETER_AMPLIFICATION;
+	float delta_tx = CV_MAT_ELEM(*delta_p, float, 1, 0) * PARAMETER_AMPLIFICATION;
+	float delta_ty = CV_MAT_ELEM(*delta_p, float, 2, 0) * PARAMETER_AMPLIFICATION;
+	float delta_s  = CV_MAT_ELEM(*delta_p, float, 3, 0) * PARAMETER_AMPLIFICATION;
 
 	init_warp(dW, delta_wz, delta_tx, delta_ty, 1.0f+delta_s);
 	// Invert warp.
-	double inv_res = cvInvert(dW, idW);
+	float inv_res = cvInvert(dW, idW);
 	if(inv_res==0)
 	{
 		printf("Error: Warp matrix is singular.\n");
