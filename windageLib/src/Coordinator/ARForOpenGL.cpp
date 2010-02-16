@@ -139,11 +139,11 @@ void ARForOpenGL::SetProjectionMatrix()
 
     double w = imageWidth;
     double h = imageHeight;
-	double f = cvGetReal2D(this->cameraParameter->GetIntrinsicMatrix(), 0, 0);
-    double g = cvGetReal2D(this->cameraParameter->GetIntrinsicMatrix(), 1, 1);
+	double f = CV_MAT_ELEM((*this->cameraParameter->GetIntrinsicMatrix()), double, 0, 0);
+    double g = CV_MAT_ELEM((*this->cameraParameter->GetIntrinsicMatrix()), double, 1, 1);
     double s = 0;
-    double cx = cvGetReal2D(this->cameraParameter->GetIntrinsicMatrix(), 0, 2);
-    double cy = cvGetReal2D(this->cameraParameter->GetIntrinsicMatrix(), 1, 2);
+    double cx = CV_MAT_ELEM((*this->cameraParameter->GetIntrinsicMatrix()), double, 0, 2);
+    double cy = CV_MAT_ELEM((*this->cameraParameter->GetIntrinsicMatrix()), double, 1, 2);
     double _near = f/32.0f;
     double _far = f*32.0f;
 
@@ -174,12 +174,12 @@ void ARForOpenGL::SetModelViewMatrix()
 	{
 		for(i=0; i<3; ++i)
 		{
-			m[j*4+i] = cvGetReal2D(this->cameraParameter->GetExtrinsicMatrix(), i, j);
+			m[j*4+i] = CV_MAT_ELEM((*this->cameraParameter->GetExtrinsicMatrix()), double, i, j);
 		}
     }
-    m[0+3*4] = cvGetReal2D(this->cameraParameter->GetExtrinsicMatrix(), 0, 3);
-    m[1+3*4] = cvGetReal2D(this->cameraParameter->GetExtrinsicMatrix(), 1, 3);
-    m[2+3*4] = cvGetReal2D(this->cameraParameter->GetExtrinsicMatrix(), 2, 3);
+    m[0+3*4] = CV_MAT_ELEM((*this->cameraParameter->GetExtrinsicMatrix()), double, 0, 3);
+    m[1+3*4] = CV_MAT_ELEM((*this->cameraParameter->GetExtrinsicMatrix()), double, 1, 3);
+    m[2+3*4] = CV_MAT_ELEM((*this->cameraParameter->GetExtrinsicMatrix()), double, 2, 3);
 
     m[3+0*4] = m[3+1*4] = m[3+2*4] = 0;
     m[3+3*4] = 1;

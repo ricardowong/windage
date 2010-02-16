@@ -150,7 +150,8 @@ bool HomographyEstimator::DecomposeHomography(windage::Calibration* cameraParame
 	{
 		for(int x=0; x<3; x++)
 		{
-			intrinsicMatrix[y*3 + x] = (float)cvGetReal2D(calibration->GetIntrinsicMatrix(), y, x);
+			
+			intrinsicMatrix[y*3 + x] = (float)CV_MAT_ELEM((*calibration->GetIntrinsicMatrix()), double, y, x);
 		}
 	}
 
@@ -164,7 +165,7 @@ bool HomographyEstimator::DecomposeHomography(windage::Calibration* cameraParame
 	{
 		for(int x=0; x<4; x++)
 		{
-			cvSetReal2D(calibration->GetExtrinsicMatrix(), y, x, extrinsicMatrix[y*4+x]);
+			CV_MAT_ELEM((*calibration->GetExtrinsicMatrix()), double, y, x) = extrinsicMatrix[y*4+x];
 		}
 	}
 

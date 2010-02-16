@@ -128,7 +128,7 @@ public:
 			error += abs(calibration2.GetParameters()[i] - intrinsic.v[i]);
 			error += abs(calibration2.GetParameters()[4+i] - distortion.v[i]);
 			for(int x=0; x<4; x++)
-				error += abs(cvGetReal2D(calibration1.GetExtrinsicMatrix(), i, x) - cvGetReal2D(calibration2.GetExtrinsicMatrix(), i, x));
+				error += abs(CV_MAT_ELEM((*calibration1.GetExtrinsicMatrix()), double, i, x) - CV_MAT_ELEM((*calibration2.GetExtrinsicMatrix()), double, i, x));
 		}
 	
 		sprintf_s(tempMessage, "error = %.2lf", error);

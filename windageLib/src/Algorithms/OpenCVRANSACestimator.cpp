@@ -103,12 +103,12 @@ bool OpenCVRANSACestimator::Calculate()
 			windage::Vector3 ref = (*this->referencePoints)[idx[i]].GetPoint();
 			windage::Vector3 sce = (*this->scenePoints)[idx[i]].GetPoint();
 
-			cvSetReal2D(samplingRef, i, 0, ref.x);
-			cvSetReal2D(samplingRef, i, 1, ref.y);
-			cvSetReal2D(samplingRef, i, 2, ref.z);
+			CV_MAT_ELEM((*samplingRef), double, i, 0) = ref.x;
+			CV_MAT_ELEM((*samplingRef), double, i, 1) = ref.y;
+			CV_MAT_ELEM((*samplingRef), double, i, 2) = ref.z;
 
-			cvSetReal2D(samplingSce, i, 0, sce.x);
-			cvSetReal2D(samplingSce, i, 1, sce.y);
+			CV_MAT_ELEM((*samplingSce), double, i, 0) = sce.x;
+			CV_MAT_ELEM((*samplingSce), double, i, 1) = sce.y;
 		}
 
 		cvFindExtrinsicCameraParams2(samplingRef, samplingSce,
@@ -118,7 +118,7 @@ bool OpenCVRANSACestimator::Calculate()
 		// convert vector to matrix
 		for(int i=0; i < 3; i++) 
 		{
-			cvSetReal2D(extrinsicMatrix, i, 3, cvGetReal1D(translationVector, i));
+			CV_MAT_ELEM((*extrinsicMatrix), double, i, 3) = CV_MAT_ELEM((*translationVector), double, 0, i);
 		} 
 
 		cvRodrigues2(rotationVector, rotationMatrix);
@@ -126,7 +126,7 @@ bool OpenCVRANSACestimator::Calculate()
 		{
 			for(int j=0; j<3; j++)
 			{
-				cvSetReal2D(extrinsicMatrix, i, j, cvGetReal2D(rotationMatrix, i, j)); 
+				CV_MAT_ELEM((*extrinsicMatrix), double, i, j) = CV_MAT_ELEM((*rotationMatrix), double, i, j); 
 			}
 		}
 		tempCalibration.SetExtrinsicMatrix(extrinsicMatrix);
@@ -182,12 +182,12 @@ bool OpenCVRANSACestimator::Calculate()
 			windage::Vector3 ref = (*this->referencePoints)[i].GetPoint();
 			windage::Vector3 sce = (*this->scenePoints)[i].GetPoint();
 
-			cvSetReal2D(samplingRef, count, 0, ref.x);
-			cvSetReal2D(samplingRef, count, 1, ref.y);
-			cvSetReal2D(samplingRef, count, 2, ref.z);
+			CV_MAT_ELEM((*samplingRef), double, count, 0) = ref.x;
+			CV_MAT_ELEM((*samplingRef), double, count, 1) = ref.y;
+			CV_MAT_ELEM((*samplingRef), double, count, 2) = ref.z;
 
-			cvSetReal2D(samplingSce, count, 0, sce.x);
-			cvSetReal2D(samplingSce, count, 1, sce.y);
+			CV_MAT_ELEM((*samplingSce), double, count, 0) = sce.x;
+			CV_MAT_ELEM((*samplingSce), double, count, 1) = sce.y;
 			count++;
 		}
 	}
@@ -199,7 +199,7 @@ bool OpenCVRANSACestimator::Calculate()
 	// convert vector to matrix
 	for(int i=0; i < 3; i++) 
 	{
-		cvSetReal2D(extrinsicMatrix, i, 3, cvGetReal1D(translationVector, i));
+		CV_MAT_ELEM((*extrinsicMatrix), double, i, 3) = CV_MAT_ELEM((*translationVector), double, 0, i);
 	} 
 
 	cvRodrigues2(rotationVector, rotationMatrix);
@@ -207,7 +207,7 @@ bool OpenCVRANSACestimator::Calculate()
 	{
 		for(int j=0; j<3; j++)
 		{
-			cvSetReal2D(extrinsicMatrix, i, j, cvGetReal2D(rotationMatrix, i, j)); 
+			CV_MAT_ELEM((*extrinsicMatrix), double, i, j) = CV_MAT_ELEM((*rotationMatrix), double, i, j);
 		}
 	}
 	this->cameraParameter->SetExtrinsicMatrix(extrinsicMatrix);

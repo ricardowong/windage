@@ -47,20 +47,32 @@
 #include <windage.h>
 #include "../Common/OpenGLRenderer.h"
 
+#define RECONSTRUCTION_TEST 1
+#define RECONSTRUCTION_TEMPLE 0
+
 const int WIDTH = 640;
 const int HEIGHT = (WIDTH * 3) / 4;
 const int RENDERING_WIDTH = 640;
 const int RENDERING_HEIGHT = (RENDERING_WIDTH * 3) / 4;
-//const double INTRINSIC_VALUES[8] = {WIDTH*0.8, WIDTH*0.8, WIDTH/2, HEIGHT/2, 0, 0, 0, 0};
-const double INTRINSIC_VALUES[8] = {1520.40, 1525.90, 302.32, 246.87, 0, 0, 0, 0};
 
+#if RECONSTRUCTION_TEST
+const int START_INDEX = 0;
+const int IMAGE_FILE_COUNT = 10;
+const char* IMAGE_FILE_NAME = "Reconstruction/test%03d.jpg";
+const double INTRINSIC_VALUES[8] = {WIDTH*0.8, WIDTH*0.8, WIDTH/2, HEIGHT/2, 0, 0, 0, 0};
+const bool featureDependSize = true;
+#endif
+
+#if RECONSTRUCTION_TEMPLE
 const int START_INDEX = 1;
 const int IMAGE_FILE_COUNT = 45;
-//const char* IMAGE_FILE_NAME = "Reconstruction/test%03d.jpg";
+const double INTRINSIC_VALUES[8] = {1520.40, 1525.90, 302.32, 246.87, 0, 0, 0, 0};
 const char* IMAGE_FILE_NAME = "templeOrder/templeR%04d.png";
+const bool featureDependSize = false;
+#endif
+
 double VIRTUAL_CAMERA_DISTANCE = 0.5;
 double VIRTUAL_CAMERA_DISTANCE_STEP = 0.1;
-const double SCALE_FACTOR = 1.0;
 windage::Vector4 centerPoint;
 
 std::vector<IplImage*> inputImage;
@@ -210,7 +222,11 @@ void display()
 			if((*point3D)[j].IsOutlier() == false)
 			{
 				int size = (int)(*point3D)[j].GetFeatureList()->size();
-				glPointSize(renderingPixelScale);
+
+				if(featureDependSize)
+					glPointSize(size * 2.0);
+				else
+					glPointSize(1.0);
 
 				bool found = false;
 				for(int k=0; k<size; k++)

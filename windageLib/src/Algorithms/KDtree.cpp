@@ -59,7 +59,7 @@ bool KDtree::Training(std::vector<windage::FeaturePoint>* pointList)
 	{
 		for(int x=0; x<dimension; x++)
 		{
-			cvSetReal2D(this->descriptorStorage, y, x, (*pointList)[y].descriptor[x]);
+			CV_MAT_ELEM((*this->descriptorStorage), double, y, x) = (*pointList)[y].descriptor[x];
 		}
 	}
 
@@ -79,14 +79,14 @@ int KDtree::Matching(windage::FeaturePoint point, double* difference)
 	CvMat* resultDistance = cvCreateMat(1, 2, CV_64FC1);
 
 	for(int i=0; i<dimension; i++)
-		cvSetReal2D(currentDescriptor, 0, i, point.descriptor[i]);
+		CV_MAT_ELEM((*currentDescriptor), double, 0, i) = point.descriptor[i];
 
 	cvFindFeatures(this->kdtree, currentDescriptor, resultIndex, resultDistance, 2, this->eMax);
 	
-	double minDistance1 = cvGetReal2D(resultDistance, 0, 1);
-	double minDistance2 = cvGetReal2D(resultDistance, 0, 0);
-	int minIndex1 = cvRound(cvGetReal2D(resultIndex, 0, 1));
-	int minIndex2 = cvRound(cvGetReal2D(resultIndex, 0, 0));
+	double minDistance1 = CV_MAT_ELEM((*resultDistance), double, 0, 1);
+	double minDistance2 = CV_MAT_ELEM((*resultDistance), double, 0, 0);
+	int minIndex1 = CV_MAT_ELEM((*resultIndex), int, 0, 1);
+	int minIndex2 = CV_MAT_ELEM((*resultIndex), int, 0, 0);
 	
 	index = minIndex1;
     if(minDistance2 < minDistance1)

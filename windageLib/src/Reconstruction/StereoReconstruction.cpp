@@ -70,7 +70,7 @@ void StereoReconstruction::CalculateNormalizedPoint()
 	{
 		for(int x=0; x<3; x++)
 		{
-			intrinsic.m[y][x] = cvGetReal2D(intrinsicMat, y, x);
+			intrinsic.m[y][x] = CV_MAT_ELEM((*intrinsicMat), double, y, x);
 		}
 	}
 
@@ -175,7 +175,7 @@ bool StereoReconstruction::DecomposeEMatrix(CvMat *EMat)
 	
 	CvMat* localExtrinsic = cvCreateMat(4, 4, CV_64F);
 	cvZero(localExtrinsic);
-	cvSetReal2D(localExtrinsic, 3, 3, 1.0);
+	CV_MAT_ELEM((*localExtrinsic), double, 3, 3) = 1.0;
 
 	CvMat *_U, *_D, *_VT;
 	_U  = cvCreateMat(3, 3, CV_64F);
@@ -246,11 +246,11 @@ bool StereoReconstruction::DecomposeEMatrix(CvMat *EMat)
 			{
 				for(int x=0; x<3; x++)
 				{
-					double valeue = cvGetReal2D(_R[i], y, x);
-					cvSetReal2D(localExtrinsic, y, x, valeue);
+					double valeue = CV_MAT_ELEM((*_R[i]), double, y, x);
+					CV_MAT_ELEM((*localExtrinsic), double, y, x) = valeue;
 				}
-				double valeue = cvGetReal1D(_t[j], y);
-				cvSetReal2D(localExtrinsic, y, 3, valeue);
+				double valeue = CV_MAT_ELEM((*_t[j]), double, 0, y);
+				CV_MAT_ELEM((*localExtrinsic), double, y, 3) = valeue;
 			}
 			this->localCameraParameter->SetExtrinsicMatrix(localExtrinsic);
 
@@ -297,11 +297,11 @@ bool StereoReconstruction::DecomposeEMatrix(CvMat *EMat)
 		{
 			for(int x=0; x<3; x++)
 			{
-				double valeue = cvGetReal2D(_R[ir], y, x);
-				cvSetReal2D(localExtrinsic, y, x, valeue);
+				double valeue = CV_MAT_ELEM((*_R[ir]), double, y, x);
+				CV_MAT_ELEM((*localExtrinsic), double, y, x) = valeue;
 			}
-			double valeue = cvGetReal1D(_t[it], y);
-			cvSetReal2D(localExtrinsic, y, 3, valeue);
+			double valeue = CV_MAT_ELEM((*_t[it]), double, 0, y);
+			CV_MAT_ELEM((*localExtrinsic), double, y, 3) = valeue;
 		}
 		this->localCameraParameter->SetExtrinsicMatrix(localExtrinsic);
 		_failed = false;
@@ -347,11 +347,11 @@ int StereoReconstruction::ReconstructAll(CvMat *matE)
 		{
 			for(int x=0; x<3; x++)
 			{
-				double valeue = cvGetReal2D(localExtrinsic, y, x);
-				cvSetReal2D(_R, y, x, valeue);
+				double valeue = CV_MAT_ELEM((*localExtrinsic), double, y, x);
+				CV_MAT_ELEM((*_R), double, y, x) = valeue;
 			}
-			double valeue = cvGetReal2D(localExtrinsic, y, 3);
-			cvSetReal1D(_t, y, valeue);
+			double valeue = CV_MAT_ELEM((*localExtrinsic), double, y, 3);
+			CV_MAT_ELEM((*_t), double, 0, y) = valeue;
 		}
 
 		CalibratedTriangulation(_R, _t, testLPt, testRPt, testPt);
@@ -395,21 +395,21 @@ int StereoReconstruction::CountInliers(double thresh, double *err)
 	int n = (int)this->reconstructionPoints.size();
 	for(int i=0; i<n; i++)
 	{
-		cvSetReal1D(tempPt, 0, this->reconstructionPoints[i].GetPoint().x);
-		cvSetReal1D(tempPt, 1, this->reconstructionPoints[i].GetPoint().y);
-		cvSetReal1D(tempPt, 2, this->reconstructionPoints[i].GetPoint().z);
-		cvSetReal1D(tempPt, 3, this->reconstructionPoints[i].GetPoint().w);
+		CV_MAT_ELEM((*tempPt), double, 0, 0) = this->reconstructionPoints[i].GetPoint().x;
+		CV_MAT_ELEM((*tempPt), double, 0, 1) = this->reconstructionPoints[i].GetPoint().y;
+		CV_MAT_ELEM((*tempPt), double, 0, 2) = this->reconstructionPoints[i].GetPoint().z;
+		CV_MAT_ELEM((*tempPt), double, 0, 3) = this->reconstructionPoints[i].GetPoint().w;
 
 		windage::Vector4 wPT = this->reconstructionPoints[i].GetPoint();
 		CvPoint rPT1 = this->initialCameraParameter->ConvertWorld2Image(wPT.x, wPT.y, wPT.z);
-		cvSetReal1D(tpt1, 0, rPT1.x);
-		cvSetReal1D(tpt1, 1, rPT1.y);
-		cvSetReal1D(tpt1, 2, 1.0);
+		CV_MAT_ELEM((*tpt1), double, 0, 0) = rPT1.x;
+		CV_MAT_ELEM((*tpt1), double, 0, 1) = rPT1.y;
+		CV_MAT_ELEM((*tpt1), double, 0, 2) = 1.0;
 
 		CvPoint rPT2 = this->localCameraParameter->ConvertWorld2Image(wPT.x, wPT.y, wPT.z);
-		cvSetReal1D(tpt2, 0, rPT2.x);
-		cvSetReal1D(tpt2, 1, rPT2.y);
-		cvSetReal1D(tpt2, 2, 1.0);
+		CV_MAT_ELEM((*tpt2), double, 0, 0) = rPT2.x;
+		CV_MAT_ELEM((*tpt2), double, 0, 1) = rPT2.y;
+		CV_MAT_ELEM((*tpt2), double, 0, 2) = 1.0;
 
 		le = ((*this->matchedPoint1)[i].GetPoint().x - cvmGet(tpt1, 0, 0))*((*this->matchedPoint1)[i].GetPoint().x - cvmGet(tpt1, 0, 0)) + 
 			 ((*this->matchedPoint1)[i].GetPoint().y - cvmGet(tpt1, 1, 0))*((*this->matchedPoint1)[i].GetPoint().y - cvmGet(tpt1, 1, 0));
