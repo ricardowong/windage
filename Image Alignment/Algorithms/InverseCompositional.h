@@ -108,7 +108,7 @@ namespace windage
 
 		bool AttatchTemplateImage(IplImage* image);
 		bool Initialize();
-		double UpdateHomography(IplImage* image, double* delta = NULL);
+		float UpdateHomography(IplImage* image, float* delta = NULL);
 	};
 }
 

@@ -53,8 +53,8 @@ const int GAUSSIAN_BLUR = 5;
 
 const int TEMPLATE_WIDTH = 150;
 const int TEMPLATE_HEIGHT = 150;
-const double HOMOGRAPHY_DELTA = 0.01;
-const int MAX_ITERATION = 50;
+const float HOMOGRAPHY_DELTA = 0.01f;
+const int MAX_ITERATION = 30;
 
 void DrawResult(IplImage* image, windage::Matrix3 homography, CvScalar color = CV_RGB(255, 0, 0), int thickness = 1)
 {
@@ -73,10 +73,10 @@ void DrawResult(IplImage* image, windage::Matrix3 homography, CvScalar color = C
 	outPoint3 /= outPoint3.z;
 	outPoint4 /= outPoint4.z;
 
-	cvLine(image, cvPoint(outPoint1.x, outPoint1.y), cvPoint(outPoint2.x, outPoint2.y), color, thickness);
-	cvLine(image, cvPoint(outPoint2.x, outPoint2.y), cvPoint(outPoint3.x, outPoint3.y), color, thickness);
-	cvLine(image, cvPoint(outPoint3.x, outPoint3.y), cvPoint(outPoint4.x, outPoint4.y), color, thickness);
-	cvLine(image, cvPoint(outPoint4.x, outPoint4.y), cvPoint(outPoint1.x, outPoint1.y), color, thickness);
+	cvLine(image, cvPoint((int)outPoint1.x, (int)outPoint1.y), cvPoint((int)outPoint2.x, (int)outPoint2.y), color, thickness);
+	cvLine(image, cvPoint((int)outPoint2.x, (int)outPoint2.y), cvPoint((int)outPoint3.x, (int)outPoint3.y), color, thickness);		
+	cvLine(image, cvPoint((int)outPoint3.x, (int)outPoint3.y), cvPoint((int)outPoint4.x, (int)outPoint4.y), color, thickness);
+	cvLine(image, cvPoint((int)outPoint4.x, (int)outPoint4.y), cvPoint((int)outPoint1.x, (int)outPoint1.y), color, thickness);
 }
 
 void  main()
@@ -87,7 +87,7 @@ void  main()
 	cvNamedWindow("result");
 
 	// initialize
-	sprintf(message, IMAGE_SEQ_FILE_NAME, 0);
+	sprintf_s(message, IMAGE_SEQ_FILE_NAME, 0);
 	IplImage* saveImage = cvLoadImage(message, 0);
 	if(GAUSSIAN_BLUR > 0)
 		cvSmooth(saveImage, saveImage, CV_GAUSSIAN, GAUSSIAN_BLUR, GAUSSIAN_BLUR);
@@ -96,7 +96,7 @@ void  main()
 	int height = saveImage->height;
 	int startX = (width-TEMPLATE_WIDTH)/2;
 	int startY = (height-TEMPLATE_HEIGHT)/2;
-	double q = TEMPLATE_WIDTH * TEMPLATE_HEIGHT;
+	float q = TEMPLATE_WIDTH * TEMPLATE_HEIGHT;
 	
 	IplImage* inputImage = NULL;
 	IplImage* resultImage = cvCreateImage(cvSize(width, height), IPL_DEPTH_8U, 3);
@@ -126,7 +126,9 @@ void  main()
 	// homography update stack
 	std::vector<windage::Matrix3> homographyList;
 
-	double sumTime = 0.0;
+	cvWaitKey();
+
+	float sumTime = 0.0;
 	int sumIter = 0;
 	bool processing =true;
 	int k = 0;
@@ -137,7 +139,7 @@ void  main()
 
 		// load image
 		if(inputImage) cvReleaseImage(&inputImage);
-		sprintf(message, IMAGE_SEQ_FILE_NAME, k);
+		sprintf_s(message, IMAGE_SEQ_FILE_NAME, k);
 		inputImage = cvLoadImage(message, 0);
 		if(GAUSSIAN_BLUR > 0)
 			cvSmooth(inputImage, inputImage, CV_GAUSSIAN, GAUSSIAN_BLUR, GAUSSIAN_BLUR);
@@ -147,8 +149,8 @@ void  main()
 		// processing
 		int64 startTime = cvGetTickCount();
 		
-		double error = 0.0;
-		double delta = 1.0;
+		float error = 0.0;
+		float delta = 1.0;
 		int iter = 0;
 		homographyList.clear();
 		for(iter=0; iter<MAX_ITERATION; iter++)
@@ -159,8 +161,8 @@ void  main()
 
 			homographyList.push_back(homography);
 
-			if(delta < HOMOGRAPHY_DELTA)
-				break;
+//			if(delta < HOMOGRAPHY_DELTA)
+//				break;
 		}
 		int64 endTime = cvGetTickCount();
 		k++;
@@ -169,10 +171,10 @@ void  main()
 		// draw result
 		int count = homographyList.size();
 		for(int i=0; i<count; i++)
- 			DrawResult(resultImage, homographyList[i], CV_RGB(((count-i)/(double)count) * 255.0, (i/(double)count) * 255.0, 0), 1);
+ 			DrawResult(resultImage, homographyList[i], CV_RGB(((count-i)/(float)count) * 255.0, (i/(float)count) * 255.0, 0), 1);
  		
 		double processingTime = (endTime - startTime)/(cvGetTickFrequency() * 1000.0);
-		sprintf(message, "%03d >> processing time : %.2lf ms (%02d iter), error : %.2lf", k, processingTime, iter, error);
+		sprintf_s(message, "%03d >> processing time : %.2lf ms (%02d iter), error : %.2lf", k, processingTime, iter, error);
 		std::cout << message << std::endl;
 		sumTime += processingTime;
 
@@ -210,8 +212,8 @@ void  main()
 
 	}
 
-	std::cout << "average iteration : " << sumIter/(double)IMAGE_SEQ_COUNT << std::endl;
-	std::cout << "average processing ime : " << sumTime/(double)IMAGE_SEQ_COUNT << " ms" << std::endl;
+	std::cout << "average iteration : " << sumIter/(float)IMAGE_SEQ_COUNT << std::endl;
+	std::cout << "average processing ime : " << sumTime/(float)IMAGE_SEQ_COUNT << " ms" << std::endl;
 
 	cvReleaseImage(&resultImage);
 	cvDestroyAllWindows();

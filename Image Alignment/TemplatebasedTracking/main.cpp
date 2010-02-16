@@ -160,7 +160,7 @@ void  main()
  			DrawResult(resultImage, homographyList[i], CV_RGB(((count-i)/(double)count) * 255.0, (i/(double)count) * 255.0, 0), 1);
  		
 		double processingTime = (endTime - startTime)/(cvGetTickFrequency() * 1000.0);
-		sprintf(message, "processing time : %.2lf ms (%02d iter), error : %.2lf", processingTime, iter, error);
+		sprintf_s(message, "processing time : %.2lf ms (%02d iter), error : %.2lf", processingTime, iter, error);
 		std::cout << message << std::endl;
 
 #if USE_IC
