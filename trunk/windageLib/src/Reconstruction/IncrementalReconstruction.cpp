@@ -336,17 +336,17 @@ bool IncrementalReconstruction::IncrementReconstruction()
 	{
 		for(int x=0; x<3; x++)
 		{
-			value = cvGetReal2D(this->cameraParameters[index]->GetExtrinsicMatrix(), y, x);
-			cvSetReal2D(extrinsic1, y, x, value);
+			value = CV_MAT_ELEM((*this->cameraParameters[index]->GetExtrinsicMatrix()), double, y, x);
+			CV_MAT_ELEM((*extrinsic1), double, y, x) = value;
 
-			value = cvGetReal2D(this->cameraParameters[this->caculatedCount]->GetExtrinsicMatrix(), y, x);
-			cvSetReal2D(extrinsic2, y, x, value);
+			value = CV_MAT_ELEM((*this->cameraParameters[this->caculatedCount]->GetExtrinsicMatrix()), double, y, x);
+			CV_MAT_ELEM((*extrinsic2), double, y, x) = value;
 		}
-		value = cvGetReal2D(this->cameraParameters[index]->GetExtrinsicMatrix(), y, 3);
-		cvSetReal2D(extrinsic1, y, 3, value);
+		value = CV_MAT_ELEM((*this->cameraParameters[index]->GetExtrinsicMatrix()), double, y, 3);
+		CV_MAT_ELEM((*extrinsic1), double, y, 3) = value;
 
-		value = cvGetReal2D(this->cameraParameters[this->caculatedCount]->GetExtrinsicMatrix(), y, 3);
-		cvSetReal2D(extrinsic2, y, 3, value);
+		value = CV_MAT_ELEM((*this->cameraParameters[this->caculatedCount]->GetExtrinsicMatrix()), double, y, 3);
+		CV_MAT_ELEM((*extrinsic2), double, y, 3) = value;
 	}
 
 	CvMat *leftP, *rightP, *nrP3D;
@@ -438,9 +438,9 @@ double IncrementalReconstruction::CheckReprojectionError(CvMat **RT, CvMat *pt3D
 
 		for(int j=0; j<size; j++)
 		{
-			double ww = 1.0/cvGetReal2D(errorPT, 2, j);
-			double x = cvGetReal2D(errorPT, 0, j) * ww;
-			double y = cvGetReal2D(errorPT, 1, j) * ww;
+			double ww = 1.0/CV_MAT_ELEM((*errorPT), double, 2, j);
+			double x = CV_MAT_ELEM((*errorPT), double, 0, j) * ww;
+			double y = CV_MAT_ELEM((*errorPT), double, 1, j) * ww;
 			error += sqrt(x*x + y*y);
 		}
 	}
@@ -512,9 +512,9 @@ bool IncrementalReconstruction::BundleAdjustment(int n)
 		{
 			for(int x=0; x<3; x++)
 			{
-				cvSetReal2D(RT[i], y, x, cvGetReal2D(extrinsic, y, x));
+				CV_MAT_ELEM((*RT[i]), double, y, x) = CV_MAT_ELEM((*extrinsic), double, y, x);
 			}
-			cvSetReal2D(RT[i], y, 3, cvGetReal2D(extrinsic, y, 3));
+			CV_MAT_ELEM((*RT[i]), double, y, 3) = CV_MAT_ELEM((*extrinsic), double, y, 3);
 		}
 	}
 
@@ -544,9 +544,9 @@ bool IncrementalReconstruction::BundleAdjustment(int n)
 		{
 			for(int x=0; x<3; x++)
 			{
-				cvSetReal2D(extrinsic, y, x, cvGetReal2D(RT[i], y, x));
+				CV_MAT_ELEM((*extrinsic), double, y, x) = CV_MAT_ELEM((*RT[i]), double, y, x);
 			}
-			cvSetReal2D(extrinsic, y, 3, cvGetReal2D(RT[i], y, 3));
+			CV_MAT_ELEM((*extrinsic), double, y, 3) = CV_MAT_ELEM((*RT[i]), double, y, 3);
 		}
 	}
 	

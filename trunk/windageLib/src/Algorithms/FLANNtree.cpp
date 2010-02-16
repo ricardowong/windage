@@ -59,7 +59,7 @@ bool FLANNtree::Training(std::vector<windage::FeaturePoint>* pointList)
 	{
 		for(int x=0; x<dimension; x++)
 		{
-			cvSetReal2D(this->descriptorStorage, y, x, (*pointList)[y].descriptor[x]);
+			CV_MAT_ELEM((*this->descriptorStorage), float, y, x) = (*pointList)[y].descriptor[x];
 		}
 	}
 
@@ -80,7 +80,7 @@ int FLANNtree::Matching(windage::FeaturePoint point, double* difference)
 	cv::Mat resultDistance(1, 2, CV_32FC1);
 
 	for(int i=0; i<dimension; i++)
-		cvSetReal2D(currentDescriptor, 0, i, point.descriptor[i]);
+		CV_MAT_ELEM((*currentDescriptor), float, 0, i) = point.descriptor[i];
 
 	cv::Mat descriptor(currentDescriptor, false);
 	this->flannIndex->knnSearch(descriptor, resultIndex, resultDistance, 2, cv::flann::SearchParams(this->eMax));

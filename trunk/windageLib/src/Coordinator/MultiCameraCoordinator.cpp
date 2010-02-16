@@ -47,14 +47,14 @@ Vector3 MultiCameraCoordinator::GetTranslation(Calibration* baseCalibration, Cal
 	CvMat* fromExtrinsicMatrix = baseCalibration->GetExtrinsicMatrix();
 
 	windage::Vector3 fromTranslation;
-	fromTranslation.x = cvGetReal2D(fromExtrinsicMatrix, 0, 3);
-	fromTranslation.y = cvGetReal2D(fromExtrinsicMatrix, 1, 3);
-	fromTranslation.z = cvGetReal2D(fromExtrinsicMatrix, 2, 3);
+	fromTranslation.x = CV_MAT_ELEM((*fromExtrinsicMatrix), double, 0, 3);
+	fromTranslation.y = CV_MAT_ELEM((*fromExtrinsicMatrix), double, 1, 3);
+	fromTranslation.z = CV_MAT_ELEM((*fromExtrinsicMatrix), double, 2, 3);
 
 	windage::Vector3 toTranslation;
-	toTranslation.x = cvGetReal2D(toExtrinsicMatrix, 0, 3);
-	toTranslation.y = cvGetReal2D(toExtrinsicMatrix, 1, 3);
-	toTranslation.z = cvGetReal2D(toExtrinsicMatrix, 2, 3);
+	toTranslation.x = CV_MAT_ELEM((*toExtrinsicMatrix), double, 0, 3);
+	toTranslation.y = CV_MAT_ELEM((*toExtrinsicMatrix), double, 1, 3);
+	toTranslation.z = CV_MAT_ELEM((*toExtrinsicMatrix), double, 2, 3);
 
 	double x = toTranslation.x - fromTranslation.x;
 	double y = toTranslation.y - fromTranslation.y;
@@ -73,7 +73,7 @@ Matrix3 MultiCameraCoordinator::GetRotation(Calibration* baseCalibration, Calibr
 	{
 		for(int x=0; x<3; x++)
 		{
-			fromRotation.m[y][x] = cvGetReal2D(fromExtrinsicMatrix, y, x);
+			fromRotation.m[y][x] = CV_MAT_ELEM((*fromExtrinsicMatrix), double, y, x);
 		}
 	}
 	
@@ -82,7 +82,7 @@ Matrix3 MultiCameraCoordinator::GetRotation(Calibration* baseCalibration, Calibr
 	{
 		for(int x=0; x<3; x++)
 		{
-			toRotation.m[y][x] = cvGetReal2D(toExtrinsicMatrix, y, x);
+			toRotation.m[y][x] = CV_MAT_ELEM((*toExtrinsicMatrix), double, y, x);
 		}
 	}
 	
@@ -94,16 +94,16 @@ Matrix4 MultiCameraCoordinator::CalculateExtrinsic(Calibration* baseCalibration,
 	CvMat* fromExtrinsicMatrix = baseCalibration->GetExtrinsicMatrix();
 
 	windage::Vector3 fromTranslation;
-	fromTranslation.v[0] = cvGetReal2D(fromExtrinsicMatrix, 0, 3);
-	fromTranslation.v[1] = cvGetReal2D(fromExtrinsicMatrix, 1, 3);
-	fromTranslation.v[2] = cvGetReal2D(fromExtrinsicMatrix, 2, 3);
+	fromTranslation.v[0] = CV_MAT_ELEM((*fromExtrinsicMatrix), double, 0, 3);
+	fromTranslation.v[1] = CV_MAT_ELEM((*fromExtrinsicMatrix), double, 1, 3);
+	fromTranslation.v[2] = CV_MAT_ELEM((*fromExtrinsicMatrix), double, 2, 3);
 
 	windage::Matrix3 fromRotation;
 	for(int y=0; y<3; y++)
 	{
 		for(int x=0; x<3; x++)
 		{
-			fromRotation.m[y][x] = cvGetReal2D(fromExtrinsicMatrix, y, x);
+			fromRotation.m[y][x] = CV_MAT_ELEM((*fromExtrinsicMatrix), double, y, x);
 		}
 	}
 

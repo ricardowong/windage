@@ -164,7 +164,7 @@ void Logger::log(CvMat* data)
 	{
 		for(int x=0; x<column; x++)
 		{
-			log(cvGetReal2D(data, y, x));
+			log(CV_MAT_ELEM((*data), double, y, x));
 		}
 		logNewLine();
 	}

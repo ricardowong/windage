@@ -98,7 +98,7 @@ void Calibration::SetExtrinsicMatrix(float* matrix)
 	{
 		for(int x=0; x<4; x++)
 		{
-			cvSetReal2D(this->extrinsicMatrix, y, x, (double)matrix[y*4+x]);
+			CV_MAT_ELEM((*this->extrinsicMatrix), double, y, x) = (double)matrix[y*4+x];
 		}
 	}
 }
@@ -109,7 +109,7 @@ void Calibration::SetExtrinsicMatrix(double* matrix)
 	{
 		for(int x=0; x<4; x++)
 		{
-			cvSetReal2D(this->extrinsicMatrix, y, x, matrix[y*4+x]);
+			CV_MAT_ELEM((*this->extrinsicMatrix), double,  y, x) = matrix[y*4+x];
 		}
 	}
 }
@@ -122,7 +122,7 @@ void Calibration::ConvertExtrinsicParameter(CvMat* rotationVector, CvMat* transl
 	int i, j;
     for(i=0; i < 3; i++) 
     {
-		cvSetReal2D(extrinsicMatrix, i, 3, cvGetReal1D(translationVector, i));
+		CV_MAT_ELEM((*extrinsicMatrix), double, i, 3) = CV_MAT_ELEM((*translationVector), double, 0, i);
     } 
 
 	cvRodrigues2(rotationVector, rotationMatrix);
@@ -130,11 +130,11 @@ void Calibration::ConvertExtrinsicParameter(CvMat* rotationVector, CvMat* transl
 	{
 		for(j=0; j<3; j++)
 		{
-			cvSetReal2D(extrinsicMatrix, i, j, cvGetReal2D(rotationMatrix, i, j)); 
+			CV_MAT_ELEM((*extrinsicMatrix), double, i, j) = CV_MAT_ELEM((*rotationMatrix), double, i, j);
 		}
 	}
 
-	cvSetReal2D(extrinsicMatrix, 3, 3, 1.0);
+	CV_MAT_ELEM((*extrinsicMatrix), double, 3, 3) = 1.0;
 
 	cvReleaseMat(&rotationMatrix);
 }
@@ -144,22 +144,22 @@ CvScalar Calibration::GetCameraPosition()
 	CvScalar cameraPos;
 
 	windage::Matrix3 rotation;
-	rotation.m[0][0] = cvGetReal2D(this->extrinsicMatrix, 0, 0);
-	rotation.m[0][1] = cvGetReal2D(this->extrinsicMatrix, 1, 0);
-	rotation.m[0][2] = cvGetReal2D(this->extrinsicMatrix, 2, 0);
+	rotation.m[0][0] = CV_MAT_ELEM((*this->extrinsicMatrix), double, 0, 0);
+	rotation.m[0][1] = CV_MAT_ELEM((*this->extrinsicMatrix), double, 1, 0);
+	rotation.m[0][2] = CV_MAT_ELEM((*this->extrinsicMatrix), double, 2, 0);
 
-	rotation.m[1][0] = cvGetReal2D(this->extrinsicMatrix, 0, 1);
-	rotation.m[1][1] = cvGetReal2D(this->extrinsicMatrix, 1, 1);
-	rotation.m[1][2] = cvGetReal2D(this->extrinsicMatrix, 2, 1);
+	rotation.m[1][0] = CV_MAT_ELEM((*this->extrinsicMatrix), double, 0, 1);
+	rotation.m[1][1] = CV_MAT_ELEM((*this->extrinsicMatrix), double, 1, 1);
+	rotation.m[1][2] = CV_MAT_ELEM((*this->extrinsicMatrix), double, 2, 1);
 
-	rotation.m[2][0] = cvGetReal2D(this->extrinsicMatrix, 0, 2);
-	rotation.m[2][1] = cvGetReal2D(this->extrinsicMatrix, 1, 2);
-	rotation.m[2][2] = cvGetReal2D(this->extrinsicMatrix, 2, 2);
+	rotation.m[2][0] = CV_MAT_ELEM((*this->extrinsicMatrix), double, 0, 2);
+	rotation.m[2][1] = CV_MAT_ELEM((*this->extrinsicMatrix), double, 1, 2);
+	rotation.m[2][2] = CV_MAT_ELEM((*this->extrinsicMatrix), double, 2, 2);
 
 	windage::Vector3 translation;
-	translation.x = cvGetReal2D(this->extrinsicMatrix, 0, 3);
-	translation.y = cvGetReal2D(this->extrinsicMatrix, 1, 3);
-	translation.z = cvGetReal2D(this->extrinsicMatrix, 2, 3);
+	translation.x = CV_MAT_ELEM((*this->extrinsicMatrix), double, 0, 3);
+	translation.y = CV_MAT_ELEM((*this->extrinsicMatrix), double, 1, 3);
+	translation.z = CV_MAT_ELEM((*this->extrinsicMatrix), double, 2, 3);
 
 	translation = -translation;
 	windage::Vector3 temp = rotation * translation;
@@ -174,17 +174,17 @@ CvScalar Calibration::GetCameraPosition()
 void Calibration::SetCameraPosition(CvScalar position)
 {
 	windage::Matrix3 rotation;
-	rotation.m[0][0] = cvGetReal2D(this->extrinsicMatrix, 0, 0);
-	rotation.m[0][1] = cvGetReal2D(this->extrinsicMatrix, 1, 0);
-	rotation.m[0][2] = cvGetReal2D(this->extrinsicMatrix, 2, 0);
+	rotation.m[0][0] = CV_MAT_ELEM((*this->extrinsicMatrix), double, 0, 0);
+	rotation.m[0][1] = CV_MAT_ELEM((*this->extrinsicMatrix), double, 1, 0);
+	rotation.m[0][2] = CV_MAT_ELEM((*this->extrinsicMatrix), double, 2, 0);
 
-	rotation.m[1][0] = cvGetReal2D(this->extrinsicMatrix, 0, 1);
-	rotation.m[1][1] = cvGetReal2D(this->extrinsicMatrix, 1, 1);
-	rotation.m[1][2] = cvGetReal2D(this->extrinsicMatrix, 2, 1);
+	rotation.m[1][0] = CV_MAT_ELEM((*this->extrinsicMatrix), double, 0, 1);
+	rotation.m[1][1] = CV_MAT_ELEM((*this->extrinsicMatrix), double, 1, 1);
+	rotation.m[1][2] = CV_MAT_ELEM((*this->extrinsicMatrix), double, 2, 1);
 
-	rotation.m[2][0] = cvGetReal2D(this->extrinsicMatrix, 0, 2);
-	rotation.m[2][1] = cvGetReal2D(this->extrinsicMatrix, 1, 2);
-	rotation.m[2][2] = cvGetReal2D(this->extrinsicMatrix, 2, 2);
+	rotation.m[2][0] = CV_MAT_ELEM((*this->extrinsicMatrix), double, 0, 2);
+	rotation.m[2][1] = CV_MAT_ELEM((*this->extrinsicMatrix), double, 1, 2);
+	rotation.m[2][2] = CV_MAT_ELEM((*this->extrinsicMatrix), double, 2, 2);
 
 	windage::Vector3 translation;
 	translation.x = position.val[0];
@@ -195,9 +195,9 @@ void Calibration::SetCameraPosition(CvScalar position)
 	translation = rotation * translation;
 	translation = -translation;
 
-	cvSetReal2D(this->extrinsicMatrix, 0, 3, translation.x);
-	cvSetReal2D(this->extrinsicMatrix, 1, 3, translation.y);
-	cvSetReal2D(this->extrinsicMatrix, 2, 3, translation.z);
+	CV_MAT_ELEM((*this->extrinsicMatrix), double, 0, 3) = translation.x;
+	CV_MAT_ELEM((*this->extrinsicMatrix), double, 1, 3) = translation.y;
+	CV_MAT_ELEM((*this->extrinsicMatrix), double, 2, 3) = translation.z;
 }
 
 CvScalar Calibration::GetLookAt()
@@ -237,15 +237,15 @@ int Calibration::ConvertWorld2Image(CvMat* output, CvMat* input)
 	ConvertWorld2Camera(cameraCoordinatePosition, input);
 
 	CvMat* cameraCoordinate3DPosition = cvCreateMat(3, 1, CV_64FC1);
-	cvSetReal1D(cameraCoordinate3DPosition, 0, cvGetReal1D(cameraCoordinatePosition, 0));
-	cvSetReal1D(cameraCoordinate3DPosition, 1, cvGetReal1D(cameraCoordinatePosition, 1));
-	cvSetReal1D(cameraCoordinate3DPosition, 2, cvGetReal1D(cameraCoordinatePosition, 2));
+	CV_MAT_ELEM((*cameraCoordinate3DPosition), double, 0, 0) = CV_MAT_ELEM((*cameraCoordinatePosition), double, 0, 0);
+	CV_MAT_ELEM((*cameraCoordinate3DPosition), double, 0, 1) = CV_MAT_ELEM((*cameraCoordinatePosition), double, 0, 1);
+	CV_MAT_ELEM((*cameraCoordinate3DPosition), double, 0, 2) = CV_MAT_ELEM((*cameraCoordinatePosition), double, 0, 2);
 
 	ConvertCamera2Image(output, cameraCoordinate3DPosition);
 
-	cvSetReal1D(output, 0, cvGetReal1D(output, 0));
-	cvSetReal1D(output, 1, cvGetReal1D(output, 1));
-	cvSetReal1D(output, 2, cvGetReal1D(output, 2));
+	CV_MAT_ELEM((*output), double, 0, 0) = CV_MAT_ELEM((*output), double, 0, 0);
+	CV_MAT_ELEM((*output), double, 0, 1) = CV_MAT_ELEM((*output), double, 0, 1);
+	CV_MAT_ELEM((*output), double, 0, 2) = CV_MAT_ELEM((*output), double, 0, 2);
 
 	cvReleaseMat(&cameraCoordinatePosition);
 	cvReleaseMat(&cameraCoordinate3DPosition);
@@ -258,16 +258,16 @@ CvPoint Calibration::ConvertWorld2Image(double x, double y, double z)
 	CvMat* imageCoordinate = cvCreateMat(3, 1,CV_64FC1);
 	CvMat* worldCoordinate = cvCreateMat(4, 1,CV_64FC1);
 
-	cvSetReal1D(worldCoordinate, 0, x);
-	cvSetReal1D(worldCoordinate, 1, y);
-	cvSetReal1D(worldCoordinate, 2, z);
-	cvSetReal1D(worldCoordinate, 3, 1);
+	CV_MAT_ELEM((*worldCoordinate), double, 0, 0) = x;
+	CV_MAT_ELEM((*worldCoordinate), double, 0, 1) = y;
+	CV_MAT_ELEM((*worldCoordinate), double, 0, 2) = z;
+	CV_MAT_ELEM((*worldCoordinate), double, 0, 3) = 1;
 	ConvertWorld2Image(imageCoordinate, worldCoordinate);
 
-	double ww = 1.0 / cvGetReal1D(imageCoordinate, 2);
+	double ww = 1.0 / CV_MAT_ELEM((*imageCoordinate), double, 0, 2);
 	CvPoint point;
-	point.x = cvRound(cvGetReal1D(imageCoordinate, 0) * ww);
-	point.y = cvRound(cvGetReal1D(imageCoordinate, 1) * ww);
+	point.x = cvRound(CV_MAT_ELEM((*imageCoordinate), double, 0, 0) * ww);
+	point.y = cvRound(CV_MAT_ELEM((*imageCoordinate), double, 0, 1) * ww);
 
 	cvReleaseMat(&imageCoordinate);
 	cvReleaseMat(&worldCoordinate);
@@ -279,16 +279,16 @@ CvPoint Calibration::ConvertWorld2Image(double x, double y, double z)
 int Calibration::ConvertCamera2World(CvMat* output, CvMat* input)
 {
 	CvMat* translationVector = cvCreateMat(3, 1, CV_64FC1);
-	cvSetReal1D(translationVector, 0, cvGetReal2D(this->extrinsicMatrix, 0, 3));
-	cvSetReal1D(translationVector, 1, cvGetReal2D(this->extrinsicMatrix, 1, 3));
-	cvSetReal1D(translationVector, 2, cvGetReal2D(this->extrinsicMatrix, 2, 3));
+	CV_MAT_ELEM((*translationVector), double, 0, 0) = CV_MAT_ELEM((*this->extrinsicMatrix), double, 0, 3);
+	CV_MAT_ELEM((*translationVector), double, 0, 1) = CV_MAT_ELEM((*this->extrinsicMatrix), double, 1, 3);
+	CV_MAT_ELEM((*translationVector), double, 0, 2) = CV_MAT_ELEM((*this->extrinsicMatrix), double, 2, 3);
 
 	CvMat* rotationMatrix = cvCreateMat(3, 3, CV_64FC1);
 	for(int y=0; y<3; y++)
 	{
 		for(int x=0; x<3; x++)
 		{
-			cvSetReal2D(rotationMatrix, y, x, cvGetReal2D(this->extrinsicMatrix, y, x));
+			CV_MAT_ELEM((*rotationMatrix), double, y, x) = CV_MAT_ELEM((*this->extrinsicMatrix), double, y, x);
 		}
 	}
 
@@ -313,16 +313,16 @@ CvScalar Calibration::ConvertCamera2World(double x, double y, double z)
 	CvMat* cameraCoordinate = cvCreateMat(3, 1, CV_64FC1);
 	CvMat* worldCoordinate = cvCreateMat(3, 1, CV_64FC1);
 
-	cvSetReal1D(cameraCoordinate, 0, x);
-	cvSetReal1D(cameraCoordinate, 1, y);
-	cvSetReal1D(cameraCoordinate, 2, z);
+	CV_MAT_ELEM((*cameraCoordinate), double, 0, 0) = x;
+	CV_MAT_ELEM((*cameraCoordinate), double, 0, 1) = y;
+	CV_MAT_ELEM((*cameraCoordinate), double, 0, 2) = z;
 
 	ConvertCamera2World(worldCoordinate, cameraCoordinate);
 
 	CvScalar worldPoint;
-	worldPoint.val[0] = cvGetReal1D(worldCoordinate, 0);
-	worldPoint.val[1] = cvGetReal1D(worldCoordinate, 1);
-	worldPoint.val[2] = cvGetReal1D(worldCoordinate, 2);
+	worldPoint.val[0] = CV_MAT_ELEM((*worldCoordinate), double, 0, 0);
+	worldPoint.val[1] = CV_MAT_ELEM((*worldCoordinate), double, 0, 1);
+	worldPoint.val[2] = CV_MAT_ELEM((*worldCoordinate), double, 0, 2);
 
 	cvReleaseMat(&cameraCoordinate);
 	cvReleaseMat(&worldCoordinate);
@@ -340,11 +340,11 @@ int Calibration::ConvertImage2Camera(CvMat* output, CvMat* input, double z)
 	CvMat* temp = cvCreateMat(3, 1, CV_64FC1);
 	cvMatMul(inversIntrinsicMatrix, input, temp);
 
-	rho = z / cvGetReal1D(temp, 2);
+	rho = z / CV_MAT_ELEM((*temp), double, 0, 2);
 
-	cvSetReal1D(output, 0, cvGetReal1D(temp, 0) * rho);
-	cvSetReal1D(output, 1, cvGetReal1D(temp, 1) * rho);
-	cvSetReal1D(output, 2, cvGetReal1D(temp, 2) * rho);
+	CV_MAT_ELEM((*output), double, 0, 0) = CV_MAT_ELEM((*temp), double, 0, 0) * rho;
+	CV_MAT_ELEM((*output), double, 0, 1) = CV_MAT_ELEM((*temp), double, 0, 1) * rho;
+	CV_MAT_ELEM((*output), double, 0, 2) = CV_MAT_ELEM((*temp), double, 0, 2) * rho;
 
 	cvReleaseMat(&temp);
 	cvReleaseMat(&inversIntrinsicMatrix);
@@ -358,16 +358,16 @@ int Calibration::ConvertImage2World(CvMat* output, CvMat* input, double z)
 	cvInvert(this->intrinsicMatrix, inversIntrinsicMatrix);
 
 	CvMat* translationVector = cvCreateMat(3, 1, CV_64FC1);
-	cvSetReal1D(translationVector, 0, cvGetReal2D(this->extrinsicMatrix, 0, 3));
-	cvSetReal1D(translationVector, 1, cvGetReal2D(this->extrinsicMatrix, 1, 3));
-	cvSetReal1D(translationVector, 2, cvGetReal2D(this->extrinsicMatrix, 2, 3));
+	CV_MAT_ELEM((*translationVector), double, 0, 0) = CV_MAT_ELEM((*this->extrinsicMatrix), double, 0, 3);
+	CV_MAT_ELEM((*translationVector), double, 0, 1) = CV_MAT_ELEM((*this->extrinsicMatrix), double, 1, 3);
+	CV_MAT_ELEM((*translationVector), double, 0, 2) = CV_MAT_ELEM((*this->extrinsicMatrix), double, 2, 3);
 
 	CvMat* rotationMatrix = cvCreateMat(3, 3, CV_64FC1);
 	for(int y=0; y<3; y++)
 	{
 		for(int x=0; x<3; x++)
 		{
-			cvSetReal2D(rotationMatrix, x, y, cvGetReal2D(this->extrinsicMatrix, x, y));
+			CV_MAT_ELEM((*rotationMatrix), double, x, y) = CV_MAT_ELEM((*this->extrinsicMatrix), double, x, y);
 		}
 	}
 
@@ -378,26 +378,34 @@ int Calibration::ConvertImage2World(CvMat* output, CvMat* input, double z)
 	cvMatMul(inversIntrinsicMatrix, input, imageDot);
 
 	CvMat* tempMatrix = cvCreateMat(3, 3, CV_64FC1);
-	cvSetReal2D(tempMatrix, 0, 0, - cvGetReal1D(imageDot, 0)); cvSetReal2D(tempMatrix, 0, 1, cvGetReal2D(rotationMatrix, 0, 0)); cvSetReal2D(tempMatrix, 0, 2, cvGetReal2D(rotationMatrix, 0, 1));
-	cvSetReal2D(tempMatrix, 1, 0, - cvGetReal1D(imageDot, 1)); cvSetReal2D(tempMatrix, 1, 1, cvGetReal2D(rotationMatrix, 1, 0)); cvSetReal2D(tempMatrix, 1, 2, cvGetReal2D(rotationMatrix, 1, 1));
-	cvSetReal2D(tempMatrix, 2, 0, - cvGetReal1D(imageDot, 2)); cvSetReal2D(tempMatrix, 2, 1, cvGetReal2D(rotationMatrix, 2, 0)); cvSetReal2D(tempMatrix, 2, 2, cvGetReal2D(rotationMatrix, 2, 1));
+	CV_MAT_ELEM((*tempMatrix), double, 0, 0) = - CV_MAT_ELEM((*imageDot), double, 0, 0);
+	CV_MAT_ELEM((*tempMatrix), double, 0, 1) = CV_MAT_ELEM((*rotationMatrix), double, 0, 0);
+	CV_MAT_ELEM((*tempMatrix), double, 0, 2) = CV_MAT_ELEM((*rotationMatrix), double, 0, 1);
+
+	CV_MAT_ELEM((*tempMatrix), double, 1, 0) = - CV_MAT_ELEM((*imageDot), double, 0, 1);
+	CV_MAT_ELEM((*tempMatrix), double, 1, 1) = CV_MAT_ELEM((*rotationMatrix), double, 1, 0);
+	CV_MAT_ELEM((*tempMatrix), double, 1, 2) = CV_MAT_ELEM((*rotationMatrix), double, 1, 1);
+
+	CV_MAT_ELEM((*tempMatrix), double, 2, 0) = - CV_MAT_ELEM((*imageDot), double, 0, 2);
+	CV_MAT_ELEM((*tempMatrix), double, 2, 1) = CV_MAT_ELEM((*rotationMatrix), double, 2, 0);
+	CV_MAT_ELEM((*tempMatrix), double, 2, 2) = CV_MAT_ELEM((*rotationMatrix), double, 2, 1);
 
 	CvMat* inversTempMatrix = cvCreateMat(3, 3, CV_64FC1);
 	cvInvert(tempMatrix, inversTempMatrix);
 
 	CvMat* tempVector = cvCreateMat(3, 1, CV_64FC1);
-	cvSetReal1D(tempVector, 0, - (cvGetReal2D(rotationMatrix, 0, 2) * z + cvGetReal1D(translationVector, 0)) );
-	cvSetReal1D(tempVector, 1, - (cvGetReal2D(rotationMatrix, 1, 2) * z + cvGetReal1D(translationVector, 1)) );
-	cvSetReal1D(tempVector, 2, - (cvGetReal2D(rotationMatrix, 2, 2) * z + cvGetReal1D(translationVector, 2)) );
+	CV_MAT_ELEM((*tempVector), double, 0, 0) = - (CV_MAT_ELEM((*rotationMatrix), double, 0, 2) * z + CV_MAT_ELEM((*translationVector), double, 0, 0));
+	CV_MAT_ELEM((*tempVector), double, 0, 1) = - (CV_MAT_ELEM((*rotationMatrix), double, 1, 2) * z + CV_MAT_ELEM((*translationVector), double, 0, 1));
+	CV_MAT_ELEM((*tempVector), double, 0, 2) = - (CV_MAT_ELEM((*rotationMatrix), double, 2, 2) * z + CV_MAT_ELEM((*translationVector), double, 0, 2));
 
 	CvMat* tempResult = cvCreateMat(3, 1, CV_64FC1);
 	cvMatMul(inversTempMatrix, tempVector, tempResult);
 
-	double rho = cvGetReal1D(tempResult, 0);
+	double rho = CV_MAT_ELEM((*tempResult), double, 0, 0);
 
-	cvSetReal1D(output, 0, cvGetReal1D(tempResult, 1));
-	cvSetReal1D(output, 1, cvGetReal1D(tempResult, 2));
-	cvSetReal1D(output, 2, z);
+	CV_MAT_ELEM((*output), double, 0, 0) = CV_MAT_ELEM((*tempResult), double, 0, 1);
+	CV_MAT_ELEM((*output), double, 0, 1) = CV_MAT_ELEM((*tempResult), double, 0, 2);
+	CV_MAT_ELEM((*output), double, 0, 2) = z;
 
 	cvReleaseMat(&imageDot);
 	cvReleaseMat(&tempMatrix);
@@ -419,14 +427,14 @@ CvPoint2D64f Calibration::ConvertImage2World(double ix, double iy, double wz)
 	CvMat* imageCoordinate = cvCreateMat(3, 1,CV_64FC1);
 	CvMat* worldCoordinate = cvCreateMat(3, 1,CV_64FC1);
 
-	cvSetReal1D(imageCoordinate, 0, ix);
-	cvSetReal1D(imageCoordinate, 1, iy);
-	cvSetReal1D(imageCoordinate, 2, 1);
+	CV_MAT_ELEM((*imageCoordinate), double, 0, 0) = ix;
+	CV_MAT_ELEM((*imageCoordinate), double, 0, 1) = iy;
+	CV_MAT_ELEM((*imageCoordinate), double, 0, 2) = 1;
 	ConvertImage2World(worldCoordinate, imageCoordinate, wz);
 
 	CvPoint2D64f point;
-	point.x = cvGetReal1D(worldCoordinate, 0);
-	point.y = cvGetReal1D(worldCoordinate, 1);
+	point.x = CV_MAT_ELEM((*worldCoordinate), double, 0, 0);
+	point.y = CV_MAT_ELEM((*worldCoordinate), double, 0, 1);
 
 	cvReleaseMat(&imageCoordinate);
 	cvReleaseMat(&worldCoordinate);
