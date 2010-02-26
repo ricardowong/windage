@@ -54,7 +54,7 @@ const int GAUSSIAN_BLUR = 5;
 const int TEMPLATE_WIDTH = 150;
 const int TEMPLATE_HEIGHT = 150;
 const float HOMOGRAPHY_DELTA = 0.01f;
-const int MAX_ITERATION = 20;
+const int MAX_ITERATION = 30;
 
 void DrawResult(IplImage* image, windage::Matrix3 homography, CvScalar color = CV_RGB(255, 0, 0), int thickness = 1)
 {
@@ -170,7 +170,8 @@ void  main()
 		
 		// draw result
 		int count = homographyList.size();
-		for(int i=0; i<count; i++)
+		int i = count - 1;
+		for(i=0; i<count; i++)
  			DrawResult(resultImage, homographyList[i], CV_RGB(((count-i)/(float)count) * 255.0, (i/(float)count) * 255.0, 0), 1);
 
 		double processingTime = (endTime - startTime)/(cvGetTickFrequency() * 1000.0);
