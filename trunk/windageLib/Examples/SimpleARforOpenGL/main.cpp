@@ -48,6 +48,12 @@
 
 #include "../Common/OpenGLRenderer.h"
 
+#define USE_TEMPLATE_IMAEG 1
+const char* TEMPLATE_IMAGE = "reference.png";
+
+const double SCALE_FACTOR = 4.0;
+const int SCALE_STEP = 8;
+
 const int WIDTH = 320;
 const int HEIGHT = (WIDTH * 3) / 4;
 const int RENDERING_WIDTH = 640;
@@ -70,6 +76,8 @@ IplImage* resultImage = NULL;
 windage::Frameworks::PlanarObjectTracking* tracker = NULL;
 windage::Coordinator::AugmentedReality* artool = NULL;
 OpenGLRenderer* renderer = NULL;
+
+bool flip = true;
 
 windage::Frameworks::PlanarObjectTracking* CreateTracker()
 {
@@ -110,7 +118,7 @@ void TrainingRefereneImage(windage::Frameworks::PlanarObjectTracking* tracker, I
 	tracker->GetDetector()->SetThreshold(30.0);
 
 	tracker->AttatchReferenceImage(refImage);
-	tracker->TrainingReference(4.0, 8);
+	tracker->TrainingReference(SCALE_FACTOR, SCALE_STEP);
 
 	tracker->GetDetector()->SetThreshold(threshold);
 }
@@ -123,6 +131,10 @@ void keyboard(unsigned char ch, int x, int y)
 	case 'S':
 	case ' ':
 		TrainingRefereneImage(tracker, grayImage);
+		break;
+	case 'f':
+	case 'F':
+		flip = !flip;
 		break;
 	case 'q':
 	case 'Q':
@@ -141,6 +153,8 @@ void display()
 {
 	// capture from camera
 	IplImage* grabImage = cvRetrieveFrame(capture);
+	if(flip)
+		cvFlip(grabImage, grabImage);
 	cvResize(grabImage, resizeImage);
 	cvCvtColor(resizeImage, grayImage, CV_BGR2GRAY);
 	cvCopyImage(resizeImage, resultImage);
@@ -184,6 +198,8 @@ void display()
 
 	sprintf_s(message, "Press 'Space' to track the current image", keypointCount, threshold);
 	windage::Utils::DrawTextToImage(resultImage, cvPoint(WIDTH-270, HEIGHT-10), 0.5, message);
+	sprintf_s(message, "Press 'F' to flip image");
+	windage::Utils::DrawTextToImage(resultImage, cvPoint(WIDTH-270, HEIGHT-25), 0.5, message);
 	cvShowImage("result", resultImage);
 
 	// draw real scene image
@@ -228,6 +244,16 @@ void main()
 
 	// create tracker
 	tracker = CreateTracker();
+
+#if USE_TEMPLATE_IMAEG
+	IplImage* sampleImage = cvLoadImage(TEMPLATE_IMAGE, 0);
+
+	double threahold = tracker->GetDetector()->GetThreshold();
+	tracker->GetDetector()->SetThreshold(30.0);
+	tracker->AttatchReferenceImage(sampleImage);
+	tracker->TrainingReference(SCALE_FACTOR, SCALE_STEP);
+	tracker->GetDetector()->SetThreshold(threahold);
+#endif
 
 	// create and initialize AR tool
 	artool = new windage::Coordinator::ARForOpenGL();
