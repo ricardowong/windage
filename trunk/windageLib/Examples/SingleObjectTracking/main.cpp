@@ -48,6 +48,12 @@ const int WIDTH = 640;
 const int HEIGHT = (WIDTH * 3) / 4;
 const int FEATURE_COUNT = WIDTH*2;
 
+const double SCALE_FACTOR = 4.0;
+const int SCALE_STEP = 8;
+
+#define USE_TEMPLATE_IMAEG 1
+const char* TEMPLATE_IMAGE = "reference.png";
+
 void main()
 {
 	windage::Logger logger(&std::cout);
@@ -99,19 +105,32 @@ void main()
 
 	tracking.SetDitectionRatio(30);
 	tracking.Initialize(WIDTH, HEIGHT, (double)WIDTH, (double)HEIGHT);
-	
+
 	int keypointCount = 0;
 	int matchingCount = 0;
 	double threshold = 50.0;
 	double processingTime = 0.0;
 
-	char message[100];
 	bool trained = false;
+
+#if USE_TEMPLATE_IMAEG
+	IplImage* sampleImage = cvLoadImage(TEMPLATE_IMAGE, 0);
+	detector->SetThreshold(30.0);
+	tracking.AttatchReferenceImage(sampleImage);
+	tracking.TrainingReference(SCALE_FACTOR, SCALE_STEP);
+	detector->SetThreshold(threshold);
+	trained = true;
+#endif
+
+	char message[100];
+	bool flip = true;
 	bool processing = true;
 	while(processing)
 	{
 		// capture image
 		inputImage = cvRetrieveFrame(capture);
+		if(flip)
+			cvFlip(inputImage, inputImage);
 		cvResize(inputImage, resizeImage);
 		cvCvtColor(resizeImage, grayImage, CV_BGR2GRAY);
 		cvCopyImage(resizeImage, resultImage);
@@ -154,8 +173,10 @@ void main()
 		sprintf_s(message, "Matching Count : %d", matchingCount);
 		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 60), 0.6, message);
 
-		sprintf_s(message, "Press 'Space' to track the current image", keypointCount, threshold);
+		sprintf_s(message, "Press 'Space' to track the current image");
 		windage::Utils::DrawTextToImage(resultImage, cvPoint(WIDTH-270, HEIGHT-10), 0.5, message);
+		sprintf_s(message, "Press 'F' to flip image");
+		windage::Utils::DrawTextToImage(resultImage, cvPoint(WIDTH-270, HEIGHT-25), 0.5, message);
 		cvShowImage("result", resultImage);
 
 		char ch = cvWaitKey(1);
@@ -165,12 +186,16 @@ void main()
 		case 'Q':
 			processing = false;
 			break;
+		case 'f':
+		case 'F':
+			flip = !flip;
+			break;
 		case ' ':
 		case 's':
 		case 'S':
 			detector->SetThreshold(30.0);
 			tracking.AttatchReferenceImage(grayImage);
-			tracking.TrainingReference(4.0, 8);
+			tracking.TrainingReference(SCALE_FACTOR, SCALE_STEP);
 			detector->SetThreshold(threshold);
 			trained = true;
 			break;

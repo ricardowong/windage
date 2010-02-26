@@ -250,8 +250,11 @@ void display()
 
 		for(int i=0; i<CalculationStep-1; i++)
 		{
-//			renderer->DrawCamera(reconstructor->GetCameraParameter(i), inputImage[i], 0.0005);
+#if RECONSTRUCTION_TEST
+			renderer->DrawCamera(reconstructor->GetCameraParameter(i), inputImage[i], 0.0005);
+#else
 			renderer->DrawCamera(reconstructor->GetCameraParameter(i), NULL, 0.0005);
+#endif
 //			renderer->DrawCameraAxis(reconstructor->GetCameraParameter(i));
 		}
 

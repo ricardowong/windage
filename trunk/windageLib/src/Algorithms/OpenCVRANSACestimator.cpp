@@ -118,7 +118,7 @@ bool OpenCVRANSACestimator::Calculate()
 		// convert vector to matrix
 		for(int i=0; i < 3; i++) 
 		{
-			CV_MAT_ELEM((*extrinsicMatrix), double, i, 3) = CV_MAT_ELEM((*translationVector), double, 0, i);
+			CV_MAT_ELEM((*extrinsicMatrix), double, i, 3) = CV_MAT_ELEM((*translationVector), double, i, 0);
 		} 
 
 		cvRodrigues2(rotationVector, rotationMatrix);
@@ -199,7 +199,7 @@ bool OpenCVRANSACestimator::Calculate()
 	// convert vector to matrix
 	for(int i=0; i < 3; i++) 
 	{
-		CV_MAT_ELEM((*extrinsicMatrix), double, i, 3) = CV_MAT_ELEM((*translationVector), double, 0, i);
+		CV_MAT_ELEM((*extrinsicMatrix), double, i, 3) = CV_MAT_ELEM((*translationVector), double, i, 0);
 	} 
 
 	cvRodrigues2(rotationVector, rotationMatrix);
