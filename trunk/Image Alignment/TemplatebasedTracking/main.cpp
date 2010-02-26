@@ -138,8 +138,8 @@ void  main()
 		// processing
 		int64 startTime = cvGetTickCount();
 		
-		double error = 0.0;
-		double delta = 1.0;
+		float error = 0.0;
+		float delta = 1.0;
 		int iter = 0;
 		homographyList.clear();
 		for(iter=0; iter<MAX_ITERATION; iter++)
