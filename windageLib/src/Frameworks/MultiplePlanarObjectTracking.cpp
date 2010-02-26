@@ -210,7 +210,7 @@ bool MultiplePlanarObjectTracking::UpdateCamerapose(IplImage* grayImage)
 		for(unsigned int i=0; i<sceneKeypoints->size(); i++)
 		{
 			int index = this->searchTree[this->step]->Matching((*sceneKeypoints)[i]);
-			if(index >= 0)
+			if(0 <= index && index < this->referenceRepository[this->step].size())
 			{
 				// if not tracked have point
 				if(this->referenceRepository[this->step][index].IsTracked() == false)

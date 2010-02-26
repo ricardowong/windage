@@ -46,7 +46,7 @@
 
 const int WIDTH = 640;
 const int HEIGHT = (WIDTH * 3) / 4;
-const int FEATURE_COUNT = WIDTH*2;
+const int FEATURE_COUNT = WIDTH;
 
 const double SCALE_FACTOR = 4.0;
 const int SCALE_STEP = 8;
@@ -92,7 +92,7 @@ void main()
 	opticalflow->Initialize(WIDTH, HEIGHT, cvSize(8, 8), 3);
 	estimator->SetReprojectionError(10.0);
 	checker->SetReprojectionError(10.0);
-	refiner->SetMaxIteration(10);
+	refiner->SetMaxIteration(5);
 
 	tracking.AttatchCalibration(calibration);
 	tracking.AttatchDetetor(detector);
@@ -103,7 +103,7 @@ void main()
 	tracking.AttatchRefiner(refiner);
 //	tracking.AttatchFilter(filter);
 
-	tracking.SetDitectionRatio(30);
+	tracking.SetDitectionRatio(10);
 	tracking.Initialize(WIDTH, HEIGHT, (double)WIDTH, (double)HEIGHT);
 
 	int keypointCount = 0;

@@ -178,7 +178,7 @@ bool PlanarObjectTracking::UpdateCamerapose(IplImage* grayImage)
 		{
 			int count = 0;
 			int index = this->matcher->Matching((*sceneKeypoints)[i]);
-			if(index >= 0)
+			if(0 <= index && index < this->referenceRepository.size())
 			{
 				// if not tracked have point
 				if(this->referenceRepository[index].IsTracked() == false)
