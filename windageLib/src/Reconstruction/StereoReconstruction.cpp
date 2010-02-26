@@ -249,7 +249,7 @@ bool StereoReconstruction::DecomposeEMatrix(CvMat *EMat)
 					double valeue = CV_MAT_ELEM((*_R[i]), double, y, x);
 					CV_MAT_ELEM((*localExtrinsic), double, y, x) = valeue;
 				}
-				double valeue = CV_MAT_ELEM((*_t[j]), double, 0, y);
+				double valeue = CV_MAT_ELEM((*_t[j]), double, y, 0);
 				CV_MAT_ELEM((*localExtrinsic), double, y, 3) = valeue;
 			}
 			this->localCameraParameter->SetExtrinsicMatrix(localExtrinsic);
@@ -300,7 +300,7 @@ bool StereoReconstruction::DecomposeEMatrix(CvMat *EMat)
 				double valeue = CV_MAT_ELEM((*_R[ir]), double, y, x);
 				CV_MAT_ELEM((*localExtrinsic), double, y, x) = valeue;
 			}
-			double valeue = CV_MAT_ELEM((*_t[it]), double, 0, y);
+			double valeue = CV_MAT_ELEM((*_t[it]), double, y, 0);
 			CV_MAT_ELEM((*localExtrinsic), double, y, 3) = valeue;
 		}
 		this->localCameraParameter->SetExtrinsicMatrix(localExtrinsic);
@@ -351,7 +351,7 @@ int StereoReconstruction::ReconstructAll(CvMat *matE)
 				CV_MAT_ELEM((*_R), double, y, x) = valeue;
 			}
 			double valeue = CV_MAT_ELEM((*localExtrinsic), double, y, 3);
-			CV_MAT_ELEM((*_t), double, 0, y) = valeue;
+			CV_MAT_ELEM((*_t), double, y, 0) = valeue;
 		}
 
 		CalibratedTriangulation(_R, _t, testLPt, testRPt, testPt);
@@ -396,20 +396,20 @@ int StereoReconstruction::CountInliers(double thresh, double *err)
 	for(int i=0; i<n; i++)
 	{
 		CV_MAT_ELEM((*tempPt), double, 0, 0) = this->reconstructionPoints[i].GetPoint().x;
-		CV_MAT_ELEM((*tempPt), double, 0, 1) = this->reconstructionPoints[i].GetPoint().y;
-		CV_MAT_ELEM((*tempPt), double, 0, 2) = this->reconstructionPoints[i].GetPoint().z;
-		CV_MAT_ELEM((*tempPt), double, 0, 3) = this->reconstructionPoints[i].GetPoint().w;
+		CV_MAT_ELEM((*tempPt), double, 1, 0) = this->reconstructionPoints[i].GetPoint().y;
+		CV_MAT_ELEM((*tempPt), double, 2, 0) = this->reconstructionPoints[i].GetPoint().z;
+		CV_MAT_ELEM((*tempPt), double, 3, 0) = this->reconstructionPoints[i].GetPoint().w;
 
 		windage::Vector4 wPT = this->reconstructionPoints[i].GetPoint();
 		CvPoint rPT1 = this->initialCameraParameter->ConvertWorld2Image(wPT.x, wPT.y, wPT.z);
 		CV_MAT_ELEM((*tpt1), double, 0, 0) = rPT1.x;
-		CV_MAT_ELEM((*tpt1), double, 0, 1) = rPT1.y;
-		CV_MAT_ELEM((*tpt1), double, 0, 2) = 1.0;
+		CV_MAT_ELEM((*tpt1), double, 1, 0) = rPT1.y;
+		CV_MAT_ELEM((*tpt1), double, 2, 0) = 1.0;
 
 		CvPoint rPT2 = this->localCameraParameter->ConvertWorld2Image(wPT.x, wPT.y, wPT.z);
 		CV_MAT_ELEM((*tpt2), double, 0, 0) = rPT2.x;
-		CV_MAT_ELEM((*tpt2), double, 0, 1) = rPT2.y;
-		CV_MAT_ELEM((*tpt2), double, 0, 2) = 1.0;
+		CV_MAT_ELEM((*tpt2), double, 1, 0) = rPT2.y;
+		CV_MAT_ELEM((*tpt2), double, 2, 0) = 1.0;
 
 		le = ((*this->matchedPoint1)[i].GetPoint().x - cvmGet(tpt1, 0, 0))*((*this->matchedPoint1)[i].GetPoint().x - cvmGet(tpt1, 0, 0)) + 
 			 ((*this->matchedPoint1)[i].GetPoint().y - cvmGet(tpt1, 1, 0))*((*this->matchedPoint1)[i].GetPoint().y - cvmGet(tpt1, 1, 0));
