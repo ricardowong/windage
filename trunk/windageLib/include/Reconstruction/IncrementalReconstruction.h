@@ -134,6 +134,7 @@ namespace windage
 			inline void AttatchSearchTree(windage::Algorithms::SearchTree* matcher){this->searchtree = matcher;};
 			inline void AttatchEstimator(windage::Algorithms::PoseEstimator* estimator){this->estimator = estimator;};
 
+			inline int GetCameraParameterCount(){return (int)this->cameraParameters.size();};
 			inline windage::Calibration* GetCameraParameter(int i){return cameraParameters[i];};
 			inline std::vector<windage::ReconstructionPoint>* GetReconstructedPoint(){return &reconstructionPoints;};
 
@@ -143,6 +144,9 @@ namespace windage
 			void AttatchFeaturePoint(std::vector<windage::FeaturePoint>* featurePoints);
 			bool CalculateStep(int step = -1);
 			bool CalculateAll();
+
+			bool UpdateColor();
+			bool ResizeScale(double scale = 1.0);
 		};
 	}
 }

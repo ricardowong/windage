@@ -318,7 +318,8 @@ bool IncrementalReconstruction::IncrementReconstruction()
 	}
 
 	std::cout << std::endl;
-	std::cout << "increament pose estimation (" << index << "-" << this->caculatedCount << ") : " << intlierCount << " / " << matchedPoint2.size() << std::endl;
+	std::cout << "increament pose estimation (" << index << "-" << this->caculatedCount << ") : "
+			  << intlierCount << " / " << matchedPoint2.size() << " (" << (double)intlierCount/(double)matchedPoint2.size() << ")" << std::endl;
 
 	// reconstruction points
 	matchedPoint1.clear();
@@ -632,3 +633,60 @@ bool IncrementalReconstruction::CalculateAll()
 	return true;
 }
 
+bool IncrementalReconstruction::UpdateColor()
+{
+	int count = (unsigned)this->reconstructionPoints.size();
+	for(int i=0; i<count; i++)
+	{
+		std::vector<windage::FeaturePoint>* featureList = this->reconstructionPoints[i].GetFeatureList();
+		int featureCount = featureList->size();
+
+		CvScalar color = cvScalarAll(0);
+		for(int j=0; j<featureCount; j++)
+		{
+			for(int k=0; k<3; k++)
+				color.val[k] += (*featureList)[j].GetColor().val[k];
+		}
+		for(int k=0; k<3; k++)
+			color.val[k] /= (double)featureCount;
+
+		this->reconstructionPoints[i].SetColor(color);
+	}
+
+
+	return true;
+}
+
+bool IncrementalReconstruction::ResizeScale(double scale)
+{
+	windage::Vector4 center;
+	int count = (unsigned)this->reconstructionPoints.size();
+	for(int i=0; i<count; i++)
+	{
+		center += this->reconstructionPoints[i].GetPoint();
+	}
+	center /= (double)count;
+
+	// points translation
+	for(int i=0; i<count; i++)
+	{
+		this->reconstructionPoints[i].SetPoint(this->reconstructionPoints[i].GetPoint() - center);
+		this->reconstructionPoints[i].SetPoint(this->reconstructionPoints[i].GetPoint() * scale);
+	}
+
+	// camera translation
+	for(unsigned int i=0; i<this->cameraParameters.size(); i++)
+	{
+		CvScalar position = this->cameraParameters[i]->GetCameraPosition();
+
+		for(int k=0; k<3; k++)
+		{
+			position.val[k] -= center.v[k];
+			position.val[k] *= scale;
+		}
+
+		this->cameraParameters[i]->SetCameraPosition(position);
+	}
+
+	return true;
+}
