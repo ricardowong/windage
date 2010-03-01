@@ -568,6 +568,26 @@
 				RelativePath="..\..\..\include\Reconstruction\StereoReconstruction.h"
 				>
 			</File>
+			<Filter
+				Name="Utilities"
+				>
+				<File
+					RelativePath="..\..\..\src\Reconstruction\Utilities\Exportor.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\include\Reconstruction\Utilities\Exportor.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\src\Reconstruction\Utilities\Loader.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\include\Reconstruction\Utilities\Loader.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Utilities"

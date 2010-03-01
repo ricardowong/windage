@@ -77,6 +77,11 @@ void Logger::log(char* dataName, float data)
 	log(data);
 }
 
+void Logger::log(const char* data)
+{
+	(*logging) << data << SPACING_TERM;
+}
+
 void Logger::log(char* data)
 {
 	(*logging) << data << SPACING_TERM;
@@ -156,6 +161,11 @@ void Logger::log(windage::Matrix4 data)
 	}
 }
 
+void Logger::log(CvScalar data)
+{
+	(*logging) << data.val[0] << SPACING_TERM << data.val[1] << SPACING_TERM << data.val[2] << SPACING_TERM << data.val[3] << SPACING_TERM;
+}
+
 void Logger::log(CvMat* data)
 {
 	int row = data->rows;
@@ -191,11 +201,11 @@ std::string Logger::getTimeString()
 {
 	time_t now;
 	time(&now);
-	struct tm *t = NULL;
-	localtime_s(t, &now);
+	struct tm t;
+	localtime_s(&t, &now);
 
 	char timestemp[100];
-	sprintf_s(timestemp, "%d-%d-%d_%d_%d_%d", t->tm_year+1900, t->tm_mon+1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
+	sprintf_s(timestemp, "%d-%02d-%02d_%02d_%02d_%02d", t.tm_year+1900, t.tm_mon+1, t.tm_mday, t.tm_hour, t.tm_min, t.tm_sec);
 
 	std::string result = std::string(timestemp);
 	return result;
