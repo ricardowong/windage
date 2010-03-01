@@ -670,8 +670,10 @@ bool IncrementalReconstruction::ResizeScale(double scale)
 	// points translation
 	for(int i=0; i<count; i++)
 	{
-		this->reconstructionPoints[i].SetPoint(this->reconstructionPoints[i].GetPoint() - center);
-		this->reconstructionPoints[i].SetPoint(this->reconstructionPoints[i].GetPoint() * scale);
+		windage::Vector4 tempPoint = this->reconstructionPoints[i].GetPoint();
+		tempPoint = (tempPoint - center) * scale;
+		tempPoint.w = 1.0;
+		this->reconstructionPoints[i].SetPoint(tempPoint);
 	}
 
 	// camera translation

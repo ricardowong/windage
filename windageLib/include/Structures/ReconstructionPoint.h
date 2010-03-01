@@ -49,8 +49,10 @@
 #define _RECONSTRUCTION_POINT_H_
 
 #include <cv.h>
+
 #include "base.h"
 #include "Vector.h"
+#include "FeaturePoint.h"
 
 namespace windage
 {

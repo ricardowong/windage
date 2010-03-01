@@ -47,34 +47,16 @@
 #include <windage.h>
 #include "../Common/OpenGLRenderer.h"
 
-#define RECONSTRUCTION_TEST 0
-#define RECONSTRUCTION_TEMPLE 1
-
 const int WIDTH = 640;
 const int HEIGHT = (WIDTH * 3) / 4;
 const int RENDERING_WIDTH = 640;
 const int RENDERING_HEIGHT = (RENDERING_WIDTH * 3) / 4;
 
-#if RECONSTRUCTION_TEST
-const int START_INDEX = 0;
-const int IMAGE_FILE_COUNT = 10;
-const char* IMAGE_FILE_NAME = "Reconstruction/test%03d.jpg";
-const double INTRINSIC_VALUES[8] = {WIDTH*0.8, WIDTH*0.8, WIDTH/2, HEIGHT/2, 0, 0, 0, 0};
-#endif
-
-#if RECONSTRUCTION_TEMPLE
-const int START_INDEX = 1;
-const int IMAGE_FILE_COUNT = 45;
-const double INTRINSIC_VALUES[8] = {1520.40, 1525.90, 302.32, 246.87, 0, 0, 0, 0};
-const char* IMAGE_FILE_NAME = "templeOrder/templeR%04d.png";
-#endif
-
 std::vector<IplImage*> inputImage;
+std::vector<windage::ReconstructionPoint> reconstructionPoints;
+std::vector<windage::Calibration*> calibrationList;
 
-windage::Calibration* initialCalibration;
-windage::Reconstruction::IncrementalReconstruction* reconstructor;
 windage::Logger* logging;
-double SCALE = 50.0;
 
 class CRenderSceneNode : public irr::scene::ISceneNode
 {
@@ -90,27 +72,25 @@ public:
 	CRenderSceneNode(irr::scene::ISceneNode* parent, irr::scene::ISceneManager* mgr, irr::s32 id)
 		: irr::scene::ISceneNode(parent, mgr, id)
 	{
-		Material.Wireframe = false;
-		Material.Lighting = false;
+		this->Material.Wireframe = false;
+		this->Material.Lighting = false;
 
-		std::vector<windage::ReconstructionPoint>* reconstructionPoints = reconstructor->GetReconstructedPoint();
-		size = reconstructionPoints->size();
-
-		Vertices = new irr::video::S3DVertex[size];
+		this->size = (int)reconstructionPoints.size();
+		this->Vertices = new irr::video::S3DVertex[size];
 		for(int i=0; i<size; i++)
 		{
-			windage::ReconstructionPoint point = (*reconstructionPoints)[i];
+			windage::ReconstructionPoint point = reconstructionPoints[i];
 			windage::Vector4 position = point.GetPoint();
 			CvScalar color = point.GetColor();
 			Vertices[i] = irr::video::S3DVertex(position.x, position.y, position.z, 1, 1, 1, irr::video::SColor(255, color.val[2], color.val[1], color.val[0]), 0, 0);
 		}
 
 		
-		int count = reconstructor->GetCameraParameterCount();
+		int count = (int)calibrationList.size();
 		this->cameras.resize(count);
 		for(int i=0; i<count; i++)
 		{
-			windage::Calibration* calibration = reconstructor->GetCameraParameter(i);
+			windage::Calibration* calibration = calibrationList[i];
 
 			CvScalar pt = calibration->GetCameraPosition();
 			CvScalar at = calibration->GetLookAt();
@@ -206,106 +186,18 @@ public:
 
 int main()
 {
-	// reconstruction
-	std::vector<IplImage*> grayImage;
-	inputImage.resize(IMAGE_FILE_COUNT);
-	grayImage.resize(IMAGE_FILE_COUNT);
-
-	std::vector<std::vector<windage::FeaturePoint>> featurePoint;
-	featurePoint.resize(IMAGE_FILE_COUNT);
-
-	std::vector<std::vector<windage::FeaturePoint>> matchedPoint;
-	matchedPoint.resize((IMAGE_FILE_COUNT-1)*2);
-
-	logging = new windage::Logger(&std::cout);
-	logging->log("initialize"); logging->logNewLine();
-
-	initialCalibration = new windage::Calibration();
-	initialCalibration->Initialize(INTRINSIC_VALUES[0], INTRINSIC_VALUES[1], INTRINSIC_VALUES[2], INTRINSIC_VALUES[3]);
-
-	reconstructor = new windage::Reconstruction::IncrementalReconstruction();
-	reconstructor->SetConfidence(0.9995);
-	reconstructor->SetMaxIteration(2000);
-	reconstructor->SetReprojectionError(2.0);
-
-	reconstructor->AttatchCalibration(initialCalibration);
-
-	windage::Algorithms::SearchTree* tree = new windage::Algorithms::FLANNtree(50);
-	tree->SetRatio(0.6);
-	reconstructor->AttatchSearchTree(tree);
-
-	windage::Algorithms::EPnPRANSACestimator* estimator = new windage::Algorithms::EPnPRANSACestimator();
-//	windage::Algorithms::OpenCVRANSACestimator* estimator = new windage::Algorithms::OpenCVRANSACestimator();
-	estimator->SetConfidence(0.995);
-	estimator->SetMaxIteration(2000);
-	estimator->SetReprojectionError(2.0);
-	reconstructor->AttatchEstimator(estimator);
-
-	logging->logNewLine();
-	logging->log("load image & feature extract - matching"); logging->logNewLine();
-
-	char filename[100];
-	int index = 0;
-	for(int i=START_INDEX; i<IMAGE_FILE_COUNT+START_INDEX; i++)
-	{
-		sprintf_s(filename, IMAGE_FILE_NAME, i);
-		inputImage[index] = cvLoadImage(filename);
-		grayImage[index] = cvCreateImage(cvGetSize(inputImage[index]), IPL_DEPTH_8U, 1);
-
-		cvCvtColor(inputImage[index], grayImage[index], CV_BGR2GRAY);
-
-		logging->log("\tload image "); logging->log(index); logging->log(" : "); logging->log(filename); logging->logNewLine();
-		index++;
-	}
-
-	logging->logNewLine();
-	logging->log("\tfeature extract"); logging->logNewLine();
-
-	#pragma omp parallel for
-	for(int i=0; i<IMAGE_FILE_COUNT; i++)
-	{
-		windage::Algorithms::FeatureDetector* detector = new windage::Algorithms::SIFTdetector();
-//		detector->SetThreshold(500.0);
-		detector->DoExtractKeypointsDescriptor(grayImage[i]);
-		std::vector<windage::FeaturePoint>* temp = detector->GetKeypoints();
-
-		featurePoint[i].clear();
-		for(unsigned int j=0; j<temp->size(); j++)
-		{
-			(*temp)[j].SetColor(cvGet2D(inputImage[i], (*temp)[j].GetPoint().y, (*temp)[j].GetPoint().x));
-			featurePoint[i].push_back((*temp)[j]);
-		}
-
-		delete detector;
-		logging->log("\tkeypoint count "); logging->log(i); logging->log(" : "); logging->log((int)featurePoint[i].size()); logging->logNewLine();
-	}
-
-	logging->logNewLine();
-	logging->log("reconstruction sequence"); logging->logNewLine();
-	for(int i=0; i<IMAGE_FILE_COUNT; i++)
-	{
-		reconstructor->AttatchFeaturePoint(&featurePoint[i]);
-	}
-	reconstructor->CalculateAll();
-	reconstructor->UpdateColor();
-	reconstructor->ResizeScale(SCALE);
-
+	// load data
+	std::cout << "load reconstruction datas" << std::endl;
 	std::cout << std::endl;
 
-	// save data
-	std::cout << "save reconstruction datas" << std::endl;
-	windage::Reconstruction::Exportor exportor;
-	windage::Logger* reconstructionLogger = new windage::Logger("data/reconstruction", "txt", true);
-	exportor.AttatchLogger(reconstructionLogger);
-	exportor.SetReconstructionPoints(reconstructor->GetReconstructedPoint());
-	for(int i=0; i<IMAGE_FILE_COUNT; i++)
-	{
-		exportor.PushCalibration(reconstructor->GetCameraParameter(i));
-	}
-	exportor.DoExport();
-	delete reconstructionLogger;
-	reconstructionLogger = NULL;
+	windage::Reconstruction::Loader* loader = new windage::Reconstruction::Loader();
+	loader->AttatchCalibration(&calibrationList);
+	loader->AttatchReconstructionPoints(&reconstructionPoints);
+	loader->DoLoad("data/reconstruction_2010-03-01_15_35_12.txt");
 
+	std::cout << std::endl;
+	std::cout << "complete load reconstruction datas" << std::endl;
+	std::cout << "reconstruction data count : " << reconstructionPoints.size() << std::endl;
 	std::cout << std::endl;
 
 	// for rendering

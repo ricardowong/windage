@@ -124,6 +124,7 @@ namespace windage
 		void log(char* dataName, int data);
 		void log(char* dataName, double data);
 		void log(char* dataName, float data);
+		void log(const char* data);
 		void log(char* data);
 		void log(char data);
 		void log(int data);
@@ -135,6 +136,7 @@ namespace windage
 		void log(windage::Matrix2 data);
 		void log(windage::Matrix3 data);
 		void log(windage::Matrix4 data);
+		void log(CvScalar data);
 		void log(CvMat* data);
 		/** @} */
 

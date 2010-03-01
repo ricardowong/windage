@@ -148,6 +148,7 @@ namespace windage
 			bool UpdateColor();
 			bool ResizeScale(double scale = 1.0);
 		};
+		/** @} */ // addtogroup Reconstruction
 	}
 }
 
