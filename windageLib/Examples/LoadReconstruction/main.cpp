@@ -54,6 +54,8 @@ const int RENDERING_HEIGHT = (RENDERING_WIDTH * 3) / 4;
 
 std::vector<IplImage*> inputImage;
 std::vector<windage::ReconstructionPoint> reconstructionPoints;
+std::vector<std::string> filenameList;
+std::vector<IplImage*> imageList;
 std::vector<windage::Calibration*> calibrationList;
 
 windage::Logger* logging;
@@ -64,9 +66,9 @@ class CRenderSceneNode : public irr::scene::ISceneNode
 	irr::core::aabbox3d<irr::f32> Box;
 	irr::video::S3DVertex* Vertices;
 	std::vector<std::vector<irr::core::vector3df>> cameras;
+	std::vector<irr::video::SMaterial> cameraImages;
 
 	irr::video::SMaterial Material;
-
 public:
 
 	CRenderSceneNode(irr::scene::ISceneNode* parent, irr::scene::ISceneManager* mgr, irr::s32 id)
@@ -75,6 +77,7 @@ public:
 		this->Material.Wireframe = false;
 		this->Material.Lighting = false;
 
+		// draw reconstruction points
 		this->size = (int)reconstructionPoints.size();
 		this->Vertices = new irr::video::S3DVertex[size];
 		for(int i=0; i<size; i++)
@@ -85,9 +88,10 @@ public:
 			Vertices[i] = irr::video::S3DVertex(position.x, position.y, position.z, 1, 1, 1, irr::video::SColor(255, color.val[2], color.val[1], color.val[0]), 0, 0);
 		}
 
-		
+		// draw camera frame
 		int count = (int)calibrationList.size();
 		this->cameras.resize(count);
+		this->cameraImages.resize(count);
 		for(int i=0; i<count; i++)
 		{
 			windage::Calibration* calibration = calibrationList[i];
@@ -112,7 +116,7 @@ public:
 			upVector *= ((double)HEIGHT/2.0) / upVector.getLength();
 			rightVector *= ((double)WIDTH/2.0) / rightVector.getLength();
 
-			double scale = 0.1;
+			double scale = 0.05;
 			lookAt *= scale;
 			upVector *= scale;
 			rightVector *= scale;
@@ -128,6 +132,14 @@ public:
 			this->cameras[i][0] = irr::core::vector3df(cameraPosition.x, cameraPosition.y, cameraPosition.z);
 			for(int k=0; k<4; k++)
 				this->cameras[i][k+1] = irr::core::vector3df(point[k].x, point[k].y, point[k].z);
+
+			// load texture image
+			irr::video::IVideoDriver* driver = SceneManager->getVideoDriver();
+			this->cameraImages[i].setTexture(0, driver->getTexture(filenameList[i].c_str()));
+			this->cameraImages[i].Lighting = false;
+			this->cameraImages[i].Wireframe = false;
+			this->cameraImages[i].FrontfaceCulling = false;
+			
 		}
 	}
 	~CRenderSceneNode()
@@ -148,6 +160,8 @@ public:
 		irr::u16* indices = new irr::u16[size];
 		for(int i=0; i<size; i++)
 			indices[i] = i;
+		irr::u16 cameraIndices1[] = {0,1,2, 2,3,0};
+		irr::u16 cameraIndices2[] = {0,2,1, 2,0,3};
 
 		irr::video::IVideoDriver* driver = SceneManager->getVideoDriver();
 
@@ -163,6 +177,21 @@ public:
 			driver->draw3DLine(this->cameras[i][4], this->cameras[i][1], irr::video::SColor(255, 255, 255, 0));
 			for(int k=0; k<4; k++)
 				driver->draw3DLine(this->cameras[i][0], this->cameras[i][k+1], irr::video::SColor(255, 255, 255, 0));
+		}
+
+		for(unsigned int i=0; i<this->cameras.size(); i++)
+		{
+			irr::video::S3DVertex cameraVertices[4];
+
+			driver->setMaterial(this->cameraImages[i]);
+			driver->setTransform(irr::video::ETS_WORLD, AbsoluteTransformation);
+
+			cameraVertices[0] = irr::video::S3DVertex(this->cameras[i][1].X,this->cameras[i][1].Y,this->cameras[i][1].Z, 1,1,1, irr::video::SColor(255,255,255,255), 0, 0);
+			cameraVertices[1] = irr::video::S3DVertex(this->cameras[i][2].X,this->cameras[i][2].Y,this->cameras[i][2].Z, 1,1,1, irr::video::SColor(255,255,255,255), 1, 0);
+			cameraVertices[2] = irr::video::S3DVertex(this->cameras[i][3].X,this->cameras[i][3].Y,this->cameras[i][3].Z, 1,1,1, irr::video::SColor(255,255,255,255), 1, 1);
+			cameraVertices[3] = irr::video::S3DVertex(this->cameras[i][4].X,this->cameras[i][4].Y,this->cameras[i][4].Z, 1,1,1, irr::video::SColor(255,255,255,255), 0, 1);
+			driver->drawVertexPrimitiveList(&cameraVertices[0], 4, &cameraIndices1[0], 2, irr::video::EVT_STANDARD, irr::scene::EPT_TRIANGLES, irr::video::EIT_16BIT);
+			driver->drawVertexPrimitiveList(&cameraVertices[0], 4, &cameraIndices2[0], 2, irr::video::EVT_STANDARD, irr::scene::EPT_TRIANGLES, irr::video::EIT_16BIT);
 		}
 
 		delete indices;
@@ -192,8 +221,14 @@ int main()
 
 	windage::Reconstruction::Loader* loader = new windage::Reconstruction::Loader();
 	loader->AttatchCalibration(&calibrationList);
+	loader->AttatchFilename(&filenameList);
 	loader->AttatchReconstructionPoints(&reconstructionPoints);
-	loader->DoLoad("data/reconstruction_2010-03-01_15_35_12.txt");
+	loader->DoLoad("data/reconstruction_2010-03-02_14_48_18.txt");
+
+	for(unsigned int i=0; i<filenameList.size(); i++)
+	{
+		imageList.push_back(cvLoadImage(filenameList[i].c_str()));
+	}
 
 	std::cout << std::endl;
 	std::cout << "complete load reconstruction datas" << std::endl;

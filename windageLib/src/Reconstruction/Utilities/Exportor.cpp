@@ -49,11 +49,8 @@ bool Exportor::DoExport()
 		return false;
 	if(calibrationList.size() <= 0)
 		return false;
-	if(imageFileList.size() > 0 && calibrationList.size() != imageFileList.size())
+	if(calibrationList.size() != imageFileList.size())
 		return false;
-	bool saveImageFileData = true;
-	if(imageFileList.size() == 0)
-		saveImageFileData = false;
 
 	this->logger->log("###############################################################################");
 	this->logger->logNewLine();
@@ -92,9 +89,11 @@ bool Exportor::DoExport()
 		this->logger->log(this->calibrationList[i]->GetExtrinsicMatrix());
 		this->logger->logNewLine();
 
-		if(saveImageFileData)
-		{
-		}
+		this->logger->log("# Image file");
+		this->logger->logNewLine();
+		this->logger->log(this->imageFileList[i].c_str());
+		this->logger->logNewLine();
+		this->logger->logNewLine();
 	}
 
 	this->logger->log("########################");
