@@ -45,6 +45,13 @@ using namespace Reconstruction;
 
 bool Loader::DoLoad(const char* filename)
 {
+	if(calibrationList == NULL)
+		return false;
+	if(filenameList == NULL)
+		return false;
+	if(reconstructionPoints == NULL)
+		return false;
+
 	std::ifstream input;
 	input.open(filename);
 	if(!input.is_open())
@@ -73,6 +80,7 @@ bool Loader::DoLoad(const char* filename)
 	windage::Matrix4 extrinsic;
 
 	this->calibrationList->resize(calibrationCount);
+	this->filenameList->resize(calibrationCount);
 	for(int i=0; i<calibrationCount; i++)
 	{
 		input.getline(BUFFER, BUFFER_SIZE); // # camera
@@ -102,6 +110,12 @@ bool Loader::DoLoad(const char* filename)
 		(*calibrationList)[i] = new windage::Calibration();
 		(*calibrationList)[i]->Initialize(intrinsic._11, intrinsic._22, intrinsic._13, intrinsic._23);
 		(*calibrationList)[i]->SetExtrinsicMatrix(extrinsic.m1);
+
+		input.getline(BUFFER, BUFFER_SIZE); // # image file
+		input.getline(BUFFER, BUFFER_SIZE); // data
+		(*filenameList)[i] = std::string(BUFFER);
+		
+		input.getline(BUFFER, BUFFER_SIZE); // 
 	}
 
 

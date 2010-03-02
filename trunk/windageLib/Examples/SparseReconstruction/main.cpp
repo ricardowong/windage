@@ -301,6 +301,9 @@ int main()
 	for(int i=0; i<IMAGE_FILE_COUNT; i++)
 	{
 		exportor.PushCalibration(reconstructor->GetCameraParameter(i));
+		
+		sprintf_s(filename, IMAGE_FILE_NAME, i+START_INDEX);
+		exportor.PushImageFile(std::string(filename));
 	}
 	exportor.DoExport();
 	delete reconstructionLogger;

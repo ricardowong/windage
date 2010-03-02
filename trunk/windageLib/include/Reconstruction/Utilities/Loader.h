@@ -78,12 +78,14 @@ namespace windage
 		{
 		private:
 			std::vector<windage::Calibration*>* calibrationList;
+			std::vector<std::string>* filenameList;
 			std::vector<windage::ReconstructionPoint>* reconstructionPoints;
 
 		public:
 			Loader()
 			{
 				calibrationList = NULL;
+				filenameList = NULL;
 				reconstructionPoints = NULL;
 			}
 			~Loader()
@@ -91,6 +93,7 @@ namespace windage
 			}
 
 			inline void AttatchCalibration(std::vector<windage::Calibration*>* calibration){this->calibrationList = calibration;};
+			inline void AttatchFilename(std::vector<std::string>* filename){this->filenameList = filename;};
 			inline void AttatchReconstructionPoints(std::vector<windage::ReconstructionPoint>* reconstructionPoints){this->reconstructionPoints = reconstructionPoints;};
 			
 			bool DoLoad(const char* filename="");
