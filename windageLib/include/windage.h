@@ -64,6 +64,7 @@
 #include "Algorithms/FeatureDetector.h"
 #include "Algorithms/SURFdetector.h"
 #include "Algorithms/SIFTdetector.h"
+#include "Algorithms/SIFTGPUdetector.h"
 #include "Algorithms/WSURFdetector.h"
 
 // matcher

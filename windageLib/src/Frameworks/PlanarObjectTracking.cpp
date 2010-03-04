@@ -168,7 +168,7 @@ bool PlanarObjectTracking::UpdateCamerapose(IplImage* grayImage)
 		}
 	}
 
-	if(this->step > this->detectionRatio) // detection routine (add new points)
+	if(this->step > this->detectionRatio || this->detectionRatio < 1) // detection routine (add new points)
 	{
 		step = 0;
 		this->detector->DoExtractKeypointsDescriptor(grayImage);
@@ -181,7 +181,7 @@ bool PlanarObjectTracking::UpdateCamerapose(IplImage* grayImage)
 			if(0 <= index && index < this->referenceRepository.size())
 			{
 				// if not tracked have point
-				if(this->referenceRepository[index].IsTracked() == false)
+				if(this->referenceRepository[index].IsTracked() == false || this->detectionRatio < 1)
 				{
 					this->referenceRepository[index].SetTracked(true);
 
