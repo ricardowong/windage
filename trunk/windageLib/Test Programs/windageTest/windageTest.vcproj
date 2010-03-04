@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../include&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.0/include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../include&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.0/include&quot;;&quot;$(SolutionDir)../../component/SiftGPU-V340/include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -120,7 +120,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../include&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.0/include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../include&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.0/include&quot;;&quot;$(SolutionDir)../../component/SiftGPU-V340/include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -140,9 +140,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="cv200.lib cxcore200.lib highgui200.lib"
+				AdditionalDependencies="cv200.lib cxcore200.lib highgui200.lib SIFTGPU.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;$(SolutionDir)../../lib/&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.0/lib/&quot;"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)../../lib/&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.0/lib/&quot;;&quot;$(SolutionDir)../../component/SiftGPU-V340/lib/&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"

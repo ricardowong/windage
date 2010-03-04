@@ -48,9 +48,10 @@ const int WIDTH = 640;
 const int HEIGHT = (WIDTH * 3) / 4;
 const int FEATURE_COUNT = WIDTH;
 
-const double SCALE_FACTOR = 4.0;
-const int SCALE_STEP = 8;
+const double SCALE_FACTOR = 1.0;
+const int SCALE_STEP = 1;
 
+#define USE_ADAPTIVE_THRESHOLD 0
 #define USE_TEMPLATE_IMAEG 1
 const char* TEMPLATE_IMAGE = "reference.png";
 
@@ -78,7 +79,7 @@ void main()
 	windage::Algorithms::KalmanFilter* filter;
 
 	calibration = new windage::Calibration();
-	detector = new windage::Algorithms::WSURFdetector();
+	detector = new windage::Algorithms::SIFTGPUdetector();
 	searchtree = new windage::Algorithms::FLANNtree();
 	opticalflow = new windage::Algorithms::OpticalFlow();
 	estimator = new windage::Algorithms::ProSACestimator();
@@ -143,6 +144,7 @@ void main()
 			tracking.UpdateCamerapose(grayImage);
 
 			// adaptive threshold
+#if USE_ADAPTIVE_THRESHOLD
 			int localcount = detector->GetKeypointsCount();
 			if(keypointCount != localcount)
 			{
@@ -153,7 +155,7 @@ void main()
 				detector->SetThreshold(threshold);
 				keypointCount = localcount;
 			}
-
+#endif
 			// draw result
 //			detector->DrawKeypoints(resultImage);
 			tracking.DrawDebugInfo(resultImage);
