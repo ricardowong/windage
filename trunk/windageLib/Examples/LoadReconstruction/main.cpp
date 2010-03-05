@@ -47,6 +47,9 @@
 #include <windage.h>
 #include "../Common/OpenGLRenderer.h"
 
+//const char* FILE_NAME = "data/reconstruction_2010-03-05_09_10_47.txt";
+const char* FILE_NAME = "data/reconstruction_2010-03-05_15_18_25.txt";
+
 const int WIDTH = 640;
 const int HEIGHT = (WIDTH * 3) / 4;
 const int RENDERING_WIDTH = 640;
@@ -58,7 +61,40 @@ std::vector<std::string> filenameList;
 std::vector<IplImage*> imageList;
 std::vector<windage::Calibration*> calibrationList;
 
+int selectedCamera = -1;
+
 windage::Logger* logging;
+
+class MyEventReceiver : public irr::IEventReceiver
+{
+public:
+	// This is the one method that we have to implement
+	virtual bool OnEvent(const irr::SEvent& event)
+	{
+		// Remember whether each key is down or up
+		if (event.EventType == irr::EET_KEY_INPUT_EVENT)
+			KeyIsDown[event.KeyInput.Key] = event.KeyInput.PressedDown;
+
+		return false;
+	}
+
+	// This is used to check whether a key is being held down
+	virtual bool IsKeyDown(irr::EKEY_CODE keyCode) const
+	{
+		return KeyIsDown[keyCode];
+	}
+	
+	MyEventReceiver()
+	{
+		for (irr::u32 i=0; i<irr::KEY_KEY_CODES_COUNT; ++i)
+			KeyIsDown[i] = false;
+	}
+
+private:
+	// We use this array to store the current state of each key
+	bool KeyIsDown[irr::KEY_KEY_CODES_COUNT];
+};
+
 
 class CRenderSceneNode : public irr::scene::ISceneNode
 {
@@ -155,9 +191,21 @@ public:
 		ISceneNode::OnRegisterSceneNode();
 	}
 
+	void setTransparent()
+	{
+		for(int i=0; i<(int)calibrationList.size(); i++)
+			this->cameraImages[i].MaterialType = irr::video::EMT_TRANSPARENT_ADD_COLOR;
+	}
+
+	void resetTransparent()
+	{
+		for(int i=0; i<(int)calibrationList.size(); i++)
+			this->cameraImages[i].MaterialType = irr::video::EMT_SOLID;
+	}
+
 	virtual void render()
 	{
-		irr::u16* indices = new irr::u16[size];
+		irr::u32* indices = new irr::u32[size];
 		for(int i=0; i<size; i++)
 			indices[i] = i;
 		irr::u16 cameraIndices1[] = {0,1,2, 2,3,0};
@@ -167,29 +215,55 @@ public:
 
 		driver->setMaterial(Material);
 		driver->setTransform(irr::video::ETS_WORLD, AbsoluteTransformation);
-		driver->drawVertexPrimitiveList(&Vertices[0], size, &indices[0], size, irr::video::EVT_STANDARD, irr::scene::EPT_POINTS, irr::video::EIT_16BIT);
+		driver->drawVertexPrimitiveList(&Vertices[0], size, &indices[0], size, irr::video::EVT_STANDARD, irr::scene::EPT_POINTS, irr::video::EIT_32BIT);
 
-		for(unsigned int i=0; i<this->cameras.size(); i++)
+		if(selectedCamera < 0)
 		{
+			for(unsigned int i=0; i<this->cameras.size(); i++)
+			{
+				driver->draw3DLine(this->cameras[i][1], this->cameras[i][2], irr::video::SColor(255, 255, 255, 0));
+				driver->draw3DLine(this->cameras[i][2], this->cameras[i][3], irr::video::SColor(255, 255, 255, 0));
+				driver->draw3DLine(this->cameras[i][3], this->cameras[i][4], irr::video::SColor(255, 255, 255, 0));
+				driver->draw3DLine(this->cameras[i][4], this->cameras[i][1], irr::video::SColor(255, 255, 255, 0));
+				for(int k=0; k<4; k++)
+					driver->draw3DLine(this->cameras[i][0], this->cameras[i][k+1], irr::video::SColor(255, 255, 255, 0));
+			}
+
+			for(unsigned int i=0; i<this->cameras.size(); i++)
+			{
+				irr::video::S3DVertex cameraVertices[4];
+
+				driver->setMaterial(this->cameraImages[i]);
+				driver->setTransform(irr::video::ETS_WORLD, AbsoluteTransformation);
+
+				cameraVertices[0] = irr::video::S3DVertex(this->cameras[i][1].X,this->cameras[i][1].Y,this->cameras[i][1].Z, 1,1,1, irr::video::SColor(255,255,255,255), 0, 0);
+				cameraVertices[1] = irr::video::S3DVertex(this->cameras[i][2].X,this->cameras[i][2].Y,this->cameras[i][2].Z, 1,1,1, irr::video::SColor(255,255,255,255), 1, 0);
+				cameraVertices[2] = irr::video::S3DVertex(this->cameras[i][3].X,this->cameras[i][3].Y,this->cameras[i][3].Z, 1,1,1, irr::video::SColor(255,255,255,255), 1, 1);
+				cameraVertices[3] = irr::video::S3DVertex(this->cameras[i][4].X,this->cameras[i][4].Y,this->cameras[i][4].Z, 1,1,1, irr::video::SColor(255,255,255,255), 0, 1);
+				driver->drawVertexPrimitiveList(&cameraVertices[0], 4, &cameraIndices1[0], 2, irr::video::EVT_STANDARD, irr::scene::EPT_TRIANGLES, irr::video::EIT_16BIT);
+				driver->drawVertexPrimitiveList(&cameraVertices[0], 4, &cameraIndices2[0], 2, irr::video::EVT_STANDARD, irr::scene::EPT_TRIANGLES, irr::video::EIT_16BIT);
+			}
+		}
+		else
+		{
+			int i = selectedCamera;
 			driver->draw3DLine(this->cameras[i][1], this->cameras[i][2], irr::video::SColor(255, 255, 255, 0));
 			driver->draw3DLine(this->cameras[i][2], this->cameras[i][3], irr::video::SColor(255, 255, 255, 0));
 			driver->draw3DLine(this->cameras[i][3], this->cameras[i][4], irr::video::SColor(255, 255, 255, 0));
 			driver->draw3DLine(this->cameras[i][4], this->cameras[i][1], irr::video::SColor(255, 255, 255, 0));
 			for(int k=0; k<4; k++)
 				driver->draw3DLine(this->cameras[i][0], this->cameras[i][k+1], irr::video::SColor(255, 255, 255, 0));
-		}
 
-		for(unsigned int i=0; i<this->cameras.size(); i++)
-		{
 			irr::video::S3DVertex cameraVertices[4];
 
-			driver->setMaterial(this->cameraImages[i]);
+				driver->setMaterial(this->cameraImages[i]);
 			driver->setTransform(irr::video::ETS_WORLD, AbsoluteTransformation);
 
-			cameraVertices[0] = irr::video::S3DVertex(this->cameras[i][1].X,this->cameras[i][1].Y,this->cameras[i][1].Z, 1,1,1, irr::video::SColor(255,255,255,255), 0, 0);
-			cameraVertices[1] = irr::video::S3DVertex(this->cameras[i][2].X,this->cameras[i][2].Y,this->cameras[i][2].Z, 1,1,1, irr::video::SColor(255,255,255,255), 1, 0);
-			cameraVertices[2] = irr::video::S3DVertex(this->cameras[i][3].X,this->cameras[i][3].Y,this->cameras[i][3].Z, 1,1,1, irr::video::SColor(255,255,255,255), 1, 1);
-			cameraVertices[3] = irr::video::S3DVertex(this->cameras[i][4].X,this->cameras[i][4].Y,this->cameras[i][4].Z, 1,1,1, irr::video::SColor(255,255,255,255), 0, 1);
+			int value = 200;
+			cameraVertices[0] = irr::video::S3DVertex(this->cameras[i][1].X,this->cameras[i][1].Y,this->cameras[i][1].Z, 1,1,1, irr::video::SColor(255, value,value,value), 0, 0);
+			cameraVertices[1] = irr::video::S3DVertex(this->cameras[i][2].X,this->cameras[i][2].Y,this->cameras[i][2].Z, 1,1,1, irr::video::SColor(255, value,value,value), 1, 0);
+			cameraVertices[2] = irr::video::S3DVertex(this->cameras[i][3].X,this->cameras[i][3].Y,this->cameras[i][3].Z, 1,1,1, irr::video::SColor(255, value,value,value), 1, 1);
+			cameraVertices[3] = irr::video::S3DVertex(this->cameras[i][4].X,this->cameras[i][4].Y,this->cameras[i][4].Z, 1,1,1, irr::video::SColor(255, value,value,value), 0, 1);
 			driver->drawVertexPrimitiveList(&cameraVertices[0], 4, &cameraIndices1[0], 2, irr::video::EVT_STANDARD, irr::scene::EPT_TRIANGLES, irr::video::EIT_16BIT);
 			driver->drawVertexPrimitiveList(&cameraVertices[0], 4, &cameraIndices2[0], 2, irr::video::EVT_STANDARD, irr::scene::EPT_TRIANGLES, irr::video::EIT_16BIT);
 		}
@@ -223,7 +297,7 @@ int main()
 	loader->AttatchCalibration(&calibrationList);
 	loader->AttatchFilename(&filenameList);
 	loader->AttatchReconstructionPoints(&reconstructionPoints);
-	loader->DoLoad("data/reconstruction_2010-03-02_14_48_18.txt");
+	loader->DoLoad(FILE_NAME);
 
 	for(unsigned int i=0; i<filenameList.size(); i++)
 	{
@@ -236,7 +310,8 @@ int main()
 	std::cout << std::endl;
 
 	// for rendering
-	irr::IrrlichtDevice* device = irr::createDevice( irr::video::EDT_DIRECT3D9, irr::core::dimension2d<irr::u32>(640, 480), 16, false, false, false, 0);
+	MyEventReceiver receiver;
+	irr::IrrlichtDevice* device = irr::createDevice( irr::video::EDT_DIRECT3D9, irr::core::dimension2d<irr::u32>(640, 480), 16, false, false, false, &receiver);
 	if (!device) return 1;
 
 	device->setWindowCaption(L"Spatial Reconstruction");
@@ -247,9 +322,10 @@ int main()
 	camera->setPosition(irr::core::vector3df(100, 100, 100));
 
 	CRenderSceneNode *myNode = new CRenderSceneNode(smgr->getRootSceneNode(), smgr, 666);
-	myNode->drop();
-	myNode = 0;
+//	myNode->drop();
+//	myNode = 0;
 
+	
 	irr::u32 frames=0;
 	while(device->run())
 	if (device->isWindowActive())
@@ -267,6 +343,60 @@ int main()
 
 			device->setWindowCaption(str.c_str());
 			frames=0;
+		}
+
+		if(receiver.IsKeyDown(irr::KEY_KEY_Q))
+		{
+			selectedCamera = -1;
+			smgr->addCameraSceneNodeMaya();
+
+			myNode->resetTransparent();
+		}
+		else if(receiver.IsKeyDown(irr::KEY_KEY_A))
+		{
+			selectedCamera++;
+			if(selectedCamera >= (int)calibrationList.size())
+				selectedCamera = 0;
+
+			CvScalar pt = calibrationList[selectedCamera]->GetCameraPosition();
+			CvScalar at = calibrationList[selectedCamera]->GetLookAt();
+			CvScalar up = calibrationList[selectedCamera]->GetUpPoint();
+
+			windage::Vector3 cameraPosition	= windage::Vector3(pt.val[0], pt.val[1], pt.val[2]);
+			windage::Vector3 lookAt			= windage::Vector3(at.val[0], at.val[1], at.val[2]);
+			windage::Vector3 upVector		= windage::Vector3(up.val[0], up.val[1], up.val[2]);
+
+			upVector -= cameraPosition;
+			upVector /= upVector.getLength();
+
+			smgr->addCameraSceneNode(0, irr::core::vector3df(cameraPosition.x, cameraPosition.y, cameraPosition.z), 
+										irr::core::vector3df(lookAt.x, lookAt.y, lookAt.z));
+			smgr->getActiveCamera()->setUpVector(irr::core::vector3df(upVector.x, upVector.y, upVector.z));
+
+			myNode->setTransparent();
+		}
+		else if(receiver.IsKeyDown(irr::KEY_KEY_Z))
+		{
+			selectedCamera--;
+			if(0 > selectedCamera)
+				selectedCamera = (int)calibrationList.size() - 1;
+
+			CvScalar pt = calibrationList[selectedCamera]->GetCameraPosition();
+			CvScalar at = calibrationList[selectedCamera]->GetLookAt();
+			CvScalar up = calibrationList[selectedCamera]->GetUpPoint();
+
+			windage::Vector3 cameraPosition	= windage::Vector3(pt.val[0], pt.val[1], pt.val[2]);
+			windage::Vector3 lookAt			= windage::Vector3(at.val[0], at.val[1], at.val[2]);
+			windage::Vector3 upVector		= windage::Vector3(up.val[0], up.val[1], up.val[2]);
+
+			upVector -= cameraPosition;
+			upVector /= upVector.getLength();
+
+			smgr->addCameraSceneNode(0, irr::core::vector3df(cameraPosition.x, cameraPosition.y, cameraPosition.z), 
+										irr::core::vector3df(lookAt.x, lookAt.y, lookAt.z));
+			smgr->getActiveCamera()->setUpVector(irr::core::vector3df(upVector.x, upVector.y, upVector.z));
+
+			myNode->setTransparent();
 		}
 	}
 
