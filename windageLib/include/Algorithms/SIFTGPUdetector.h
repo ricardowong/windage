@@ -92,11 +92,12 @@ namespace windage
 				sift = NULL;
 				sift = CreateNewSiftGPU(numberOfPyramid);
 				sift->SetVerbose(0);
+				sift->VerifyContextGL();
 				sift->CreateContextGL();
 			}
 			~SIFTGPUdetector()
 			{
-				if(sift) delete sift;
+				if(sift != NULL) delete sift;
 			}
 
 			/**

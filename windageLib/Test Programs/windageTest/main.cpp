@@ -46,6 +46,7 @@
 #include "FeaturePointTest.h"
 #include "SURFdetectorTest.h"
 #include "SIFTdetectorTest.h"
+#include "SIFTGPUdetectorTest.h"
 #include "WSURFdetectorTest.h"
 
 #include "KDtreeTest.h"
@@ -82,6 +83,7 @@ void main()
 	FeaturePointTest testFeaturePoint;
 	SURFdetectorTest testSURFdetector;
 	SIFTdetectorTest testSIFTdetector;
+	SIFTGPUdetectorTest testSIFTGPUdetector;
 	WSURFdetectorTest testWSURFdetector;
 
 	KDtreeTest testKDtree;

@@ -48,7 +48,8 @@
 #include "../Common/OpenGLRenderer.h"
 
 #define RECONSTRUCTION_TEST 0
-#define RECONSTRUCTION_TEMPLE 1
+#define RECONSTRUCTION_TEMPLE 0
+#define RECONSTRUCTION_MINIATURE 1
 
 const int WIDTH = 640;
 const int HEIGHT = (WIDTH * 3) / 4;
@@ -67,6 +68,13 @@ const int START_INDEX = 1;
 const int IMAGE_FILE_COUNT = 45;
 const double INTRINSIC_VALUES[8] = {1520.40, 1525.90, 302.32, 246.87, 0, 0, 0, 0};
 const char* IMAGE_FILE_NAME = "templeOrder/templeR%04d.png";
+#endif
+
+#if RECONSTRUCTION_MINIATURE
+const int START_INDEX = 1;
+const int IMAGE_FILE_COUNT = 79;
+const double INTRINSIC_VALUES[8] = {608.894958, 609.015991, 295.023712, 254.171387, 0, 0, 0, 0};
+const char* IMAGE_FILE_NAME = "Miniature/result.imgr%d_COL.jpg";
 #endif
 
 std::vector<IplImage*> inputImage;
@@ -165,7 +173,7 @@ public:
 
 	virtual void render()
 	{
-		irr::u16* indices = new irr::u16[size];
+		irr::u32* indices = new irr::u32[size];
 		for(int i=0; i<size; i++)
 			indices[i] = i;
 
@@ -173,7 +181,7 @@ public:
 
 		driver->setMaterial(Material);
 		driver->setTransform(irr::video::ETS_WORLD, AbsoluteTransformation);
-		driver->drawVertexPrimitiveList(&Vertices[0], size, &indices[0], size, irr::video::EVT_STANDARD, irr::scene::EPT_POINTS, irr::video::EIT_16BIT);
+		driver->drawVertexPrimitiveList(&Vertices[0], size, &indices[0], size, irr::video::EVT_STANDARD, irr::scene::EPT_POINTS, irr::video::EIT_32BIT);
 
 		for(unsigned int i=0; i<this->cameras.size(); i++)
 		{
@@ -226,19 +234,19 @@ int main()
 	reconstructor = new windage::Reconstruction::IncrementalReconstruction();
 	reconstructor->SetConfidence(0.9995);
 	reconstructor->SetMaxIteration(2000);
-	reconstructor->SetReprojectionError(2.0);
+	reconstructor->SetReprojectionError(3.0);
 
 	reconstructor->AttatchCalibration(initialCalibration);
 
-	windage::Algorithms::SearchTree* tree = new windage::Algorithms::FLANNtree(50);
-	tree->SetRatio(0.6);
+	windage::Algorithms::SearchTree* tree = new windage::Algorithms::FLANNtree(100);
+	tree->SetRatio(0.5);
 	reconstructor->AttatchSearchTree(tree);
 
 	windage::Algorithms::EPnPRANSACestimator* estimator = new windage::Algorithms::EPnPRANSACestimator();
 //	windage::Algorithms::OpenCVRANSACestimator* estimator = new windage::Algorithms::OpenCVRANSACestimator();
-	estimator->SetConfidence(0.995);
+	estimator->SetConfidence(0.9995);
 	estimator->SetMaxIteration(2000);
-	estimator->SetReprojectionError(2.0);
+	estimator->SetReprojectionError(3.0);
 	reconstructor->AttatchEstimator(estimator);
 
 	logging->logNewLine();
