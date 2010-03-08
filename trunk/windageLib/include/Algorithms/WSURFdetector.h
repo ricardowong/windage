@@ -85,7 +85,7 @@ namespace windage
 		private:
 
 		public:
-			WSURFdetector(double threshold = 45.0) : FeatureDetector()
+			WSURFdetector(double threshold = 30.0) : FeatureDetector()
 			{
 				this->threshold = threshold;
 			}

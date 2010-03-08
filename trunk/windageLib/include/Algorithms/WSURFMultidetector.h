@@ -38,24 +38,24 @@
  * ======================================================================== */
 
 /**
- * @file	SIFTGPUdetector.h
+ * @file	WSURFMultidetector.h
  * @author	Woonhyuk Baek
- * @version 2.0
- * @date	2010.03.04
- * @brief	It is SIFT feature detection & description class using GPU
+ * @version 1.0
+ * @date	2010.02.04
+ * @brief	It is windage SURF feature detection & description class
  */
 
-#ifndef _SIFT_GPU_DETECTOR_H_
-#define _SIFT_GPU_DETECTOR_H_
+#ifndef _WINDAGE_SURF_MULTI_DETECTOR_H_
+#define _WINDAGE_SURF_MULTI_DETECTOR_H_
 
 #include <vector>
 
 #include <cv.h>
-#include <SiftGPU.h>
-
 #include "base.h"
+
 #include "Structures/Vector.h"
 #include "Algorithms/FeatureDetector.h"
+#include "Algorithms/WSURFdetector.h"
 
 namespace windage
 {
@@ -78,32 +78,59 @@ namespace windage
 		 */
 
 		/**
-		 * @brief	Class for SIFT GPU feature detector
+		 * @brief	Class for windage SURF feature detector
 		 * @author	Woonhyuk Baek
 		 */
-		class DLLEXPORT SIFTGPUdetector : public FeatureDetector
+		class DLLEXPORT WSURFMultidetector : public FeatureDetector
 		{
 		private:
-			SiftGPU* sift;
+			int width;
+			int height;
+			double scaleFactor;
+			int scaleStep;
+
+			std::vector<int> size;
+			std::vector<double> xScale;
+			std::vector<double> yScale;
+
+			std::vector<IplImage*> resizeImage;
 
 		public:
-			SIFTGPUdetector(int numberOfPyramid = 1) : FeatureDetector()
+			WSURFMultidetector(int width, int height, double scaleFactor = 2.0, int scaleStep = 4, double threshold = 45.0) : FeatureDetector()
 			{
-				sift = NULL;
-				sift = CreateNewSiftGPU(numberOfPyramid);
-				sift->SetVerbose(0);
-//				sift->VerifyContextGL();
-				sift->CreateContextGL();
+				this->width = width;
+				this->height = height;
+				this->scaleFactor = scaleFactor;
+				this->scaleStep = scaleStep;
+				this->threshold = threshold;
+
+				double size = 15.0 / scaleFactor;
+				double dx = (double)width / scaleFactor;
+				double dy = (double)height / scaleFactor;
+				for(int y=1; y<=scaleStep; y++)
+				{
+					for(int x=1; x<=scaleStep; x++)
+					{
+						this->size.push_back((int)size * MAX(x, y));
+						this->xScale.push_back((double)width / (dx * x));
+						this->yScale.push_back((double)height / (dy * y));
+						this->resizeImage.push_back(cvCreateImage(cvSize(cvRound(dx * x), cvRound(dy * y)), IPL_DEPTH_8U, 1));
+					}
+				}
 			}
-			~SIFTGPUdetector()
+			~WSURFMultidetector()
 			{
-				if(sift != NULL) delete sift;
+				for(unsigned int i=0; i<this->resizeImage.size(); i++)
+				{
+					cvReleaseImage(&this->resizeImage[i]);
+				}
+				this->resizeImage.clear();
 			}
 
 			/**
 			 * @fn	DoExtractKeypointsDescriptor
 			 * @brief
-			 *		implemantation of SIFT feature extraction & description
+			 *		implemantation of windage SURF feature extraction & description
 			 * @remark
 			 *		the result is depend on threshold (member valuable)
 			 * @warning
@@ -117,4 +144,4 @@ namespace windage
 		/** @} */ // addtogroup Algorithms
 	}
 }
-#endif // _SIFT_DETECTOR_H_
+#endif // _WINDAGE_SURF_DETECTOR_H_

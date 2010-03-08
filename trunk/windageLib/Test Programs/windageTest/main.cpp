@@ -48,6 +48,7 @@
 #include "SIFTdetectorTest.h"
 #include "SIFTGPUdetectorTest.h"
 #include "WSURFdetectorTest.h"
+#include "WSURFMultidetectorTest.h"
 
 #include "KDtreeTest.h"
 #include "SpilltreeTest.h"
@@ -85,6 +86,7 @@ void main()
 	SIFTdetectorTest testSIFTdetector;
 	SIFTGPUdetectorTest testSIFTGPUdetector;
 	WSURFdetectorTest testWSURFdetector;
+	WSURFMultidetectorTest testWSURFMultidetector;
 
 	KDtreeTest testKDtree;
 	SpilltreeTest testSpilltree;

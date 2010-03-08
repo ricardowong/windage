@@ -66,6 +66,7 @@
 #include "Algorithms/SIFTdetector.h"
 #include "Algorithms/SIFTGPUdetector.h"
 #include "Algorithms/WSURFdetector.h"
+#include "Algorithms/WSURFMultidetector.h"
 
 // matcher
 #include "Algorithms/SearchTree.h"
