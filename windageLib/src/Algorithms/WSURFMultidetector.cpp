@@ -37,84 +37,51 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-/**
- * @file	SIFTGPUdetector.h
- * @author	Woonhyuk Baek
- * @version 2.0
- * @date	2010.03.04
- * @brief	It is SIFT feature detection & description class using GPU
- */
-
-#ifndef _SIFT_GPU_DETECTOR_H_
-#define _SIFT_GPU_DETECTOR_H_
-
 #include <vector>
 
-#include <cv.h>
-#include <SiftGPU.h>
+#include "Algorithms/WSURFMultidetector.h"
+#include "Structures/WSURFpoint.h"
 
-#include "base.h"
-#include "Structures/Vector.h"
-#include "Algorithms/FeatureDetector.h"
+#include "Algorithms/windageSURF/fast.h"
+#include "Algorithms/windageSURF/wsurf.h"
+#include "Algorithms/windageSURF/wfastsurf.h"
 
-namespace windage
+#include "Algorithms/WSURFdetector.h"
+
+using namespace windage;
+using namespace windage::Algorithms;
+
+bool WSURFMultidetector::DoExtractKeypointsDescriptor(IplImage* grayImage)
 {
-	namespace Algorithms
+	if(grayImage == NULL)
+		return false;
+	if(grayImage->nChannels != 1)
+		return false;
+
+	this->keypoints.clear();
+
+	windage::Algorithms::WSURFdetector* singleDetector = new windage::Algorithms::WSURFdetector();
+	singleDetector->SetThreshold(this->threshold);
+
+	for(unsigned int i=0; i<this->resizeImage.size(); i++)
 	{
-		/**
-		 * @defgroup Algorithms Algorithm classes
-		 * @brief
-		 *		algorithm classes
-		 * @addtogroup Algorithms
-		 * @{
-		 */
+		cvResize(grayImage, this->resizeImage[i]);
+		singleDetector->DoExtractKeypointsDescriptor(this->resizeImage[i]);
 
-		/**
-		 * @defgroup AlgorithmsFeatureDetector Feature Detector
-		 * @brief
-				feature detector algorithm classes
-		 * @addtogroup AlgorithmsFeatureDetector
-		 * @{
-		 */
-
-		/**
-		 * @brief	Class for SIFT GPU feature detector
-		 * @author	Woonhyuk Baek
-		 */
-		class DLLEXPORT SIFTGPUdetector : public FeatureDetector
+		std::vector<windage::FeaturePoint>* singlePoints = singleDetector->GetKeypoints();
+		for(unsigned int j=0; j<singlePoints->size(); j++)
 		{
-		private:
-			SiftGPU* sift;
+			(*singlePoints)[j].SetSize(this->size[i]);
+			windage::Vector3 pt = (*singlePoints)[j].GetPoint();
+			pt.x *= this->xScale[i];
+			pt.y *= this->yScale[i];
+			(*singlePoints)[j].SetPoint(pt);
 
-		public:
-			SIFTGPUdetector(int numberOfPyramid = 1) : FeatureDetector()
-			{
-				sift = NULL;
-				sift = CreateNewSiftGPU(numberOfPyramid);
-				sift->SetVerbose(0);
-//				sift->VerifyContextGL();
-				sift->CreateContextGL();
-			}
-			~SIFTGPUdetector()
-			{
-				if(sift != NULL) delete sift;
-			}
-
-			/**
-			 * @fn	DoExtractKeypointsDescriptor
-			 * @brief
-			 *		implemantation of SIFT feature extraction & description
-			 * @remark
-			 *		the result is depend on threshold (member valuable)
-			 * @warning
-			 *		input image is always gray image (1-channel)
-			 * @return
-			 *		success or failure
-			 */
-			bool DoExtractKeypointsDescriptor(IplImage* grayImage);
-		};
-		/** @} */ // addtogroup AlgorithmsFeatureDetector
-		/** @} */ // addtogroup Algorithms
+			this->keypoints.push_back((*singlePoints)[j]);
+		}
 	}
+
+	delete singleDetector;
+
+	return true;
 }
-#endif // _SIFT_DETECTOR_H_

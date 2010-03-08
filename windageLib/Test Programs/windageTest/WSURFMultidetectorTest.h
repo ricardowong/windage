@@ -41,21 +41,22 @@
 #include <highgui.h>
 
 #include "windageTest.h"
-#include "Algorithms/SIFTGPUdetector.h"
+#include "Algorithms/WSURFMultidetector.h"
 #include "Utilities/Utils.h"
 
-class SIFTGPUdetectorTest : public windageTest
+class WSURFMultidetectorTest : public windageTest
 {
 private:
+	CvSize imageSize;
 	IplImage* grayImage;
 
 public:
-	SIFTGPUdetectorTest() : windageTest("SIFTGPUdetector Test", "SIFTGPUdetector")
+	WSURFMultidetectorTest() : windageTest("Windage SURFMultidetectorTest Test", "WindageSURFMultidetectorTest")
 	{
 		grayImage = NULL;
 		this->Do();
 	}
-	~SIFTGPUdetectorTest()
+	~WSURFMultidetectorTest()
 	{
 		if(grayImage) cvReleaseImage(&grayImage);
 		grayImage = NULL;
@@ -68,6 +69,8 @@ public:
 		grayImage = cvCreateImage(cvGetSize(testImage), IPL_DEPTH_8U, 1);
 		resultImage = cvCreateImage(cvGetSize(testImage), IPL_DEPTH_8U, 3);
 		cvCvtColor(testImage, grayImage, CV_BGR2GRAY);
+
+		imageSize = cvGetSize(testImage);
 
 		return true;
 	}
@@ -82,27 +85,23 @@ public:
 		void* p1 = 0;
 		void* p2 = 0;
 		int compair = 0;
-/*
-		// Feature Point
-		windage::Algorithms::SIFTGPUdetector* siftDetector1 = new windage::Algorithms::SIFTGPUdetector();
-		p1 = (void*)siftDetector1;
-		siftDetector1->DoExtractKeypointsDescriptor(grayImage);
-		delete siftDetector1;
 
-		windage::Algorithms::SIFTGPUdetector* siftDetector2 = new windage::Algorithms::SIFTGPUdetector();
-		p2 = (void*)siftDetector2;
-		siftDetector2->DoExtractKeypointsDescriptor(grayImage);
-		delete siftDetector2;
+		// Feature Point
+		windage::Algorithms::WSURFMultidetector* detector1 = new windage::Algorithms::WSURFMultidetector(imageSize.width, imageSize.height);
+		p1 = (void*)detector1;
+		detector1->DoExtractKeypointsDescriptor(grayImage);
+		delete detector1;
+
+		windage::Algorithms::WSURFMultidetector* detector2 = new windage::Algorithms::WSURFMultidetector(imageSize.width, imageSize.height);
+		p2 = (void*)detector2;
+		detector2->DoExtractKeypointsDescriptor(grayImage);
+		delete detector2;
 
 		sprintf_s(memoryAddress1, "%08X", p1);
 		sprintf_s(memoryAddress2, "%08X", p2);
 		compair += strcmp(memoryAddress1, memoryAddress2);
 
 		(*message) = std::string(memoryAddress1) + std::string(",") + std::string(memoryAddress2);
-*/
-		(*message) = std::string("can not test it");
-		compair = -1;
-
 		if(compair == 0)
 		{
 			return true;
@@ -117,19 +116,24 @@ public:
 	{
 		bool test = true;
 		char tempMessage[100];
-		windage::Algorithms::SIFTGPUdetector SIFTGPUDetector;
+		windage::Algorithms::WSURFMultidetector wSurfDetector(imageSize.width, imageSize.height);
 
-		cvNamedWindow("SIFTGPU detector");
-		cvCopyImage(testImage, resultImage);
+		cvNamedWindow("Windage SURF Multi detector");
+		for(int i=1; i<10; i++)
+		{
+			double threshold = 20.0 * (double)i;
+			cvCopyImage(testImage, resultImage);
 
-		SIFTGPUDetector.DoExtractKeypointsDescriptor(grayImage);
-		SIFTGPUDetector.DrawKeypoints(resultImage, CV_RGB(255, 0, 0));
+			wSurfDetector.SetThreshold(threshold);
+			wSurfDetector.DoExtractKeypointsDescriptor(grayImage);
+			wSurfDetector.DrawKeypoints(resultImage, CV_RGB(255, 0, 0));
 
-		sprintf_s(tempMessage, "SIFTGPU detector");
-		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 20), 0.7, tempMessage);
+			sprintf_s(tempMessage, "Windage SURF threshold : %.2lf", threshold);
+			windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 20), 0.7, tempMessage);
 
-		cvShowImage("SIFTGPU detector", resultImage);
-		cvWaitKey(1000);
+			cvShowImage("Windage SURF Multi detector", resultImage);
+			cvWaitKey(1);
+		}
 		
 		sprintf_s(tempMessage, "");(*message) = std::string(tempMessage);
 		return test;
@@ -141,7 +145,7 @@ public:
 		//if(testImage) cvReleaseImage(&testImage);
 		if(grayImage) cvReleaseImage(&grayImage);
 		grayImage = NULL;
-		cvDestroyWindow("SIFTGPU detector");
+		cvDestroyWindow("Windage SURF Multi detector");
 
 		return true;
 	}

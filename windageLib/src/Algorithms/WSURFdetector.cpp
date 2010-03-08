@@ -43,6 +43,7 @@
 #include "Structures/WSURFpoint.h"
 
 #include "Algorithms/windageSURF/fast.h"
+#include "Algorithms/windageSURF/wsurf.h"
 #include "Algorithms/windageSURF/wfastsurf.h"
 
 using namespace windage;
@@ -76,7 +77,7 @@ bool WSURFdetector::DoExtractKeypointsDescriptor(IplImage* grayImage)
 	// Generate Descriptor
 	CvSURFParams params = cvSURFParams(this->threshold, 0);
 	wExtractFASTSURF(grayImage, NULL, &keypointsSeq, &descriptors, storage, params, 1);
-//	cvExtractSURF(grayImage, NULL, &keypointsSeq, &descriptors, storage, params);
+//	wExtractSURF(grayImage, NULL, &keypointsSeq, &descriptors, storage, params, 1);
 	
 	CvSeqReader reader;
 	cvStartReadSeq(descriptors, &reader, 0);

@@ -85,7 +85,7 @@ namespace windage
 		private:
 
 		public:
-			SURFdetector(double threshold = 1000.0) : FeatureDetector()
+			SURFdetector(double threshold = 500.0) : FeatureDetector()
 			{
 				this->threshold = threshold;
 			}

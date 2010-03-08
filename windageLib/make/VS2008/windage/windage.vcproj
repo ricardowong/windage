@@ -255,6 +255,14 @@
 					RelativePath="..\..\..\include\Algorithms\WSURFdetector.h"
 					>
 				</File>
+				<File
+					RelativePath="..\..\..\src\Algorithms\WSURFMultidetector.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\include\Algorithms\WSURFMultidetector.h"
+					>
+				</File>
 				<Filter
 					Name="windageSURF"
 					>

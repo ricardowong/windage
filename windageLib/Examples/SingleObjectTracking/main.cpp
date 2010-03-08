@@ -44,7 +44,7 @@
 
 #include <windage.h>
 
-const int WIDTH = 640;
+const int WIDTH = 320;
 const int HEIGHT = (WIDTH * 3) / 4;
 const int FEATURE_COUNT = WIDTH;
 

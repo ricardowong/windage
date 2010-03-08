@@ -294,6 +294,10 @@
 				RelativePath=".\WSURFdetectorTest.h"
 				>
 			</File>
+			<File
+				RelativePath=".\WSURFMultidetectorTest.h"
+				>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>
