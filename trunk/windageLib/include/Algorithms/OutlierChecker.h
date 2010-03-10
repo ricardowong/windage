@@ -78,6 +78,7 @@ namespace windage
 			double reprojectionError;					///< threshold to determin outlier or not
 
 		public:
+			virtual char* GetFunctionName(){return "OutlierChecker";};
 			OutlierChecker()
 			{
 				homographyEstimator = NULL;

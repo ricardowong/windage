@@ -41,7 +41,7 @@
 using namespace windage;
 using namespace windage::Frameworks;
 
-bool PlanarObjectTracking::Initialize(int width, int height, double realWidth, double realHeight)
+bool PlanarObjectTracking::Initialize(int width, int height, double realWidth, double realHeight, bool printInfo)
 {
 	if(this->cameraParameter == NULL)
 		return false;
@@ -64,6 +64,22 @@ bool PlanarObjectTracking::Initialize(int width, int height, double realWidth, d
 	{
 		this->initialize = false;
 		return false;
+	}
+
+	if(printInfo)
+	{
+		std::cout << this->GetFunctionName() << " Initialize" << std::endl;
+		if(this->detector)
+			std::cout << "\tFeature Extractor : " << this->detector->GetFunctionName() << std::endl;
+		if(this->matcher)
+			std::cout << "\tFeature Matching : " << this->matcher->GetFunctionName() << std::endl;
+		if(this->tracker)
+			std::cout << "\tFeature Tracking : " << this->tracker->GetFunctionName() << std::endl;
+		if(this->estimator)
+			std::cout << "\tPose Estimation : " << this->estimator->GetFunctionName() << std::endl;
+		if(this->filter)
+			std::cout << "\tFilter : " << this->filter->GetFunctionName() << std::endl;
+		std::cout << std::endl;
 	}
 
 	this->initialize = true;
@@ -178,7 +194,7 @@ bool PlanarObjectTracking::UpdateCamerapose(IplImage* grayImage)
 		{
 			int count = 0;
 			int index = this->matcher->Matching((*sceneKeypoints)[i]);
-			if(0 <= index && index < this->referenceRepository.size())
+			if(0 <= index && index < (int)this->referenceRepository.size())
 			{
 				// if not tracked have point
 				if(this->referenceRepository[index].IsTracked() == false || this->detectionRatio < 1)

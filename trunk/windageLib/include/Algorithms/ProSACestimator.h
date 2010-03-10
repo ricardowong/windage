@@ -93,6 +93,7 @@ namespace windage
 			double confidence;
 			int maxIteration;
 		public:
+			virtual char* GetFunctionName(){return "ProSACestimator";};
 			ProSACestimator() : HomographyEstimator()
 			{
 				this->reprojectionError = 2.0;

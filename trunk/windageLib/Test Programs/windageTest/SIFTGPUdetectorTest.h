@@ -76,8 +76,8 @@ public:
 	{
 		// checek the memory leak
 		const int size = 10;
-		char memoryAddress1[size];
-		char memoryAddress2[size];
+//		char memoryAddress1[size];
+//		char memoryAddress2[size];
 
 		void* p1 = 0;
 		void* p2 = 0;

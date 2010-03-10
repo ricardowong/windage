@@ -48,7 +48,8 @@
 #include "../Common/OpenGLRenderer.h"
 
 //const char* FILE_NAME = "data/reconstruction_2010-03-05_09_10_47.txt";
-const char* FILE_NAME = "data/reconstruction_2010-03-05_15_18_25.txt";
+//const char* FILE_NAME = "data/reconstruction_2010-03-05_15_18_25.txt";
+const char* FILE_NAME = "data/reconstruction_2010-03-10_08_52_52.txt";
 
 const int WIDTH = 640;
 const int HEIGHT = (WIDTH * 3) / 4;
@@ -325,7 +326,6 @@ int main()
 //	myNode->drop();
 //	myNode = 0;
 
-	
 	irr::u32 frames=0;
 	while(device->run())
 	if (device->isWindowActive())
@@ -372,7 +372,6 @@ int main()
 			smgr->addCameraSceneNode(0, irr::core::vector3df(cameraPosition.x, cameraPosition.y, cameraPosition.z), 
 										irr::core::vector3df(lookAt.x, lookAt.y, lookAt.z));
 			smgr->getActiveCamera()->setUpVector(irr::core::vector3df(upVector.x, upVector.y, upVector.z));
-
 			myNode->setTransparent();
 		}
 		else if(receiver.IsKeyDown(irr::KEY_KEY_Z))
@@ -395,7 +394,6 @@ int main()
 			smgr->addCameraSceneNode(0, irr::core::vector3df(cameraPosition.x, cameraPosition.y, cameraPosition.z), 
 										irr::core::vector3df(lookAt.x, lookAt.y, lookAt.z));
 			smgr->getActiveCamera()->setUpVector(irr::core::vector3df(upVector.x, upVector.y, upVector.z));
-
 			myNode->setTransparent();
 		}
 	}

@@ -85,6 +85,7 @@ namespace windage
 		private:
 
 		public:
+			virtual char* GetFunctionName(){return "WSURFdetector";};
 			WSURFdetector(double threshold = 30.0) : FeatureDetector()
 			{
 				this->threshold = threshold;

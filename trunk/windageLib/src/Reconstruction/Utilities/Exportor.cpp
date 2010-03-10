@@ -58,6 +58,9 @@ bool Exportor::DoExport()
 	this->logger->log(this->logger->getTimeString().c_str());
 	this->logger->log(" #");
 	this->logger->logNewLine();
+	this->logger->log("#\t\t\t\t\t function : ");
+	this->logger->log(this->function_name.c_str());
+	this->logger->logNewLine();
 	this->logger->log("###############################################################################");
 	this->logger->logNewLine();
 	this->logger->logNewLine();

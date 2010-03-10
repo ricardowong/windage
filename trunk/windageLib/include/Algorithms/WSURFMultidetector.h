@@ -96,6 +96,7 @@ namespace windage
 			std::vector<IplImage*> resizeImage;
 
 		public:
+			virtual char* GetFunctionName(){return "WSURFMultidetector";};
 			WSURFMultidetector(int width, int height, double scaleFactor = 2.0, int scaleStep = 4, double threshold = 45.0) : FeatureDetector()
 			{
 				this->width = width;

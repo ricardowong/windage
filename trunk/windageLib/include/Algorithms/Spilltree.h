@@ -88,6 +88,7 @@ namespace windage
 			int eMax;					///< limitation of iteration count
 
 		public:
+			virtual char* GetFunctionName(){return "Spilltree";};
 			Spilltree(int eMax=20) : SearchTree()
 			{
 				/** Spill-tree support only float/double type descriptor */

@@ -101,7 +101,9 @@ namespace windage
 			IplImage* pyramid2;
 
 			void Release();
+
 		public:
+			virtual char* GetFunctionName(){return "OpticalFlow";};
 			OpticalFlow(int eMax=20)
 			{
 				terminationCriteria = cvTermCriteria( CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, eMax, .3);

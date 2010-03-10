@@ -91,6 +91,7 @@ namespace windage
 		{
 		private:
 		public:
+			virtual char* GetFunctionName(){return "LMedSestimator";};
 			LMedSestimator() : HomographyEstimator()
 			{
 			}

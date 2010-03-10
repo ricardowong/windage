@@ -253,6 +253,25 @@ int Calibration::ConvertWorld2Image(CvMat* output, CvMat* input)
 	return 1;
 }
 
+windage::Vector2 Calibration::ConvertWorld2Imaged(double x, double y, double z)
+{
+	CvMat* imageCoordinate = cvCreateMat(3, 1,CV_64FC1);
+	CvMat* worldCoordinate = cvCreateMat(4, 1,CV_64FC1);
+
+	CV_MAT_ELEM((*worldCoordinate), double, 0, 0) = x;
+	CV_MAT_ELEM((*worldCoordinate), double, 1, 0) = y;
+	CV_MAT_ELEM((*worldCoordinate), double, 2, 0) = z;
+	CV_MAT_ELEM((*worldCoordinate), double, 3, 0) = 1;
+	ConvertWorld2Image(imageCoordinate, worldCoordinate);
+
+	double ww = 1.0 / CV_MAT_ELEM((*imageCoordinate), double, 2, 0);
+	windage::Vector2 point;
+	point.x = CV_MAT_ELEM((*imageCoordinate), double, 0, 0) * ww;
+	point.y = CV_MAT_ELEM((*imageCoordinate), double, 1, 0) * ww;
+
+	return point;
+}
+
 CvPoint Calibration::ConvertWorld2Image(double x, double y, double z)
 {
 	CvMat* imageCoordinate = cvCreateMat(3, 1,CV_64FC1);

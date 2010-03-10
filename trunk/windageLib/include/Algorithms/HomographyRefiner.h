@@ -83,6 +83,7 @@ namespace windage
 			std::vector<windage::FeaturePoint>* scenePoints;		// reference points to attatch reference pointer at out-side
 			
 		public:
+			virtual char* GetFunctionName(){return "HomographyRefiner";};
 			HomographyRefiner()
 			{
 				homography = NULL;
