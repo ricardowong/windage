@@ -78,6 +78,7 @@ namespace windage
 		{
 		private:
 			windage::Logger* logger;
+			std::string function_name;
 			std::vector<std::string> imageFileList;
 			std::vector<windage::Calibration*> calibrationList;
 			std::vector<windage::ReconstructionPoint>* reconstructionPoints;
@@ -87,12 +88,14 @@ namespace windage
 			{
 				logger = NULL;
 				reconstructionPoints = NULL;
+				function_name = std::string("");
 			}
 			~Exportor()
 			{
 				calibrationList.clear();
 			}
 
+			inline void SetFunctionName(std::string function_name){this->function_name = function_name;};
 			inline void AttatchLogger(windage::Logger* logger){this->logger = logger;};
 			inline void PushImageFile(std::string fileName){this->imageFileList.push_back(fileName);};
 			inline void PushCalibration(windage::Calibration* calibration){this->calibrationList.push_back(calibration);};

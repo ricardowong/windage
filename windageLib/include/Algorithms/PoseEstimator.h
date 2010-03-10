@@ -92,6 +92,7 @@ namespace windage
 			std::vector<windage::FeaturePoint>* scenePoints;		///< scene feature pointers to attatch pointer at out-side
 			
 		public:
+			virtual char* GetFunctionName(){return "PoseEstimator";};
 			PoseEstimator()
 			{
 				cameraParameter = NULL;

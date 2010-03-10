@@ -88,6 +88,7 @@ namespace windage
 			int eMax;					///< limitation of iteration count
 
 		public:
+			virtual char* GetFunctionName(){return "KDtree";};
 			KDtree(int eMax=20) : SearchTree()
 			{
 				/** KD-tree support only float/double type descriptor */

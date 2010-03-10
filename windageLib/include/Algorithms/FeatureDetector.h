@@ -87,6 +87,7 @@ namespace windage
 			double threshold;
 
 		public:
+			virtual char* GetFunctionName(){return "FeatureDetector";};
 			FeatureDetector()
 			{
 			}

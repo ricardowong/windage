@@ -85,6 +85,7 @@ namespace windage
 		{
 		protected:
 		public:
+			virtual char* GetFunctionName(){return "EPnPestimator";};
 			EPnPestimator() : PoseEstimator()
 			{
 			}

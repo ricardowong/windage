@@ -91,6 +91,7 @@ namespace windage
 		{
 		private:
 		public:
+			virtual char* GetFunctionName(){return "RANSACestimator";};
 			RANSACestimator() : HomographyEstimator()
 			{
 				this->reprojectionError = 2.0;

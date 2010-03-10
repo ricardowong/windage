@@ -119,6 +119,7 @@ namespace windage
 			bool trained;											///< checked trained
 			
 		public:
+			virtual char* GetFunctionName(){return "PlanarObjectTracking";};
 			PlanarObjectTracking()
 			{
 				prevImage = NULL;
@@ -271,7 +272,8 @@ namespace windage
 			bool Initialize(int width,					///< input image width
 							int height,					///< input image height
 							double realWidth=640.0,		///< refenrece object width
-							double realHeight=480.0		///< reference object height
+							double realHeight=480.0,	///< reference object height
+							bool printInfo = true
 							);
 
 			/**

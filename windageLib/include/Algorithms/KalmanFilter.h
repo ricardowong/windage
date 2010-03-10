@@ -88,6 +88,7 @@ namespace windage
 			CvMat* measurement;
 
 		public:
+			virtual char* GetFunctionName(){return "KalmanFilter";};
 			KalmanFilter()
 			{
 				kalman = cvCreateKalman( 6, 3, 0 );

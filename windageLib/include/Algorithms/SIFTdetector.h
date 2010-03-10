@@ -86,6 +86,7 @@ namespace windage
 			double SIZE_AMPLIFICATION;	///< feature size amplification for draw keypoints
 
 		public:
+			virtual char* GetFunctionName(){return "SIFTdetector";};
 			SIFTdetector() : FeatureDetector()
 			{
 				SIZE_AMPLIFICATION = 5.0;

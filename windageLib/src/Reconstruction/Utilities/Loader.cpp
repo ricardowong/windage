@@ -63,6 +63,7 @@ bool Loader::DoLoad(const char* filename)
 	// dummay
 	input.getline(BUFFER, BUFFER_SIZE); // ##
 	input.getline(BUFFER, BUFFER_SIZE); // # w
+	input.getline(BUFFER, BUFFER_SIZE); // # 
 	input.getline(BUFFER, BUFFER_SIZE); // ##
 	input.getline(BUFFER, BUFFER_SIZE); //
 	input.getline(BUFFER, BUFFER_SIZE); // ##

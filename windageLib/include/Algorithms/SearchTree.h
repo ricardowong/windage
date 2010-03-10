@@ -84,8 +84,9 @@ namespace windage
 		protected:
 			int DESCRIPTOR_DATA_TYPE;			///< descriptor data type CV_32F / CV_64F
 			double nearestNeighbourhoodRatio;	///< ratio for nearest neigh bourhood : 0.7
-			
+
 		public:
+			virtual char* GetFunctionName(){return "SearchTree";};
 			SearchTree()
 			{
 				this->DESCRIPTOR_DATA_TYPE = CV_32F;

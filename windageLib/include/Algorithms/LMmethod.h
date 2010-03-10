@@ -77,6 +77,7 @@ namespace windage
 		{
 		protected:
 		public:
+			virtual char* GetFunctionName(){return "LMmethod";};
 			LMmethod() : HomographyRefiner()
 			{
 			}

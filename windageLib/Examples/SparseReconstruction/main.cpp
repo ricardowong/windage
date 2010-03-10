@@ -77,6 +77,10 @@ const double INTRINSIC_VALUES[8] = {608.894958, 609.015991, 295.023712, 254.1713
 const char* IMAGE_FILE_NAME = "Miniature/result.imgr%d_COL.jpg";
 #endif
 
+const double RANSAC_COEFFICIENT = 0.99995;
+const int RANSAC_ITERATION = 5000;
+const double RANSAC_REPROJECTION_ERROR = 2.0;
+
 std::vector<IplImage*> inputImage;
 
 windage::Calibration* initialCalibration;
@@ -100,6 +104,7 @@ public:
 	{
 		Material.Wireframe = false;
 		Material.Lighting = false;
+		Material.Thickness = 3;
 
 		std::vector<windage::ReconstructionPoint>* reconstructionPoints = reconstructor->GetReconstructedPoint();
 		size = reconstructionPoints->size();
@@ -232,21 +237,21 @@ int main()
 	initialCalibration->Initialize(INTRINSIC_VALUES[0], INTRINSIC_VALUES[1], INTRINSIC_VALUES[2], INTRINSIC_VALUES[3]);
 
 	reconstructor = new windage::Reconstruction::IncrementalReconstruction();
-	reconstructor->SetConfidence(0.9995);
-	reconstructor->SetMaxIteration(2000);
-	reconstructor->SetReprojectionError(3.0);
+	reconstructor->SetConfidence(RANSAC_COEFFICIENT);
+	reconstructor->SetMaxIteration(RANSAC_ITERATION);
+	reconstructor->SetReprojectionError(RANSAC_REPROJECTION_ERROR);
 
 	reconstructor->AttatchCalibration(initialCalibration);
 
-	windage::Algorithms::SearchTree* tree = new windage::Algorithms::FLANNtree(100);
+	windage::Algorithms::SearchTree* tree = new windage::Algorithms::FLANNtree(30);
 	tree->SetRatio(0.5);
 	reconstructor->AttatchSearchTree(tree);
 
-	windage::Algorithms::EPnPRANSACestimator* estimator = new windage::Algorithms::EPnPRANSACestimator();
-//	windage::Algorithms::OpenCVRANSACestimator* estimator = new windage::Algorithms::OpenCVRANSACestimator();
-	estimator->SetConfidence(0.9995);
-	estimator->SetMaxIteration(2000);
-	estimator->SetReprojectionError(3.0);
+//	windage::Algorithms::EPnPRANSACestimator* estimator = new windage::Algorithms::EPnPRANSACestimator();
+	windage::Algorithms::OpenCVRANSACestimator* estimator = new windage::Algorithms::OpenCVRANSACestimator();
+	estimator->SetConfidence(RANSAC_COEFFICIENT);
+	estimator->SetMaxIteration(RANSAC_ITERATION);
+	estimator->SetReprojectionError(RANSAC_REPROJECTION_ERROR);
 	reconstructor->AttatchEstimator(estimator);
 
 	logging->logNewLine();
@@ -269,11 +274,10 @@ int main()
 	logging->logNewLine();
 	logging->log("\tfeature extract"); logging->logNewLine();
 
-	#pragma omp parallel for
+	windage::Algorithms::FeatureDetector* detector = new windage::Algorithms::SIFTdetector();
+//	windage::Algorithms::FeatureDetector* detector = new windage::Algorithms::SIFTGPUdetector();
 	for(int i=0; i<IMAGE_FILE_COUNT; i++)
 	{
-		windage::Algorithms::FeatureDetector* detector = new windage::Algorithms::SIFTdetector();
-//		detector->SetThreshold(500.0);
 		detector->DoExtractKeypointsDescriptor(grayImage[i]);
 		std::vector<windage::FeaturePoint>* temp = detector->GetKeypoints();
 
@@ -284,7 +288,6 @@ int main()
 			featurePoint[i].push_back((*temp)[j]);
 		}
 
-		delete detector;
 		logging->log("\tkeypoint count "); logging->log(i); logging->log(" : "); logging->log((int)featurePoint[i].size()); logging->logNewLine();
 	}
 
@@ -304,6 +307,7 @@ int main()
 	std::cout << "save reconstruction datas" << std::endl;
 	windage::Reconstruction::Exportor exportor;
 	windage::Logger* reconstructionLogger = new windage::Logger("data/reconstruction", "txt", true);
+	exportor.SetFunctionName(detector->GetFunctionName());
 	exportor.AttatchLogger(reconstructionLogger);
 	exportor.SetReconstructionPoints(reconstructor->GetReconstructedPoint());
 	for(int i=0; i<IMAGE_FILE_COUNT; i++)

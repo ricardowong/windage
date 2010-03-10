@@ -95,6 +95,7 @@ namespace windage
 			windage::Matrix3 homography;	///< homography parameter to update from calculate function
 			
 		public:
+			virtual char* GetFunctionName(){return "HomographyEstimator";};
 			HomographyEstimator() : PoseEstimator()
 			{
 				this->homography.m[0][0] = 1.0; this->homography.m[0][1] = 0.0; this->homography.m[0][2] = 0.0;

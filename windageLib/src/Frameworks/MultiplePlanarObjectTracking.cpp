@@ -41,7 +41,7 @@
 using namespace windage;
 using namespace windage::Frameworks;
 
-bool MultiplePlanarObjectTracking::Initialize(int width, int height, double realWidth, double realHeight)
+bool MultiplePlanarObjectTracking::Initialize(int width, int height, double realWidth, double realHeight, bool printInfo)
 {
 	if(this->initialCamearParameter == NULL)
 		return false;
@@ -64,6 +64,18 @@ bool MultiplePlanarObjectTracking::Initialize(int width, int height, double real
 	{
 		this->initialize = false;
 		return false;
+	}
+
+	if(printInfo)
+	{
+		std::cout << this->GetFunctionName() << " Initialize" << std::endl;
+		if(this->detector)
+			std::cout << "\tFeature Extractor : " << this->detector->GetFunctionName() << std::endl;
+		if(this->tracker)
+			std::cout << "\tFeature Tracking : " << this->tracker->GetFunctionName() << std::endl;
+		if(this->estimator)
+			std::cout << "\tPose Estimation : " << this->estimator->GetFunctionName() << std::endl;
+		std::cout << std::endl;
 	}
 
 	this->initialize = true;
@@ -210,7 +222,7 @@ bool MultiplePlanarObjectTracking::UpdateCamerapose(IplImage* grayImage)
 		for(unsigned int i=0; i<sceneKeypoints->size(); i++)
 		{
 			int index = this->searchTree[this->step]->Matching((*sceneKeypoints)[i]);
-			if(0 <= index && index < this->referenceRepository[this->step].size())
+			if(0 <= index && index < (int)this->referenceRepository[this->step].size())
 			{
 				// if not tracked have point
 				if(this->referenceRepository[this->step][index].IsTracked() == false)

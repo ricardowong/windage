@@ -54,6 +54,7 @@
 #include <cv.h>
 
 #include "base.h"
+#include "Structures/Vector.h"
 
 namespace windage
 {
@@ -178,6 +179,7 @@ namespace windage
 		int ConvertCamera2Image(CvMat* output3vector, CvMat* input3vector);
 		int ConvertWorld2Image(CvMat* output3vector, CvMat* input4vector);
 		CvPoint ConvertWorld2Image(double x, double y, double z);
+		windage::Vector2 ConvertWorld2Imaged(double x, double y, double z);
 		int ConvertCamera2World(CvMat* output3vector, CvMat* input3vector);
 		CvScalar ConvertCamera2World(double x, double y, double z);
 		int ConvertImage2Camera(CvMat* output3vector, CvMat* input3vector, double z);

@@ -87,6 +87,7 @@ namespace windage
 			double confidence;
 			int maxIteration;
 		public:
+			virtual char* GetFunctionName(){return "OpenCVRANSACestimator";};
 			OpenCVRANSACestimator() : PoseEstimator()
 			{
 				this->reprojectionError = 2.0;

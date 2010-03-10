@@ -89,6 +89,7 @@ namespace windage
 			int eMax;						///< limitation of iteration count
 
 		public:
+			virtual char* GetFunctionName(){return "FLANNtree";};
 			FLANNtree(int eMax=20) : SearchTree()
 			{
 				/** FLANN-tree support only float type descriptor */

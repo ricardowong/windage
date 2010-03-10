@@ -73,13 +73,13 @@ bool SIFTGPUdetector::DoExtractKeypointsDescriptor(IplImage* grayImage)
 	windage::SIFTpoint point;
 	for(int i=0; i<count; i++)
 	{
-		point.SetPoint(windage::Vector3(keypoints[i].x, keypoints[i].y, 1.0));
-		point.SetSize(cvRound(keypoints[i].s));
-		point.SetDir(keypoints[i].o);
+		point.SetPoint(windage::Vector3((double)keypoints[i].x, (double)keypoints[i].y, 1.0));
+		point.SetSize((double)cvRound(keypoints[i].s));
+		point.SetDir((double)keypoints[i].o);
 
 		for(int j=0; j<point.DESCRIPTOR_DIMENSION; j++)
 		{
-			point.descriptor[j] = descriptors[i*DESCRIPTOR_DIMENSION + j];
+			point.descriptor[j] = (double)descriptors[i*DESCRIPTOR_DIMENSION + j];
 		}
 
 		this->keypoints.push_back(point);
