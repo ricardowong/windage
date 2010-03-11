@@ -274,8 +274,8 @@ int main()
 	logging->logNewLine();
 	logging->log("\tfeature extract"); logging->logNewLine();
 
-//	windage::Algorithms::FeatureDetector* detector = new windage::Algorithms::SIFTdetector();
-	windage::Algorithms::FeatureDetector* detector = new windage::Algorithms::SIFTGPUdetector();
+	windage::Algorithms::FeatureDetector* detector = new windage::Algorithms::SIFTdetector();
+//	windage::Algorithms::FeatureDetector* detector = new windage::Algorithms::SIFTGPUdetector();
 	for(int i=0; i<IMAGE_FILE_COUNT; i++)
 	{
 		detector->DoExtractKeypointsDescriptor(grayImage[i]);

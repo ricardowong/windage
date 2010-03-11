@@ -329,16 +329,16 @@ bool IncrementalReconstruction::IncrementReconstruction()
 	std::vector<windage::FeaturePoint>* feature = &this->featurePointsList[index];
 	this->Matching(feature, feature2, &matchedPoint1, &matchedPoint2);
 
-	// outlier remove
+	// outlier rejection
 	windage::Algorithms::RANSACestimator hEstimator;
 	windage::Algorithms::OutlierChecker checker;
-	hEstimator.SetReprojectionError(this->reprojectionError * 2.0);
+	hEstimator.SetReprojectionError(this->reprojectionError * this->reprojectionError * 2.0);
 
 	hEstimator.AttatchReferencePoint(&matchedPoint1);	
 	hEstimator.AttatchScenePoint(&matchedPoint2);
 	hEstimator.Calculate();
 
-	checker.SetReprojectionError(this->reprojectionError * 2.0);
+	checker.SetReprojectionError(this->reprojectionError * this->reprojectionError * 2.0);
 	checker.AttatchEstimator(&hEstimator);
 	checker.Calculate();
 
