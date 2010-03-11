@@ -6,7 +6,7 @@
 
 #include <windage.h>
 
-const char* IMAGE_FILE_NAME_1 = "Miniature/result.imgr8_COL.jpg";
+const char* IMAGE_FILE_NAME_1 = "Miniature/result.imgr10_COL.jpg";
 const char* IMAGE_FILE_NAME_2 = "Miniature/result.imgr11_COL.jpg";
 const double REPROJECTION_ERRPR = 5.0;
 
@@ -95,10 +95,16 @@ void main()
 		cvCopyImage(image2, resultImage);
 		cvResetImageROI(resultImage);
 
-		for(unsigned int i=0; i<matching1.size(); i++)
+		int count = (int)matching1.size();
+		for(int i=0; i<count; i++)
 		{
+			double R = (count - i)/(double)count * 255.0;
+			double G = (i+1)/(double)count * 255.0;
 			if(matching1[i].IsOutlier() == false)
+				cvLine(resultImage, cvPoint(matching1[i].GetPoint().x, matching1[i].GetPoint().y), cvPoint(image1->width + matching2[i].GetPoint().x, matching2[i].GetPoint().y), CV_RGB(0, 255, 0));
+			else
 				cvLine(resultImage, cvPoint(matching1[i].GetPoint().x, matching1[i].GetPoint().y), cvPoint(image1->width + matching2[i].GetPoint().x, matching2[i].GetPoint().y), CV_RGB(255, 0, 0));
+
 		}
 		
 		cvShowImage("result", resultImage);
@@ -106,6 +112,10 @@ void main()
 		char ch = cvWaitKey(1);
 		switch(ch)
 		{
+		case 's':
+		case 'S':
+			cvSaveImage("FeaturePairMatching.png", resultImage);
+			break;
 		case 'q':
 		case 'Q':
 		case 27:
