@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="FeatureExtraction"
-	ProjectGUID="{5BD6728C-2AA9-482E-BBD6-0BA90CCC5AD6}"
-	RootNamespace="FeatureExtraction"
+	Name="FairMatching"
+	ProjectGUID="{9E963828-1440-423E-A7C9-6A27F1C0C721}"
+	RootNamespace="FairMatching"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
@@ -117,7 +117,6 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				FavorSizeOrSpeed="1"
 				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../include&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.0/include&quot;;&quot;$(SolutionDir)../../component/SiftGPU-V340/include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"

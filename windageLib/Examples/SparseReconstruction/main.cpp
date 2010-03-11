@@ -243,7 +243,7 @@ int main()
 
 	reconstructor->AttatchCalibration(initialCalibration);
 
-	windage::Algorithms::SearchTree* tree = new windage::Algorithms::FLANNtree(30);
+	windage::Algorithms::SearchTree* tree = new windage::Algorithms::FLANNtree(50);
 	tree->SetRatio(0.5);
 	reconstructor->AttatchSearchTree(tree);
 
@@ -274,8 +274,8 @@ int main()
 	logging->logNewLine();
 	logging->log("\tfeature extract"); logging->logNewLine();
 
-	windage::Algorithms::FeatureDetector* detector = new windage::Algorithms::SIFTdetector();
-//	windage::Algorithms::FeatureDetector* detector = new windage::Algorithms::SIFTGPUdetector();
+//	windage::Algorithms::FeatureDetector* detector = new windage::Algorithms::SIFTdetector();
+	windage::Algorithms::FeatureDetector* detector = new windage::Algorithms::SIFTGPUdetector();
 	for(int i=0; i<IMAGE_FILE_COUNT; i++)
 	{
 		detector->DoExtractKeypointsDescriptor(grayImage[i]);
