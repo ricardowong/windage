@@ -6,7 +6,7 @@
 
 #include <windage.h>
 
-const char* IMAGE_FILE_NAME_1 = "Miniature/result.imgr10_COL.jpg";
+const char* IMAGE_FILE_NAME_1 = "Miniature/result.imgr8_COL.jpg";
 const char* IMAGE_FILE_NAME_2 = "Miniature/result.imgr11_COL.jpg";
 const double REPROJECTION_ERRPR = 5.0;
 
