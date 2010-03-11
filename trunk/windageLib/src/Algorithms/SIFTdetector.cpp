@@ -45,6 +45,8 @@ using namespace windage::Algorithms;
 #include "Algorithms/SIFT/sift.h"
 #include "Algorithms/SIFT/imgfeatures.h"
 
+//#define NORMALIZE
+
 bool SIFTdetector::DoExtractKeypointsDescriptor(IplImage* grayImage)
 {
 	if(grayImage == NULL)
@@ -64,10 +66,19 @@ bool SIFTdetector::DoExtractKeypointsDescriptor(IplImage* grayImage)
 		point.SetSize(cvRound(features[i].scl * SIZE_AMPLIFICATION));
 		point.SetDir(features[i].ori);
 
+		double sum = 0;
 		for(int j=0; j<point.DESCRIPTOR_DIMENSION; j++)
 		{
+			sum += features[i].descr[j];
 			point.descriptor[j] = features[i].descr[j];
 		}
+
+#ifdef NORMALIZE
+		for(int j=0; j<point.DESCRIPTOR_DIMENSION; j++)
+		{
+			point.descriptor[j] /= sum;
+		}
+#endif
 
 		this->keypoints.push_back(point);
 	}

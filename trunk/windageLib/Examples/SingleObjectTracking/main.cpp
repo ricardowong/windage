@@ -104,7 +104,7 @@ void main()
 	tracking.AttatchRefiner(refiner);
 //	tracking.AttatchFilter(filter);
 
-	tracking.SetDitectionRatio(10);
+	tracking.SetDitectionRatio(-1);
 	tracking.Initialize(WIDTH, HEIGHT, (double)WIDTH, (double)HEIGHT);
 
 	int keypointCount = 0;

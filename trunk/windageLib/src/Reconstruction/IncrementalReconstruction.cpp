@@ -43,6 +43,8 @@ using namespace windage::Reconstruction;
 
 #include <iostream>
 
+#include "Algorithms/RANSACestimator.h"
+#include "Algorithms/OutlierChecker.h"
 #include "Reconstruction/BundleWrapper.h"
 
 // Simple linear triangulation method 
@@ -279,7 +281,6 @@ bool IncrementalReconstruction::IncrementReconstruction()
 		}		
 	}
 	std::vector<windage::FeaturePoint>* feature2 = &this->featurePointsList[this->caculatedCount];
-
 	if((int)feature1.size() < MINIMUM_MATCHING_COUNT)
 	{
 		this->caculatedCount++;
@@ -328,6 +329,20 @@ bool IncrementalReconstruction::IncrementReconstruction()
 	std::vector<windage::FeaturePoint>* feature = &this->featurePointsList[index];
 	this->Matching(feature, feature2, &matchedPoint1, &matchedPoint2);
 
+	// outlier remove
+	windage::Algorithms::RANSACestimator hEstimator;
+	windage::Algorithms::OutlierChecker checker;
+	hEstimator.SetReprojectionError(this->reprojectionError * 2.0);
+
+	hEstimator.AttatchReferencePoint(&matchedPoint1);	
+	hEstimator.AttatchScenePoint(&matchedPoint2);
+	hEstimator.Calculate();
+
+	checker.SetReprojectionError(this->reprojectionError * 2.0);
+	checker.AttatchEstimator(&hEstimator);
+	checker.Calculate();
+
+
 	// add 3d points
 	CvMat* inverseIntrinsic = cvCreateMat(3, 3, CV_64F);
 	cvInvert(this->initialCameraParameter->GetIntrinsicMatrix(), inverseIntrinsic);
@@ -360,80 +375,89 @@ bool IncrementalReconstruction::IncrementReconstruction()
 	int count = 0;
 	for(unsigned int i=0; i<matchedPoint1.size(); i++)
 	{
-		cvmSet(leftP, 0, 0, matchedPoint1[i].GetPoint().x);
-		cvmSet(leftP, 1, 0, matchedPoint1[i].GetPoint().y);
-		cvmSet(leftP, 2, 0, 1.0);
-
-		cvmSet(rightP, 0, 0, matchedPoint2[i].GetPoint().x);
-		cvmSet(rightP, 1, 0, matchedPoint2[i].GetPoint().y);
-		cvmSet(rightP, 2, 0, 1.0);
-
-		// normalized
-		cvMatMul(inverseIntrinsic, leftP, leftP);
-		cvMatMul(inverseIntrinsic, rightP, rightP);
-
-		LinearTriangulation(extrinsic1, extrinsic2, leftP, rightP, nrP3D);
-
-		nrP3D->data.db[0] /= nrP3D->data.db[3];
-		nrP3D->data.db[1] /= nrP3D->data.db[3];
-		nrP3D->data.db[2] /= nrP3D->data.db[3];
-		nrP3D->data.db[3] /= nrP3D->data.db[3];
-
-		windage::Vector2 lpt = this->cameraParameters[index]->ConvertWorld2Imaged(nrP3D->data.db[0], nrP3D->data.db[1], nrP3D->data.db[2]);
-		windage::Vector2 rpt = this->cameraParameters[this->caculatedCount]->ConvertWorld2Imaged(nrP3D->data.db[0], nrP3D->data.db[1], nrP3D->data.db[2]);
-
-		double errorL = pow((matchedPoint1[i].GetPoint().x - lpt.x), 2) + pow((matchedPoint1[i].GetPoint().y - lpt.y), 2);
-		double errorR = pow((matchedPoint2[i].GetPoint().x - rpt.x), 2) + pow((matchedPoint2[i].GetPoint().y - rpt.y), 2);
-//		errorL = sqrt(errorL);
-//		errorR = sqrt(errorR);
-//		std::cout << this->reprojectionError << " : " <<  errorL << ", " << errorR << std::endl;
-		if(errorL + errorR < this->reprojectionError * 2.0)
+		if(matchedPoint1[i].IsOutlier() == false)
 		{
-			windage::ReconstructionPoint reconsturctionPoint;
+			cvmSet(leftP, 0, 0, matchedPoint1[i].GetPoint().x);
+			cvmSet(leftP, 1, 0, matchedPoint1[i].GetPoint().y);
+			cvmSet(leftP, 2, 0, 1.0);
 
-			reconsturctionPoint.SetPoint(windage::Vector4(nrP3D->data.db[0], nrP3D->data.db[1], nrP3D->data.db[2], 1.0));
-			reconsturctionPoint.SetOutlier(false);
-			
-			CvScalar color;
-			for(int j=0; j<3; j++)
-				color.val[j] = (matchedPoint1[i].GetColor().val[j] + matchedPoint2[i].GetColor().val[j])/2.0;
+			cvmSet(rightP, 0, 0, matchedPoint2[i].GetPoint().x);
+			cvmSet(rightP, 1, 0, matchedPoint2[i].GetPoint().y);
+			cvmSet(rightP, 2, 0, 1.0);
 
-			reconsturctionPoint.SetColor(color);
+			// normalized
+			cvMatMul(inverseIntrinsic, leftP, leftP);
+			cvMatMul(inverseIntrinsic, rightP, rightP);
 
-			// reconstructed point is tracked
-			if(this->featurePointsList[index][matchedPoint1[i].GetRepositoryID()].IsTracked())
+			LinearTriangulation(extrinsic1, extrinsic2, leftP, rightP, nrP3D);
+
+			nrP3D->data.db[0] /= nrP3D->data.db[3];
+			nrP3D->data.db[1] /= nrP3D->data.db[3];
+			nrP3D->data.db[2] /= nrP3D->data.db[3];
+			nrP3D->data.db[3] /= nrP3D->data.db[3];
+
+			windage::Vector2 lpt = this->cameraParameters[index]->ConvertWorld2Imaged(nrP3D->data.db[0], nrP3D->data.db[1], nrP3D->data.db[2]);
+			windage::Vector2 rpt = this->cameraParameters[this->caculatedCount]->ConvertWorld2Imaged(nrP3D->data.db[0], nrP3D->data.db[1], nrP3D->data.db[2]);
+
+			double errorL = pow((matchedPoint1[i].GetPoint().x - lpt.x), 2) + pow((matchedPoint1[i].GetPoint().y - lpt.y), 2);
+			double errorR = pow((matchedPoint2[i].GetPoint().x - rpt.x), 2) + pow((matchedPoint2[i].GetPoint().y - rpt.y), 2);
+	//		errorL = sqrt(errorL);
+	//		errorR = sqrt(errorR);
+	//		std::cout << this->reprojectionError << " : " <<  errorL << ", " << errorR << std::endl;
+			if(errorL + errorR < this->reprojectionError * 2.0)
 			{
-				int idx = this->featurePointsList[index][matchedPoint1[i].GetRepositoryID()].GetRepositoryID();
-				this->featurePointsList[this->caculatedCount][matchedPoint2[i].GetRepositoryID()].SetTracked(true);
-				this->featurePointsList[this->caculatedCount][matchedPoint2[i].GetRepositoryID()].SetRepositoryID(idx);
+				windage::ReconstructionPoint reconsturctionPoint;
 
-				matchedPoint2[i].SetObjectID(this->caculatedCount);
-				this->reconstructionPoints[idx].AddFeaturePoint(matchedPoint2[i]);
-				addCount++;
-			}
-			else
-			{
-				int idx = this->reconstructionPoints.size();
-				this->featurePointsList[index][matchedPoint1[i].GetRepositoryID()].SetTracked(true);
-				this->featurePointsList[this->caculatedCount][matchedPoint2[i].GetRepositoryID()].SetTracked(true);
+				reconsturctionPoint.SetPoint(windage::Vector4(nrP3D->data.db[0], nrP3D->data.db[1], nrP3D->data.db[2], 1.0));
+				reconsturctionPoint.SetOutlier(false);
+				
+				CvScalar color;
+				for(int j=0; j<3; j++)
+					color.val[j] = (matchedPoint1[i].GetColor().val[j] + matchedPoint2[i].GetColor().val[j])/2.0;
 
-				this->featurePointsList[index][matchedPoint1[i].GetRepositoryID()].SetRepositoryID(idx);
-				this->featurePointsList[this->caculatedCount][matchedPoint2[i].GetRepositoryID()].SetRepositoryID(idx);
+				reconsturctionPoint.SetColor(color);
 
-				reconsturctionPoint.SetObjectID(index);
-				matchedPoint1[i].SetObjectID(index);
-				matchedPoint2[i].SetObjectID(this->caculatedCount);
-				reconsturctionPoint.AddFeaturePoint(matchedPoint1[i]);
-				reconsturctionPoint.AddFeaturePoint(matchedPoint2[i]);
+				// reconstructed point is tracked
+				if(this->featurePointsList[index][matchedPoint1[i].GetRepositoryID()].IsTracked())
+				{
+					int idx = this->featurePointsList[index][matchedPoint1[i].GetRepositoryID()].GetRepositoryID();
+					this->featurePointsList[this->caculatedCount][matchedPoint2[i].GetRepositoryID()].SetTracked(true);
+					this->featurePointsList[this->caculatedCount][matchedPoint2[i].GetRepositoryID()].SetRepositoryID(idx);
 
-				this->reconstructionPoints.push_back(reconsturctionPoint);
-				count++;
+					matchedPoint2[i].SetObjectID(this->caculatedCount);
+
+					windage::Vector4 pt1 = reconsturctionPoint.GetPoint();
+					windage::Vector4 pt2 = this->reconstructionPoints[idx].GetPoint();
+					double error = pt1.getDistance(pt2);
+
+					this->reconstructionPoints[idx].AddFeaturePoint(matchedPoint2[i]);
+					addCount++;
+				}
+				else
+				{
+					int idx = this->reconstructionPoints.size();
+					this->featurePointsList[index][matchedPoint1[i].GetRepositoryID()].SetTracked(true);
+					this->featurePointsList[this->caculatedCount][matchedPoint2[i].GetRepositoryID()].SetTracked(true);
+
+					this->featurePointsList[index][matchedPoint1[i].GetRepositoryID()].SetRepositoryID(idx);
+					this->featurePointsList[this->caculatedCount][matchedPoint2[i].GetRepositoryID()].SetRepositoryID(idx);
+
+					reconsturctionPoint.SetObjectID(index);
+					matchedPoint1[i].SetObjectID(index);
+					matchedPoint2[i].SetObjectID(this->caculatedCount);
+					reconsturctionPoint.AddFeaturePoint(matchedPoint1[i]);
+					reconsturctionPoint.AddFeaturePoint(matchedPoint2[i]);
+
+					this->reconstructionPoints.push_back(reconsturctionPoint);
+					count++;
+				}
 			}
 		}
 	}
 
 	std::cout << "add increment reconstruction points : " << addCount << " + " << count << " / " << matchedPoint1.size()
 															<< " (" << (addCount + count) / (double)matchedPoint1.size() << ")" <<  std::endl;
+	std::cout << "reconstructed all points : " << this->reconstructionPoints.size() << std::endl;
 	std::cout << std::endl;
 
 	cvReleaseMat(&inverseIntrinsic);
@@ -547,7 +571,6 @@ bool IncrementalReconstruction::BundleAdjustment(int n)
 							pt3D, pt2D, RT, n, pointcount);
 	bundler->Run();
 	double error2 = this->CheckReprojectionError(RT, pt3D, pt2D, n);
-	std::cout << "Bundle Adjustment : " << error1/(double)pointcount << " -> " << error2/(double)pointcount << std::endl;
 
 	// update 3d points
 	for(unsigned int i=0; i<this->reconstructionPoints.size(); i++)
@@ -650,7 +673,7 @@ bool IncrementalReconstruction::CalculateAll()
 	{
 		this->IncrementReconstruction();
 
-		if(i % 5 == 0)
+//		if(i % 5 == 0)
 			this->BundleAdjustment(i);
 	}
 	this->BundleAdjustment(this->attatchedCount-1);
