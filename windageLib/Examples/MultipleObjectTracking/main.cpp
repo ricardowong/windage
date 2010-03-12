@@ -44,9 +44,9 @@
 
 #include <windage.h>
 
-const int WIDTH = 320;
+const int WIDTH = 640;
 const int HEIGHT = (WIDTH * 3) / 4;
-const int FEATURE_COUNT = WIDTH*2;
+const int FEATURE_COUNT = WIDTH;
 
 void main()
 {
@@ -68,6 +68,7 @@ void main()
 	windage::Algorithms::HomographyEstimator* estimator;
 	windage::Algorithms::OutlierChecker* checker;
 	windage::Algorithms::HomographyRefiner* refiner;
+	windage::Algorithms::KalmanFilter* filter;
 
 	calibration = new windage::Calibration();
 	detector = new windage::Algorithms::WSURFdetector();
@@ -75,13 +76,14 @@ void main()
 	estimator = new windage::Algorithms::ProSACestimator();
 	checker = new windage::Algorithms::OutlierChecker();
 	refiner = new windage::Algorithms::LMmethod();
+	filter = new windage::Algorithms::KalmanFilter();
 
 	calibration->Initialize(WIDTH*1.2, WIDTH*1.2, WIDTH/2.0, HEIGHT/2.0, 0, 0, 0, 0);
-	detector->SetThreshold(30.0);
+	detector->SetThreshold(50.0);
 	opticalflow->Initialize(WIDTH, HEIGHT, cvSize(8, 8), 3);
-	estimator->SetReprojectionError(10.0);
-	checker->SetReprojectionError(10.0);
-	refiner->SetMaxIteration(10);
+	estimator->SetReprojectionError(5.0);
+	checker->SetReprojectionError(5.0);
+	refiner->SetMaxIteration(5);
 
 	tracking.AttatchCalibration(calibration);
 	tracking.AttatchDetetor(detector);
@@ -89,8 +91,10 @@ void main()
 	tracking.AttatchEstimator(estimator);
 	tracking.AttatchChecker(checker);
 	tracking.AttatchRefiner(refiner);
-
+	
 	tracking.Initialize(WIDTH, HEIGHT, (double)WIDTH, (double)HEIGHT);
+	tracking.SetFilter(true);
+	tracking.SetDitectionRatio(2);
 	
 	int keypointCount = 0;
 	int matchingCount = 0;
@@ -98,6 +102,7 @@ void main()
 	double processingTime = 0.0;
 
 	char message[100];
+	bool fliping = true;
 	bool trained = false;
 	bool processing = true;
 	while(processing)
@@ -105,6 +110,9 @@ void main()
 		// capture image
 		inputImage = cvRetrieveFrame(capture);
 		cvResize(inputImage, resizeImage);
+		if(fliping)
+			cvFlip(resizeImage, resizeImage);
+
 		cvCvtColor(resizeImage, grayImage, CV_BGR2GRAY);
 		cvCopyImage(resizeImage, resultImage);
 
@@ -165,6 +173,10 @@ void main()
 		case 'q':
 		case 'Q':
 			processing = false;
+			break;
+		case 'f':
+		case 'F':
+			fliping = !fliping;
 			break;
 		case ' ':
 		case 's':

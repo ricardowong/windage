@@ -89,6 +89,7 @@ bool MultiplePlanarObjectTracking::AttatchReferenceImage(IplImage* grayImage)
 
 	this->referenceImage.push_back(cvCloneImage(grayImage));
 	this->objectCount++;
+	this->detectionStep = this->objectCount * this->detectionRatio;
 
 	this->cameraParameter.resize(this->objectCount);
 	this->cameraParameter[this->objectCount-1] = new windage::Calibration();
@@ -107,11 +108,10 @@ bool MultiplePlanarObjectTracking::AttatchReferenceImage(IplImage* grayImage)
 
 	this->searchTree.resize(this->objectCount);
 	this->searchTree[this->objectCount-1] = new SearchTreeT();
+	this->searchTree[this->objectCount-1]->SetRatio(SEARCH_TREE_RATIO);
 
 	this->filters.resize(this->objectCount);
 	this->filters[this->objectCount-1] = new windage::Algorithms::KalmanFilter();
-
-	this->detectionRatio = this->objectCount;
 
 	return true;
 }
@@ -216,21 +216,24 @@ bool MultiplePlanarObjectTracking::UpdateCamerapose(IplImage* grayImage)
 
 	// feature detection
 	{
-		this->detector->DoExtractKeypointsDescriptor(grayImage);
-		std::vector<windage::FeaturePoint>* sceneKeypoints = this->detector->GetKeypoints();
-
-		for(unsigned int i=0; i<sceneKeypoints->size(); i++)
+		if(this->step <  this->objectCount)
 		{
-			int index = this->searchTree[this->step]->Matching((*sceneKeypoints)[i]);
-			if(0 <= index && index < (int)this->referenceRepository[this->step].size())
-			{
-				// if not tracked have point
-				if(this->referenceRepository[this->step][index].IsTracked() == false)
-				{
-					this->referenceRepository[this->step][index].SetTracked(true);
+			this->detector->DoExtractKeypointsDescriptor(grayImage);
+			std::vector<windage::FeaturePoint>* sceneKeypoints = this->detector->GetKeypoints();
 
-					refMatchedKeypoints[this->step].push_back(this->referenceRepository[this->step][index]);
-					sceMatchedKeypoints[this->step].push_back((*sceneKeypoints)[i]);
+			for(unsigned int i=0; i<sceneKeypoints->size(); i++)
+			{
+				int index = this->searchTree[this->step]->Matching((*sceneKeypoints)[i]);
+				if(0 <= index && index < (int)this->referenceRepository[this->step].size())
+				{
+					// if not tracked have point
+					if(this->referenceRepository[this->step][index].IsTracked() == false)
+					{
+						this->referenceRepository[this->step][index].SetTracked(true);
+
+						refMatchedKeypoints[this->step].push_back(this->referenceRepository[this->step][index]);
+						sceMatchedKeypoints[this->step].push_back((*sceneKeypoints)[i]);
+					}
 				}
 			}
 		}
@@ -294,16 +297,10 @@ bool MultiplePlanarObjectTracking::UpdateCamerapose(IplImage* grayImage)
 		}
 	}
 
-	
-	for(int i=0; i<this->objectCount; i++)
-	{
-		
-	}
-
 	cvCopyImage(grayImage, this->prevImage);
 
 	this->step++;
-	if(this->step >= this->detectionRatio)
+	if(this->step >= this->detectionStep)
 		this->step = 0;
 	return true;
 }

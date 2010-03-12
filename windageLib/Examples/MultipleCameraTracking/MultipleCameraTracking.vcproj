@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="MultipleObjectTracking"
-	ProjectGUID="{1E45E76B-4E96-4DBA-8EBB-212D2463065E}"
-	RootNamespace="MultipleObjectTracking"
+	Name="MultipleCameraTracking"
+	ProjectGUID="{3C201E23-AB9E-4474-8199-22E70A0627F1}"
+	RootNamespace="MultipleCameraTracking"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
@@ -62,7 +62,6 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="cv200.lib cxcore200.lib highgui200.lib SIFTGPU.lib"
-				OutputFile="$(OutDir)\$(ProjectName)d.exe"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="&quot;$(SolutionDir)../../lib/&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.0/lib/&quot;;&quot;$(SolutionDir)../../component/SiftGPU-V340/lib/&quot;"
 				GenerateDebugInformation="true"
@@ -116,14 +115,13 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="2"
+				Optimization="3"
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../include&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.0/include&quot;;&quot;$(SolutionDir)../../component/SiftGPU-V340/include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
-				OpenMP="true"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
@@ -169,7 +167,6 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				CommandLine="COPY /Y &quot;$(OutDir)\$(ProjectName).exe&quot; &quot;$(SolutionDir)\..\..\runtime\$(ProjectName).exe&quot;"
-				ExcludedFromBuild="false"
 			/>
 		</Configuration>
 	</Configurations>
