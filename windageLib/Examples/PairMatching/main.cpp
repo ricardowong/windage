@@ -6,8 +6,8 @@
 
 #include <windage.h>
 
-const char* IMAGE_FILE_NAME_1 = "Miniature/result.imgr10_COL.jpg";
-const char* IMAGE_FILE_NAME_2 = "Miniature/result.imgr11_COL.jpg";
+const char* IMAGE_FILE_NAME_1 = "Miniature/result.imgr23_COL.jpg";
+const char* IMAGE_FILE_NAME_2 = "Miniature/result.imgr24_COL.jpg";
 const double REPROJECTION_ERRPR = 5.0;
 
 bool Matching(windage::Algorithms::SearchTree* searchtree, std::vector<windage::FeaturePoint>* feature1, std::vector<windage::FeaturePoint>* feature2, std::vector<windage::FeaturePoint>* matchedPoint1, std::vector<windage::FeaturePoint>* matchedPoint2)
@@ -39,7 +39,6 @@ void main()
 	cvCvtColor(image1, grayImage1, CV_BGR2GRAY);
 	cvCvtColor(image2, grayImage2, CV_BGR2GRAY);
 
-	windage::Calibration* calibration = new windage::Calibration();
 	windage::Algorithms::FeatureDetector* detector = new windage::Algorithms::SIFTGPUdetector();
 	windage::Algorithms::SearchTree* tree = new windage::Algorithms::FLANNtree();
 	windage::Algorithms::HomographyEstimator* estimator = new windage::Algorithms::RANSACestimator();
@@ -51,8 +50,7 @@ void main()
 	std::vector<windage::FeaturePoint> matching1;
 	std::vector<windage::FeaturePoint> matching2;
 
-	calibration->Initialize(608.894958, 609.015991, 295.023712, 254.171387, 0, 0, 0, 0);
-	estimator->AttatchCameraParameter(calibration);
+	tree->SetRatio(0.3);
 	estimator->AttatchReferencePoint(&matching1);
 	estimator->AttatchScenePoint(&matching2);
 	estimator->SetReprojectionError(REPROJECTION_ERRPR);

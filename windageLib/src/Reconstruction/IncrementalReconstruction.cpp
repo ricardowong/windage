@@ -332,13 +332,13 @@ bool IncrementalReconstruction::IncrementReconstruction()
 	// outlier rejection
 	windage::Algorithms::RANSACestimator hEstimator;
 	windage::Algorithms::OutlierChecker checker;
-	hEstimator.SetReprojectionError(this->reprojectionError * this->reprojectionError * 2.0);
+	hEstimator.SetReprojectionError(this->reprojectionError * 2.0);
 
 	hEstimator.AttatchReferencePoint(&matchedPoint1);	
 	hEstimator.AttatchScenePoint(&matchedPoint2);
 	hEstimator.Calculate();
 
-	checker.SetReprojectionError(this->reprojectionError * this->reprojectionError * 2.0);
+	checker.SetReprojectionError(this->reprojectionError * 2.0);
 	checker.AttatchEstimator(&hEstimator);
 	checker.Calculate();
 
@@ -669,14 +669,14 @@ bool IncrementalReconstruction::CalculateAll()
 	this->StereoReconstruction();
 	this->BundleAdjustment(2);
 
-	for(int i=3; i<this->attatchedCount; i++)
+	for(int i=3; i<=this->attatchedCount; i++)
 	{
 		this->IncrementReconstruction();
 
 //		if(i % 5 == 0)
 			this->BundleAdjustment(i);
 	}
-	this->BundleAdjustment(this->attatchedCount-1);
+	this->BundleAdjustment(this->attatchedCount);
 
 	return true;
 }
