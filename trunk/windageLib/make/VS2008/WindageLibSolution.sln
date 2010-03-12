@@ -56,6 +56,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PairMatching", "..\..\Examp
 		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B} = {BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MultipleCameraTracking", "..\..\Examples\MultipleCameraTracking\MultipleCameraTracking.vcproj", "{3C201E23-AB9E-4474-8199-22E70A0627F1}"
+	ProjectSection(ProjectDependencies) = postProject
+		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B} = {BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -102,6 +107,10 @@ Global
 		{6AB27E35-8AAF-44EA-8AB6-33EF997F4BB0}.Debug|Win32.Build.0 = Debug|Win32
 		{6AB27E35-8AAF-44EA-8AB6-33EF997F4BB0}.Release|Win32.ActiveCfg = Release|Win32
 		{6AB27E35-8AAF-44EA-8AB6-33EF997F4BB0}.Release|Win32.Build.0 = Release|Win32
+		{3C201E23-AB9E-4474-8199-22E70A0627F1}.Debug|Win32.ActiveCfg = Debug|Win32
+		{3C201E23-AB9E-4474-8199-22E70A0627F1}.Debug|Win32.Build.0 = Debug|Win32
+		{3C201E23-AB9E-4474-8199-22E70A0627F1}.Release|Win32.ActiveCfg = Release|Win32
+		{3C201E23-AB9E-4474-8199-22E70A0627F1}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -117,5 +126,6 @@ Global
 		{E6B84651-1EF9-4DFB-BFFB-6EC04E1D7297} = {88DDBFE1-5E4A-4B1B-A62F-1D38B81D8E64}
 		{5BD6728C-2AA9-482E-BBD6-0BA90CCC5AD6} = {88DDBFE1-5E4A-4B1B-A62F-1D38B81D8E64}
 		{6AB27E35-8AAF-44EA-8AB6-33EF997F4BB0} = {88DDBFE1-5E4A-4B1B-A62F-1D38B81D8E64}
+		{3C201E23-AB9E-4474-8199-22E70A0627F1} = {88DDBFE1-5E4A-4B1B-A62F-1D38B81D8E64}
 	EndGlobalSection
 EndGlobal

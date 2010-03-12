@@ -72,6 +72,7 @@
 
 /** pre-selected search tree algorithm whenever can change other search tree algorithm  */
 #define SearchTreeT windage::Algorithms::FLANNtree
+#define SEARCH_TREE_RATIO 0.5
 
 namespace windage
 {
@@ -120,6 +121,7 @@ namespace windage
 
 			int step;												///< current step (step == objectID = detection step)
 			int detectionRatio;										///< always detection and tracking step for multiple object
+			int detectionStep;
 																	
 			std::vector<IplImage*> referenceImage;					///< attatched reference image
 			std::vector<std::vector<windage::FeaturePoint>> referenceRepository;	///< reference keypoint repository
@@ -141,7 +143,7 @@ namespace windage
 				checker = NULL;
 				refiner = NULL;
 
-				useFilter = true;
+				useFilter = false;
 				filterStep = 10;
 
 				initialize = false;
@@ -149,7 +151,8 @@ namespace windage
 
 				step = 0;
 				/** automatically allocation depend on reference count */
-				detectionRatio = 0;
+				detectionRatio = 2;
+				detectionStep = 0;
 
 			}
 			virtual ~MultiplePlanarObjectTracking()
@@ -172,6 +175,7 @@ namespace windage
 
 			inline void SetSize(int width, int height){this->width = width; this->height = height;};
 			inline CvSize GetSize(){return cvSize(this->width, this->height);};
+			inline void SetDitectionRatio(int ratio){if(ratio<1) ratio=1; this->detectionRatio=ratio; this->step=ratio+1;};
 			inline void SetFilter(bool use){this->useFilter = use;};
 			inline void SetFilterSetp(int step){this->filterStep = step;};
 			inline int GetObjectCount(){return this->objectCount;};
