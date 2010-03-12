@@ -244,11 +244,11 @@ int main()
 	reconstructor->AttatchCalibration(initialCalibration);
 
 	windage::Algorithms::SearchTree* tree = new windage::Algorithms::FLANNtree(50);
-	tree->SetRatio(0.5);
+	tree->SetRatio(0.3);
 	reconstructor->AttatchSearchTree(tree);
 
-//	windage::Algorithms::EPnPRANSACestimator* estimator = new windage::Algorithms::EPnPRANSACestimator();
-	windage::Algorithms::OpenCVRANSACestimator* estimator = new windage::Algorithms::OpenCVRANSACestimator();
+	windage::Algorithms::EPnPRANSACestimator* estimator = new windage::Algorithms::EPnPRANSACestimator();
+//	windage::Algorithms::OpenCVRANSACestimator* estimator = new windage::Algorithms::OpenCVRANSACestimator();
 	estimator->SetConfidence(RANSAC_COEFFICIENT);
 	estimator->SetMaxIteration(RANSAC_ITERATION);
 	estimator->SetReprojectionError(RANSAC_REPROJECTION_ERROR);
