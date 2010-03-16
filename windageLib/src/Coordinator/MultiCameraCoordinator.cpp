@@ -121,7 +121,6 @@ Matrix4 MultiCameraCoordinator::CalculateExtrinsic(Calibration* baseCalibration,
 			matrix.m[y][x] = rotation.m[y][x];
 		}
 		matrix.m[y][3] = translation.v[y];
-	
 	}
 
 	matrix.m[3][0] = matrix.m[3][1] = matrix.m[3][2] = 0.0;

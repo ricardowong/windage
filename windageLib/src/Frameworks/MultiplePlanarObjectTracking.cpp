@@ -182,7 +182,7 @@ bool MultiplePlanarObjectTracking::UpdateCamerapose(IplImage* grayImage)
 		std::vector<windage::FeaturePoint> sceneKeypoints1;
 		std::vector<windage::FeaturePoint> sceneKeypoints2;
 
-		for(int i=0; i<this->objectCount; i++)
+		for(unsigned int i=0; i<this->sceMatchedKeypoints.size(); i++)
 		{
 			for(unsigned int j=0; j<this->sceMatchedKeypoints[i].size(); j++)
 			{

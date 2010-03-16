@@ -47,6 +47,7 @@
 const int WIDTH = 640;
 const int HEIGHT = (WIDTH * 3) / 4;
 const int FEATURE_COUNT = WIDTH;
+const double INTRINSIC[] = {1033.93, 1033.84, 319.044, 228.858,-0.206477, 0.306424, 0.000728208, 0.0011338};
 
 void main()
 {
@@ -68,17 +69,15 @@ void main()
 	windage::Algorithms::HomographyEstimator* estimator;
 	windage::Algorithms::OutlierChecker* checker;
 	windage::Algorithms::HomographyRefiner* refiner;
-	windage::Algorithms::KalmanFilter* filter;
 
 	calibration = new windage::Calibration();
-	detector = new windage::Algorithms::WSURFdetector();
+	detector = new windage::Algorithms::SIFTGPUdetector();
 	opticalflow = new windage::Algorithms::OpticalFlow();
-	estimator = new windage::Algorithms::ProSACestimator();
+	estimator = new windage::Algorithms::RANSACestimator();
 	checker = new windage::Algorithms::OutlierChecker();
 	refiner = new windage::Algorithms::LMmethod();
-	filter = new windage::Algorithms::KalmanFilter();
 
-	calibration->Initialize(WIDTH*1.2, WIDTH*1.2, WIDTH/2.0, HEIGHT/2.0, 0, 0, 0, 0);
+	calibration->Initialize(INTRINSIC[0], INTRINSIC[1], INTRINSIC[2], INTRINSIC[3], INTRINSIC[4], INTRINSIC[5], INTRINSIC[6], INTRINSIC[7]);
 	detector->SetThreshold(50.0);
 	opticalflow->Initialize(WIDTH, HEIGHT, cvSize(8, 8), 3);
 	estimator->SetReprojectionError(5.0);
@@ -93,8 +92,8 @@ void main()
 	tracking.AttatchRefiner(refiner);
 	
 	tracking.Initialize(WIDTH, HEIGHT, (double)WIDTH, (double)HEIGHT);
-	tracking.SetFilter(true);
-	tracking.SetDitectionRatio(2);
+	tracking.SetFilter(false);
+	tracking.SetDitectionRatio(1);
 	
 	int keypointCount = 0;
 	int matchingCount = 0;
@@ -183,7 +182,7 @@ void main()
 		case 'S':
 			detector->SetThreshold(30.0);
 			tracking.AttatchReferenceImage(grayImage);
-			tracking.TrainingReference(4.0, 8);
+			tracking.TrainingReference(1.0, 1);
 			detector->SetThreshold(threshold);
 			trained = true;
 			break;
