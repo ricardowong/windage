@@ -93,7 +93,7 @@ namespace windage
 		class DLLEXPORT MultiplePlanarObjectTracking
 		{
 		protected:
-			static const int MIN_FEATURE_POINTS_COUNT = 9;			///< threshold to determin whether tracked or not
+			static const int MIN_FEATURE_POINTS_COUNT = 10;			///< threshold to determin whether tracked or not
 
 			windage::Calibration* initialCamearParameter;			///< It is required elements that camera calibration parameter to attatch reference pointer at out-side
 			windage::Algorithms::FeatureDetector* detector;			///< It is required elements that feature detection algorithm to attatch reference pointer at out-side

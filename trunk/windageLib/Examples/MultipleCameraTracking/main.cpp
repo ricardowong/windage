@@ -43,7 +43,9 @@
 #include <highgui.h>
 
 #include <windage.h>
+#include "../Common/BumbleBeeCamera.h"
 
+const int TRACKER_COUNT = 2;
 const int WIDTH = 640;
 const int HEIGHT = (WIDTH * 3) / 4;
 const int FEATURE_COUNT = WIDTH;
@@ -54,115 +56,128 @@ const int SCALE_STEP = 8;
 #define USE_ADAPTIVE_THRESHOLD 1
 #define USE_TEMPLATE_IMAEG 1
 const char* TEMPLATE_IMAGE = "reference.png";
+const double INTRINSIC[] = {826.653, 826.135, 351.964, 262.518, -0.014979, 0.051856, -0.000729, -0.000744};
 
-void main()
+windage::Frameworks::PlanarObjectTracking* CreateTracker()
 {
-	windage::Logger logger(&std::cout);
+	windage::Frameworks::PlanarObjectTracking* tracking = new windage::Frameworks::PlanarObjectTracking();
 
-	IplImage* inputImage;
-	IplImage* resizeImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
-	IplImage* grayImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 1);
-	IplImage* resultImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
+	windage::Calibration* calibration					= new windage::Calibration();
+	windage::Algorithms::FeatureDetector* detector		= new windage::Algorithms::WSURFdetector();
+	windage::Algorithms::SearchTree* searchtree			= new windage::Algorithms::FLANNtree();
+	windage::Algorithms::OpticalFlow* opticalflow		= new windage::Algorithms::OpticalFlow();
+	windage::Algorithms::HomographyEstimator* estimator	= new windage::Algorithms::RANSACestimator();
+	windage::Algorithms::OutlierChecker* checker		= new windage::Algorithms::OutlierChecker();
+	windage::Algorithms::HomographyRefiner* refiner		= new windage::Algorithms::LMmethod();
+	windage::Algorithms::KalmanFilter* filter			= new windage::Algorithms::KalmanFilter();
 
-	CvCapture* capture = cvCaptureFromCAM(CV_CAP_ANY);
-	cvNamedWindow("result");
-
-	// create and initialize tracker
-	windage::Frameworks::PlanarObjectTracking tracking;
-	windage::Calibration* calibration;
-	windage::Algorithms::FeatureDetector* detector;
-	windage::Algorithms::SearchTree* searchtree;
-	windage::Algorithms::OpticalFlow* opticalflow;
-	windage::Algorithms::HomographyEstimator* estimator;
-	windage::Algorithms::OutlierChecker* checker;
-	windage::Algorithms::HomographyRefiner* refiner;
-	windage::Algorithms::KalmanFilter* filter;
-
-	calibration = new windage::Calibration();
-	detector = new windage::Algorithms::WSURFdetector();
-	searchtree = new windage::Algorithms::FLANNtree();
-	opticalflow = new windage::Algorithms::OpticalFlow();
-	estimator = new windage::Algorithms::ProSACestimator();
-	checker = new windage::Algorithms::OutlierChecker();
-	refiner = new windage::Algorithms::LMmethod();
-	filter = new windage::Algorithms::KalmanFilter();
-
-	calibration->Initialize(WIDTH*1.2, WIDTH*1.2, WIDTH/2.0, HEIGHT/2.0, 0, 0, 0, 0);
+	calibration->Initialize(INTRINSIC[0], INTRINSIC[1], INTRINSIC[2], INTRINSIC[3], INTRINSIC[4], INTRINSIC[5], INTRINSIC[6], INTRINSIC[7]);
 	detector->SetThreshold(30.0);
-	searchtree->SetRatio(0.5);
+	searchtree->SetRatio(0.7);
 	opticalflow->Initialize(WIDTH, HEIGHT, cvSize(8, 8), 3);
 	estimator->SetReprojectionError(5.0);
 	checker->SetReprojectionError(5.0);
 	refiner->SetMaxIteration(5);
 
-	tracking.AttatchCalibration(calibration);
-	tracking.AttatchDetetor(detector);
-	tracking.AttatchMatcher(searchtree);
-	tracking.AttatchTracker(opticalflow);
-	tracking.AttatchEstimator(estimator);
-	tracking.AttatchChecker(checker);
-	tracking.AttatchRefiner(refiner);
-//	tracking.AttatchFilter(filter);
+	tracking->AttatchCalibration(calibration);
+	tracking->AttatchDetetor(detector);
+	tracking->AttatchMatcher(searchtree);
+	tracking->AttatchTracker(opticalflow);
+	tracking->AttatchEstimator(estimator);
+	tracking->AttatchChecker(checker);
+	tracking->AttatchRefiner(refiner);
+//	tracking->AttatchFilter(filter);
 
-	tracking.SetDitectionRatio(30);
-	tracking.Initialize(WIDTH, HEIGHT, (double)WIDTH, (double)HEIGHT);
+	CvRNG rng = cvRNG(cvGetTickCount());
 
-	int keypointCount = 0;
-	int matchingCount = 0;
-	double threshold = 50.0;
+	int ratio = 5;
+	tracking->SetDitectionRatio(ratio);
+	tracking->SetFilterSetp(cvRandInt(&rng)%ratio);
+	tracking->Initialize(WIDTH, HEIGHT, (double)WIDTH, (double)HEIGHT);
+	return tracking;
+}
+
+void main()
+{
+	windage::Logger logger(&std::cout);
+
+	std::vector<windage::Vector3> toTranslation; toTranslation.resize(TRACKER_COUNT);
+	std::vector<windage::Matrix3> toRotation; toRotation.resize(TRACKER_COUNT);
+	std::vector<IplImage*> inputImage;
+	std::vector<IplImage*> grayImage;
+	IplImage* resultImage = cvCreateImage(cvSize(WIDTH*2, HEIGHT), IPL_DEPTH_8U, 4);
+	for(int i=0; i<TRACKER_COUNT; i++)
+	{
+		inputImage.push_back(cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 4));
+		grayImage.push_back(cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 1));
+	}
+
+	BumbleBeeCamera* stereoCamera = new BumbleBeeCamera();
+	unsigned char* dummy1 = NULL;
+	unsigned char* dummy2 = NULL;
+	stereoCamera->init(WIDTH, HEIGHT, dummy1, dummy2);
+	stereoCamera->SetColorBuffers((unsigned char*)inputImage[0]->imageData, (unsigned char*)inputImage[1]->imageData);
+	cvNamedWindow("result");
+
+	windage::Calibration* calibration = new windage::Calibration();
+	calibration->Initialize(INTRINSIC[0], INTRINSIC[1], INTRINSIC[2], INTRINSIC[3], INTRINSIC[4], INTRINSIC[5], INTRINSIC[6], INTRINSIC[7]);
+
+	// create and initialize tracker
+	std::vector<windage::Frameworks::PlanarObjectTracking*> tracker;
+	for(int i=0; i<TRACKER_COUNT; i++)
+	{
+		tracker.push_back(CreateTracker());
+	}
+
 	double processingTime = 0.0;
-
-	bool trained = false;
-
 #if USE_TEMPLATE_IMAEG
 	IplImage* sampleImage = cvLoadImage(TEMPLATE_IMAGE, 0);
-	detector->SetThreshold(30.0);
-	tracking.AttatchReferenceImage(sampleImage);
-	tracking.TrainingReference(SCALE_FACTOR, SCALE_STEP);
-	detector->SetThreshold(threshold);
-	trained = true;
+
+	for(unsigned int i=0; i<tracker.size(); i++)
+	{
+		tracker[i]->GetDetector()->SetThreshold(30.0);
+		tracker[i]->AttatchReferenceImage(sampleImage);
+		tracker[i]->TrainingReference(SCALE_FACTOR, SCALE_STEP);
+		tracker[i]->GetDetector()->SetThreshold(50.0);
+	}
 #endif
 
+	int cameraIndex = -1;
 	char message[100];
-	bool flip = true;
+	bool update = false;
 	bool processing = true;
 	while(processing)
 	{
 		// capture image
-		inputImage = cvRetrieveFrame(capture);
-		if(flip)
-			cvFlip(inputImage, inputImage);
-		cvResize(inputImage, resizeImage);
-		cvCvtColor(resizeImage, grayImage, CV_BGR2GRAY);
-		cvCopyImage(resizeImage, resultImage);
+		stereoCamera->capture();
+		stereoCamera->download();
 
 		logger.updateTickCount();
 
-		// track object
-		if(trained)
+		for(int i=0; i<TRACKER_COUNT; i++)
 		{
-			tracking.UpdateCamerapose(grayImage);
-
-			// adaptive threshold
-#if USE_ADAPTIVE_THRESHOLD
-			int localcount = detector->GetKeypointsCount();
-			if(keypointCount != localcount)
+			if(cameraIndex != i)
 			{
-				if(localcount > FEATURE_COUNT)
-					threshold += 1;
-				if(localcount < FEATURE_COUNT)
-					threshold -= 1;
-				detector->SetThreshold(threshold);
-				keypointCount = localcount;
+				cvCvtColor(inputImage[i], grayImage[i], CV_BGRA2GRAY);
+				tracker[i]->UpdateCamerapose(grayImage[i]);
+				tracker[i]->DrawOutLine(inputImage[i], true);
+
+//				tracker[i]->GetCameraParameter()->DrawInfomation(inputImage[i], 100.0);
 			}
-#endif
-			// draw result
-//			detector->DrawKeypoints(resultImage);
-			tracking.DrawDebugInfo(resultImage);
-			tracking.DrawOutLine(resultImage, true);
-			calibration->DrawInfomation(resultImage, 100);
 		}
-		matchingCount = tracking.GetMatchingCount();
+		for(int i=0; i<TRACKER_COUNT; i++)
+		{
+			int index = i+1>=TRACKER_COUNT?0:i+1;
+			calibration->SetExtrinsicMatrix(windage::Coordinator::MultiCameraCoordinator::CalculateExtrinsic(tracker[i]->GetCameraParameter(), toRotation[i], toTranslation[i]).m1);
+			calibration->DrawInfomation(inputImage[index], 100.0);
+		}
+
+		// draw result
+		cvSetImageROI(resultImage, cvRect(0, 0, WIDTH, HEIGHT));
+		cvCopyImage(inputImage[0], resultImage);
+		cvSetImageROI(resultImage, cvRect(WIDTH, 0, WIDTH, HEIGHT));
+		cvCopyImage(inputImage[1], resultImage);
+		cvResetImageROI(resultImage);
 
 		processingTime = logger.calculateProcessTime();
 		logger.log("processingTime", processingTime);
@@ -170,40 +185,56 @@ void main()
 
 		sprintf_s(message, "Processing Time : %.2lf ms", processingTime);
 		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 20), 0.6, message);
-		sprintf_s(message, "Feature Count : %d, Threshold : %.0lf", keypointCount, threshold);
-		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 40), 0.6, message);
-		sprintf_s(message, "Matching Count : %d", matchingCount);
-		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 60), 0.6, message);
+		
+		sprintf_s(message, "Bounding : tracking object");
+		windage::Utils::DrawTextToImage(resultImage, cvPoint(WIDTH*2-270, HEIGHT-10), 0.7, message);
+		sprintf_s(message, "Axis : estimated pose");
+		windage::Utils::DrawTextToImage(resultImage, cvPoint(WIDTH*2-270, HEIGHT-30), 0.7, message);
 
-		sprintf_s(message, "Press 'Space' to track the current image");
-		windage::Utils::DrawTextToImage(resultImage, cvPoint(WIDTH-270, HEIGHT-10), 0.5, message);
-		sprintf_s(message, "Press 'F' to flip image");
-		windage::Utils::DrawTextToImage(resultImage, cvPoint(WIDTH-270, HEIGHT-25), 0.5, message);
 		cvShowImage("result", resultImage);
 
 		char ch = cvWaitKey(1);
 		switch(ch)
 		{
+		case 27:
 		case 'q':
 		case 'Q':
 			processing = false;
 			break;
-		case 'f':
-		case 'F':
-			flip = !flip;
+		case 'u':
+		case 'U':
+			for(int i=0; i<TRACKER_COUNT; i++)
+			{
+				int index = i+1>=TRACKER_COUNT?0:i+1;
+				toTranslation[i] = windage::Coordinator::MultiCameraCoordinator::GetTranslation(tracker[i]->GetCameraParameter(), tracker[index]->GetCameraParameter());
+				toRotation[i] = windage::Coordinator::MultiCameraCoordinator::GetRotation(tracker[i]->GetCameraParameter(), tracker[index]->GetCameraParameter());
+			}
 			break;
+		case '1':
+			cameraIndex = 0;
+			break;
+		case '2':
+			cameraIndex = 1;
+			break;
+		case '0':
+		case '3':
+			cameraIndex = -1;
+			break;
+/*
 		case ' ':
 		case 's':
 		case 'S':
-			detector->SetThreshold(30.0);
-			tracking.AttatchReferenceImage(grayImage);
-			tracking.TrainingReference(SCALE_FACTOR, SCALE_STEP);
-			detector->SetThreshold(threshold);
-			trained = true;
+
+			tracker[0]->GetDetector()->SetThreshold(30.0);
+			tracker[0]->AttatchReferenceImage(grayImage);
+			tracker[0]->TrainingReference(SCALE_FACTOR, SCALE_STEP);
+			tracker[0]->GetDetector()->SetThreshold(threshold);
+*/
 			break;
 		}		
 	}
 
-	cvReleaseCapture(&capture);
+	stereoCamera->clean();
+	delete stereoCamera;
 	cvDestroyAllWindows();
 }

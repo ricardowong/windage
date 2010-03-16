@@ -54,6 +54,7 @@ const int SCALE_STEP = 8;
 #define USE_ADAPTIVE_THRESHOLD 1
 #define USE_TEMPLATE_IMAEG 1
 const char* TEMPLATE_IMAGE = "reference.png";
+const double INTRINSIC[] = {1033.93, 1033.84, 319.044, 228.858,-0.206477, 0.306424, 0.000728208, 0.0011338};
 
 void main()
 {
@@ -87,7 +88,7 @@ void main()
 	refiner = new windage::Algorithms::LMmethod();
 	filter = new windage::Algorithms::KalmanFilter();
 
-	calibration->Initialize(WIDTH*1.2, WIDTH*1.2, WIDTH/2.0, HEIGHT/2.0, 0, 0, 0, 0);
+	calibration->Initialize(INTRINSIC[0], INTRINSIC[1], INTRINSIC[2], INTRINSIC[3], INTRINSIC[4], INTRINSIC[5], INTRINSIC[6], INTRINSIC[7]);
 	detector->SetThreshold(30.0);
 	searchtree->SetRatio(0.5);
 	opticalflow->Initialize(WIDTH, HEIGHT, cvSize(8, 8), 3);
