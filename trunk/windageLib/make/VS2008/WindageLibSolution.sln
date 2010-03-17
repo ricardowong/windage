@@ -61,6 +61,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MultipleCameraTracking", ".
 		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B} = {BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SparseIncreamentalReconstruction", "..\..\Examples\SparseIncreamentalReconstruction\SparseIncreamentalReconstruction.vcproj", "{7C0BDFC3-67A6-43B0-A6A5-026CCF9CA21C}"
+	ProjectSection(ProjectDependencies) = postProject
+		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B} = {BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -111,6 +116,10 @@ Global
 		{3C201E23-AB9E-4474-8199-22E70A0627F1}.Debug|Win32.Build.0 = Debug|Win32
 		{3C201E23-AB9E-4474-8199-22E70A0627F1}.Release|Win32.ActiveCfg = Release|Win32
 		{3C201E23-AB9E-4474-8199-22E70A0627F1}.Release|Win32.Build.0 = Release|Win32
+		{7C0BDFC3-67A6-43B0-A6A5-026CCF9CA21C}.Debug|Win32.ActiveCfg = Debug|Win32
+		{7C0BDFC3-67A6-43B0-A6A5-026CCF9CA21C}.Debug|Win32.Build.0 = Debug|Win32
+		{7C0BDFC3-67A6-43B0-A6A5-026CCF9CA21C}.Release|Win32.ActiveCfg = Release|Win32
+		{7C0BDFC3-67A6-43B0-A6A5-026CCF9CA21C}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -127,5 +136,6 @@ Global
 		{5BD6728C-2AA9-482E-BBD6-0BA90CCC5AD6} = {88DDBFE1-5E4A-4B1B-A62F-1D38B81D8E64}
 		{6AB27E35-8AAF-44EA-8AB6-33EF997F4BB0} = {88DDBFE1-5E4A-4B1B-A62F-1D38B81D8E64}
 		{3C201E23-AB9E-4474-8199-22E70A0627F1} = {88DDBFE1-5E4A-4B1B-A62F-1D38B81D8E64}
+		{7C0BDFC3-67A6-43B0-A6A5-026CCF9CA21C} = {88DDBFE1-5E4A-4B1B-A62F-1D38B81D8E64}
 	EndGlobalSection
 EndGlobal

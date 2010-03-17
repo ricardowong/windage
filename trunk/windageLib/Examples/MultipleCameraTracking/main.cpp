@@ -37,7 +37,7 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#include <iostream>
+#include <iostream>a
 
 #include <cv.h>
 #include <highgui.h>
@@ -138,7 +138,7 @@ void main()
 		tracker[i]->GetDetector()->SetThreshold(30.0);
 		tracker[i]->AttatchReferenceImage(sampleImage);
 		tracker[i]->TrainingReference(SCALE_FACTOR, SCALE_STEP);
-		tracker[i]->GetDetector()->SetThreshold(50.0);
+		tracker[i]->GetDetector()->SetThreshold(40.0);
 	}
 #endif
 
@@ -161,15 +161,18 @@ void main()
 				cvCvtColor(inputImage[i], grayImage[i], CV_BGRA2GRAY);
 				tracker[i]->UpdateCamerapose(grayImage[i]);
 				tracker[i]->DrawOutLine(inputImage[i], true);
-
+//				tracker[i]->DrawDebugInfo(inputImage[i]);
 //				tracker[i]->GetCameraParameter()->DrawInfomation(inputImage[i], 100.0);
 			}
 		}
 		for(int i=0; i<TRACKER_COUNT; i++)
 		{
-			int index = i+1>=TRACKER_COUNT?0:i+1;
-			calibration->SetExtrinsicMatrix(windage::Coordinator::MultiCameraCoordinator::CalculateExtrinsic(tracker[i]->GetCameraParameter(), toRotation[i], toTranslation[i]).m1);
-			calibration->DrawInfomation(inputImage[index], 100.0);
+			if(cameraIndex != i)
+			{
+				int index = i+1>=TRACKER_COUNT?0:i+1;
+				calibration->SetExtrinsicMatrix(windage::Coordinator::MultiCameraCoordinator::CalculateExtrinsic(tracker[i]->GetCameraParameter(), toRotation[i], toTranslation[i]).m1);
+				calibration->DrawInfomation(inputImage[index], 100.0);
+			}
 		}
 
 		// draw result

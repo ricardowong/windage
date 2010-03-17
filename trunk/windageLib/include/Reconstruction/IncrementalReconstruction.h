@@ -136,6 +136,7 @@ namespace windage
 
 			inline int GetCameraParameterCount(){return (int)this->cameraParameters.size();};
 			inline windage::Calibration* GetCameraParameter(int i){return cameraParameters[i];};
+			inline std::vector<windage::Calibration*>* GetCameraParameterList(){return &cameraParameters;};
 			inline std::vector<windage::ReconstructionPoint>* GetReconstructedPoint(){return &reconstructionPoints;};
 
 			double CheckReprojectionError(CvMat **RT, CvMat *pt3D, CvMat **pt2D, int n);

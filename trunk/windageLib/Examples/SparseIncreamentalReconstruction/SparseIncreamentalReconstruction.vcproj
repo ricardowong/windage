@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="SingleObjectTracking"
-	ProjectGUID="{55215990-D4D7-435D-8608-E6078C0F184F}"
-	RootNamespace="SingleObjectTracking"
+	Name="SparseIncreamentalReconstruction"
+	ProjectGUID="{7C0BDFC3-67A6-43B0-A6A5-026CCF9CA21C}"
+	RootNamespace="SparseIncreamentalReconstruction"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../include&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.0/include&quot;;&quot;$(SolutionDir)../../component/SiftGPU-V340/include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../include&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.0/include&quot;;&quot;$(SolutionDir)../../component/GLUT/include&quot;;&quot;$(SolutionDir)../../component/irrlicht-1.7.1/include&quot;;&quot;$(SolutionDir)../../component/SiftGPU-V340/include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -61,10 +61,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="cv200.lib cxcore200.lib highgui200.lib SIFTGPU.lib"
-				OutputFile="$(OutDir)\$(ProjectName)d.exe"
+				AdditionalDependencies="cv200.lib cxcore200.lib highgui200.lib sba.lib cblas.lib clapack.lib f2c.lib Irrlicht.lib SIFTGPU.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="&quot;$(SolutionDir)../../lib/&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.0/lib/&quot;;&quot;$(SolutionDir)../../component/SiftGPU-V340/lib/&quot;"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)../../lib/&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.0/lib/&quot;;&quot;$(SolutionDir)../../component/GLUT/lib/&quot;;&quot;$(SolutionDir)../../component/SBA-1.5/lib/&quot;;&quot;$(SolutionDir)../../component/irrlicht-1.7.1/lib/Win32-visualstudio&quot;;&quot;$(SolutionDir)../../component/SiftGPU-V340/lib/&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				TargetMachine="1"
@@ -116,10 +115,10 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="2"
+				Optimization="3"
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../include&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.0/include&quot;;&quot;$(SolutionDir)../../component/SiftGPU-V340/include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../include&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.0/include&quot;;&quot;$(SolutionDir)../../component/GLUT/include&quot;;&quot;$(SolutionDir)../../component/irrlicht-1.7.1/include&quot;;&quot;$(SolutionDir)../../component/SiftGPU-V340/include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -139,9 +138,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="cv200.lib cxcore200.lib highgui200.lib SIFTGPU.lib"
+				AdditionalDependencies="cv200.lib cxcore200.lib highgui200.lib sba.lib cblas.lib clapack.lib f2c.lib Irrlicht.lib SIFTGPU.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;$(SolutionDir)../../lib/&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.0/lib/&quot;;&quot;$(SolutionDir)../../component/SiftGPU-V340/lib/&quot;"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)../../lib/&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.0/lib/&quot;;&quot;$(SolutionDir)../../component/GLUT/lib/&quot;;&quot;$(SolutionDir)../../component/SBA-1.5/lib/&quot;;&quot;$(SolutionDir)../../component/irrlicht-1.7.1/lib/Win32-visualstudio&quot;;&quot;$(SolutionDir)../../component/SiftGPU-V340/lib/&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"
@@ -169,7 +168,6 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				CommandLine="COPY /Y &quot;$(OutDir)\$(ProjectName).exe&quot; &quot;$(SolutionDir)\..\..\runtime\$(ProjectName).exe&quot;"
-				ExcludedFromBuild="false"
 			/>
 		</Configuration>
 	</Configurations>
@@ -183,6 +181,18 @@
 			>
 			<File
 				RelativePath=".\main.cpp"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="Common"
+			>
+			<File
+				RelativePath="..\Common\IrrlichtRenderer.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\Common\IrrlichtRenderer.h"
 				>
 			</File>
 		</Filter>
