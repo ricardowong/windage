@@ -54,7 +54,7 @@ bool SceneNode::Initialize()
 		windage::ReconstructionPoint point = (*reconstructionPoints)[i];
 		windage::Vector4 position = point.GetPoint();
 		CvScalar color = point.GetColor();
-		Vertices[i] = irr::video::S3DVertex(position.x, position.y, position.z, 1, 1, 1, irr::video::SColor(255, color.val[2], color.val[1], color.val[0]), 0, 0);
+		Vertices[i] = irr::video::S3DVertex((irr::f32)position.x, (irr::f32)position.y, (irr::f32)position.z, 1.0, 1.0, 1.0, irr::video::SColor((irr::u32)255, (irr::u32)color.val[2], (irr::u32)color.val[1], (irr::u32)color.val[0]), 0, 0);
 	}
 
 	// draw camera frame
@@ -98,17 +98,19 @@ bool SceneNode::Initialize()
 		CvScalar color = CV_RGB(255, 255, 0);
 
 		this->cameras[i].resize(5);
-		this->cameras[i][0] = irr::core::vector3df(cameraPosition.x, cameraPosition.y, cameraPosition.z);
+		this->cameras[i][0] = irr::core::vector3df((irr::f32)cameraPosition.x, (irr::f32)cameraPosition.y, (irr::f32)cameraPosition.z);
 		for(int k=0; k<4; k++)
-			this->cameras[i][k+1] = irr::core::vector3df(point[k].x, point[k].y, point[k].z);
+			this->cameras[i][k+1] = irr::core::vector3df((irr::f32)point[k].x, (irr::f32)point[k].y, (irr::f32)point[k].z);
 
 		// load texture image
-		irr::video::IVideoDriver* driver = SceneManager->getVideoDriver();
-		this->cameraImages[i].setTexture(0, driver->getTexture((*filenameList)[i].c_str()));
-		this->cameraImages[i].Lighting = false;
-		this->cameraImages[i].Wireframe = false;
-		this->cameraImages[i].FrontfaceCulling = false;
-		
+		if(filenameList)
+		{
+			irr::video::IVideoDriver* driver = SceneManager->getVideoDriver();
+			this->cameraImages[i].setTexture(0, driver->getTexture((*filenameList)[i].c_str()));
+			this->cameraImages[i].Lighting = false;
+			this->cameraImages[i].Wireframe = false;
+			this->cameraImages[i].FrontfaceCulling = false;
+		}		
 	}
 
 	return false;
@@ -140,19 +142,22 @@ void SceneNode::render()
 					driver->draw3DLine(this->cameras[i][0], this->cameras[i][k+1], irr::video::SColor(255, 255, 255, 0));
 			}
 
-			for(unsigned int i=0; i<this->cameras.size(); i++)
+			if(filenameList)
 			{
-				irr::video::S3DVertex cameraVertices[4];
+				for(unsigned int i=0; i<this->cameras.size(); i++)
+				{
+					irr::video::S3DVertex cameraVertices[4];
 
-				driver->setMaterial(this->cameraImages[i]);
-				driver->setTransform(irr::video::ETS_WORLD, AbsoluteTransformation);
+					driver->setMaterial(this->cameraImages[i]);
+					driver->setTransform(irr::video::ETS_WORLD, AbsoluteTransformation);
 
-				cameraVertices[0] = irr::video::S3DVertex(this->cameras[i][1].X,this->cameras[i][1].Y,this->cameras[i][1].Z, 1,1,1, irr::video::SColor(255,255,255,255), 0, 0);
-				cameraVertices[1] = irr::video::S3DVertex(this->cameras[i][2].X,this->cameras[i][2].Y,this->cameras[i][2].Z, 1,1,1, irr::video::SColor(255,255,255,255), 1, 0);
-				cameraVertices[2] = irr::video::S3DVertex(this->cameras[i][3].X,this->cameras[i][3].Y,this->cameras[i][3].Z, 1,1,1, irr::video::SColor(255,255,255,255), 1, 1);
-				cameraVertices[3] = irr::video::S3DVertex(this->cameras[i][4].X,this->cameras[i][4].Y,this->cameras[i][4].Z, 1,1,1, irr::video::SColor(255,255,255,255), 0, 1);
-				driver->drawVertexPrimitiveList(&cameraVertices[0], 4, &cameraIndices1[0], 2, irr::video::EVT_STANDARD, irr::scene::EPT_TRIANGLES, irr::video::EIT_16BIT);
-				driver->drawVertexPrimitiveList(&cameraVertices[0], 4, &cameraIndices2[0], 2, irr::video::EVT_STANDARD, irr::scene::EPT_TRIANGLES, irr::video::EIT_16BIT);
+					cameraVertices[0] = irr::video::S3DVertex(this->cameras[i][1].X,this->cameras[i][1].Y,this->cameras[i][1].Z, 1,1,1, irr::video::SColor(255,255,255,255), 0, 0);
+					cameraVertices[1] = irr::video::S3DVertex(this->cameras[i][2].X,this->cameras[i][2].Y,this->cameras[i][2].Z, 1,1,1, irr::video::SColor(255,255,255,255), 1, 0);
+					cameraVertices[2] = irr::video::S3DVertex(this->cameras[i][3].X,this->cameras[i][3].Y,this->cameras[i][3].Z, 1,1,1, irr::video::SColor(255,255,255,255), 1, 1);
+					cameraVertices[3] = irr::video::S3DVertex(this->cameras[i][4].X,this->cameras[i][4].Y,this->cameras[i][4].Z, 1,1,1, irr::video::SColor(255,255,255,255), 0, 1);
+					driver->drawVertexPrimitiveList(&cameraVertices[0], 4, &cameraIndices1[0], 2, irr::video::EVT_STANDARD, irr::scene::EPT_TRIANGLES, irr::video::EIT_16BIT);
+					driver->drawVertexPrimitiveList(&cameraVertices[0], 4, &cameraIndices2[0], 2, irr::video::EVT_STANDARD, irr::scene::EPT_TRIANGLES, irr::video::EIT_16BIT);
+				}
 			}
 		}
 		else
@@ -165,18 +170,21 @@ void SceneNode::render()
 			for(int k=0; k<4; k++)
 				driver->draw3DLine(this->cameras[i][0], this->cameras[i][k+1], irr::video::SColor(255, 255, 255, 0));
 
-			irr::video::S3DVertex cameraVertices[4];
+			if(filenameList)
+			{
+				irr::video::S3DVertex cameraVertices[4];
 
 				driver->setMaterial(this->cameraImages[i]);
-			driver->setTransform(irr::video::ETS_WORLD, AbsoluteTransformation);
+				driver->setTransform(irr::video::ETS_WORLD, AbsoluteTransformation);
 
-			int value = 200;
-			cameraVertices[0] = irr::video::S3DVertex(this->cameras[i][1].X,this->cameras[i][1].Y,this->cameras[i][1].Z, 1,1,1, irr::video::SColor(255, value,value,value), 0, 0);
-			cameraVertices[1] = irr::video::S3DVertex(this->cameras[i][2].X,this->cameras[i][2].Y,this->cameras[i][2].Z, 1,1,1, irr::video::SColor(255, value,value,value), 1, 0);
-			cameraVertices[2] = irr::video::S3DVertex(this->cameras[i][3].X,this->cameras[i][3].Y,this->cameras[i][3].Z, 1,1,1, irr::video::SColor(255, value,value,value), 1, 1);
-			cameraVertices[3] = irr::video::S3DVertex(this->cameras[i][4].X,this->cameras[i][4].Y,this->cameras[i][4].Z, 1,1,1, irr::video::SColor(255, value,value,value), 0, 1);
-			driver->drawVertexPrimitiveList(&cameraVertices[0], 4, &cameraIndices1[0], 2, irr::video::EVT_STANDARD, irr::scene::EPT_TRIANGLES, irr::video::EIT_16BIT);
-			driver->drawVertexPrimitiveList(&cameraVertices[0], 4, &cameraIndices2[0], 2, irr::video::EVT_STANDARD, irr::scene::EPT_TRIANGLES, irr::video::EIT_16BIT);
+				int value = 200;
+				cameraVertices[0] = irr::video::S3DVertex(this->cameras[i][1].X,this->cameras[i][1].Y,this->cameras[i][1].Z, 1,1,1, irr::video::SColor(255, value,value,value), 0, 0);
+				cameraVertices[1] = irr::video::S3DVertex(this->cameras[i][2].X,this->cameras[i][2].Y,this->cameras[i][2].Z, 1,1,1, irr::video::SColor(255, value,value,value), 1, 0);
+				cameraVertices[2] = irr::video::S3DVertex(this->cameras[i][3].X,this->cameras[i][3].Y,this->cameras[i][3].Z, 1,1,1, irr::video::SColor(255, value,value,value), 1, 1);
+				cameraVertices[3] = irr::video::S3DVertex(this->cameras[i][4].X,this->cameras[i][4].Y,this->cameras[i][4].Z, 1,1,1, irr::video::SColor(255, value,value,value), 0, 1);
+				driver->drawVertexPrimitiveList(&cameraVertices[0], 4, &cameraIndices1[0], 2, irr::video::EVT_STANDARD, irr::scene::EPT_TRIANGLES, irr::video::EIT_16BIT);
+				driver->drawVertexPrimitiveList(&cameraVertices[0], 4, &cameraIndices2[0], 2, irr::video::EVT_STANDARD, irr::scene::EPT_TRIANGLES, irr::video::EIT_16BIT);
+			}
 		}
 
 		delete indices;

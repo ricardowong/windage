@@ -57,11 +57,12 @@ const char* IMAGE_FILE_NAME_TEMPLATE = "ReconstructionImage/image%03d.png";
 const double RANSAC_COEFFICIENT = 0.99995;
 const int RANSAC_ITERATION = 5000;
 const double RANSAC_REPROJECTION_ERROR = 2.0;
-const double RECONSTRUCTION_SIZE = 100.0;
+const double RECONSTRUCTION_SIZE = 50.0;
 
 void main()
 {
 	windage::Logger logger(&std::cout);
+	logger.updateTickCount();
 
 	// camera capture
 	IplImage* inputImage;
@@ -127,19 +128,18 @@ void main()
 		cvCvtColor(resizeImage, grayImage, CV_BGR2GRAY);
 		cvCopyImage(resizeImage, resultImage);
 
-		logger.updateTickCount();
-
 		double processingTime = logger.calculateProcessTime();
-		logger.log("processingTime", processingTime);
-		logger.logNewLine();
+		logger.updateTickCount();
 
 		sprintf_s(message, "Processing Time : %.2lf ms", processingTime);
 		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 20), 0.6, message);
-		sprintf_s(message, "Press 'Space' to add reconstruction current image");
-		windage::Utils::DrawTextToImage(resultImage, cvPoint(WIDTH-275, HEIGHT-10), 0.6, message);
 		sprintf_s(message, "Press 'F' to flip image");
-		windage::Utils::DrawTextToImage(resultImage, cvPoint(WIDTH-275, HEIGHT-25), 0.6, message);
-
+		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, HEIGHT-40), 0.6, message);
+		sprintf_s(message, "Press 'S' to save reconstruction datas");
+		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, HEIGHT-25), 0.6, message);
+		sprintf_s(message, "Press 'Space' or 'a' to add reconstruction current image");
+		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, HEIGHT-10), 0.6, message);
+		
 		cvShowImage("result", resultImage);
 
 		// render reconstruction data
@@ -148,6 +148,11 @@ void main()
 		driver->endScene();
 
 		char ch = cvWaitKey(1);
+		if(ch == -1)
+		{
+			ch = receiver.GetDownKeycode();
+		}
+
 		switch(ch)
 		{
 		case 27:
@@ -158,6 +163,25 @@ void main()
 		case 'f':
 		case 'F':
 			flip = !flip;
+			break;
+		case 's':
+		case 'S':
+			{
+				std::cout << "save reconstruction datas" << std::endl;
+				windage::Reconstruction::Exportor exportor;
+				windage::Logger* reconstructionLogger = new windage::Logger("data/reconstruction", "txt", true);
+				exportor.SetFunctionName(detector->GetFunctionName());
+				exportor.AttatchLogger(reconstructionLogger);
+				exportor.SetReconstructionPoints(reconstructor->GetReconstructedPoint());
+				for(int i=0; i<=imageCount; i++)
+				{
+					exportor.PushCalibration(reconstructor->GetCameraParameter(i));
+					exportor.PushImageFile(filenameList[i]);
+				}
+				exportor.DoExport();
+				delete reconstructionLogger;
+				reconstructionLogger = NULL;
+			}
 			break;
 		case ' ':
 		case 'a':
@@ -179,7 +203,6 @@ void main()
 				sprintf_s(message, IMAGE_FILE_NAME_TEMPLATE, imageCount);
 				cvSaveImage(message, resizeImage);
 				filenameList.push_back(message);
-
 			}
 			imageCount++;
 			if(imageCount >= 2)
@@ -193,6 +216,12 @@ void main()
 				renderingSceneNode->SetFileNameList(&filenameList);
 
 				renderingSceneNode->Initialize();
+			}
+			break;
+		case 'r':
+		case 'R':
+			{
+				std::cout << "remove reconstruction image" << std::endl;
 			}
 			break;
 		}		
