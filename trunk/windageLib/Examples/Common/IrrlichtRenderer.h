@@ -67,6 +67,14 @@ public:
 			KeyIsDown[i] = false;
 	}
 
+	char GetDownKeycode()
+	{
+		for (irr::u32 i=0; i<irr::KEY_KEY_CODES_COUNT; ++i)
+			if(KeyIsDown[i])
+				return i;
+		return -1;
+	}
+
 private:
 	// We use this array to store the current state of each key
 	bool KeyIsDown[irr::KEY_KEY_CODES_COUNT];
