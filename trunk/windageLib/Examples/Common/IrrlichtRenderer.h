@@ -108,6 +108,7 @@ public:
 		Material.Lighting = false;
 		Material.Thickness = 3;
 
+		size = 0;
 		Vertices = NULL;
 		reconstructionPoints = NULL;
 		calibrationList = NULL;

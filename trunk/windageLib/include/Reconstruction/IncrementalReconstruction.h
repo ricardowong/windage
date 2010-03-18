@@ -140,7 +140,8 @@ namespace windage
 			inline std::vector<windage::ReconstructionPoint>* GetReconstructedPoint(){return &reconstructionPoints;};
 
 			double CheckReprojectionError(CvMat **RT, CvMat *pt3D, CvMat **pt2D, int n);
-			bool BundleAdjustment(int n);
+			bool BundleAdjustment();
+			bool BundleAdjustment(int startIndex, int n);
 			
 			void AttatchFeaturePoint(std::vector<windage::FeaturePoint>* featurePoints);
 			bool CalculateStep(int step = -1);

@@ -58,6 +58,7 @@ const double RANSAC_COEFFICIENT = 0.99995;
 const int RANSAC_ITERATION = 5000;
 const double RANSAC_REPROJECTION_ERROR = 2.0;
 const double RECONSTRUCTION_SIZE = 50.0;
+const int BUNDLEADSUTMENT_COUNT = 3;
 
 void main()
 {
@@ -116,6 +117,8 @@ void main()
 
 	int imageCount = 0;
 	char message[100];
+
+	char beforeCh = -1;
 	bool flip = true;
 	bool processing = true;
 	while(processing && device->run())
@@ -129,6 +132,7 @@ void main()
 		cvCopyImage(resizeImage, resultImage);
 
 		double processingTime = logger.calculateProcessTime();
+//		logger.log(processingTime); logger.logNewLine();
 		logger.updateTickCount();
 
 		sprintf_s(message, "Processing Time : %.2lf ms", processingTime);
@@ -152,6 +156,14 @@ void main()
 		{
 			ch = receiver.GetDownKeycode();
 		}
+		if(beforeCh == ch)
+		{
+			ch = -1;
+		}
+		else
+		{
+			beforeCh = ch;
+		}
 
 		switch(ch)
 		{
@@ -173,7 +185,7 @@ void main()
 				exportor.SetFunctionName(detector->GetFunctionName());
 				exportor.AttatchLogger(reconstructionLogger);
 				exportor.SetReconstructionPoints(reconstructor->GetReconstructedPoint());
-				for(int i=0; i<=imageCount; i++)
+				for(int i=0; i<imageCount; i++)
 				{
 					exportor.PushCalibration(reconstructor->GetCameraParameter(i));
 					exportor.PushImageFile(filenameList[i]);
@@ -199,23 +211,36 @@ void main()
 				}
 
 				reconstructor->AttatchFeaturePoint(&featurePoint[imageCount]);
+				
 
 				sprintf_s(message, IMAGE_FILE_NAME_TEMPLATE, imageCount);
 				cvSaveImage(message, resizeImage);
 				filenameList.push_back(message);
-			}
-			imageCount++;
-			if(imageCount >= 2)
-			{
-				reconstructor->CalculateStep(imageCount);
-				if(imageCount == 2)
+
+				imageCount++;
+				if(imageCount >= 2)
+				{
+					reconstructor->CalculateStep(imageCount);
+
+					int startIndex = MAX(0, imageCount - BUNDLEADSUTMENT_COUNT);
+					int countNumber = MIN(imageCount, BUNDLEADSUTMENT_COUNT);
+					reconstructor->BundleAdjustment(startIndex, countNumber);
+
 					reconstructor->ResizeScale(RECONSTRUCTION_SIZE);
 
-				renderingSceneNode->SetCalibrationList(reconstructor->GetCameraParameterList());
-				renderingSceneNode->SetReconstructionPoints(reconstructor->GetReconstructedPoint());
-				renderingSceneNode->SetFileNameList(&filenameList);
+					renderingSceneNode->SetCalibrationList(reconstructor->GetCameraParameterList());
+					renderingSceneNode->SetReconstructionPoints(reconstructor->GetReconstructedPoint());
+					renderingSceneNode->SetFileNameList(&filenameList);
 
-				renderingSceneNode->Initialize();
+					renderingSceneNode->Initialize();
+				}
+			}
+			break;
+		case 'b':
+		case 'B':
+			{
+				std::cout << "bundle adjustment all points" << std::endl;
+				reconstructor->BundleAdjustment();
 			}
 			break;
 		case 'r':
