@@ -500,8 +500,9 @@ double IncrementalReconstruction::CheckReprojectionError(CvMat **RT, CvMat *pt3D
 	return error;
 }
 
-bool IncrementalReconstruction::BundleAdjustment(int n)
+bool IncrementalReconstruction::BundleAdjustment()
 {
+	int n = this->caculatedCount;
 	BundleWrapper* bundler = new windage::Reconstruction::BundleWrapper();
 	CvMat *pt3D, **pt2D, **RT;
 	
@@ -613,6 +614,171 @@ bool IncrementalReconstruction::BundleAdjustment(int n)
 	return true;
 }
 
+bool IncrementalReconstruction::BundleAdjustment(int startIndex, int n)
+{
+	BundleWrapper* bundler = new windage::Reconstruction::BundleWrapper();
+	CvMat *pt3D, **pt2D, **RT;
+	
+	int pointcount = 0;
+	for(unsigned int i=0; i<this->reconstructionPoints.size(); i++)
+	{
+		std::vector<windage::FeaturePoint>* featureList = this->reconstructionPoints[i].GetFeatureList();
+		bool found = false;
+		for(unsigned int j=0; j<featureList->size() && found==false; j++)
+		{
+			int objectID = (*featureList)[j].GetObjectID();
+			if(startIndex <= objectID && objectID < startIndex + n)
+			{
+				pointcount++;
+				found = true;
+			}
+		}
+	}
+
+	// set 3d points
+	pt3D = cvCreateMat(4, pointcount, CV_64F);
+
+	int index = 0;
+	for(unsigned int i=0; i<this->reconstructionPoints.size(); i++)
+	{
+		std::vector<windage::FeaturePoint>* featureList = this->reconstructionPoints[i].GetFeatureList();
+		bool found = false;
+		for(unsigned int j=0; j<featureList->size(); j++)
+		{
+			int objectID = (*featureList)[j].GetObjectID();
+			if(startIndex <= objectID && objectID < startIndex + n)
+			{
+				windage::Vector4 point3D = this->reconstructionPoints[i].GetPoint();
+				point3D /= point3D.w;
+
+				cvmSet(pt3D, 0, index, point3D.x);
+				cvmSet(pt3D, 1, index, point3D.y);
+				cvmSet(pt3D, 2, index, point3D.z);
+				cvmSet(pt3D, 3, index, point3D.w);
+				found = true;
+			}
+		}
+
+		if(found)
+			index++;
+	}
+
+	// set 2d image points
+	pt2D = new CvMat*[n];
+	for(int i=0; i<n; i++)
+	{
+		pt2D[i] = cvCreateMat(3, pointcount, CV_64F);
+
+		for(int j=0; j<pointcount; j++)
+		{
+			cvmSet(pt2D[i], 0, j, -1.0);
+			cvmSet(pt2D[i], 1, j, -1.0);
+			cvmSet(pt2D[i], 2, j, 1.0);
+		}
+	}
+
+	index = 0;
+	for(unsigned int i=0; i<this->reconstructionPoints.size(); i++)
+	{
+		std::vector<windage::FeaturePoint>* featureList = this->reconstructionPoints[i].GetFeatureList();
+		bool found = false;
+		for(unsigned int j=0; j<featureList->size(); j++)
+		{
+			int objectID = (*featureList)[j].GetObjectID();
+			if(startIndex <= objectID && objectID < startIndex + n)
+			{
+				int idx = objectID - startIndex;
+				windage::Vector3 imagePoint = (*featureList)[j].GetPoint();
+				
+				cvmSet(pt2D[idx], 0, index, imagePoint.x);
+				cvmSet(pt2D[idx], 1, index, imagePoint.y);
+				cvmSet(pt2D[idx], 2, index, imagePoint.z);
+				found = true;
+			}
+		}
+
+		if(found)
+			index++;
+	}
+
+	// RT
+	RT = new CvMat*[n];
+	for(int i=0; i<n; i++)
+	{
+		RT[i] = cvCreateMat(3, 4, CV_64F);
+
+		CvMat* extrinsic = this->GetCameraParameter(startIndex + i)->GetExtrinsicMatrix();
+		for(int y=0; y<3; y++)
+		{
+			for(int x=0; x<3; x++)
+			{
+				CV_MAT_ELEM((*RT[i]), double, y, x) = CV_MAT_ELEM((*extrinsic), double, y, x);
+			}
+			CV_MAT_ELEM((*RT[i]), double, y, 3) = CV_MAT_ELEM((*extrinsic), double, y, 3);
+		}
+	}
+
+	double error1 = this->CheckReprojectionError(RT, pt3D, pt2D, n);
+	bundler->SetParameters(this->initialCameraParameter->GetIntrinsicMatrix(),
+							pt3D, pt2D, RT, n, pointcount);
+	bundler->Run();
+	double error2 = this->CheckReprojectionError(RT, pt3D, pt2D, n);
+
+	// update 3d points
+	index = 0;
+	for(unsigned int i=0; i<this->reconstructionPoints.size(); i++)
+	{
+		std::vector<windage::FeaturePoint>* featureList = this->reconstructionPoints[i].GetFeatureList();
+		bool found = false;
+		for(unsigned int j=0; j<featureList->size(); j++)
+		{
+			int objectID = (*featureList)[j].GetObjectID();
+			if(startIndex <= objectID && objectID < startIndex + n)
+			{
+				windage::Vector4 point3D;
+				point3D.x = cvmGet(pt3D, 0, index);
+				point3D.y = cvmGet(pt3D, 1, index);
+				point3D.z = cvmGet(pt3D, 2, index);
+				point3D.w = cvmGet(pt3D, 3, index);
+				point3D /= point3D.w;
+
+				this->reconstructionPoints[i].SetPoint(point3D);
+				found = true;
+			}
+		}
+
+		if(found)
+			index++;
+	}
+
+	// update to calibration 
+	for(int i=0; i<n; i++)
+	{
+		CvMat* extrinsic = this->GetCameraParameter(startIndex + i)->GetExtrinsicMatrix();
+		for(int y=0; y<3; y++)
+		{
+			for(int x=0; x<3; x++)
+			{
+				CV_MAT_ELEM((*extrinsic), double, y, x) = CV_MAT_ELEM((*RT[i]), double, y, x);
+			}
+			CV_MAT_ELEM((*extrinsic), double, y, 3) = CV_MAT_ELEM((*RT[i]), double, y, 3);
+		}
+	}
+	
+	// release storage
+	cvReleaseMat(&pt3D);
+	for(int i=0; i<n; i++)
+	{
+		cvReleaseMat(&pt2D[i]);
+		cvReleaseMat(&RT[i]);
+	}
+	delete [] pt2D;
+	delete [] RT;
+	delete bundler;
+
+	return true;
+}
+
 void IncrementalReconstruction::AttatchFeaturePoint(std::vector<windage::FeaturePoint>* featurePoints)
 {
 	this->attatchedCount++;
@@ -647,13 +813,13 @@ bool IncrementalReconstruction::CalculateStep(int step)
 	if(n == 2)
 	{
 		this->StereoReconstruction();
-		this->BundleAdjustment(2);
+//		this->BundleAdjustment(2);
 	}
 	else
 	{
 		this->caculatedCount = step-1;
 		this->IncrementReconstruction();
-		this->BundleAdjustment(this->caculatedCount);
+//		this->BundleAdjustment(this->caculatedCount);
 	}
 
 	return true;
@@ -667,16 +833,16 @@ bool IncrementalReconstruction::CalculateAll()
 		return false;
 
 	this->StereoReconstruction();
-	this->BundleAdjustment(2);
+	this->BundleAdjustment();
 
 	for(int i=3; i<=this->attatchedCount; i++)
 	{
 		this->IncrementReconstruction();
 
 //		if(i % 5 == 0)
-			this->BundleAdjustment(i);
+			this->BundleAdjustment();
 	}
-	this->BundleAdjustment(this->attatchedCount);
+	this->BundleAdjustment();
 
 	return true;
 }
@@ -714,6 +880,14 @@ bool IncrementalReconstruction::ResizeScale(double scale)
 		center += this->reconstructionPoints[i].GetPoint();
 	}
 	center /= (double)count;
+
+	double distance = 0.0;
+	for(int i=0; i<count; i++)
+	{
+		distance += center.getDistance(this->reconstructionPoints[i].GetPoint());
+	}
+	distance /= (double)count;
+	scale = scale / distance;
 
 	// points translation
 	for(int i=0; i<count; i++)
