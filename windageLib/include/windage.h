@@ -88,8 +88,8 @@
 #include "Algorithms/OpenCVRANSACestimator.h"
 
 // refiner
-#include "Algorithms/HomographyRefiner.h"
 #include "Algorithms/LMmethod.h"
+#include "Algorithms/PoseLMmethod.h"
 
 #include "Algorithms/OutlierChecker.h"
 

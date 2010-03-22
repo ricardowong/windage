@@ -446,6 +446,18 @@
 						RelativePath="..\..\..\include\Algorithms\LMmethod.h"
 						>
 					</File>
+					<File
+						RelativePath="..\..\..\src\Algorithms\PoseLMmethod.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\..\include\Algorithms\PoseLMmethod.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\..\include\Algorithms\PoseRefiner.h"
+						>
+					</File>
 				</Filter>
 				<Filter
 					Name="OutlierRemover"

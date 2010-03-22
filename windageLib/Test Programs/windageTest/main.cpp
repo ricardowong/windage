@@ -66,6 +66,7 @@
 #include "KalmanFilterTest.h"
 
 #include "LMmethodTest.h"
+#include "PoseLMmethodTest.h"
 
 #include "PlanarObjectTrackingTest.h"
 #include "MultiplePlanarObjectTrackingTest.h"
@@ -75,7 +76,6 @@
 
 void main()
 {
-
 	windageTestSample testSample;
 	VectorMatrixTest testMatrixVector;
 	CalibrationTest testCalibration;
@@ -103,6 +103,7 @@ void main()
 
 	OutlierCheckerTest testOutlierChecker;
 	LMmethodTest testLMmethod;
+	PoseLMmethodTest testPoseLMmethod;
 
 	PlanarObjectTrackingTest testPlanarObjectTracking;
 	MultiplePlanarObjectTrackingTest testMultiplePlanarObjectTracking;
