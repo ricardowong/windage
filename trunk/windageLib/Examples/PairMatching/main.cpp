@@ -99,9 +99,9 @@ void main()
 			double R = (count - i)/(double)count * 255.0;
 			double G = (i+1)/(double)count * 255.0;
 			if(matching1[i].IsOutlier() == false)
-				cvLine(resultImage, cvPoint(matching1[i].GetPoint().x, matching1[i].GetPoint().y), cvPoint(image1->width + matching2[i].GetPoint().x, matching2[i].GetPoint().y), CV_RGB(0, 255, 0));
+				cvLine(resultImage, cvPoint((int)matching1[i].GetPoint().x, (int)matching1[i].GetPoint().y), cvPoint(image1->width + (int)matching2[i].GetPoint().x, (int)matching2[i].GetPoint().y), CV_RGB(0, 255, 0));
 			else
-				cvLine(resultImage, cvPoint(matching1[i].GetPoint().x, matching1[i].GetPoint().y), cvPoint(image1->width + matching2[i].GetPoint().x, matching2[i].GetPoint().y), CV_RGB(255, 0, 0));
+				cvLine(resultImage, cvPoint((int)matching1[i].GetPoint().x, (int)matching1[i].GetPoint().y), cvPoint(image1->width + (int)matching2[i].GetPoint().x, (int)matching2[i].GetPoint().y), CV_RGB(255, 0, 0));
 
 		}
 		

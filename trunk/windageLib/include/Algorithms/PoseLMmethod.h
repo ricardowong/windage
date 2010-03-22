@@ -37,42 +37,66 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#include "colorIO.h"
-#include "windageTest.h"
+/**
+ * @file	PoseLMmethod.h
+ * @author	Woonhyuk Baek
+ * @version 1.0
+ * @date	2010.02.04
+ * @brief	It is implemetation of homography refinement class to use Levenberg-Marqardt method
+ */
 
-void windageTest::Do()
+#ifndef _POSE_LM_METHOD_REFINER_H_
+#define _POSE_LM_METHOD_REFINER_H_
+
+#include <vector>
+
+#include <cv.h>
+#include "base.h"
+
+#include "Structures/Matrix.h"
+#include "Structures/FeaturePoint.h"
+#include "Algorithms/PoseRefiner.h"
+
+namespace windage
 {
-	std::string message;
-
-	std::cout << WHITE << "--------------------------------------------------" << std::endl;
-	std::cout << WHITE << this->testName << " (" << this->testClass << ")" << std::endl;
-	std::cout << WHITE << "\t Initialize ....... ";
-	bool initialize = this->Initialize(&message);
-	if(initialize == true)
+	namespace Algorithms
 	{
-		std::cout << GREEN << "OK" << WHITE << std::endl;
-		
-		std::cout << "\t Memory Release ... ";
-		if(this->TestMemoryRelease(&message))
-			std::cout << GREEN << "OK" << WHITE << std::endl;
-		else
-			std::cout << RED << "FAIL" << WHITE << " (" << message << ")" << std::endl;
+		/**
+		 * @defgroup Algorithms Algorithm classes
+		 * @brief
+		 *		algorithm classes
+		 * @addtogroup Algorithms
+		 * @{
+		 */
 
-		std::cout << "\t Algorithm ........ ";
-		if(this->TestAlgorithm(&message))
-			std::cout << GREEN << "OK" << WHITE << " (" << message << ")" << std::endl;
-		else
-			std::cout << RED << "FAIL" << WHITE << " (" << message << ")" << std::endl;
+		/**
+		 * @brief	class for homography refinement class to use LM method
+		 * @author	Woonhyuk Baek
+		 */
+		class DLLEXPORT PoseLMmethod : public PoseRefiner
+		{
+		protected:
+		public:
+			virtual char* GetFunctionName(){return "PoseLMmethod";};
+			PoseLMmethod() : PoseRefiner()
+			{
+			}
+			~PoseLMmethod()
+			{
+			}
 
-		std::cout << "\t Terminate ........ ";
-		if(this->Terminate(&message))
-			std::cout << GREEN << "OK" << WHITE << std::endl;
-		else
-			std::cout << RED << "FAIL" << WHITE << " (" << message << ")" << std::endl;
+			/**
+			 * @fn	Calculate
+			 * @brief
+			 *		Implimentation function to refinement camera pose using attatched initialized camera pose and pair set of input feature points and reference feature points
+			 * @warning
+			 *		the nubmer of referencePoints and the number of scenePoints is to be same
+			 * @return
+			 *		success or failure
+			 */
+			bool Calculate();
+		};
+		/** @} */ // addtogroup Algorithms
 	}
-	else
-	{
-			std::cout << RED << "FAIL" << WHITE << " (" << message << ")" << std::endl;
-	}
-	std::cout << BLUE << "done." << WHITE <<  std::endl;
 }
+#endif // _POSE_LM_METHOD_REFINER_H_

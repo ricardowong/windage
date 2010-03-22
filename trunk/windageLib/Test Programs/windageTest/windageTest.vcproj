@@ -255,6 +255,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\PoseLMmethodTest.h"
+				>
+			</File>
+			<File
 				RelativePath=".\ProSACestimatorTest.h"
 				>
 			</File>
