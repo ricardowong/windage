@@ -100,6 +100,8 @@ namespace windage
 			std::vector<windage::ReconstructionPoint> reconstructionPoints;
 			std::vector<std::vector<windage::FeaturePoint>> featurePointsList;
 
+			
+
 			void LinearTriangulation(CvMat *leftProjectM, CvMat *rightProjectM, CvMat *leftP, CvMat *rightP,CvMat *reconstructedP);
 			bool Matching(std::vector<windage::FeaturePoint>* feature1, std::vector<windage::FeaturePoint>* feature2,
 						  std::vector<windage::FeaturePoint>* matchedPoint1, std::vector<windage::FeaturePoint>* matchedPoint2);
@@ -140,6 +142,7 @@ namespace windage
 			inline std::vector<windage::ReconstructionPoint>* GetReconstructedPoint(){return &reconstructionPoints;};
 
 			double CheckReprojectionError(CvMat **RT, CvMat *pt3D, CvMat **pt2D, int n);
+			static const int BUNDLE_STEP = 5;
 			bool BundleAdjustment();
 			bool BundleAdjustment(int startIndex, int n);
 			

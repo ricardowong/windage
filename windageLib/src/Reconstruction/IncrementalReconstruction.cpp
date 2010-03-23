@@ -330,18 +330,20 @@ bool IncrementalReconstruction::IncrementReconstruction()
 	this->Matching(feature, feature2, &matchedPoint1, &matchedPoint2);
 
 	// outlier rejection
+//*
+	double ratio = 2.0;
 	windage::Algorithms::RANSACestimator hEstimator;
 	windage::Algorithms::OutlierChecker checker;
-	hEstimator.SetReprojectionError(this->reprojectionError * 2.0);
+	hEstimator.SetReprojectionError(this->reprojectionError * ratio);
 
 	hEstimator.AttatchReferencePoint(&matchedPoint1);	
 	hEstimator.AttatchScenePoint(&matchedPoint2);
 	hEstimator.Calculate();
 
-	checker.SetReprojectionError(this->reprojectionError * 2.0);
+	checker.SetReprojectionError(this->reprojectionError * ratio);
 	checker.AttatchEstimator(&hEstimator);
 	checker.Calculate();
-
+//*/
 
 	// add 3d points
 	CvMat* inverseIntrinsic = cvCreateMat(3, 3, CV_64F);
@@ -401,9 +403,9 @@ bool IncrementalReconstruction::IncrementReconstruction()
 
 			double errorL = pow((matchedPoint1[i].GetPoint().x - lpt.x), 2) + pow((matchedPoint1[i].GetPoint().y - lpt.y), 2);
 			double errorR = pow((matchedPoint2[i].GetPoint().x - rpt.x), 2) + pow((matchedPoint2[i].GetPoint().y - rpt.y), 2);
-	//		errorL = sqrt(errorL);
-	//		errorR = sqrt(errorR);
-	//		std::cout << this->reprojectionError << " : " <<  errorL << ", " << errorR << std::endl;
+			errorL = sqrt(errorL);
+			errorR = sqrt(errorR);
+//			std::cout << this->reprojectionError << " : " <<  errorL << ", " << errorR << std::endl;
 			if(errorL + errorR < this->reprojectionError * 2.0)
 			{
 				windage::ReconstructionPoint reconsturctionPoint;
@@ -421,17 +423,31 @@ bool IncrementalReconstruction::IncrementReconstruction()
 				if(this->featurePointsList[index][matchedPoint1[i].GetRepositoryID()].IsTracked())
 				{
 					int idx = this->featurePointsList[index][matchedPoint1[i].GetRepositoryID()].GetRepositoryID();
-					this->featurePointsList[this->caculatedCount][matchedPoint2[i].GetRepositoryID()].SetTracked(true);
-					this->featurePointsList[this->caculatedCount][matchedPoint2[i].GetRepositoryID()].SetRepositoryID(idx);
+					windage::Vector4 worldPT = this->reconstructionPoints[idx].GetPoint();
 
-					matchedPoint2[i].SetObjectID(this->caculatedCount);
+					// check false matching
+					windage::Vector2 lpt = this->cameraParameters[index]->ConvertWorld2Imaged(worldPT.x, worldPT.y, worldPT.z);
+					windage::Vector2 rpt = this->cameraParameters[this->caculatedCount]->ConvertWorld2Imaged(worldPT.x, worldPT.y, worldPT.z);
 
-					windage::Vector4 pt1 = reconsturctionPoint.GetPoint();
-					windage::Vector4 pt2 = this->reconstructionPoints[idx].GetPoint();
-					double error = pt1.getDistance(pt2);
+					double errorL = pow((matchedPoint1[i].GetPoint().x - lpt.x), 2) + pow((matchedPoint1[i].GetPoint().y - lpt.y), 2);
+					double errorR = pow((matchedPoint2[i].GetPoint().x - rpt.x), 2) + pow((matchedPoint2[i].GetPoint().y - rpt.y), 2);
 
-					this->reconstructionPoints[idx].AddFeaturePoint(matchedPoint2[i]);
-					addCount++;
+					errorL = sqrt(errorL);
+					errorR = sqrt(errorR);
+					if(errorL + errorR < this->reprojectionError * 2.0)
+					{
+						this->featurePointsList[this->caculatedCount][matchedPoint2[i].GetRepositoryID()].SetTracked(true);
+						this->featurePointsList[this->caculatedCount][matchedPoint2[i].GetRepositoryID()].SetRepositoryID(idx);
+
+						matchedPoint2[i].SetObjectID(this->caculatedCount);
+
+						windage::Vector4 pt1 = reconsturctionPoint.GetPoint();
+						windage::Vector4 pt2 = this->reconstructionPoints[idx].GetPoint();
+						double error = pt1.getDistance(pt2);
+
+						this->reconstructionPoints[idx].AddFeaturePoint(matchedPoint2[i]);
+						addCount++;
+					}
 				}
 				else
 				{
@@ -840,7 +856,8 @@ bool IncrementalReconstruction::CalculateAll()
 		this->IncrementReconstruction();
 
 //		if(i % 5 == 0)
-			this->BundleAdjustment();
+		int STEP = MIN(i, BUNDLE_STEP);
+		this->BundleAdjustment(i-STEP, STEP);
 	}
 	this->BundleAdjustment();
 

@@ -88,8 +88,8 @@ void main()
 
 	reconstructor->AttatchCalibration(initialCalibration);
 
-	windage::Algorithms::SearchTree* tree = new windage::Algorithms::FLANNtree(50);
-	tree->SetRatio(0.3);
+	windage::Algorithms::SearchTree* tree = new windage::Algorithms::KDtree(50);
+	tree->SetRatio(0.6);
 	reconstructor->AttatchSearchTree(tree);
 
 	windage::Algorithms::EPnPRANSACestimator* estimator = new windage::Algorithms::EPnPRANSACestimator();
