@@ -49,13 +49,19 @@ bool PoseLMmethod::Calculate()
 		return false;
 	if(this->referencePoints == NULL || this->scenePoints == NULL)
 		return false;
+	if(this->referencePoints->size() != this->scenePoints->size())
+		return false;
 
-	int n = (int)this->referencePoints->size();
-	if(n < 6)
+	int count = 0;
+	for(unsigned int i=0; i<this->referencePoints->size(); i++)
+	{
+		if((*this->referencePoints)[i].IsOutlier() == false)
+			count++;
+	}
+	if(count < 6)
 		return false;
 
 	//https://code.ros.org/trac/opencv/browser/trunk/opencv/src/cv/cvcalibration.cpp :1112
-	int count = n;
 	double a[9];
 	double R[9];
 	double param[6];
@@ -82,13 +88,18 @@ bool PoseLMmethod::Calculate()
 
 	cv::Ptr<CvMat> _M = cvCreateMat(1, count, CV_64FC3);
 	cv::Ptr<CvMat> _m = cvCreateMat(1, count, CV_64FC2);
+	int index = 0;
 	for(int i=0; i<count; i++)
 	{
-		windage::Vector3 ref = (*this->referencePoints)[i].GetPoint();
-		windage::Vector3 sce = (*this->scenePoints)[i].GetPoint();
+		if((*this->referencePoints)[i].IsOutlier() == false)
+		{
+			windage::Vector3 ref = (*this->referencePoints)[i].GetPoint();
+			windage::Vector3 sce = (*this->scenePoints)[i].GetPoint();
 
-		((CvPoint3D64f*)_M->data.db)[i] = cvPoint3D64f(ref.x, ref.y, ref.z);
-		((CvPoint2D64f*)_m->data.db)[i] = cvPoint2D64f(sce.x, sce.y);
+			((CvPoint3D64f*)_M->data.db)[index] = cvPoint3D64f(ref.x, ref.y, ref.z);
+			((CvPoint2D64f*)_m->data.db)[index] = cvPoint2D64f(sce.x, sce.y);
+			index++;
+		}
 	}
 
 	CvLevMarq solver(6, count*2, cvTermCriteria(CV_TERMCRIT_EPS+CV_TERMCRIT_ITER, this->maxIteration, FLT_EPSILON), true);

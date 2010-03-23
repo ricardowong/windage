@@ -86,7 +86,7 @@ std::vector<IplImage*> inputImage;
 windage::Calibration* initialCalibration;
 windage::Reconstruction::IncrementalReconstruction* reconstructor;
 windage::Logger* logging;
-double SCALE = 50.0;
+double SCALE = 100.0;
 
 class CRenderSceneNode : public irr::scene::ISceneNode
 {
@@ -247,8 +247,8 @@ int main()
 	tree->SetRatio(0.3);
 	reconstructor->AttatchSearchTree(tree);
 
-	windage::Algorithms::EPnPRANSACestimator* estimator = new windage::Algorithms::EPnPRANSACestimator();
-//	windage::Algorithms::OpenCVRANSACestimator* estimator = new windage::Algorithms::OpenCVRANSACestimator();
+//	windage::Algorithms::EPnPRANSACestimator* estimator = new windage::Algorithms::EPnPRANSACestimator();
+	windage::Algorithms::OpenCVRANSACestimator* estimator = new windage::Algorithms::OpenCVRANSACestimator();
 	estimator->SetConfidence(RANSAC_COEFFICIENT);
 	estimator->SetMaxIteration(RANSAC_ITERATION);
 	estimator->SetReprojectionError(RANSAC_REPROJECTION_ERROR);
@@ -304,6 +304,7 @@ int main()
 	std::cout << std::endl;
 
 	// save data
+/*
 	std::cout << "save reconstruction datas" << std::endl;
 	windage::Reconstruction::Exportor exportor;
 	windage::Logger* reconstructionLogger = new windage::Logger("data/reconstruction", "txt", true);
@@ -322,7 +323,7 @@ int main()
 	reconstructionLogger = NULL;
 
 	std::cout << std::endl;
-
+//*/
 	// for rendering
 	irr::IrrlichtDevice* device = irr::createDevice( irr::video::EDT_DIRECT3D9, irr::core::dimension2d<irr::u32>(640, 480), 16, false, false, false, 0);
 	if (!device) return 1;
