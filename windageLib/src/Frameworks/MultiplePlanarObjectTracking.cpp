@@ -206,6 +206,7 @@ bool MultiplePlanarObjectTracking::UpdateCamerapose(IplImage* grayImage)
 				else 
 				{
 					this->referenceRepository[i][refMatchedKeypoints[i][index].GetRepositoryID()].SetTracked(false);
+
 					sceMatchedKeypoints[i].erase(sceMatchedKeypoints[i].begin() + index);
 					refMatchedKeypoints[i].erase(refMatchedKeypoints[i].begin() + index);
 				}
@@ -263,6 +264,8 @@ bool MultiplePlanarObjectTracking::UpdateCamerapose(IplImage* grayImage)
 			{
 				if(refMatchedKeypoints[i][j].IsOutlier() == true)
 				{
+					this->referenceRepository[i][refMatchedKeypoints[i][j].GetRepositoryID()].SetTracked(false);
+
 					refMatchedKeypoints[i].erase(refMatchedKeypoints[i].begin() + j);
 					sceMatchedKeypoints[i].erase(sceMatchedKeypoints[i].begin() + j);
 					j--;

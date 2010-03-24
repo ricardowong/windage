@@ -54,7 +54,7 @@ const char* TEMPLATE_IMAGE = "reference.png";
 const double SCALE_FACTOR = 4.0;
 const int SCALE_STEP = 8;
 
-const int WIDTH = 320;
+const int WIDTH = 640;
 const int HEIGHT = (WIDTH * 3) / 4;
 const int RENDERING_WIDTH = 640;
 const int RENDERING_HEIGHT = (RENDERING_WIDTH * 3) / 4;

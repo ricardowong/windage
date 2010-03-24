@@ -48,12 +48,13 @@ const int WIDTH = 640;
 const int HEIGHT = (WIDTH * 3) / 4;
 const int FEATURE_COUNT = WIDTH;
 
-const double SCALE_FACTOR = 4.0;
-const int SCALE_STEP = 8;
+const double SCALE_FACTOR = 1.0;
+const int SCALE_STEP = 1;
+const double REPROJECTION_ERROR = 5.0;
 
 #define USE_ADAPTIVE_THRESHOLD 1
 #define USE_TEMPLATE_IMAEG 1
-const char* TEMPLATE_IMAGE = "reference2.png";
+const char* TEMPLATE_IMAGE = "reference1_320.png";
 const double INTRINSIC[] = {1033.93, 1033.84, 319.044, 228.858,-0.206477, 0.306424, 0.000728208, 0.0011338};
 
 void main()
@@ -80,7 +81,7 @@ void main()
 	windage::Algorithms::KalmanFilter* filter;
 
 	calibration = new windage::Calibration();
-	detector = new windage::Algorithms::WSURFdetector();
+	detector = new windage::Algorithms::SIFTGPUdetector();
 	searchtree = new windage::Algorithms::FLANNtree();
 	opticalflow = new windage::Algorithms::OpticalFlow();
 	estimator = new windage::Algorithms::ProSACestimator();
@@ -91,9 +92,9 @@ void main()
 	calibration->Initialize(INTRINSIC[0], INTRINSIC[1], INTRINSIC[2], INTRINSIC[3], INTRINSIC[4], INTRINSIC[5], INTRINSIC[6], INTRINSIC[7]);
 	detector->SetThreshold(30.0);
 	searchtree->SetRatio(0.5);
-	opticalflow->Initialize(WIDTH, HEIGHT, cvSize(8, 8), 3);
-	estimator->SetReprojectionError(5.0);
-	checker->SetReprojectionError(5.0);
+	opticalflow->Initialize(WIDTH, HEIGHT, cvSize(15, 15), 3);
+	estimator->SetReprojectionError(REPROJECTION_ERROR);
+	checker->SetReprojectionError(REPROJECTION_ERROR);
 	refiner->SetMaxIteration(5);
 
 	tracking.AttatchCalibration(calibration);
@@ -105,7 +106,7 @@ void main()
 	tracking.AttatchRefiner(refiner);
 //	tracking.AttatchFilter(filter);
 
-	tracking.SetDitectionRatio(30);
+	tracking.SetDitectionRatio(10);
 	tracking.Initialize(WIDTH, HEIGHT, (double)WIDTH, (double)HEIGHT);
 
 	int keypointCount = 0;

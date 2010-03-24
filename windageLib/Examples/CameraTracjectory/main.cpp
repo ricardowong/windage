@@ -52,7 +52,7 @@ const char* TEMPLATE_IMAGE = "reference.png";
 const double SCALE_FACTOR = 4.0;
 const int SCALE_STEP = 8;
 
-const int WIDTH = 320;
+const int WIDTH = 640;
 const int HEIGHT = (WIDTH * 3) / 4;
 const int RENDERING_WIDTH = 640;
 const int RENDERING_HEIGHT = (RENDERING_WIDTH * 3) / 4;
@@ -108,7 +108,7 @@ windage::Frameworks::PlanarObjectTracking* CreateTracker()
 	tracker->AttatchEstimator(estimator);
 	tracker->AttatchChecker(checker);
 	tracker->AttatchRefiner(refiner);
-	tracker->AttatchFilter(filter);
+//	tracker->AttatchFilter(filter);
 
 	tracker->SetDitectionRatio(30);
 	tracker->Initialize(WIDTH, HEIGHT, (double)WIDTH, (double)HEIGHT);
@@ -221,7 +221,7 @@ void display()
 	double radian = angle * CV_PI / 180.0;
 	double dx = sin(radian) * VIRTUAL_CAMERA_DISTANCE;
 	double dy = cos(radian) * VIRTUAL_CAMERA_DISTANCE;
-	gluLookAt(dx, dy, 800, 0.0, 0.0, 300.0, 0.0, 0.0, 1.0);
+	gluLookAt(dx, dy, 2000, 0.0, 0.0, 600.0, 0.0, 0.0, 1.0);
 
 	glPushMatrix();
 	{
