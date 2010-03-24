@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../component/oscpack/&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../Research Projects/Common/oscpack/&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -116,7 +116,7 @@
 				Optimization="3"
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../component/oscpack/&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../Research Projects/Common/oscpack/&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -163,6 +163,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="COPY /Y &quot;$(OutDir)\$(ProjectName).exe&quot; &quot;$(SolutionDir)\..\..\runtime\$(ProjectName).exe&quot;"
 			/>
 		</Configuration>
 	</Configurations>
