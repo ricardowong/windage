@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="oscpackDummy"
-	ProjectGUID="{BD6EC182-5333-4CF9-9C72-5EB7F05F5AB7}"
-	RootNamespace="oscpackDummy"
+	Name="oscpackDump"
+	ProjectGUID="{F9BEBB71-DDDF-4F3E-9874-A0C153A297C2}"
+	RootNamespace="oscpackDump"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../component/oscpack/&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../Research Projects/Common/oscpack/&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -116,7 +116,7 @@
 				Optimization="3"
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../component/oscpack/&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../Research Projects/Common/oscpack/&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -183,86 +183,86 @@
 			Name="oscpack"
 			>
 			<File
-				RelativePath="..\..\component\oscpack\osc\MessageMappingOscPacketListener.h"
+				RelativePath="..\Common\oscpack\osc\MessageMappingOscPacketListener.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\component\oscpack\osc\OscException.h"
+				RelativePath="..\Common\oscpack\osc\OscException.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\component\oscpack\osc\OscHostEndianness.h"
+				RelativePath="..\Common\oscpack\osc\OscHostEndianness.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\component\oscpack\osc\OscOutboundPacketStream.cpp"
+				RelativePath="..\Common\oscpack\osc\OscOutboundPacketStream.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\component\oscpack\osc\OscOutboundPacketStream.h"
+				RelativePath="..\Common\oscpack\osc\OscOutboundPacketStream.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\component\oscpack\osc\OscPacketListener.h"
+				RelativePath="..\Common\oscpack\osc\OscPacketListener.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\component\oscpack\osc\OscPrintReceivedElements.cpp"
+				RelativePath="..\Common\oscpack\osc\OscPrintReceivedElements.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\component\oscpack\osc\OscPrintReceivedElements.h"
+				RelativePath="..\Common\oscpack\osc\OscPrintReceivedElements.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\component\oscpack\osc\OscReceivedElements.cpp"
+				RelativePath="..\Common\oscpack\osc\OscReceivedElements.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\component\oscpack\osc\OscReceivedElements.h"
+				RelativePath="..\Common\oscpack\osc\OscReceivedElements.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\component\oscpack\osc\OscTypes.cpp"
+				RelativePath="..\Common\oscpack\osc\OscTypes.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\..\component\oscpack\osc\OscTypes.h"
+				RelativePath="..\Common\oscpack\osc\OscTypes.h"
 				>
 			</File>
 			<Filter
 				Name="ip"
 				>
 				<File
-					RelativePath="..\..\component\oscpack\ip\IpEndpointName.cpp"
+					RelativePath="..\Common\oscpack\ip\IpEndpointName.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\component\oscpack\ip\IpEndpointName.h"
+					RelativePath="..\Common\oscpack\ip\IpEndpointName.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\component\oscpack\ip\win32\NetworkingUtils.cpp"
+					RelativePath="..\Common\oscpack\ip\win32\NetworkingUtils.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\component\oscpack\ip\NetworkingUtils.h"
+					RelativePath="..\Common\oscpack\ip\NetworkingUtils.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\component\oscpack\ip\PacketListener.h"
+					RelativePath="..\Common\oscpack\ip\PacketListener.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\component\oscpack\ip\TimerListener.h"
+					RelativePath="..\Common\oscpack\ip\TimerListener.h"
 					>
 				</File>
 				<File
-					RelativePath="..\..\component\oscpack\ip\win32\UdpSocket.cpp"
+					RelativePath="..\Common\oscpack\ip\win32\UdpSocket.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\..\component\oscpack\ip\UdpSocket.h"
+					RelativePath="..\Common\oscpack\ip\UdpSocket.h"
 					>
 				</File>
 			</Filter>
