@@ -72,7 +72,7 @@
 
 /** pre-selected search tree algorithm whenever can change other search tree algorithm  */
 #define SearchTreeT windage::Algorithms::FLANNtree
-#define SEARCH_TREE_RATIO 0.5
+#define SEARCH_TREE_RATIO 0.7
 
 namespace windage
 {
@@ -179,6 +179,7 @@ namespace windage
 			inline void SetFilter(bool use){this->useFilter = use;};
 			inline void SetFilterSetp(int step){this->filterStep = step;};
 			inline int GetObjectCount(){return this->objectCount;};
+			inline int GetMatchingCount(int i){return (int)this->refMatchedKeypoints[i].size();};
 
 			/**
 			 * @fn	AttatchCalibration

@@ -216,23 +216,28 @@ bool MultiplePlanarObjectTracking::UpdateCamerapose(IplImage* grayImage)
 
 	// feature detection
 	{
-		if(this->step <  this->objectCount)
+		int objectID = this->step;
+		if(objectID % this->detectionRatio == 0)
 		{
-			this->detector->DoExtractKeypointsDescriptor(grayImage);
-			std::vector<windage::FeaturePoint>* sceneKeypoints = this->detector->GetKeypoints();
-
-			for(unsigned int i=0; i<sceneKeypoints->size(); i++)
+			objectID /= this->detectionRatio;
+			if(objectID < this->objectCount)
 			{
-				int index = this->searchTree[this->step]->Matching((*sceneKeypoints)[i]);
-				if(0 <= index && index < (int)this->referenceRepository[this->step].size())
-				{
-					// if not tracked have point
-					if(this->referenceRepository[this->step][index].IsTracked() == false)
-					{
-						this->referenceRepository[this->step][index].SetTracked(true);
+				this->detector->DoExtractKeypointsDescriptor(grayImage);
+				std::vector<windage::FeaturePoint>* sceneKeypoints = this->detector->GetKeypoints();
 
-						refMatchedKeypoints[this->step].push_back(this->referenceRepository[this->step][index]);
-						sceMatchedKeypoints[this->step].push_back((*sceneKeypoints)[i]);
+				for(unsigned int i=0; i<sceneKeypoints->size(); i++)
+				{
+					int index = this->searchTree[objectID]->Matching((*sceneKeypoints)[i]);
+					if(0 <= index && index < (int)this->referenceRepository[objectID].size())
+					{
+						// if not tracked have point
+						if(this->referenceRepository[objectID][index].IsTracked() == false)
+						{
+							this->referenceRepository[objectID][index].SetTracked(true);
+
+							refMatchedKeypoints[objectID].push_back(this->referenceRepository[objectID][index]);
+							sceMatchedKeypoints[objectID].push_back((*sceneKeypoints)[i]);
+						}
 					}
 				}
 			}

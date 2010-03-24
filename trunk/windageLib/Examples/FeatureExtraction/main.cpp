@@ -24,6 +24,8 @@ void main()
 	CvCapture* capture = cvCaptureFromCAM(CV_CAP_ANY);
 	cvNamedWindow("result");
 
+	int index = 0;
+	char message[100];
 	bool flip = true;
 	bool processing = true;
 	while(processing)
@@ -51,6 +53,7 @@ void main()
 		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 20), 0.6, message);
 		sprintf_s(message, "Press 'F' to flip image");
 		windage::Utils::DrawTextToImage(resultImage, cvPoint(WIDTH-270, HEIGHT-25), 0.5, message);
+
 		cvShowImage("result", resultImage);
 
 		char ch = cvWaitKey(1);
@@ -64,6 +67,12 @@ void main()
 		case 'Q':
 		case 27:
 			processing = false;
+			break;
+		case 's':
+		case 'S':
+			sprintf_s(message, "save/image%03d.png", index);
+			cvSaveImage(message, resultImage);
+			index++;
 			break;
 		}
 	}
