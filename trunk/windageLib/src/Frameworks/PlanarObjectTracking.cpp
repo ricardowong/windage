@@ -197,7 +197,7 @@ bool PlanarObjectTracking::UpdateCamerapose(IplImage* grayImage)
 			if(0 <= index && index < (int)this->referenceRepository.size())
 			{
 				// if not tracked have point
-				if(this->referenceRepository[index].IsTracked() == false || this->detectionRatio < 1)
+				if(this->referenceRepository[index].IsTracked() == false)
 				{
 					this->referenceRepository[index].SetTracked(true);
 
@@ -227,12 +227,14 @@ bool PlanarObjectTracking::UpdateCamerapose(IplImage* grayImage)
 			{
 				if(refMatchedKeypoints[i].IsOutlier() == true)
 				{
+					this->referenceRepository[refMatchedKeypoints[i].GetRepositoryID()].SetTracked(false);
+
 					refMatchedKeypoints.erase(refMatchedKeypoints.begin() + i);
 					sceMatchedKeypoints.erase(sceMatchedKeypoints.begin() + i);
 					i--;
 				}
 			}
-		}		
+		}
 
 		// refinement
 		if(refiner)

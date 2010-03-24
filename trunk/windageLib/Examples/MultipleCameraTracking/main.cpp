@@ -52,12 +52,12 @@ const int HEIGHT = (WIDTH * 3) / 4;
 const int FEATURE_COUNT = WIDTH;
 
 const double SCALE_FACTOR = 4.0;
-const int SCALE_STEP = 8;
+const int SCALE_STEP = 4;
 const double REPROJECTION_ERROR = 5.0;
 
 #define USE_ADAPTIVE_THRESHOLD 1
 #define USE_TEMPLATE_IMAEG 1
-const char* TEMPLATE_IMAGE = "reference1_320.png";
+const char* TEMPLATE_IMAGE = "reference1.png";
 const double INTRINSIC[] = {826.653, 826.135, 351.964, 262.518, -0.014979, 0.051856, -0.000729, -0.000744};
 
 windage::Frameworks::PlanarObjectTracking* CreateTracker()
@@ -65,7 +65,7 @@ windage::Frameworks::PlanarObjectTracking* CreateTracker()
 	windage::Frameworks::PlanarObjectTracking* tracking = new windage::Frameworks::PlanarObjectTracking();
 
 	windage::Calibration* calibration					= new windage::Calibration();
-	windage::Algorithms::FeatureDetector* detector		= new windage::Algorithms::WSURFdetector();
+	windage::Algorithms::FeatureDetector* detector		= new windage::Algorithms::SIFTGPUdetector();
 	windage::Algorithms::SearchTree* searchtree			= new windage::Algorithms::FLANNtree();
 	windage::Algorithms::OpticalFlow* opticalflow		= new windage::Algorithms::OpticalFlow();
 	windage::Algorithms::HomographyEstimator* estimator	= new windage::Algorithms::RANSACestimator();
@@ -76,7 +76,7 @@ windage::Frameworks::PlanarObjectTracking* CreateTracker()
 	calibration->Initialize(INTRINSIC[0], INTRINSIC[1], INTRINSIC[2], INTRINSIC[3], INTRINSIC[4], INTRINSIC[5], INTRINSIC[6], INTRINSIC[7]);
 	detector->SetThreshold(30.0);
 	searchtree->SetRatio(0.7);
-	opticalflow->Initialize(WIDTH, HEIGHT, cvSize(8, 8), 3);
+	opticalflow->Initialize(WIDTH, HEIGHT, cvSize(15, 15), 3);
 	estimator->SetReprojectionError(REPROJECTION_ERROR);
 	checker->SetReprojectionError(REPROJECTION_ERROR);
 	refiner->SetMaxIteration(5);
