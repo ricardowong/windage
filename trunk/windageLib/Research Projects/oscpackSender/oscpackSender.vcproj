@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="MultipleCameraTracking"
-	ProjectGUID="{3C201E23-AB9E-4474-8199-22E70A0627F1}"
-	RootNamespace="MultipleCameraTracking"
+	Name="oscpackSender"
+	ProjectGUID="{CCA8A8AB-5EB1-4FB9-A3D9-41FD29256951}"
+	RootNamespace="oscpackSender"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../include&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.0/include&quot;;&quot;$(SolutionDir)../../component/SiftGPU-V340/include&quot;;&quot;$(SolutionDir)../../component/BumbleBeeCamera/include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../component/oscpack/&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -61,9 +61,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="cv200.lib cxcore200.lib highgui200.lib SIFTGPU.lib digiclops.lib triclops.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="&quot;$(SolutionDir)../../lib/&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.0/lib/&quot;;&quot;$(SolutionDir)../../component/SiftGPU-V340/lib/&quot;;&quot;$(SolutionDir)../../component/BumbleBeeCamera/lib/&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				TargetMachine="1"
@@ -118,9 +116,9 @@
 				Optimization="3"
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../include&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.0/include&quot;;&quot;$(SolutionDir)../../component/SiftGPU-V340/include&quot;;&quot;$(SolutionDir)../../component/BumbleBeeCamera/include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../component/oscpack/&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
-				RuntimeLibrary="2"
+				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
 				OpenMP="true"
 				UsePrecompiledHeader="0"
@@ -138,9 +136,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="cv200.lib cxcore200.lib highgui200.lib SIFTGPU.lib digiclops.lib triclops.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;$(SolutionDir)../../lib/&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.0/lib/&quot;;&quot;$(SolutionDir)../../component/SiftGPU-V340/lib/&quot;;&quot;$(SolutionDir)../../component/BumbleBeeCamera/lib/&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"
@@ -167,7 +163,6 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="COPY /Y &quot;$(OutDir)\$(ProjectName).exe&quot; &quot;$(SolutionDir)\..\..\runtime\$(ProjectName).exe&quot;"
 			/>
 		</Configuration>
 	</Configurations>
@@ -185,16 +180,92 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="Common"
+			Name="oscpack"
 			>
 			<File
-				RelativePath="..\Common\BumbleBeeCamera.cpp"
+				RelativePath="..\..\component\oscpack\osc\MessageMappingOscPacketListener.h"
 				>
 			</File>
 			<File
-				RelativePath="..\Common\BumbleBeeCamera.h"
+				RelativePath="..\..\component\oscpack\osc\OscException.h"
 				>
 			</File>
+			<File
+				RelativePath="..\..\component\oscpack\osc\OscHostEndianness.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\component\oscpack\osc\OscOutboundPacketStream.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\component\oscpack\osc\OscOutboundPacketStream.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\component\oscpack\osc\OscPacketListener.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\component\oscpack\osc\OscPrintReceivedElements.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\component\oscpack\osc\OscPrintReceivedElements.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\component\oscpack\osc\OscReceivedElements.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\component\oscpack\osc\OscReceivedElements.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\component\oscpack\osc\OscTypes.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\component\oscpack\osc\OscTypes.h"
+				>
+			</File>
+			<Filter
+				Name="ip"
+				>
+				<File
+					RelativePath="..\..\component\oscpack\ip\IpEndpointName.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\component\oscpack\ip\IpEndpointName.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\component\oscpack\ip\win32\NetworkingUtils.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\component\oscpack\ip\NetworkingUtils.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\component\oscpack\ip\PacketListener.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\component\oscpack\ip\TimerListener.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\component\oscpack\ip\win32\UdpSocket.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\component\oscpack\ip\UdpSocket.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 	</Files>
 	<Globals>

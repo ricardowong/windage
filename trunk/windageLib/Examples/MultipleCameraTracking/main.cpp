@@ -37,7 +37,8 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#include <iostream>a
+#include <iostream>
+#include <omp.h>
 
 #include <cv.h>
 #include <highgui.h>
@@ -52,10 +53,11 @@ const int FEATURE_COUNT = WIDTH;
 
 const double SCALE_FACTOR = 4.0;
 const int SCALE_STEP = 8;
+const double REPROJECTION_ERROR = 5.0;
 
 #define USE_ADAPTIVE_THRESHOLD 1
 #define USE_TEMPLATE_IMAEG 1
-const char* TEMPLATE_IMAGE = "reference.png";
+const char* TEMPLATE_IMAGE = "reference1_320.png";
 const double INTRINSIC[] = {826.653, 826.135, 351.964, 262.518, -0.014979, 0.051856, -0.000729, -0.000744};
 
 windage::Frameworks::PlanarObjectTracking* CreateTracker()
@@ -75,8 +77,8 @@ windage::Frameworks::PlanarObjectTracking* CreateTracker()
 	detector->SetThreshold(30.0);
 	searchtree->SetRatio(0.7);
 	opticalflow->Initialize(WIDTH, HEIGHT, cvSize(8, 8), 3);
-	estimator->SetReprojectionError(5.0);
-	checker->SetReprojectionError(5.0);
+	estimator->SetReprojectionError(REPROJECTION_ERROR);
+	checker->SetReprojectionError(REPROJECTION_ERROR);
 	refiner->SetMaxIteration(5);
 
 	tracking->AttatchCalibration(calibration);
@@ -154,21 +156,28 @@ void main()
 
 		logger.updateTickCount();
 
-		for(int i=0; i<TRACKER_COUNT; i++)
+		#pragma omp sections
 		{
-			if(cameraIndex != i)
+			#pragma omp section
 			{
+				int i = 0;
 				cvCvtColor(inputImage[i], grayImage[i], CV_BGRA2GRAY);
 				tracker[i]->UpdateCamerapose(grayImage[i]);
-				tracker[i]->DrawOutLine(inputImage[i], true);
-//				tracker[i]->DrawDebugInfo(inputImage[i]);
-//				tracker[i]->GetCameraParameter()->DrawInfomation(inputImage[i], 100.0);
+			}
+			#pragma omp section
+			{
+				int i = 1;
+				cvCvtColor(inputImage[i], grayImage[i], CV_BGRA2GRAY);
+				tracker[i]->UpdateCamerapose(grayImage[i]);
 			}
 		}
+
 		for(int i=0; i<TRACKER_COUNT; i++)
 		{
 			if(cameraIndex != i)
 			{
+				tracker[i]->DrawOutLine(inputImage[i], true);
+
 				int index = i+1>=TRACKER_COUNT?0:i+1;
 				calibration->SetExtrinsicMatrix(windage::Coordinator::MultiCameraCoordinator::CalculateExtrinsic(tracker[i]->GetCameraParameter(), toRotation[i], toTranslation[i]).m1);
 				calibration->DrawInfomation(inputImage[index], 100.0);
