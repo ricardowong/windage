@@ -73,7 +73,7 @@ int OpticalFlow::TrackFeatures(IplImage* prevGrayImage, IplImage* currGrayImage,
 		IplImage* tempPrev = cvCloneImage(prevGrayImage);
 		IplImage* tempCurr = cvCloneImage(currGrayImage);
 
-		cvSmooth(tempPrev, tempPrev, CV_GAUSSIAN, 3, 3);
+//		cvSmooth(tempPrev, tempPrev, CV_GAUSSIAN, 3, 3);
 		cvSmooth(tempCurr, tempCurr, CV_GAUSSIAN, 3, 3);
 
 		for(int i=0; i<pointCount; i++)

@@ -46,9 +46,18 @@
 
 const int WIDTH = 640;
 const int HEIGHT = (WIDTH * 3) / 4;
-const int FEATURE_COUNT = WIDTH;
 const double INTRINSIC[] = {1033.93, 1033.84, 319.044, 228.858,-0.206477, 0.306424, 0.000728208, 0.0011338};
 
+#define ADAPTIVE_THRESHOLD 0
+const int FEATURE_COUNT = WIDTH * 2;
+
+const double SCALE_FACTOR = 2.0;
+const int SCALE_STEP = 4;
+const double REPROJECTION_ERROR = 5.0;
+
+#define USE_TEMPLATE_IMAEG 1
+const char* TEMPLATE_IMAGE = "reference%d_320.png";
+const int TEMPLATE_IMAGE_COUNT = 2;
 void main()
 {
 	windage::Logger logger(&std::cout);
@@ -62,6 +71,8 @@ void main()
 	cvNamedWindow("result");
 
 	// create and initialize tracker
+	double threshold = 50.0;
+
 	windage::Frameworks::MultiplePlanarObjectTracking tracking;
 	windage::Calibration* calibration;
 	windage::Algorithms::FeatureDetector* detector;
@@ -79,9 +90,9 @@ void main()
 
 	calibration->Initialize(INTRINSIC[0], INTRINSIC[1], INTRINSIC[2], INTRINSIC[3], INTRINSIC[4], INTRINSIC[5], INTRINSIC[6], INTRINSIC[7]);
 	detector->SetThreshold(50.0);
-	opticalflow->Initialize(WIDTH, HEIGHT, cvSize(8, 8), 3);
-	estimator->SetReprojectionError(5.0);
-	checker->SetReprojectionError(5.0);
+	opticalflow->Initialize(WIDTH, HEIGHT, cvSize(15, 15), 3);
+	estimator->SetReprojectionError(REPROJECTION_ERROR);
+	checker->SetReprojectionError(REPROJECTION_ERROR);
 	refiner->SetMaxIteration(5);
 
 	tracking.AttatchCalibration(calibration);
@@ -93,16 +104,32 @@ void main()
 	
 	tracking.Initialize(WIDTH, HEIGHT, (double)WIDTH, (double)HEIGHT);
 	tracking.SetFilter(false);
-	tracking.SetDitectionRatio(1);
+	tracking.SetDitectionRatio(2);
+
+	bool trained = false;
+#if USE_TEMPLATE_IMAEG
+	for(int i=0; i<TEMPLATE_IMAGE_COUNT; i++)
+	{
+		char message[100];
+		sprintf_s(message, TEMPLATE_IMAGE, i+1);
+
+		IplImage* sampleImage = cvLoadImage(message, 0);
+		detector->SetThreshold(30.0);
+		tracking.AttatchReferenceImage(sampleImage);
+
+		cvReleaseImage(&sampleImage);
+	}
+	tracking.TrainingReference(SCALE_FACTOR, SCALE_STEP);
+	trained = true;
+	detector->SetThreshold(threshold);
+#endif
 	
 	int keypointCount = 0;
 	int matchingCount = 0;
-	double threshold = 50.0;
 	double processingTime = 0.0;
 
 	char message[100];
 	bool fliping = true;
-	bool trained = false;
 	bool processing = true;
 	while(processing)
 	{
@@ -123,6 +150,7 @@ void main()
 			tracking.UpdateCamerapose(grayImage);
 
 			// adaptive threshold
+#if ADAPTIVE_THRESHOLD
 			int localcount = detector->GetKeypointsCount();
 			if(keypointCount != localcount)
 			{
@@ -133,21 +161,25 @@ void main()
 				detector->SetThreshold(threshold);
 				keypointCount = localcount;
 			}
-
+#endif
 			// draw result
-//			detector->DrawKeypoints(resultImage);
+			std::vector<int> matchingCount; matchingCount.resize(tracking.GetObjectCount());
 			for(int i=0; i<tracking.GetObjectCount(); i++)
 			{
-				tracking.DrawDebugInfo(resultImage, i);
-				tracking.DrawOutLine(resultImage, i, true);
-				windage::Calibration* calibrationTemp = tracking.GetCameraParameter(i);
-				calibrationTemp->DrawInfomation(resultImage, 100);
-				CvPoint centerPoint = calibrationTemp->ConvertWorld2Image(0.0, 0.0, 0.0);
-				
-				centerPoint.x += 5;
-				centerPoint.y += 10;
-				sprintf_s(message, "object #%d", i+1);
-				windage::Utils::DrawTextToImage(resultImage, centerPoint, 0.6, message);
+				matchingCount[i] = tracking.GetMatchingCount(i);
+				if(tracking.GetMatchingCount(i) > 10)
+				{
+//					tracking.DrawDebugInfo(resultImage, i);
+					tracking.DrawOutLine(resultImage, i, true);
+					windage::Calibration* calibrationTemp = tracking.GetCameraParameter(i);
+					calibrationTemp->DrawInfomation(resultImage, 100);
+					CvPoint centerPoint = calibrationTemp->ConvertWorld2Image(0.0, 0.0, 0.0);
+					
+					centerPoint.x += 5;
+					centerPoint.y += 10;
+					sprintf_s(message, "object #%d (%03d)", i+1, matchingCount[i]);
+					windage::Utils::DrawTextToImage(resultImage, centerPoint, 0.6, message);
+				}
 			}
 		}
 
@@ -182,7 +214,7 @@ void main()
 		case 'S':
 			detector->SetThreshold(30.0);
 			tracking.AttatchReferenceImage(grayImage);
-			tracking.TrainingReference(1.0, 1);
+			tracking.TrainingReference(SCALE_FACTOR, SCALE_STEP);
 			detector->SetThreshold(threshold);
 			trained = true;
 			break;
