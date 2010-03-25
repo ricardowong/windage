@@ -55,7 +55,7 @@ bool OutlierChecker::Calculate()
 
 		int index = 0;
 		double error = (*scePoints)[i].GetPoint().getDistance(imagePoint);
-		if(error < this->reprojectionError)
+		if(error <= this->reprojectionError)
 		{
 			(*refPoints)[i].SetOutlier(false);
 			(*scePoints)[i].SetOutlier(false);
