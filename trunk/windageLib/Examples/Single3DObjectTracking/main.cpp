@@ -50,7 +50,7 @@ const int HEIGHT = (WIDTH * 3) / 4;
 const double REPROJECTION_ERROR = 5.0;
 const double INTRINSIC[] = {1033.93, 1033.84, 319.044, 228.858,-0.206477, 0.306424, 0.000728208, 0.0011338};
 
-const char* FILE_NAME = "data/reconstruction_2010-03-25_10_32_10.txt";
+const char* FILE_NAME = "data/reconstruction_2010-03-25_16_16_51.txt";
 
 void main()
 {
@@ -79,7 +79,7 @@ void main()
 	detector = new windage::Algorithms::SIFTGPUdetector();
 	searchtree = new windage::Algorithms::FLANNtree();
 	opticalflow = new windage::Algorithms::OpticalFlow();
-	estimator = new windage::Algorithms::OpenCVRANSACestimator();
+	estimator = new windage::Algorithms::EPnPRANSACestimator();
 	checker = new windage::Algorithms::OutlierChecker();
 	refiner = new windage::Algorithms::PoseLMmethod();
 	filter = new windage::Algorithms::KalmanFilter();
