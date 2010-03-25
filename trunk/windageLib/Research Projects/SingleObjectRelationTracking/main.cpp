@@ -38,18 +38,31 @@
  * ======================================================================== */
 
 #include <iostream>
+#include <windows.h>
+#include <process.h>
+
+#pragma comment(lib, "WS2_32.lib")
+#pragma comment(lib, "winmm.lib")
 
 #include <cv.h>
 #include <highgui.h>
 
 #include <windage.h>
 
+// communication
+#include "osc/OscReceivedElements.h"
+#include "osc/OscPacketListener.h"
+#include "ip/UdpSocket.h"
+
+const int PORT = 7239;
+
+// for object tracking
 const int WIDTH = 640;
 const int HEIGHT = (WIDTH * 3) / 4;
 const int FEATURE_COUNT = WIDTH;
 
-const double SCALE_FACTOR = 1.0;
-const int SCALE_STEP = 1;
+const double SCALE_FACTOR = 2.0;
+const int SCALE_STEP = 3;
 const double REPROJECTION_ERROR = 5.0;
 
 #define USE_ADAPTIVE_THRESHOLD 1
@@ -57,8 +70,56 @@ const double REPROJECTION_ERROR = 5.0;
 const char* TEMPLATE_IMAGE = "reference1_320.png";
 const double INTRINSIC[] = {1033.93, 1033.84, 319.044, 228.858,-0.206477, 0.306424, 0.000728208, 0.0011338};
 
+// communication
+class RelationPacketListener : public osc::OscPacketListener
+{
+private:
+	windage::Matrix3 rotation;
+	windage::Vector3 translation;
+public:
+	windage::Matrix3 GetRotation(){return this->rotation;}
+	windage::Vector3 GetTranslation(){return this->translation;}
+	
+protected:
+    virtual void ProcessMessage( const osc::ReceivedMessage& m, const IpEndpointName& remoteEndpoint )
+    {
+        try
+		{
+            if( strcmp( m.AddressPattern(), "MultimarkerRelation" ) == 0 )
+			{
+				osc::ReceivedMessageArgumentStream args = m.ArgumentStream();
+				args >> rotation.m[0][0] >> rotation.m[0][1] >> rotation.m[0][2]
+					>> rotation.m[1][0] >> rotation.m[1][1] >> rotation.m[1][2]
+					>> rotation.m[2][0] >> rotation.m[2][1] >> rotation.m[2][2]
+					>> translation.x >> translation.y >> translation.z >> osc::EndMessage;
+				std::cout << "recevie data" << std::endl;
+            }
+        }
+		catch( osc::Exception& e )
+		{
+            // any parsing errors such as unexpected argument types, or 
+            // missing arguments get thrown as exceptions.
+            std::cout << "error while parsing message: " << m.AddressPattern() << ": " << e.what() << "\n";
+        }
+    }
+};
+
+unsigned int WINAPI SystemListenerThread(void* pArg)
+{
+	RelationPacketListener* listener = (RelationPacketListener*)pArg;
+
+	UdpListeningReceiveSocket receiveSocket(IpEndpointName(IpEndpointName::ANY_ADDRESS, PORT), listener);
+	receiveSocket.RunUntilSigInt();
+	return 0;
+}
+
 void main()
 {
+	// communication
+	RelationPacketListener relationListener;
+	HANDLE nHandle = (HANDLE)_beginthreadex(NULL, 0, SystemListenerThread, (void*)&relationListener, 0, NULL);
+
+	// tracking
 	windage::Logger logger(&std::cout);
 
 	IplImage* inputImage;
@@ -68,6 +129,9 @@ void main()
 
 	CvCapture* capture = cvCaptureFromCAM(CV_CAP_ANY);
 	cvNamedWindow("result");
+
+	windage::Calibration relationCalibration;
+	relationCalibration.Initialize(INTRINSIC[0], INTRINSIC[1], INTRINSIC[2], INTRINSIC[3], INTRINSIC[4], INTRINSIC[5], INTRINSIC[6], INTRINSIC[7]);
 
 	// create and initialize tracker
 	windage::Frameworks::PlanarObjectTracking tracking;
@@ -160,9 +224,17 @@ void main()
 #endif
 			// draw result
 //			detector->DrawKeypoints(resultImage);
-			tracking.DrawDebugInfo(resultImage);
-			tracking.DrawOutLine(resultImage, true);
-			calibration->DrawInfomation(resultImage, 100);
+			if(tracking.GetMatchingCount() > 10)
+			{
+//				tracking.DrawDebugInfo(resultImage);
+				tracking.DrawOutLine(resultImage, true);
+				calibration->DrawInfomation(resultImage, 100);
+
+				// calculate relation
+				windage::Matrix4 extrinsic = windage::Coordinator::MultiMarkerCoordinator::CalculateExtrinsic(calibration, relationListener.GetRotation(), relationListener.GetTranslation());
+				relationCalibration.SetExtrinsicMatrix(extrinsic.m1);
+				relationCalibration.DrawInfomation(resultImage, 100);
+			}
 		}
 		matchingCount = tracking.GetMatchingCount();
 

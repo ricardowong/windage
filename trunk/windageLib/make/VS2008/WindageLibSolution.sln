@@ -70,6 +70,16 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "oscpackSender", "..\..\Rese
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "oscpackDump", "..\..\Research Projects\oscpackDump\oscpackDump.vcproj", "{F9BEBB71-DDDF-4F3E-9874-A0C153A297C2}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MultipleObjectRelationTracking", "..\..\Research Projects\MultipleObjectRelationTracking\MultipleObjectRelationTracking.vcproj", "{31148DDE-0574-4575-9366-6A0B513605B0}"
+	ProjectSection(ProjectDependencies) = postProject
+		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B} = {BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SingleObjectRelationTracking", "..\..\Research Projects\SingleObjectRelationTracking\SingleObjectRelationTracking.vcproj", "{AAAC08B8-B313-4BC7-B6F2-D9B280070AFF}"
+	ProjectSection(ProjectDependencies) = postProject
+		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B} = {BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -132,6 +142,14 @@ Global
 		{F9BEBB71-DDDF-4F3E-9874-A0C153A297C2}.Debug|Win32.Build.0 = Debug|Win32
 		{F9BEBB71-DDDF-4F3E-9874-A0C153A297C2}.Release|Win32.ActiveCfg = Release|Win32
 		{F9BEBB71-DDDF-4F3E-9874-A0C153A297C2}.Release|Win32.Build.0 = Release|Win32
+		{31148DDE-0574-4575-9366-6A0B513605B0}.Debug|Win32.ActiveCfg = Debug|Win32
+		{31148DDE-0574-4575-9366-6A0B513605B0}.Debug|Win32.Build.0 = Debug|Win32
+		{31148DDE-0574-4575-9366-6A0B513605B0}.Release|Win32.ActiveCfg = Release|Win32
+		{31148DDE-0574-4575-9366-6A0B513605B0}.Release|Win32.Build.0 = Release|Win32
+		{AAAC08B8-B313-4BC7-B6F2-D9B280070AFF}.Debug|Win32.ActiveCfg = Debug|Win32
+		{AAAC08B8-B313-4BC7-B6F2-D9B280070AFF}.Debug|Win32.Build.0 = Debug|Win32
+		{AAAC08B8-B313-4BC7-B6F2-D9B280070AFF}.Release|Win32.ActiveCfg = Release|Win32
+		{AAAC08B8-B313-4BC7-B6F2-D9B280070AFF}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -151,5 +169,7 @@ Global
 		{7C0BDFC3-67A6-43B0-A6A5-026CCF9CA21C} = {88DDBFE1-5E4A-4B1B-A62F-1D38B81D8E64}
 		{CCA8A8AB-5EB1-4FB9-A3D9-41FD29256951} = {51107080-11B5-453F-8F32-CCFB448458AE}
 		{F9BEBB71-DDDF-4F3E-9874-A0C153A297C2} = {51107080-11B5-453F-8F32-CCFB448458AE}
+		{31148DDE-0574-4575-9366-6A0B513605B0} = {51107080-11B5-453F-8F32-CCFB448458AE}
+		{AAAC08B8-B313-4BC7-B6F2-D9B280070AFF} = {51107080-11B5-453F-8F32-CCFB448458AE}
 	EndGlobalSection
 EndGlobal

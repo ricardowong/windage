@@ -156,9 +156,9 @@ void main()
 
 		logger.updateTickCount();
 
-		#pragma omp sections
+		#pragma omp sections nowait
 		{
-			#pragma omp section
+			#pragma omp section 
 			{
 				int i = 0;
 				cvCvtColor(inputImage[i], grayImage[i], CV_BGRA2GRAY);

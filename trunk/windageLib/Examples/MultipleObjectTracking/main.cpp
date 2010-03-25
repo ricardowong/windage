@@ -53,7 +53,7 @@ const int FEATURE_COUNT = WIDTH * 2;
 
 const double SCALE_FACTOR = 1.0;
 const int SCALE_STEP = 1;
-const double REPROJECTION_ERROR = 2.0;
+const double REPROJECTION_ERROR = 5.0;
 
 #define USE_TEMPLATE_IMAEG 1
 const char* TEMPLATE_IMAGE = "reference%d_320.png";
@@ -92,8 +92,8 @@ void main()
 	detector->SetThreshold(50.0);
 	opticalflow->Initialize(WIDTH, HEIGHT, cvSize(15, 15), 3);
 	estimator->SetReprojectionError(REPROJECTION_ERROR);
-	checker->SetReprojectionError(REPROJECTION_ERROR);
-	refiner->SetMaxIteration(5);
+	checker->SetReprojectionError(REPROJECTION_ERROR * 3);
+	refiner->SetMaxIteration(10);
 
 	tracking.AttatchCalibration(calibration);
 	tracking.AttatchDetetor(detector);
