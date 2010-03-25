@@ -49,7 +49,8 @@
 
 //const char* FILE_NAME = "data/reconstruction_2010-03-05_09_10_47.txt";
 //const char* FILE_NAME = "data/reconstruction_2010-03-05_15_18_25.txt";
-const char* FILE_NAME = "data/reconstruction_2010-03-11_17_11_49.txt";
+//const char* FILE_NAME = "data/reconstruction_2010-03-11_17_11_49.txt";
+const char* FILE_NAME = "data/reconstruction_2010-03-25_10_32_10.txt";
 
 const int WIDTH = 640;
 const int HEIGHT = (WIDTH * 3) / 4;

@@ -37,19 +37,17 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#include "Frameworks/PlanarObjectTracking.h"
+#include "Frameworks/SingleObjectTracking.h"
 using namespace windage;
 using namespace windage::Frameworks;
 
-bool PlanarObjectTracking::Initialize(int width, int height, double realWidth, double realHeight, bool printInfo)
+bool SingleObjectTracking::Initialize(int width, int height, bool printInfo)
 {
 	if(this->cameraParameter == NULL)
 		return false;
 	
 	this->width = width;
 	this->height = height;
-	this->realWidth = realWidth;
-	this->realHeight = realHeight;
 
 	if(this->checker != NULL)
 		this->checker->AttatchEstimator(this->estimator);
@@ -87,61 +85,14 @@ bool PlanarObjectTracking::Initialize(int width, int height, double realWidth, d
 	return true;
 }
 
-bool PlanarObjectTracking::AttatchReferenceImage(IplImage* grayImage)
+bool SingleObjectTracking::TrainingReference(std::vector<windage::FeaturePoint>* referenceFeatures)
 {
-	if(grayImage == NULL)
-		return false;
-
-	if(this->referenceImage) cvReleaseImage(&this->referenceImage);
-	this->referenceImage = NULL;
-	this->referenceImage = cvCloneImage(grayImage);
-
-	return true;
-}
-
-bool PlanarObjectTracking::TrainingReference(double scaleFactor, int scaleStep)
-{
-	if(this->referenceImage == NULL)
-		return false;
 	if(this->initialize == false)
 		return false;
 
-	int width = cvRound((double)this->referenceImage->width/scaleFactor);
-	int height = cvRound((double)this->referenceImage->height/scaleFactor);
-	int count = 0;
-
-	this->referenceRepository.clear();
-	for(int y=1; y<=scaleStep; y++)
+	for(unsigned int i=0; i<referenceFeatures->size(); i++)
 	{
-		for(int x=1; x<=scaleStep; x++)
-		{
-			IplImage* resizeReferenceImage = cvCreateImage(cvSize(width*x, height*y), IPL_DEPTH_8U, 1);
-			cvResize(this->referenceImage, resizeReferenceImage, CV_INTER_LINEAR);
-			cvSmooth(resizeReferenceImage, resizeReferenceImage, CV_GAUSSIAN, 3, 3);
-
-			this->detector->DoExtractKeypointsDescriptor(resizeReferenceImage);
-			std::vector<windage::FeaturePoint>* tempReferenceKeypoints = this->detector->GetKeypoints();
-
-			// add reference feature repository
-			double xScaleFactor = this->realWidth / (double)resizeReferenceImage->width;
-			double yScaleFactor = this->realHeight / (double)resizeReferenceImage->height;
-			for(unsigned int i=0; i<tempReferenceKeypoints->size(); i++)
-			{
-				windage::Vector3 point = (*tempReferenceKeypoints)[i].GetPoint();
-				point.x *= xScaleFactor;
-				point.y *= yScaleFactor;
-				point.x -= (double)this->realWidth/2.0;
-				point.y = (double) this->realHeight/2.0 - point.y + 1;
-
-				(*tempReferenceKeypoints)[i].SetPoint(point);
-				(*tempReferenceKeypoints)[i].SetRepositoryID(count);
-
-				this->referenceRepository.push_back((*tempReferenceKeypoints)[i]);
-				count++;
-			}
-
-			cvReleaseImage(&resizeReferenceImage);
-		}
+		this->referenceRepository.push_back((*referenceFeatures)[i]);
 	}
 
 	this->matcher->Training(&this->referenceRepository);
@@ -149,7 +100,7 @@ bool PlanarObjectTracking::TrainingReference(double scaleFactor, int scaleStep)
 	return true;
 }
 
-bool PlanarObjectTracking::UpdateCamerapose(IplImage* grayImage)
+bool SingleObjectTracking::UpdateCamerapose(IplImage* grayImage)
 {
 	if(initialize == false || trained == false)
 		return false;
@@ -240,13 +191,11 @@ bool PlanarObjectTracking::UpdateCamerapose(IplImage* grayImage)
 		// refinement
 		if(refiner)
 		{
-			this->refiner->AttatchHomography(this->estimator->GetHomography());
+			this->refiner->AttatchCalibration(this->estimator->GetCameraParameter());
 			this->refiner->AttatchReferencePoint(&refMatchedKeypoints);
 			this->refiner->AttatchScenePoint(&sceMatchedKeypoints);
 			this->refiner->Calculate();
 		}
-
-		this->estimator->DecomposeHomography(this->cameraParameter);
 
 		// filtering
 		if(filter)
@@ -275,7 +224,7 @@ bool PlanarObjectTracking::UpdateCamerapose(IplImage* grayImage)
 	return true;
 }
 
-void PlanarObjectTracking::DrawOutLine(IplImage* colorImage, bool drawCross)
+void SingleObjectTracking::DrawOutLine(IplImage* colorImage, bool drawCross)
 {
 	int size = 4;
 	CvScalar color = CV_RGB(255, 0, 255);
@@ -301,7 +250,7 @@ void PlanarObjectTracking::DrawOutLine(IplImage* colorImage, bool drawCross)
 	}
 }
 
-void PlanarObjectTracking::DrawDebugInfo(IplImage* colorImage)
+void SingleObjectTracking::DrawDebugInfo(IplImage* colorImage)
 {
 	int pointCount = (int)refMatchedKeypoints.size();
 	int r = 255;
@@ -311,14 +260,9 @@ void PlanarObjectTracking::DrawDebugInfo(IplImage* colorImage)
 	int size = 4;
 	for(unsigned int i=0; i<refMatchedKeypoints.size(); i++)
 	{
-		double dx = refMatchedKeypoints[i].GetPoint().x * (double)colorImage->width/realWidth + (double)colorImage->width/2.0;
-		double dy = (double)colorImage->height - refMatchedKeypoints[i].GetPoint().y * (double)colorImage->height/realHeight - (double)colorImage->height/2.0;
-		CvPoint referencePoint = cvPoint(cvRound(dx), cvRound(dy));
 		CvPoint imagePoint = cvPoint((int)sceMatchedKeypoints[i].GetPoint().x, (int)sceMatchedKeypoints[i].GetPoint().y);
 
-		cvCircle(colorImage, referencePoint, size, CV_RGB(0, 255, 255), CV_FILLED);
+		cvCircle(colorImage, imagePoint, size+5, CV_RGB(0, 0, 0), CV_FILLED);
 		cvCircle(colorImage, imagePoint, size, CV_RGB(255, 255, 0), CV_FILLED);
-
-		cvLine(colorImage, referencePoint, imagePoint, CV_RGB(255, 0, 0));
 	}
 }

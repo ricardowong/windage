@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="MultipleCameraTracking"
-	ProjectGUID="{3C201E23-AB9E-4474-8199-22E70A0627F1}"
-	RootNamespace="MultipleCameraTracking"
+	Name="Single3DObjectTracking"
+	ProjectGUID="{55BE011A-E4EF-420F-AF09-2C38C5A942FC}"
+	RootNamespace="Single3DObjectTracking"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../include&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.0/include&quot;;&quot;$(SolutionDir)../../component/SiftGPU-V340/include&quot;;&quot;$(SolutionDir)../../component/BumbleBeeCamera/include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../include&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.0/include&quot;;&quot;$(SolutionDir)../../component/SiftGPU-V340/include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -61,10 +61,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="cv200.lib cxcore200.lib highgui200.lib SIFTGPU.lib digiclops.lib triclops.lib"
+				AdditionalDependencies="cv200.lib cxcore200.lib highgui200.lib SIFTGPU.lib"
 				OutputFile="$(OutDir)\$(ProjectName)d.exe"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="&quot;$(SolutionDir)../../lib/&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.0/lib/&quot;;&quot;$(SolutionDir)../../component/SiftGPU-V340/lib/&quot;;&quot;$(SolutionDir)../../component/BumbleBeeCamera/lib/&quot;"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)../../lib/&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.0/lib/&quot;;&quot;$(SolutionDir)../../component/SiftGPU-V340/lib/&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				TargetMachine="1"
@@ -119,7 +119,7 @@
 				Optimization="3"
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../include&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.0/include&quot;;&quot;$(SolutionDir)../../component/SiftGPU-V340/include&quot;;&quot;$(SolutionDir)../../component/BumbleBeeCamera/include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../include&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.0/include&quot;;&quot;$(SolutionDir)../../component/SiftGPU-V340/include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -139,9 +139,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="cv200.lib cxcore200.lib highgui200.lib SIFTGPU.lib digiclops.lib triclops.lib"
+				AdditionalDependencies="cv200.lib cxcore200.lib highgui200.lib SIFTGPU.lib"
+				OutputFile="$(OutDir)\$(ProjectName).exe"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;$(SolutionDir)../../lib/&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.0/lib/&quot;;&quot;$(SolutionDir)../../component/SiftGPU-V340/lib/&quot;;&quot;$(SolutionDir)../../component/BumbleBeeCamera/lib/&quot;"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)../../lib/&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.0/lib/&quot;;&quot;$(SolutionDir)../../component/SiftGPU-V340/lib/&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"
@@ -168,7 +169,6 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="COPY /Y &quot;$(OutDir)\$(ProjectName).exe&quot; &quot;$(SolutionDir)\..\..\runtime\$(ProjectName).exe&quot;"
 			/>
 		</Configuration>
 	</Configurations>
@@ -182,18 +182,6 @@
 			>
 			<File
 				RelativePath=".\main.cpp"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="Common"
-			>
-			<File
-				RelativePath="..\Common\BumbleBeeCamera.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\Common\BumbleBeeCamera.h"
 				>
 			</File>
 		</Filter>

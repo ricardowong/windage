@@ -62,6 +62,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="cv200.lib cxcore200.lib highgui200.lib sba.lib cblas.lib clapack.lib f2c.lib Irrlicht.lib SIFTGPU.lib"
+				OutputFile="$(OutDir)\$(ProjectName)d.exe"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="&quot;$(SolutionDir)../../lib/&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.0/lib/&quot;;&quot;$(SolutionDir)../../component/GLUT/lib/&quot;;&quot;$(SolutionDir)../../component/SBA-1.5/lib/&quot;;&quot;$(SolutionDir)../../component/irrlicht-1.7.1/lib/Win32-visualstudio&quot;;&quot;$(SolutionDir)../../component/SiftGPU-V340/lib/&quot;"
 				GenerateDebugInformation="true"

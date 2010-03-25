@@ -516,6 +516,14 @@
 				RelativePath="..\..\..\include\Frameworks\PlanarObjectTracking.h"
 				>
 			</File>
+			<File
+				RelativePath="..\..\..\src\Frameworks\SingleObjectTracking.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\include\Frameworks\SingleObjectTracking.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Coordinator"

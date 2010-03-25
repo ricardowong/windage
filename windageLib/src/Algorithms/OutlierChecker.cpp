@@ -43,28 +43,55 @@ using namespace windage::Algorithms;
 
 bool OutlierChecker::Calculate()
 {
-	if(this->homographyEstimator == NULL)
+	if(this->homographyEstimator == NULL && this->poseEstimator == NULL)
 		return false;
 
-	std::vector<windage::FeaturePoint>* refPoints = this->homographyEstimator->GetReferencePoint();
-	std::vector<windage::FeaturePoint>* scePoints = this->homographyEstimator->GetScenePoint();
-	for(unsigned int i=0; i<refPoints->size(); i++)
+	if(this->homographyEstimator)
 	{
-		windage::Vector3 imagePoint = this->homographyEstimator->ConvertObjectToImage((*refPoints)[i].GetPoint());
-		imagePoint /= imagePoint.z;
+		std::vector<windage::FeaturePoint>* refPoints = this->homographyEstimator->GetReferencePoint();
+		std::vector<windage::FeaturePoint>* scePoints = this->homographyEstimator->GetScenePoint();
+		for(unsigned int i=0; i<refPoints->size(); i++)
+		{
+			windage::Vector3 imagePoint = this->homographyEstimator->ConvertObjectToImage((*refPoints)[i].GetPoint());
+			imagePoint /= imagePoint.z;
 
-		int index = 0;
-		double error = (*scePoints)[i].GetPoint().getDistance(imagePoint);
-		if(error <= this->reprojectionError)
-		{
-			(*refPoints)[i].SetOutlier(false);
-			(*scePoints)[i].SetOutlier(false);
-			index++;
+			int index = 0;
+			double error = (*scePoints)[i].GetPoint().getDistance(imagePoint);
+			if(error <= this->reprojectionError)
+			{
+				(*refPoints)[i].SetOutlier(false);
+				(*scePoints)[i].SetOutlier(false);
+				index++;
+			}
+			else
+			{
+				(*refPoints)[i].SetOutlier(true);
+				(*scePoints)[i].SetOutlier(true);
+			}
 		}
-		else
+	}
+	else
+	{
+		std::vector<windage::FeaturePoint>* refPoints = this->poseEstimator->GetReferencePoint();
+		std::vector<windage::FeaturePoint>* scePoints = this->poseEstimator->GetScenePoint();
+		for(unsigned int i=0; i<refPoints->size(); i++)
 		{
-			(*refPoints)[i].SetOutlier(true);
-			(*scePoints)[i].SetOutlier(true);
+			windage::Vector3 imagePoint = this->poseEstimator->ConvertWorldToImage((*refPoints)[i].GetPoint());
+			imagePoint /= imagePoint.z;
+
+			int index = 0;
+			double error = (*scePoints)[i].GetPoint().getDistance(imagePoint);
+			if(error <= this->reprojectionError)
+			{
+				(*refPoints)[i].SetOutlier(false);
+				(*scePoints)[i].SetOutlier(false);
+				index++;
+			}
+			else
+			{
+				(*refPoints)[i].SetOutlier(true);
+				(*scePoints)[i].SetOutlier(true);
+			}
 		}
 	}
 
