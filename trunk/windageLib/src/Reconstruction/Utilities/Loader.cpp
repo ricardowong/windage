@@ -205,6 +205,7 @@ bool Loader::DoLoad(const char* filename)
 			input >> descriptorDimension;
 			input.getline(BUFFER, BUFFER_SIZE); //
 
+			featurePoint.DESCRIPTOR_DIMENSION = descriptorDimension;
 			featurePoint.descriptor.resize(descriptorDimension);
 			for(int k=0; k<descriptorDimension; k++)
 			{
@@ -219,6 +220,7 @@ bool Loader::DoLoad(const char* filename)
 
 		(*this->reconstructionPoints)[i] = reconstructionPoint;
 	}
+	std::cout << "load reconstruction all point count : " << reconstructionCount << std::endl;
 
 	input.close();
 

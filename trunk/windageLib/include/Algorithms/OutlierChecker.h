@@ -45,8 +45,8 @@
  * @brief	It is implemetation to check whether outlier or not
  */
 
-#ifndef _OUTLIER_REMOVER_TREE_H_
-#define _OUTLIER_REMOVER_TREE_H_
+#ifndef _OUTLIER_CHECKER_H_
+#define _OUTLIER_CHECKER_H_
 
 #include <vector>
 
@@ -75,6 +75,7 @@ namespace windage
 		{
 		private:
 			HomographyEstimator* homographyEstimator;	///< homography Estimator to attatch reference pointer at out-side
+			PoseEstimator* poseEstimator;
 			double reprojectionError;					///< threshold to determin outlier or not
 
 		public:
@@ -97,7 +98,8 @@ namespace windage
 			 * @warning
 			 *		homograpy estimator is not create in-side at this class so do not release this pointer
 			 */
-			inline void AttatchEstimator(HomographyEstimator* homographyEstimator){this->homographyEstimator = homographyEstimator;};
+			inline void AttatchEstimator(HomographyEstimator* homographyEstimator){this->homographyEstimator = homographyEstimator; this->poseEstimator = NULL;};
+			inline void AttatchEstimator(PoseEstimator* poseEstimator){this->poseEstimator = poseEstimator; this->homographyEstimator = NULL;};
 
 			inline void SetReprojectionError(double error){this->reprojectionError = error;};
 			inline double GetReprojectionError(){return this->reprojectionError;};
@@ -115,4 +117,4 @@ namespace windage
 		/** @} */ // addtogroup Algorithms
 	}
 }
-#endif // _OUTLIER_REMOVER_TREE_H_
+#endif // _OUTLIER_CHECKER_H_

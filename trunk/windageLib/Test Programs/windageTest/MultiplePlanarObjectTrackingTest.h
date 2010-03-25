@@ -148,7 +148,7 @@ public:
 		tracking1->AttatchEstimator(this->estimator);
 		tracking1->AttatchChecker(this->checker);
 		tracking1->AttatchRefiner(this->refiner);
-		tracking1->Initialize(imageSize.width, imageSize.height);
+		tracking1->Initialize(imageSize.width, imageSize.height, 640, 480, false);
 		tracking1->AttatchReferenceImage(grayImage1);
 		tracking1->AttatchReferenceImage(grayImage1);
 		tracking1->AttatchReferenceImage(grayImage1);
@@ -208,7 +208,7 @@ public:
 		tracking.AttatchEstimator(this->estimator);
 		tracking.AttatchChecker(this->checker);
 		tracking.AttatchRefiner(this->refiner);
-		tracking.Initialize(width, height, width, height);
+		tracking.Initialize(width, height, width, height, false);
 		tracking.AttatchReferenceImage(grayImage1);
 		tracking.AttatchReferenceImage(grayImage2);
 		tracking.TrainingReference();

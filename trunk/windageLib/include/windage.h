@@ -89,6 +89,7 @@
 
 // refiner
 #include "Algorithms/LMmethod.h"
+#include "Algorithms/PoseRefiner.h"
 #include "Algorithms/PoseLMmethod.h"
 
 #include "Algorithms/OutlierChecker.h"
@@ -102,6 +103,7 @@
 // Frameworks
 #include "Frameworks/PlanarObjectTracking.h"
 #include "Frameworks/MultiplePlanarObjectTracking.h"
+#include "Frameworks/SingleObjectTracking.h"
 
 // Coordinator
 #include "Coordinator/RotationConverter.h"
