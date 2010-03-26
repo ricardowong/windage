@@ -183,6 +183,18 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="Common"
+			>
+			<File
+				RelativePath="..\Common\IrrlichtRenderer.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\Common\IrrlichtRenderer.h"
+				>
+			</File>
+		</Filter>
 	</Files>
 	<Globals>
 	</Globals>

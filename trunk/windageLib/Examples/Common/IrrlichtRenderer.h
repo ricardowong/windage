@@ -152,5 +152,23 @@ public:
 	virtual irr::video::SMaterial& getMaterial(irr::u32 i)
 	{
 		return Material;
-	}	
+	}
+
+	void setTransparent()
+	{
+		for(unsigned int i=0; i<cameraImages.size(); i++)
+		{
+			this->cameraImages[i].MaterialType = irr::video::EMT_TRANSPARENT_ADD_COLOR;
+		}
+	}
+
+	void resetTransparent()
+	{
+		for(unsigned int i=0; i<cameraImages.size(); i++)
+		{
+			this->cameraImages[i].MaterialType = irr::video::EMT_SOLID;
+		}
+	}
+
+	void setSelectedCamera(int index = -1){this->selectedCamera = index;};
 };

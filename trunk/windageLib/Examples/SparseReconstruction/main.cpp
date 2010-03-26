@@ -45,11 +45,11 @@
 #include <irrlicht.h>
 
 #include <windage.h>
-#include "../Common/OpenGLRenderer.h"
+#include "../Common/IrrlichtRenderer.h"
 
-#define RECONSTRUCTION_TEST 0
+#define RECONSTRUCTION_TEST 1
 #define RECONSTRUCTION_TEMPLE 0
-#define RECONSTRUCTION_MINIATURE 1
+#define RECONSTRUCTION_MINIATURE 0
 
 const int WIDTH = 640;
 const int HEIGHT = (WIDTH * 3) / 4;
@@ -81,144 +81,17 @@ const double RANSAC_COEFFICIENT = 0.99995;
 const int RANSAC_ITERATION = 5000;
 const double RANSAC_REPROJECTION_ERROR = 2.0;
 
-std::vector<IplImage*> inputImage;
-
-windage::Calibration* initialCalibration;
-windage::Reconstruction::IncrementalReconstruction* reconstructor;
-windage::Logger* logging;
 double SCALE = 100.0;
 
-class CRenderSceneNode : public irr::scene::ISceneNode
+void main()
 {
-	int size;
-	irr::core::aabbox3d<irr::f32> Box;
-	irr::video::S3DVertex* Vertices;
-	std::vector<std::vector<irr::core::vector3df>> cameras;
+	std::vector<IplImage*> inputImage;
 
-	irr::video::SMaterial Material;
+	windage::Calibration* initialCalibration;
+	windage::Reconstruction::IncrementalReconstruction* reconstructor;
+	std::vector<std::string> filenameList;
+	windage::Logger* logging;
 
-public:
-
-	CRenderSceneNode(irr::scene::ISceneNode* parent, irr::scene::ISceneManager* mgr, irr::s32 id)
-		: irr::scene::ISceneNode(parent, mgr, id)
-	{
-		Material.Wireframe = false;
-		Material.Lighting = false;
-		Material.Thickness = 3;
-
-		std::vector<windage::ReconstructionPoint>* reconstructionPoints = reconstructor->GetReconstructedPoint();
-		size = reconstructionPoints->size();
-
-		Vertices = new irr::video::S3DVertex[size];
-		for(int i=0; i<size; i++)
-		{
-			windage::ReconstructionPoint point = (*reconstructionPoints)[i];
-			windage::Vector4 position = point.GetPoint();
-			CvScalar color = point.GetColor();
-			Vertices[i] = irr::video::S3DVertex(position.x, position.y, position.z, 1, 1, 1, irr::video::SColor(255, color.val[2], color.val[1], color.val[0]), 0, 0);
-		}
-
-		
-		int count = reconstructor->GetCameraParameterCount();
-		this->cameras.resize(count);
-		for(int i=0; i<count; i++)
-		{
-			windage::Calibration* calibration = reconstructor->GetCameraParameter(i);
-
-			CvScalar pt = calibration->GetCameraPosition();
-			CvScalar at = calibration->GetLookAt();
-			CvScalar up = calibration->GetUpPoint();
-			CvScalar ri = calibration->GetRightPoint();
-
-			windage::Vector3 cameraPosition	= windage::Vector3(pt.val[0], pt.val[1], pt.val[2]);
-			windage::Vector3 lookAt			= windage::Vector3(at.val[0], at.val[1], at.val[2]);
-			windage::Vector3 upVector		= windage::Vector3(up.val[0], up.val[1], up.val[2]);
-			windage::Vector3 rightVector	= windage::Vector3(ri.val[0], ri.val[1], ri.val[2]);
-			windage::Vector3 point[4];
-
-			// translate relation value
-			lookAt -= cameraPosition;
-			upVector -= cameraPosition;
-			rightVector -= cameraPosition;
-			
-			lookAt *= ((double)calibration->GetParameters()[0]) / lookAt.getLength();
-			upVector *= ((double)HEIGHT/2.0) / upVector.getLength();
-			rightVector *= ((double)WIDTH/2.0) / rightVector.getLength();
-
-			double scale = 0.1;
-			lookAt *= scale;
-			upVector *= scale;
-			rightVector *= scale;
-
-			point[0] = cameraPosition + lookAt + upVector - rightVector;
-			point[1] = cameraPosition + lookAt + upVector + rightVector;
-			point[2] = cameraPosition + lookAt - upVector + rightVector;
-			point[3] = cameraPosition + lookAt - upVector - rightVector;
-
-			CvScalar color = CV_RGB(255, 255, 0);
-
-			this->cameras[i].resize(5);
-			this->cameras[i][0] = irr::core::vector3df(cameraPosition.x, cameraPosition.y, cameraPosition.z);
-			for(int k=0; k<4; k++)
-				this->cameras[i][k+1] = irr::core::vector3df(point[k].x, point[k].y, point[k].z);
-		}
-	}
-	~CRenderSceneNode()
-	{
-		delete Vertices;
-	}
-
-	virtual void OnRegisterSceneNode()
-	{
-		if (IsVisible)
-			SceneManager->registerNodeForRendering(this);
-
-		ISceneNode::OnRegisterSceneNode();
-	}
-
-	virtual void render()
-	{
-		irr::u32* indices = new irr::u32[size];
-		for(int i=0; i<size; i++)
-			indices[i] = i;
-
-		irr::video::IVideoDriver* driver = SceneManager->getVideoDriver();
-
-		driver->setMaterial(Material);
-		driver->setTransform(irr::video::ETS_WORLD, AbsoluteTransformation);
-		driver->drawVertexPrimitiveList(&Vertices[0], size, &indices[0], size, irr::video::EVT_STANDARD, irr::scene::EPT_POINTS, irr::video::EIT_32BIT);
-
-		for(unsigned int i=0; i<this->cameras.size(); i++)
-		{
-			driver->draw3DLine(this->cameras[i][1], this->cameras[i][2], irr::video::SColor(255, 255, 255, 0));
-			driver->draw3DLine(this->cameras[i][2], this->cameras[i][3], irr::video::SColor(255, 255, 255, 0));
-			driver->draw3DLine(this->cameras[i][3], this->cameras[i][4], irr::video::SColor(255, 255, 255, 0));
-			driver->draw3DLine(this->cameras[i][4], this->cameras[i][1], irr::video::SColor(255, 255, 255, 0));
-			for(int k=0; k<4; k++)
-				driver->draw3DLine(this->cameras[i][0], this->cameras[i][k+1], irr::video::SColor(255, 255, 255, 0));
-		}
-
-		delete indices;
-	}
-
-	virtual const irr::core::aabbox3d<irr::f32>& getBoundingBox() const
-	{
-		return Box;
-	}
-
-	virtual irr::u32 getMaterialCount() const
-	{
-		return 1;
-	}
-
-	virtual irr::video::SMaterial& getMaterial(irr::u32 i)
-	{
-		return Material;
-	}	
-};
-
-int main()
-{
 	// reconstruction
 	std::vector<IplImage*> grayImage;
 	inputImage.resize(IMAGE_FILE_COUNT);
@@ -262,6 +135,7 @@ int main()
 	for(int i=START_INDEX; i<IMAGE_FILE_COUNT+START_INDEX; i++)
 	{
 		sprintf_s(filename, IMAGE_FILE_NAME, i);
+		filenameList.push_back(std::string(filename));
 		inputImage[index] = cvLoadImage(filename);
 		grayImage[index] = cvCreateImage(cvGetSize(inputImage[index]), IPL_DEPTH_8U, 1);
 
@@ -324,41 +198,32 @@ int main()
 
 	std::cout << std::endl;
 //*/
+	
 	// for rendering
-	irr::IrrlichtDevice* device = irr::createDevice( irr::video::EDT_DIRECT3D9, irr::core::dimension2d<irr::u32>(640, 480), 16, false, false, false, 0);
-	if (!device) return 1;
-
-	device->setWindowCaption(L"Spatial Reconstruction");
+	KeyEventReceiver receiver;
+	irr::IrrlichtDevice* device = irr::createDevice( irr::video::EDT_DIRECT3D9, irr::core::dimension2d<irr::u32>(640, 480), 16, false, false, false, &receiver);
+	if (!device) return;
+	device->setWindowCaption(L"windage : Spatial Reconstruction");
 
 	irr::video::IVideoDriver* driver = device->getVideoDriver();
 	irr::scene::ISceneManager* smgr = device->getSceneManager();
 	irr::scene::ICameraSceneNode* camera = smgr->addCameraSceneNodeMaya();
 	camera->setPosition(irr::core::vector3df(100, 100, 100));
 
-	CRenderSceneNode *myNode = new CRenderSceneNode(smgr->getRootSceneNode(), smgr, 666);
-	myNode->drop();
-	myNode = 0;
+	SceneNode *renderingSceneNode = new SceneNode(smgr->getRootSceneNode(), smgr, 666);
+	renderingSceneNode->SetCalibrationList(reconstructor->GetCameraParameterList());
+	renderingSceneNode->SetReconstructionPoints(reconstructor->GetReconstructedPoint());
+	renderingSceneNode->SetFileNameList(&filenameList);
 
-	irr::u32 frames=0;
+	renderingSceneNode->Initialize();
+
 	while(device->run())
 	if (device->isWindowActive())
 	{
 		driver->beginScene(true, true, irr::video::SColor(0,100,100,100));
 		smgr->drawAll();
 		driver->endScene();
-
-		if (++frames==100)
-		{
-			irr::core::stringw str = L"windage : Spatial Reconstruction [";
-			str += driver->getName();
-			str += L"] FPS: ";
-			str += (irr::s32)driver->getFPS();
-
-			device->setWindowCaption(str.c_str());
-			frames=0;
-		}
 	}
 
 	device->drop();
-	return 0;
 }
