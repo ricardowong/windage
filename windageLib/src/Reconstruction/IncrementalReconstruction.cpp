@@ -205,6 +205,7 @@ bool IncrementalReconstruction::StereoReconstruction(int index1, int index2)
 			matchedPoint2[i].SetObjectID(index2);
 			reconsturctionPoint.AddFeaturePoint(matchedPoint1[i]);
 			reconsturctionPoint.AddFeaturePoint(matchedPoint2[i]);
+			reconsturctionPoint.SetColor(matchedPoint1[i].GetColor());
 			this->reconstructionPoints.push_back(reconsturctionPoint);
 			count++;
 		}
@@ -855,9 +856,11 @@ bool IncrementalReconstruction::CalculateAll()
 	{
 		this->IncrementReconstruction();
 
-//		if(i % 5 == 0)
 		int STEP = MIN(i, BUNDLE_STEP);
 		this->BundleAdjustment(i-STEP, STEP);
+
+		if(i % 10 == 0)
+			this->BundleAdjustment();
 	}
 	this->BundleAdjustment();
 
@@ -883,7 +886,6 @@ bool IncrementalReconstruction::UpdateColor()
 
 		this->reconstructionPoints[i].SetColor(color);
 	}
-
 
 	return true;
 }

@@ -50,7 +50,7 @@ const int HEIGHT = (WIDTH * 3) / 4;
 const double REPROJECTION_ERROR = 5.0;
 const double INTRINSIC[] = {1033.93, 1033.84, 319.044, 228.858,-0.206477, 0.306424, 0.000728208, 0.0011338};
 
-const char* FILE_NAME = "data/reconstruction_2010-03-25_16_16_51.txt";
+const char* FILE_NAME = "data/reconstruction-2010-03-26_17_51_17/reconstruction.txt";
 
 void main()
 {
@@ -70,7 +70,7 @@ void main()
 	windage::Algorithms::FeatureDetector* detector;
 	windage::Algorithms::SearchTree* searchtree;
 	windage::Algorithms::OpticalFlow* opticalflow;
-	windage::Algorithms::PoseEstimator* estimator;
+	windage::Algorithms::EPnPRANSACestimator* estimator;
 	windage::Algorithms::OutlierChecker* checker;
 	windage::Algorithms::PoseRefiner* refiner;
 	windage::Algorithms::KalmanFilter* filter;
@@ -89,7 +89,9 @@ void main()
 	searchtree->SetRatio(0.7);
 	opticalflow->Initialize(WIDTH, HEIGHT, cvSize(15, 15), 3);
 	estimator->SetReprojectionError(REPROJECTION_ERROR);
-	checker->SetReprojectionError(REPROJECTION_ERROR * 1);
+	estimator->SetConfidence(0.90);
+	estimator->SetMaxIteration(2000);
+	checker->SetReprojectionError(REPROJECTION_ERROR * 1.0);
 	refiner->SetMaxIteration(10);
 
 	tracking.AttatchCalibration(calibration);

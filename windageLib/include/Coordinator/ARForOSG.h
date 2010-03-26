@@ -143,6 +143,9 @@ namespace windage
 			 *		OSG model-view matrix
 			 */
 			static windage::Matrix4 ConvertModelViewMatrix(windage::Matrix4 extrinsic);
+
+
+			static windage::Vector3 ConvertOSGPosition(windage::Vector3 position);
 		};
 		/** @} */ // * @addtogroup Coordinator
 	}

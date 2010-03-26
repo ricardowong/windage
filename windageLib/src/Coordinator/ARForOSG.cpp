@@ -114,15 +114,15 @@ windage::Matrix4 ARForOSG::ConvertModelViewMatrix(windage::Matrix4 extrinsic)
 	localModelView.m1[8] = extrinsic.m[0][2];
 	localModelView.m1[12]= extrinsic.m[0][3];
 
-	localModelView.m1[1] = extrinsic.m[1][0];
-	localModelView.m1[5] = extrinsic.m[1][1];
-	localModelView.m1[9] = extrinsic.m[1][2];
-	localModelView.m1[13]= extrinsic.m[1][3];
+	localModelView.m1[1] = -extrinsic.m[1][0];
+	localModelView.m1[5] = -extrinsic.m[1][1];
+	localModelView.m1[9] = -extrinsic.m[1][2];
+	localModelView.m1[13]= -extrinsic.m[1][3];
 
-	localModelView.m1[2] = extrinsic.m[2][0];
-	localModelView.m1[6] = extrinsic.m[2][1];
-	localModelView.m1[10]= extrinsic.m[2][2];
-	localModelView.m1[14]= extrinsic.m[2][3];
+	localModelView.m1[2] = -extrinsic.m[2][0];
+	localModelView.m1[6] = -extrinsic.m[2][1];
+	localModelView.m1[10]= -extrinsic.m[2][2];
+	localModelView.m1[14]= -extrinsic.m[2][3];
 
 	localModelView.m1[3] = 0.0;
 	localModelView.m1[7] = 0.0;
@@ -130,4 +130,13 @@ windage::Matrix4 ARForOSG::ConvertModelViewMatrix(windage::Matrix4 extrinsic)
 	localModelView.m1[15]= 1.0;
 
 	return localModelView;
+}
+
+windage::Vector3 ARForOSG::ConvertOSGPosition(windage::Vector3 position)
+{
+	double y = -position.z;
+	double z = -position.y;
+	position.y = y;
+	position.z = z;
+	return position;
 }

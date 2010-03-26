@@ -38,6 +38,7 @@
  * ======================================================================== */
 
 #include <iostream>
+#include <direct.h>
 #include <omp.h>
 
 #include <cv.h>
@@ -52,7 +53,10 @@ const int HEIGHT = (WIDTH * 3) / 4;
 const int RENDERING_WIDTH = 640;
 const int RENDERING_HEIGHT = (RENDERING_WIDTH * 3) / 4;
 const double INTRINSIC_VALUES[] = {1033.93, 1033.84, 319.044, 228.858,-0.206477, 0.306424, 0.000728208, 0.0011338};
-const char* IMAGE_FILE_NAME_TEMPLATE = "ReconstructionImage/image%03d.png";
+
+const char* RECONSTRUCTION_PATH_TEMPLATE = "data/reconstruction-%s";
+const char* RECONSTRUCTION_FILENAME = "%s/reconstruction";
+const char* IMAGE_FILE_NAME_TEMPLATE = "%s/image%03d.png";
 
 const double RANSAC_COEFFICIENT = 0.99995;
 const int RANSAC_ITERATION = 5000;
@@ -76,6 +80,7 @@ void main()
 
 	// feature extractor
 	windage::Algorithms::FeatureDetector* detector = new windage::Algorithms::SIFTGPUdetector();
+	std::vector<IplImage*> reconstructionImages;
 
 	// for reconstruction
 	windage::Calibration* initialCalibration = new windage::Calibration();
@@ -92,7 +97,7 @@ void main()
 	tree->SetRatio(0.6);
 	reconstructor->AttatchSearchTree(tree);
 
-	windage::Algorithms::EPnPRANSACestimator* estimator = new windage::Algorithms::EPnPRANSACestimator();
+	windage::Algorithms::OpenCVRANSACestimator* estimator = new windage::Algorithms::OpenCVRANSACestimator();
 	estimator->SetConfidence(RANSAC_COEFFICIENT);
 	estimator->SetMaxIteration(RANSAC_ITERATION);
 	estimator->SetReprojectionError(RANSAC_REPROJECTION_ERROR);
@@ -179,16 +184,30 @@ void main()
 		case 's':
 		case 'S':
 			{
+				std::string timeString = windage::Logger::getTimeString();
+
+				// create folder
+				char path[100];
+				sprintf_s(path, RECONSTRUCTION_PATH_TEMPLATE, timeString.c_str());
+				_mkdir(path);
+
+				// save data
 				std::cout << "save reconstruction datas" << std::endl;
 				windage::Reconstruction::Exportor exportor;
-				windage::Logger* reconstructionLogger = new windage::Logger("data/reconstruction", "txt", true);
+
+				sprintf_s(message, RECONSTRUCTION_FILENAME, path);
+				windage::Logger* reconstructionLogger = new windage::Logger(message, "txt");
+
 				exportor.SetFunctionName(detector->GetFunctionName());
 				exportor.AttatchLogger(reconstructionLogger);
 				exportor.SetReconstructionPoints(reconstructor->GetReconstructedPoint());
 				for(int i=0; i<imageCount; i++)
 				{
+					sprintf_s(message, IMAGE_FILE_NAME_TEMPLATE, path, i);
+					cvSaveImage(message, reconstructionImages[i]);
+
 					exportor.PushCalibration(reconstructor->GetCameraParameter(i));
-					exportor.PushImageFile(filenameList[i]);
+					exportor.PushImageFile(message);
 				}
 				exportor.DoExport();
 				delete reconstructionLogger;
@@ -211,11 +230,7 @@ void main()
 				}
 
 				reconstructor->AttatchFeaturePoint(&featurePoint[imageCount]);
-				
-
-				sprintf_s(message, IMAGE_FILE_NAME_TEMPLATE, imageCount);
-				cvSaveImage(message, resizeImage);
-				filenameList.push_back(message);
+				reconstructionImages.push_back(cvCloneImage(resizeImage));
 
 				imageCount++;
 				if(imageCount >= 2)
@@ -230,7 +245,7 @@ void main()
 
 					renderingSceneNode->SetCalibrationList(reconstructor->GetCameraParameterList());
 					renderingSceneNode->SetReconstructionPoints(reconstructor->GetReconstructedPoint());
-					renderingSceneNode->SetFileNameList(&filenameList);
+//					renderingSceneNode->SetFileNameList(&filenameList);
 
 					renderingSceneNode->Initialize();
 				}
