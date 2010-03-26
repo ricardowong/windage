@@ -38,6 +38,7 @@
  * ======================================================================== */
 
 #include "IrrlichtRenderer.h"
+#include "Coordinator/ARForOSG.h"
 
 bool SceneNode::Initialize()
 {
@@ -53,6 +54,8 @@ bool SceneNode::Initialize()
 	{
 		windage::ReconstructionPoint point = (*reconstructionPoints)[i];
 		windage::Vector4 position = point.GetPoint();
+//		windage::Vector3 position = windage::Coordinator::ARForOSG::ConvertOSGPosition(windage::Vector3(tempPt.x, tempPt.y, tempPt.z));
+
 		CvScalar color = point.GetColor();
 		Vertices[i] = irr::video::S3DVertex((irr::f32)position.x, (irr::f32)position.y, (irr::f32)position.z, 1.0, 1.0, 1.0, irr::video::SColor((irr::u32)255, (irr::u32)color.val[2], (irr::u32)color.val[1], (irr::u32)color.val[0]), 0, 0);
 	}
@@ -75,6 +78,17 @@ bool SceneNode::Initialize()
 		windage::Vector3 upVector		= windage::Vector3(up.val[0], up.val[1], up.val[2]);
 		windage::Vector3 rightVector	= windage::Vector3(ri.val[0], ri.val[1], ri.val[2]);
 		windage::Vector3 point[4];
+/*
+		cameraPosition = windage::Coordinator::ARForOSG::ConvertOSGPosition(cameraPosition);
+		lookAt = windage::Coordinator::ARForOSG::ConvertOSGPosition(lookAt);
+		upVector = windage::Coordinator::ARForOSG::ConvertOSGPosition(upVector);
+		rightVector = windage::Coordinator::ARForOSG::ConvertOSGPosition(rightVector);
+
+		point[0] = windage::Coordinator::ARForOSG::ConvertOSGPosition(point[0]);
+		point[1] = windage::Coordinator::ARForOSG::ConvertOSGPosition(point[1]);
+		point[2] = windage::Coordinator::ARForOSG::ConvertOSGPosition(point[2]);
+		point[3] = windage::Coordinator::ARForOSG::ConvertOSGPosition(point[3]);
+//*/
 
 		// translate relation value
 		lookAt -= cameraPosition;
@@ -129,6 +143,11 @@ void SceneNode::render()
 		driver->setMaterial(Material);
 		driver->setTransform(irr::video::ETS_WORLD, AbsoluteTransformation);
 		driver->drawVertexPrimitiveList(&Vertices[0], size, &indices[0], size, irr::video::EVT_STANDARD, irr::scene::EPT_POINTS, irr::video::EIT_32BIT);
+
+		//draw axis
+		driver->draw3DLine(irr::core::vector3df(0, 0, 0), irr::core::vector3df(10000, 0, 0), irr::video::SColor(255, 255, 0, 0));
+		driver->draw3DLine(irr::core::vector3df(0, 0, 0), irr::core::vector3df(0, 10000, 0), irr::video::SColor(255, 0, 255, 0));
+		driver->draw3DLine(irr::core::vector3df(0, 0, 0), irr::core::vector3df(0, 0, 10000), irr::video::SColor(255, 0, 0, 255));
 
 		if(selectedCamera < 0)
 		{

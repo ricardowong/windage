@@ -81,13 +81,14 @@ namespace windage
 		double tickCount;
 		double processTime;
 
+		char filename[100];
+
 	public:
 		Logger(char* filenameString="log", char* extention="txt", bool addTime=false)
 		{
 			SPACING_TERM = ' ';
 			EQUAL_TERM = '=';
 
-			char filename[100];
 			if(addTime)
 				sprintf_s(filename, "%s_%s.%s", filenameString, Logger::getTimeString().c_str(), extention);
 			else
@@ -108,6 +109,8 @@ namespace windage
 			if(fileStream)
 				((std::ofstream*)logging)->close();
 		}
+
+		char* GetFilename(){return this->filename;}
 
 		/**
 		 * @defgroup logging user message & data

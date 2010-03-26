@@ -48,7 +48,10 @@
 #include "Coordinator/ARForOSG.h"
 #include "../Common/IrrlichtRenderer.h"
 
-const char* FILE_NAME = "data/reconstruction-2010-03-26_11_17_43/reconstruction.txt";
+const char* FILE_NAME = "data/reconstruction-2010-03-26_17_51_17/reconstruction.txt";
+const char* MODEL_FILE_NAME = "data/Model/Tank/Tank.obj";
+const char* MODEL_TEXTURE_FILE_NAME = "data/Model/Tank/images/M1_ABRAM.png";
+const double MODEL_SCALE = 0.1;
 
 const int WIDTH = 640;
 const int HEIGHT = (WIDTH * 3) / 4;
@@ -91,12 +94,19 @@ void main()
 	KeyEventReceiver receiver;
 	irr::IrrlichtDevice* device = irr::createDevice( irr::video::EDT_DIRECT3D9, irr::core::dimension2d<irr::u32>(640, 480), 16, false, false, false, &receiver);
 	if (!device) return;
-	device->setWindowCaption(L"windage : Spatial Reconstruction");
-
+	device->setWindowCaption(L"windage : Reconstruction Coordination");
+	
 	irr::video::IVideoDriver* driver = device->getVideoDriver();
 	irr::scene::ISceneManager* smgr = device->getSceneManager();
 	irr::scene::ICameraSceneNode* arCamera = smgr->addCameraSceneNode();
-	irr::scene::ICameraSceneNode* mayaCamera = smgr->addCameraSceneNodeMaya();	
+	irr::scene::ICameraSceneNode* mayaCamera = smgr->addCameraSceneNodeMaya();
+
+/*
+	irr::scene::ISceneNode* modelNode = smgr->addMeshSceneNode(smgr->getMesh(MODEL_FILE_NAME));
+	modelNode->setMaterialTexture(0, driver->getTexture(MODEL_TEXTURE_FILE_NAME));
+	modelNode->setMaterialFlag(irr::video::EMF_LIGHTING, false);
+	modelNode->setScale(irr::core::vector3df(MODEL_SCALE, MODEL_SCALE, MODEL_SCALE));
+//*/
 
 	SceneNode *renderingSceneNode = new SceneNode(smgr->getRootSceneNode(), smgr, 666);
 	renderingSceneNode->SetCalibrationList(&calibrationList);
@@ -105,6 +115,10 @@ void main()
 
 	renderingSceneNode->Initialize();
 
+	// coordination
+	const double MOVEMENT_SPEED = 5.0;
+
+	irr::u32 then = device->getTimer()->getTime();
 	while(device->run())
 	if (device->isWindowActive())
 	{
@@ -112,11 +126,25 @@ void main()
 		smgr->drawAll();
 		driver->endScene();
 
+		const irr::u32 now = device->getTimer()->getTime();
+		const irr::f32 frameDeltaTime = (irr::f32)(now - then) / 1000.f;
+		then = now;
+/*
+		// scale
+		double scale = (modelNode->getScale().X + modelNode->getScale().Y + modelNode->getScale().Z)/3.0;
+		if(receiver.IsKeyDown(irr::KEY_ADD))
+			scale += (MOVEMENT_SPEED * frameDeltaTime) * MODEL_SCALE;
+		else if(receiver.IsKeyDown(irr::KEY_SUBTRACT))
+			scale -= (MOVEMENT_SPEED * frameDeltaTime) * MODEL_SCALE;
+		modelNode->setScale(irr::core::vector3df(scale, scale, scale));
+*/
+
+		// roation
 		if(receiver.IsKeyDown(irr::KEY_KEY_Q))
 		{
 			selectedCamera = -1;
 			smgr->setActiveCamera(mayaCamera);
-
+			
 			renderingSceneNode->setSelectedCamera();
 			renderingSceneNode->resetTransparent();
 		}

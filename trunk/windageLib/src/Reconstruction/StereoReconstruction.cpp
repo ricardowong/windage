@@ -367,6 +367,7 @@ int StereoReconstruction::ReconstructAll(CvMat *matE)
 
 		if(this->reconstructionPoints[i].GetPoint().z < 0 || testRPt->data.db[2] < 0 || testLPt->data.db[2] < 0)
 		{
+			this->reconstructionPoints[i].SetOutlier(true);
 			//TRACE("%f %f %f\n", cvmGet(m_pt3D, 2, i), testRPt->data.db[2], testLPt->data.db[2]);
 			_bad_points++; /** check z-value */
 		}
