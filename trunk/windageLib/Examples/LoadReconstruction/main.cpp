@@ -48,7 +48,7 @@
 #include "Coordinator/ARForOSG.h"
 #include "../Common/IrrlichtRenderer.h"
 
-const char* FILE_NAME = "data/reconstruction-2010-03-26_11_17_43/reconstruction.txt";
+const char* FILE_NAME = "data/reconstruction-2010-03-27_08_04_44/reconstruction.txt";
 
 const int WIDTH = 640;
 const int HEIGHT = (WIDTH * 3) / 4;

@@ -101,7 +101,7 @@ void main()
 	irr::scene::ICameraSceneNode* arCamera = smgr->addCameraSceneNode();
 	irr::scene::ICameraSceneNode* mayaCamera = smgr->addCameraSceneNodeMaya();
 
-/*
+//*
 	irr::scene::ISceneNode* modelNode = smgr->addMeshSceneNode(smgr->getMesh(MODEL_FILE_NAME));
 	modelNode->setMaterialTexture(0, driver->getTexture(MODEL_TEXTURE_FILE_NAME));
 	modelNode->setMaterialFlag(irr::video::EMF_LIGHTING, false);
@@ -120,9 +120,13 @@ void main()
 
 	irr::u32 then = device->getTimer()->getTime();
 	while(device->run())
-	if (device->isWindowActive())
 	{
 		driver->beginScene(true, true, irr::video::SColor(0,100,100,100));
+		renderingSceneNode->setVisible(true);
+		modelNode->setVisible(false);
+		smgr->drawAll();
+		renderingSceneNode->setVisible(false);
+		modelNode->setVisible(true);
 		smgr->drawAll();
 		driver->endScene();
 
@@ -139,7 +143,6 @@ void main()
 		modelNode->setScale(irr::core::vector3df(scale, scale, scale));
 */
 
-		// roation
 		if(receiver.IsKeyDown(irr::KEY_KEY_Q))
 		{
 			selectedCamera = -1;

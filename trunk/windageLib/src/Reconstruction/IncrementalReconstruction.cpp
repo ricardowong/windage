@@ -332,7 +332,7 @@ bool IncrementalReconstruction::IncrementReconstruction()
 
 	// outlier rejection
 //*
-	double ratio = 2.0;
+	double ratio = 3.0;
 	windage::Algorithms::RANSACestimator hEstimator;
 	windage::Algorithms::OutlierChecker checker;
 	hEstimator.SetReprojectionError(this->reprojectionError * ratio);

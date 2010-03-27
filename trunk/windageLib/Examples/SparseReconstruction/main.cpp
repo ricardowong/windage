@@ -60,9 +60,8 @@ const int RENDERING_HEIGHT = (RENDERING_WIDTH * 3) / 4;
 const double RANSAC_COEFFICIENT = 0.99995;
 const int RANSAC_ITERATION = 5000;
 const double RANSAC_REPROJECTION_ERROR = 2.0;
-const double RECONSTRUCTION_SIZE = 50.0;
-const int BUNDLEADSUTMENT_COUNT = 5;
-double SCALE = 100.0;
+const double RECONSTRUCTION_SIZE = 200.0;
+const int BUNDLEADSUTMENT_COUNT = 3;
 
 #define RECONSTRUCTION_TEST 0
 #define RECONSTRUCTION_TEMPLE 0
@@ -84,7 +83,7 @@ const char* IMAGE_FILE_NAME = "templeOrder/templeR%04d.png";
 
 #if RECONSTRUCTION_MINIATURE
 const int START_INDEX = 1;
-const int IMAGE_FILE_COUNT = 79;
+const int IMAGE_FILE_COUNT = 78;
 const double INTRINSIC_VALUES[8] = {608.894958, 609.015991, 295.023712, 254.171387, 0, 0, 0, 0};
 const char* IMAGE_FILE_NAME = "Miniature/result.imgr%d_COL.jpg";
 #endif
@@ -217,44 +216,47 @@ void main()
 		case 'a':
 		case 'A':
 			{
-				char filename[100];
-				sprintf_s(filename, IMAGE_FILE_NAME, imageCount + START_INDEX);
-				inputImage = cvLoadImage(filename);
-				cvResize(inputImage, resizeImage);
-				cvCvtColor(resizeImage, grayImage, CV_BGR2GRAY);
-
-				cvReleaseImage(&inputImage);
-
-				std::cout << "add reconstruction image" << std::endl;
-				featurePoint.resize(imageCount+1);
-
-				detector->DoExtractKeypointsDescriptor(grayImage);
-				std::vector<windage::FeaturePoint>* tempKeypoints = detector->GetKeypoints();
-				for(unsigned int j=0; j<tempKeypoints->size(); j++)
+				if(imageCount < IMAGE_FILE_COUNT)
 				{
-					(*tempKeypoints)[j].SetColor(cvGet2D(resizeImage, cvRound((*tempKeypoints)[j].GetPoint().y), cvRound((*tempKeypoints)[j].GetPoint().x)));
-					featurePoint[imageCount].push_back((*tempKeypoints)[j]);
-				}
+					char filename[100];
+					sprintf_s(filename, IMAGE_FILE_NAME, imageCount + START_INDEX);
+					inputImage = cvLoadImage(filename);
+					cvResize(inputImage, resizeImage);
+					cvCvtColor(resizeImage, grayImage, CV_BGR2GRAY);
 
-				reconstructor->AttatchFeaturePoint(&featurePoint[imageCount]);
-				reconstructionImages.push_back(cvCloneImage(resizeImage));
+					cvReleaseImage(&inputImage);
 
-				imageCount++;
-				if(imageCount >= 2)
-				{
-					reconstructor->CalculateStep(imageCount);
+					std::cout << "add reconstruction image" << std::endl;
+					featurePoint.resize(imageCount+1);
 
-					int startIndex = MAX(0, imageCount - BUNDLEADSUTMENT_COUNT);
-					int countNumber = MIN(imageCount, BUNDLEADSUTMENT_COUNT);
-					reconstructor->BundleAdjustment(startIndex, countNumber);
+					detector->DoExtractKeypointsDescriptor(grayImage);
+					std::vector<windage::FeaturePoint>* tempKeypoints = detector->GetKeypoints();
+					for(unsigned int j=0; j<tempKeypoints->size(); j++)
+					{
+						(*tempKeypoints)[j].SetColor(cvGet2D(resizeImage, cvRound((*tempKeypoints)[j].GetPoint().y), cvRound((*tempKeypoints)[j].GetPoint().x)));
+						featurePoint[imageCount].push_back((*tempKeypoints)[j]);
+					}
 
-					reconstructor->ResizeScale(RECONSTRUCTION_SIZE);
+					reconstructor->AttatchFeaturePoint(&featurePoint[imageCount]);
+					reconstructionImages.push_back(cvCloneImage(resizeImage));
 
-					renderingSceneNode->SetCalibrationList(reconstructor->GetCameraParameterList());
-					renderingSceneNode->SetReconstructionPoints(reconstructor->GetReconstructedPoint());
-//					renderingSceneNode->SetFileNameList(&filenameList);
+					imageCount++;
+					if(imageCount >= 2)
+					{
+						reconstructor->CalculateStep(imageCount);
 
-					renderingSceneNode->Initialize();
+						int startIndex = MAX(0, imageCount - BUNDLEADSUTMENT_COUNT);
+						int countNumber = MIN(imageCount, BUNDLEADSUTMENT_COUNT);
+						reconstructor->BundleAdjustment(startIndex, countNumber);
+
+						reconstructor->ResizeScale(RECONSTRUCTION_SIZE);
+
+						renderingSceneNode->SetCalibrationList(reconstructor->GetCameraParameterList());
+						renderingSceneNode->SetReconstructionPoints(reconstructor->GetReconstructedPoint());
+//						renderingSceneNode->SetFileNameList(&filenameList);
+
+						renderingSceneNode->Initialize();
+					}
 				}
 			}
 			break;
