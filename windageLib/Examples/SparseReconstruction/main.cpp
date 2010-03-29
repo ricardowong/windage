@@ -60,12 +60,13 @@ const int RENDERING_HEIGHT = (RENDERING_WIDTH * 3) / 4;
 const double RANSAC_COEFFICIENT = 0.99995;
 const int RANSAC_ITERATION = 5000;
 const double RANSAC_REPROJECTION_ERROR = 2.0;
-const double RECONSTRUCTION_SIZE = 200.0;
+const double RECONSTRUCTION_SIZE = 50.0;
 const int BUNDLEADSUTMENT_COUNT = 3;
 
 #define RECONSTRUCTION_TEST 0
 #define RECONSTRUCTION_TEMPLE 0
-#define RECONSTRUCTION_MINIATURE 1
+#define RECONSTRUCTION_MINIATURE 0
+#define RECONSTRUCTION_INCREAMENTAL 1
 
 #if RECONSTRUCTION_TEST
 const int START_INDEX = 0;
@@ -86,6 +87,13 @@ const int START_INDEX = 1;
 const int IMAGE_FILE_COUNT = 78;
 const double INTRINSIC_VALUES[8] = {608.894958, 609.015991, 295.023712, 254.171387, 0, 0, 0, 0};
 const char* IMAGE_FILE_NAME = "Miniature/result.imgr%d_COL.jpg";
+#endif
+
+#if RECONSTRUCTION_INCREAMENTAL
+const int START_INDEX = 0;
+const int IMAGE_FILE_COUNT = 31;
+const double INTRINSIC_VALUES[8] = {1033.93, 1033.84, 319.044, 228.858,-0.206477, 0.306424, 0.000728208, 0.0011338};
+const char* IMAGE_FILE_NAME = "data/reconstruction-2010-03-29_08_44_23/image%03d.png";
 #endif
 
 void main()
@@ -115,7 +123,7 @@ void main()
 	reconstructor->AttatchCalibration(initialCalibration);
 
 	windage::Algorithms::SearchTree* tree = new windage::Algorithms::KDtree(50);
-	tree->SetRatio(0.4);
+	tree->SetRatio(0.6);
 	reconstructor->AttatchSearchTree(tree);
 
 	windage::Algorithms::OpenCVRANSACestimator* estimator = new windage::Algorithms::OpenCVRANSACestimator();
