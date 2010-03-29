@@ -47,10 +47,11 @@
 const int WIDTH = 640;
 const int HEIGHT = (WIDTH * 3) / 4;
 
-const double REPROJECTION_ERROR = 5.0;
+const double REPROJECTION_ERROR = 2.0;
 const double INTRINSIC[] = {1033.93, 1033.84, 319.044, 228.858,-0.206477, 0.306424, 0.000728208, 0.0011338};
 
-const char* FILE_NAME = "data/reconstruction-2010-03-26_17_51_17/reconstruction.txt";
+//const char* FILE_NAME = "data/reconstruction-2010-03-26_17_51_17/reconstruction.txt";
+const char* FILE_NAME = "data/reconstruction-2010-03-29_09_33_01/reconstruction.txt";
 
 void main()
 {
@@ -86,11 +87,11 @@ void main()
 
 	calibration->Initialize(INTRINSIC[0], INTRINSIC[1], INTRINSIC[2], INTRINSIC[3], INTRINSIC[4], INTRINSIC[5], INTRINSIC[6], INTRINSIC[7]);
 	detector->SetThreshold(30.0);
-	searchtree->SetRatio(0.7);
-	opticalflow->Initialize(WIDTH, HEIGHT, cvSize(15, 15), 3);
+	searchtree->SetRatio(0.5);
+	opticalflow->Initialize(WIDTH, HEIGHT, cvSize(8, 8), 3);
 	estimator->SetReprojectionError(REPROJECTION_ERROR);
 	estimator->SetConfidence(0.90);
-	estimator->SetMaxIteration(2000);
+	estimator->SetMaxIteration(500);
 	checker->SetReprojectionError(REPROJECTION_ERROR * 1.0);
 	refiner->SetMaxIteration(10);
 
