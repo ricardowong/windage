@@ -47,11 +47,45 @@
 const int WIDTH = 640;
 const int HEIGHT = (WIDTH * 3) / 4;
 
-const double REPROJECTION_ERROR = 2.0;
+const double REPROJECTION_ERROR = 10.0;
 const double INTRINSIC[] = {1033.93, 1033.84, 319.044, 228.858,-0.206477, 0.306424, 0.000728208, 0.0011338};
 
-//const char* FILE_NAME = "data/reconstruction-2010-03-26_17_51_17/reconstruction.txt";
-const char* FILE_NAME = "data/reconstruction-2010-03-29_09_33_01/reconstruction.txt";
+const char* FILE_NAME = "data/reconstruction-2010-03-29_18_28_38/reconstruction.txt";
+//const char* FILE_NAME = "data/reconstruction-2010-03-29_09_33_01/reconstruction.txt";
+
+void DrawRectangle(IplImage* image, windage::Calibration* calibration, double dx, double dy, double dz)
+{
+	double y = dy;
+	CvPoint pt[8];
+
+	pt[0] = calibration->ConvertWorld2Image(+dx, +dy + y, +dz);
+	pt[1] = calibration->ConvertWorld2Image(+dx, -dy + y, +dz);
+	pt[2] = calibration->ConvertWorld2Image(-dx, -dy + y, +dz);
+	pt[3] = calibration->ConvertWorld2Image(-dx, +dy + y, +dz);
+
+	pt[4] = calibration->ConvertWorld2Image(+dx, +dy + y, -dz);
+	pt[5] = calibration->ConvertWorld2Image(+dx, -dy + y, -dz);
+	pt[6] = calibration->ConvertWorld2Image(-dx, -dy + y, -dz);
+	pt[7] = calibration->ConvertWorld2Image(-dx, +dy + y, -dz);
+	
+	for(int i=0; i<4; i++)
+	{
+		int i2 = i==3?0:i+1;
+		cvLine(image, pt[i], pt[i2], CV_RGB(0, 0, 0), 5);
+		cvLine(image, pt[i+4], pt[i2+4], CV_RGB(0, 0, 0), 5);
+		cvLine(image, pt[i], pt[i+4], CV_RGB(0, 0, 0), 5);
+	}
+	for(int i=0; i<4; i++)
+	{
+		int i2 = i==3?0:i+1;
+		cvLine(image, pt[i], pt[i2], CV_RGB(255, 255, 255), 2);
+		cvLine(image, pt[i+4], pt[i2+4], CV_RGB(255, 255, 255), 2);
+		cvLine(image, pt[i], pt[i+4], CV_RGB(255, 255, 255), 2);
+	}
+
+	
+
+}
 
 void main()
 {
@@ -62,6 +96,7 @@ void main()
 	IplImage* grayImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 1);
 	IplImage* resultImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
 
+	CvVideoWriter* writer = NULL;
 	CvCapture* capture = cvCaptureFromCAM(CV_CAP_ANY);
 	cvNamedWindow("result");
 
@@ -88,7 +123,7 @@ void main()
 	calibration->Initialize(INTRINSIC[0], INTRINSIC[1], INTRINSIC[2], INTRINSIC[3], INTRINSIC[4], INTRINSIC[5], INTRINSIC[6], INTRINSIC[7]);
 	detector->SetThreshold(30.0);
 	searchtree->SetRatio(0.5);
-	opticalflow->Initialize(WIDTH, HEIGHT, cvSize(8, 8), 3);
+	opticalflow->Initialize(WIDTH, HEIGHT, cvSize(15, 15), 5);
 	estimator->SetReprojectionError(REPROJECTION_ERROR);
 	estimator->SetConfidence(0.90);
 	estimator->SetMaxIteration(500);
@@ -140,6 +175,7 @@ void main()
 	trained = true;
 
 	char message[100];
+	bool saving = false;
 	bool flip = true;
 	bool processing = true;
 	while(processing)
@@ -160,9 +196,15 @@ void main()
 			tracking.UpdateCamerapose(grayImage);
 
 			// draw result
-			tracking.DrawDebugInfo(resultImage);
-//			tracking.DrawOutLine(resultImage, true);
-			calibration->DrawInfomation(resultImage, 100);
+			if(tracking.GetMatchingCount() > 9)
+			{
+				tracking.DrawDebugInfo(resultImage);
+//				tracking.DrawOutLine(resultImage, true);
+				
+				// draw rectangle
+				DrawRectangle(resultImage, calibration, 80, 15, 35);
+				calibration->DrawInfomation(resultImage, 50);
+			}
 		}
 		matchingCount = tracking.GetMatchingCount();
 
@@ -175,6 +217,11 @@ void main()
 		sprintf_s(message, "Matching Count : %d", matchingCount);
 		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 40), 0.6, message);
 
+		if(saving == true)
+		{
+			cvWriteFrame(writer, resultImage);
+		}
+
 		sprintf_s(message, "Press 'F' to flip image");
 		windage::Utils::DrawTextToImage(resultImage, cvPoint(WIDTH-270, HEIGHT-10), 0.5, message);
 		cvShowImage("result", resultImage);
@@ -186,6 +233,11 @@ void main()
 		case 'Q':
 			processing = false;
 			break;
+		case 's':
+		case 'S':
+			writer = cvCreateVideoWriter("result.avi", CV_FOURCC_DEFAULT, 30.0, cvSize(WIDTH, HEIGHT));
+			saving = !saving;
+			break;
 		case 'f':
 		case 'F':
 			flip = !flip;
@@ -193,6 +245,7 @@ void main()
 		}		
 	}
 
+	if(writer) cvReleaseVideoWriter(&writer);
 	cvReleaseCapture(&capture);
 	cvDestroyAllWindows();
 }

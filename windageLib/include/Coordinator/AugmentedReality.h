@@ -50,6 +50,7 @@
 
 #include "base.h"
 #include "Structures/Calibration.h"
+#include "Structures/Matrix.h"
 
 namespace windage
 {
@@ -76,6 +77,9 @@ namespace windage
 			int imageWidth;		///< input background image width size
 			int imageHeight;	///< input background image height size
 			int textureWidth;	///< drawing background texture image size (width == height) (*necessary multiple of 4)
+
+			windage::Matrix4 projectionMatrix;	///< update storage from calibration for OSG projection matrix
+			windage::Matrix4 modelviewMatrix;	///< update storage from calibration for OSG model-view matrix
 
 			IplImage* textureRepository;	///< background texture storage
 			
@@ -133,6 +137,9 @@ namespace windage
 			 *		set projection matrix to OPNEGL parameter using intrinsic matrix
 			 */
 			virtual void SetProjectionMatrix() = 0;
+
+			inline windage::Matrix4 GetProjectionMatrix(){return this->projectionMatrix;};
+			inline windage::Matrix4 GetModelViewMatrix(){return this->modelviewMatrix;};
 
 			/**
 			 * @fn	SetModelViewMatrix

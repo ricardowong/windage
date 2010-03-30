@@ -45,6 +45,7 @@
 #include <irrlicht.h>
 
 #include <windage.h>
+#include "Coordinator/ARForOpenGL.h"
 #include "Coordinator/ARForOSG.h"
 #include "../Common/IrrlichtRenderer.h"
 
@@ -129,6 +130,7 @@ void main()
 		modelNode->setVisible(true);
 		smgr->drawAll();
 		driver->endScene();
+
 
 		const irr::u32 now = device->getTimer()->getTime();
 		const irr::f32 frameDeltaTime = (irr::f32)(now - then) / 1000.f;
