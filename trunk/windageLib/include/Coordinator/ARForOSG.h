@@ -75,8 +75,6 @@ namespace windage
 		private:
 			int width;							///< rendering image width
 			int height;							///< rendering image height
-			windage::Matrix4 projectionMatrix;	///< update storage from calibration for OSG projection matrix
-			windage::Matrix4 modelviewMatrix;	///< update storage from calibration for OSG model-view matrix
 
 			void Release();
 		public:
@@ -131,9 +129,6 @@ namespace windage
 			 *		update to modelviewMatrix member value
 			 */
 			void SetModelViewMatrix();
-
-			inline windage::Matrix4 GetProjectionMatrix(){return this->projectionMatrix;};
-			inline windage::Matrix4 GetModelViewMatrix(){return this->modelviewMatrix;};
 
 			/**
 			 * @fn	ConvertModelViewMatrix

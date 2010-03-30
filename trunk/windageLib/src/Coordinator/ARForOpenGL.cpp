@@ -133,7 +133,7 @@ void ARForOpenGL::DrawBackgroundTexture(IplImage* inputImage)
 
 void ARForOpenGL::SetProjectionMatrix()
 {
-	GLdouble m[16];
+	GLdouble* m = (GLdouble*)this->projectionMatrix.m1;
     for(int i=0; i<16; ++i)
 		m[i] = 0;
 
@@ -165,7 +165,7 @@ void ARForOpenGL::SetProjectionMatrix()
 
 void ARForOpenGL::SetModelViewMatrix()
 {
-	GLdouble m[16];
+	GLdouble* m = (GLdouble*)this->modelviewMatrix.m1;
     int i, j;
     for(i=0; i<16; ++i)
             m[i] = 0;
