@@ -496,6 +496,18 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="Marker"
+				>
+				<File
+					RelativePath="..\..\..\include\Algorithms\ChessboardDetector.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\include\Algorithms\ChessboardDetector.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Frameworks"

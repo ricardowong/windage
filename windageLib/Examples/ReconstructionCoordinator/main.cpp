@@ -49,7 +49,7 @@
 #include "Coordinator/ARForOSG.h"
 #include "../Common/IrrlichtRenderer.h"
 
-const char* FILE_NAME = "data/reconstruction-2010-03-26_17_51_17/reconstruction.txt";
+const char* FILE_NAME = "data/reconstruction-2010-03-29_18_28_38/reconstruction.txt";
 const char* MODEL_FILE_NAME = "data/Model/Tank/Tank.obj";
 const char* MODEL_TEXTURE_FILE_NAME = "data/Model/Tank/images/M1_ABRAM.png";
 const double MODEL_SCALE = 0.1;
@@ -68,8 +68,6 @@ void main()
 	std::vector<windage::Calibration*> calibrationList;
 
 	int selectedCamera = -1;
-
-	windage::Logger* logging;
 
 	// load data
 	std::cout << "load reconstruction datas" << std::endl;
@@ -93,21 +91,21 @@ void main()
 
 	// for rendering
 	KeyEventReceiver receiver;
-	irr::IrrlichtDevice* device = irr::createDevice( irr::video::EDT_DIRECT3D9, irr::core::dimension2d<irr::u32>(640, 480), 16, false, false, false, &receiver);
+	irr::IrrlichtDevice* device = irr::createDevice(irr::video::EDT_DIRECT3D9, irr::core::dimension2d<irr::u32>(RENDERING_WIDTH, RENDERING_HEIGHT), 32, false, false, false, &receiver);
 	if (!device) return;
 	device->setWindowCaption(L"windage : Reconstruction Coordination");
 	
 	irr::video::IVideoDriver* driver = device->getVideoDriver();
 	irr::scene::ISceneManager* smgr = device->getSceneManager();
-	irr::scene::ICameraSceneNode* arCamera = smgr->addCameraSceneNode();
 	irr::scene::ICameraSceneNode* mayaCamera = smgr->addCameraSceneNodeMaya();
+	irr::scene::ICameraSceneNode* arCamera = smgr->addCameraSceneNode();
+	irr::scene::ICameraSceneNode* modelCamera = smgr->addCameraSceneNode();
+	irr::scene::ICameraSceneNode* reconstructionCamera = smgr->addCameraSceneNode();
 
-//*
 	irr::scene::ISceneNode* modelNode = smgr->addMeshSceneNode(smgr->getMesh(MODEL_FILE_NAME));
 	modelNode->setMaterialTexture(0, driver->getTexture(MODEL_TEXTURE_FILE_NAME));
 	modelNode->setMaterialFlag(irr::video::EMF_LIGHTING, false);
 	modelNode->setScale(irr::core::vector3df(MODEL_SCALE, MODEL_SCALE, MODEL_SCALE));
-//*/
 
 	SceneNode *renderingSceneNode = new SceneNode(smgr->getRootSceneNode(), smgr, 666);
 	renderingSceneNode->SetCalibrationList(&calibrationList);
@@ -119,99 +117,130 @@ void main()
 	// coordination
 	const double MOVEMENT_SPEED = 5.0;
 
+	irr::core::matrix4 initProj = arCamera->getProjectionMatrix();
+	irr::core::matrix4 initView = arCamera->getViewMatrixAffector();;
+
+	char beforeCh = -1;
 	irr::u32 then = device->getTimer()->getTime();
 	while(device->run())
 	{
 		driver->beginScene(true, true, irr::video::SColor(0,100,100,100));
+		smgr->setActiveCamera(arCamera);
+//		mayaCamera->setProjectionMatrix(reconstructionCamera->getProjectionMatrix());
+//		mayaCamera->setViewMatrixAffector(reconstructionCamera->getViewMatrixAffector());
 		renderingSceneNode->setVisible(true);
 		modelNode->setVisible(false);
 		smgr->drawAll();
+
+		mayaCamera->setProjectionMatrix(arCamera->getProjectionMatrix());
+		mayaCamera->setViewMatrixAffector(arCamera->getViewMatrixAffector());
+
+		if(receiver.IsKeyDown(irr::KEY_KEY_M))
+		{
+			mayaCamera->setProjectionMatrix(initProj);
+			mayaCamera->setViewMatrixAffector(initView);
+		}
+
+		smgr->setActiveCamera(mayaCamera);
 		renderingSceneNode->setVisible(false);
 		modelNode->setVisible(true);
 		smgr->drawAll();
+		
 		driver->endScene();
-
 
 		const irr::u32 now = device->getTimer()->getTime();
 		const irr::f32 frameDeltaTime = (irr::f32)(now - then) / 1000.f;
 		then = now;
-/*
-		// scale
-		double scale = (modelNode->getScale().X + modelNode->getScale().Y + modelNode->getScale().Z)/3.0;
-		if(receiver.IsKeyDown(irr::KEY_ADD))
-			scale += (MOVEMENT_SPEED * frameDeltaTime) * MODEL_SCALE;
-		else if(receiver.IsKeyDown(irr::KEY_SUBTRACT))
-			scale -= (MOVEMENT_SPEED * frameDeltaTime) * MODEL_SCALE;
-		modelNode->setScale(irr::core::vector3df(scale, scale, scale));
-*/
 
-		if(receiver.IsKeyDown(irr::KEY_KEY_Q))
+		
+		char ch = receiver.GetDownKeycode();
+		if(beforeCh == ch)
 		{
-			selectedCamera = -1;
-			smgr->setActiveCamera(mayaCamera);
-			
-			renderingSceneNode->setSelectedCamera();
-			renderingSceneNode->resetTransparent();
+			ch = -1;
 		}
-		else if(receiver.IsKeyDown(irr::KEY_KEY_A))
+		else
 		{
-			selectedCamera++;
-			if(selectedCamera >= (int)calibrationList.size())
-				selectedCamera = 0;
-
-			windage::Coordinator::ARForOSG coordinator;
-			coordinator.Initialize(RENDERING_WIDTH, RENDERING_HEIGHT);
-			coordinator.AttatchCameraParameter(calibrationList[selectedCamera]);
-			coordinator.SetProjectionMatrix();
-			coordinator.SetModelViewMatrix();
-
-			windage::Matrix4 projection = coordinator.GetProjectionMatrix();
-			windage::Matrix4 modelview = coordinator.GetModelViewMatrix();
-
-			irr::core::matrix4 irrProj;
-			irr::core::matrix4 irrModel;
-			for(int i=0; i<16; i++)
-			{
-				irrProj[i] = projection.m1[i];
-				irrModel[i] = modelview.m1[i];
-			}
-
-			smgr->setActiveCamera(arCamera);
-			smgr->getActiveCamera()->setProjectionMatrix(irrProj);
-			smgr->getActiveCamera()->setViewMatrixAffector(irrModel);
-
-			renderingSceneNode->setSelectedCamera(selectedCamera);
-			renderingSceneNode->setTransparent();
+			beforeCh = ch;
 		}
-		else if(receiver.IsKeyDown(irr::KEY_KEY_Z))
+
+		switch(ch)
 		{
-			selectedCamera--;
-			if(0 > selectedCamera)
-				selectedCamera = (int)calibrationList.size() - 1;
-
-			windage::Coordinator::ARForOSG coordinator;
-			coordinator.Initialize(RENDERING_WIDTH, RENDERING_HEIGHT);
-			coordinator.AttatchCameraParameter(calibrationList[selectedCamera]);
-			coordinator.SetProjectionMatrix();
-			coordinator.SetModelViewMatrix();
-
-			windage::Matrix4 projection = coordinator.GetProjectionMatrix();
-			windage::Matrix4 modelview = coordinator.GetModelViewMatrix();
-
-			irr::core::matrix4 irrProj;
-			irr::core::matrix4 irrModel;
-			for(int i=0; i<16; i++)
+		case 'q':
+		case 'Q':
 			{
-				irrProj[i] = projection.m1[i];
-				irrModel[i] = modelview.m1[i];
+				selectedCamera = -1;
+				renderingSceneNode->setSelectedCamera();
+				renderingSceneNode->resetTransparent();
 			}
+			break;
+		case 'a':
+		case 'A':
+			{
+				selectedCamera++;
+				if(selectedCamera >= (int)calibrationList.size())
+					selectedCamera = 0;
+//*
+				windage::Coordinator::ARForOSG coordinator;
+				coordinator.Initialize(RENDERING_WIDTH, RENDERING_HEIGHT);
+				coordinator.AttatchCameraParameter(calibrationList[selectedCamera]);
+				coordinator.SetProjectionMatrix();
+				coordinator.SetModelViewMatrix();
 
-			smgr->setActiveCamera(arCamera);
-			smgr->getActiveCamera()->setProjectionMatrix(irrProj);
-			smgr->getActiveCamera()->setViewMatrixAffector(irrModel);
+				windage::Matrix4 projection = coordinator.GetProjectionMatrix();
+				windage::Matrix4 modelview = coordinator.GetModelViewMatrix();
 
-			renderingSceneNode->setSelectedCamera(selectedCamera);
-			renderingSceneNode->setTransparent();
+				projection._11 *= 0.2;
+				projection._22 *= 0.2;
+
+				irr::core::matrix4 irrProj;
+				irr::core::matrix4 irrModel;
+				for(int i=0; i<16; i++)
+				{
+					irrProj[i] = projection.m1[i];
+					irrModel[i] = modelview.m1[i];
+				}
+
+				smgr->setActiveCamera(arCamera);
+				smgr->getActiveCamera()->setProjectionMatrix(irrProj);
+				smgr->getActiveCamera()->setViewMatrixAffector(irrModel);
+//*/
+				renderingSceneNode->setSelectedCamera(-1);
+//				renderingSceneNode->setTransparent();
+
+			}
+			break;
+		case 'z':
+		case 'Z':
+			{
+				selectedCamera--;
+				if(0 > selectedCamera)
+					selectedCamera = (int)calibrationList.size() - 1;
+
+				windage::Coordinator::ARForOSG coordinator;
+				coordinator.Initialize(RENDERING_WIDTH, RENDERING_HEIGHT);
+				coordinator.AttatchCameraParameter(calibrationList[selectedCamera]);
+				coordinator.SetProjectionMatrix();
+				coordinator.SetModelViewMatrix();
+
+				windage::Matrix4 projection = coordinator.GetProjectionMatrix();
+				windage::Matrix4 modelview = coordinator.GetModelViewMatrix();
+
+				irr::core::matrix4 irrProj;
+				irr::core::matrix4 irrModel;
+				for(int i=0; i<16; i++)
+				{
+					irrProj[i] = projection.m1[i];
+					irrModel[i] = modelview.m1[i];
+				}
+
+				smgr->setActiveCamera(arCamera);
+				smgr->getActiveCamera()->setProjectionMatrix(irrProj);
+				smgr->getActiveCamera()->setViewMatrixAffector(irrModel);
+
+				renderingSceneNode->setSelectedCamera(selectedCamera);
+				renderingSceneNode->setTransparent();
+			}
+			break;
 		}
 	}
 
