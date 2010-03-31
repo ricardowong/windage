@@ -64,10 +64,13 @@ Vector3 MultiMarkerCoordinator::GetTranslation(Calibration* baseCalibration, Cal
 			fromRotation.m[y][x] = CV_MAT_ELEM((*fromExtrinsicMatrix), double, y, x);
 		}
 	}
-
+/*
 	fromRotation = fromRotation.Inverse();
 	fromTranslation = fromRotation * fromTranslation;
 	toTranslation = fromRotation * toTranslation;
+//*/
+	fromTranslation = fromTranslation;
+	toTranslation = toTranslation;
 
 	double x = toTranslation.x - fromTranslation.x;
 	double y = toTranslation.y - fromTranslation.y;
@@ -120,8 +123,7 @@ Matrix4 MultiMarkerCoordinator::CalculateExtrinsic(Calibration* baseCalibration,
 		}
 	}
 
-	toTranslation = fromRotation * toTranslation;
-
+//	toTranslation = fromRotation * toTranslation;
 	windage::Matrix3 rotation = fromRotation * toRotation;
 	windage::Vector3 translation = fromTranslation + toTranslation;
 

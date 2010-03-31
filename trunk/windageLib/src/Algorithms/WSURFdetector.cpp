@@ -65,7 +65,23 @@ bool WSURFdetector::DoExtractKeypointsDescriptor(IplImage* grayImage)
 
 	int cornerCount = 0;
 	xy* cornerPoints = NULL;
-	cornerPoints = fast9_detect_nonmax((const byte*)grayImage->imageData, grayImage->width, grayImage->height, grayImage->widthStep, cvRound(this->threshold), &cornerCount);
+
+	switch(FAST_INDEX)
+	{
+	case 9:
+		cornerPoints = fast9_detect_nonmax((const byte*)grayImage->imageData, grayImage->width, grayImage->height, grayImage->widthStep, cvRound(this->threshold), &cornerCount);
+		break;
+	case 10:
+		cornerPoints = fast10_detect_nonmax((const byte*)grayImage->imageData, grayImage->width, grayImage->height, grayImage->widthStep, cvRound(this->threshold), &cornerCount);
+		break;
+	case 11:
+		cornerPoints = fast11_detect_nonmax((const byte*)grayImage->imageData, grayImage->width, grayImage->height, grayImage->widthStep, cvRound(this->threshold), &cornerCount);
+		break;
+	default:
+		cornerPoints = fast12_detect_nonmax((const byte*)grayImage->imageData, grayImage->width, grayImage->height, grayImage->widthStep, cvRound(this->threshold), &cornerCount);
+		break;
+	}
+	
 
 	for(int i=0; i<cornerCount; i++)
 	{

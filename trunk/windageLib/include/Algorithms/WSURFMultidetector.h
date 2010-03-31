@@ -112,7 +112,7 @@ namespace windage
 				{
 					for(int x=1; x<=scaleStep; x++)
 					{
-						this->size.push_back((int)size * MAX(x, y));
+						this->size.push_back((int)size * (scaleStep - MAX(x, y) + 1));
 						this->xScale.push_back((double)width / (dx * x));
 						this->yScale.push_back((double)height / (dy * y));
 						this->resizeImage.push_back(cvCreateImage(cvSize(cvRound(dx * x), cvRound(dy * y)), IPL_DEPTH_8U, 1));
