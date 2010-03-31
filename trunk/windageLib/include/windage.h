@@ -94,6 +94,9 @@
 
 #include "Algorithms/OutlierChecker.h"
 
+// marker based
+#include "Algorithms/ChessboardDetector.h"
+
 #include "Algorithms/KalmanFilter.h"
 
 // Utilities

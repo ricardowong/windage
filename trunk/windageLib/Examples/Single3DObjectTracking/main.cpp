@@ -82,9 +82,6 @@ void DrawRectangle(IplImage* image, windage::Calibration* calibration, double dx
 		cvLine(image, pt[i+4], pt[i2+4], CV_RGB(255, 255, 255), 2);
 		cvLine(image, pt[i], pt[i+4], CV_RGB(255, 255, 255), 2);
 	}
-
-	
-
 }
 
 void main()

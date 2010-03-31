@@ -326,4 +326,5 @@ namespace windage
 		/** @} */ // addtogroup Frameworks
 	}
 }
+
 #endif // _PLANAR_OBJECT_TRACKING_H_
