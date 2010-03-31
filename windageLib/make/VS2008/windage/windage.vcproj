@@ -620,6 +620,10 @@
 				Name="Utilities"
 				>
 				<File
+					RelativePath="..\..\..\include\Reconstruction\Utilities\ConvertCoordination.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\..\src\Reconstruction\Utilities\Exportor.cpp"
 					>
 				</File>

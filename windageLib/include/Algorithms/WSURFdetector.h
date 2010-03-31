@@ -83,15 +83,24 @@ namespace windage
 		class DLLEXPORT WSURFdetector : public FeatureDetector
 		{
 		private:
+			int FAST_INDEX;
 
 		public:
 			virtual char* GetFunctionName(){return "WSURFdetector";};
 			WSURFdetector(double threshold = 30.0) : FeatureDetector()
 			{
+				FAST_INDEX = 12;
 				this->threshold = threshold;
 			}
 			~WSURFdetector()
 			{
+			}
+
+			void SetFunction(int n=9)
+			{
+				if(n < 9) n = 9;
+				if(n > 12) n = 12;
+				FAST_INDEX = n;
 			}
 
 			/**

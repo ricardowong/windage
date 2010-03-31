@@ -38,73 +38,99 @@
  * ======================================================================== */
 
 /**
- * @file	Exportor.h
+ * @file	ConvertCoordination.h
  * @author	Woonhyuk Baek
  * @version 1.0
  * @date	2010.03.01
  * @brief	It is log class for logging at reconstruction informations
  */
 
-#ifndef _EXPORTOR_H_
-#define _EXPORTOR_H_
-
-#include <vector>
-#include <string>
-
-#include <cv.h>
-
-#include "base.h"
-#include "Structures/Calibration.h"
-#include "Structures/ReconstructionPoint.h"
-#include "Utilities/Logger.h"
+#ifndef _CONVERT_COORDINATION_H_
+#define _CONVERT_COORDINATION_H_
 
 namespace windage
 {
 	namespace Reconstruction
 	{
-		/**
-		 * @defgroup Reconstruction Reconstruction classes
-		 * @brief
-		 *		Reconstruction classes
-		 * @addtogroup Reconstruction
-		 * @{
-		 */
-
-		/**
-		 * @brief	Class for Logging at processtime and programmer's message
-		 * @author	Woonhyuk Baek
-		 */
-		class DLLEXPORT Exportor
+		class ConvertCoordination
 		{
 		private:
-			windage::Logger* logger;
-			std::string function_name;
-			std::vector<std::string> imageFileList;
-			std::vector<windage::Calibration*> calibrationList;
 			std::vector<windage::ReconstructionPoint>* reconstructionPoints;
 
 		public:
-			Exportor()
+			ConvertCoordination()
 			{
-				logger = NULL;
 				reconstructionPoints = NULL;
-				function_name = std::string("");
 			}
-			~Exportor()
+			~ConvertCoordination()
 			{
-				calibrationList.clear();
 			}
 
-			inline void SetFunctionName(std::string function_name){this->function_name = function_name;};
-			inline void AttatchLogger(windage::Logger* logger){this->logger = logger;};
-			inline void PushImageFile(std::string fileName){this->imageFileList.push_back(fileName);};
-			inline void PushCalibration(windage::Calibration* calibration){this->calibrationList.push_back(calibration);};
-			inline void SetReconstructionPoints(std::vector<windage::ReconstructionPoint>* reconstructionPoints){this->reconstructionPoints = reconstructionPoints;};
-			
-			bool DoExport();
+			inline void AttatchReconstructionPoint(std::vector<windage::ReconstructionPoint>* reconstructionPoints){this->reconstructionPoints = reconstructionPoints;}
+
+			bool ConvertRotation(windage::Matrix3 rotation)
+			{
+				if(reconstructionPoints == NULL)
+					return false;
+
+				windage::Matrix4 extrinsic;
+				for(int y=0; y<3; y++)
+				{
+					for(int x=0; x<3; x++)
+					{
+						extrinsic.m[y][x] = rotation.m[y][x];
+					}
+				}
+				extrinsic.m[0][3] = extrinsic.m[1][3] = extrinsic.m[2][3] = 0.0;
+				extrinsic.m[3][0] = extrinsic.m[3][1] = extrinsic.m[3][2] = 0.0;
+				extrinsic.m[3][3] = 1.0;
+
+				bool result = Convert(extrinsic);
+				return result;
+			}
+
+			bool ConvertTranslation(windage::Vector3 translation)
+			{
+				if(reconstructionPoints == NULL)
+					return false;
+
+				windage::Matrix4 extrinsic;
+				for(int y=0; y<3; y++)
+				{
+					for(int x=0; x<3; x++)
+					{
+						if(x == y)
+							extrinsic.m[y][x] = 1.0;
+						else
+							extrinsic.m[y][x] = 0.0;
+					}
+				}
+				extrinsic.m[0][3] = translation.x;
+				extrinsic.m[1][3] = translation.y;
+				extrinsic.m[2][3] = translation.z;
+				extrinsic.m[3][0] = extrinsic.m[3][1] = extrinsic.m[3][2] = 0.0;
+				extrinsic.m[3][3] = 1.0;
+
+				bool result = Convert(extrinsic);
+				return result;
+			}
+
+			bool Convert(windage::Matrix4 extrinsic)
+			{
+				if(reconstructionPoints == NULL)
+					return false;
+
+				for(unsigned int i=0; i<this->reconstructionPoints->size(); i++)
+				{
+					windage::Vector4 point = (*reconstructionPoints)[i].GetPoint();
+					windage::Vector4 cvtPoint = extrinsic * point;
+					(*reconstructionPoints)[i].SetPoint(cvtPoint);
+				}
+
+				return true;
+			}
 		};
-		/** @} */ // addtogroup Reconstruction
 	}
 }
 
-#endif
+#endif //_CONVERT_COORDINATION_H_

@@ -48,8 +48,8 @@ const int WIDTH = 640;
 const int HEIGHT = (WIDTH * 3) / 4;
 const int FEATURE_COUNT = WIDTH;
 
-const double SCALE_FACTOR = 1.0;
-const int SCALE_STEP = 1;
+const double SCALE_FACTOR = 4.0;
+const int SCALE_STEP = 8;
 const double REPROJECTION_ERROR = 5.0;
 
 #define USE_ADAPTIVE_THRESHOLD 1
@@ -81,7 +81,7 @@ void main()
 	windage::Algorithms::KalmanFilter* filter;
 
 	calibration = new windage::Calibration();
-	detector = new windage::Algorithms::SIFTGPUdetector();
+	detector = new windage::Algorithms::WSURFdetector();
 	searchtree = new windage::Algorithms::FLANNtree();
 	opticalflow = new windage::Algorithms::OpticalFlow();
 	estimator = new windage::Algorithms::ProSACestimator();
