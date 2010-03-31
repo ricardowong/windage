@@ -136,7 +136,7 @@ void main()
 	windage::Algorithms::OpenCVRANSACestimator* estimator = new windage::Algorithms::OpenCVRANSACestimator();
 	windage::Algorithms::PoseRefiner* refiner = new windage::Algorithms::PoseLMmethod();
 
-	windage::Algorithms::ChessboardDetector* baseDetector = new windage::Algorithms::ChessboardDetector();
+	windage::Algorithms::ChessboardDetector* baseDetector = new windage::Algorithms::ChessboardDetector(8, 7, 28);
 	windage::Algorithms::HomographyEstimator* baseEstimator = new windage::Algorithms::LMedSestimator();
 
 	IplImage* coordinationImage = cvLoadImage(COORDINATION_ALIGN_IMAGE);
@@ -203,9 +203,11 @@ void main()
 
 	windage::Matrix4 extrinsic = windage::Coordinator::MultiMarkerCoordinator::CalculateExtrinsic(calibrationModel, rotation, translation);
 	calibrationTemp->SetExtrinsicMatrix(extrinsic.m1);
-//	calibrationTemp->DrawInfomation(coordinationImage, 100.0);
-
+	
 	cvNamedWindow("result");
+	cvShowImage("result", coordinationImage);
+	cvWaitKey();
+	calibrationTemp->DrawInfomation(coordinationImage, 100.0);
 	cvShowImage("result", coordinationImage);
 	cvWaitKey();
 	cvDestroyAllWindows();
