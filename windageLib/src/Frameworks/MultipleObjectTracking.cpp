@@ -85,26 +85,29 @@ namespace MultipleOjbectThread
 					}
 				}
 
-				// track feature
-				std::vector<windage::FeaturePoint> sceneUpdatedKeypoints;
-				EnterCriticalSection(&csImageUpdate);
-				tracker->TrackFeatures(globalGrayImage, globalCurrentGrayImage, &sceMatchedKeypoints, &sceneUpdatedKeypoints);
-				LeaveCriticalSection(&csImageUpdate);
-
-				for(unsigned int i=0; i<sceneUpdatedKeypoints.size(); i++)
+				if(sceMatchedKeypoints.size() > 1)
 				{
-					// if not tracked have point
-					int index = sceneUpdatedKeypoints[i].GetRepositoryID();
-					if(sceneUpdatedKeypoints[i].IsOutlier() == false && thisClass->referenceRepository[objectID][index].IsTracked() == false)
-					{
-						EnterCriticalSection(&csKeypointsUpdate);
-						{
-							thisClass->referenceRepository[objectID][index].SetTracked(true);
+					// track feature
+					std::vector<windage::FeaturePoint> sceneUpdatedKeypoints;
+					EnterCriticalSection(&csImageUpdate);
+					tracker->TrackFeatures(globalGrayImage, globalCurrentGrayImage, &sceMatchedKeypoints, &sceneUpdatedKeypoints);
+					LeaveCriticalSection(&csImageUpdate);
 
-							thisClass->refMatchedKeypoints[objectID].push_back(thisClass->referenceRepository[objectID][index]);
-							thisClass->sceMatchedKeypoints[objectID].push_back((sceneUpdatedKeypoints)[i]);
+					for(unsigned int i=0; i<sceneUpdatedKeypoints.size(); i++)
+					{
+						// if not tracked have point
+						int index = sceneUpdatedKeypoints[i].GetRepositoryID();
+						if(sceneUpdatedKeypoints[i].IsOutlier() == false && thisClass->referenceRepository[objectID][index].IsTracked() == false)
+						{
+							EnterCriticalSection(&csKeypointsUpdate);
+							{
+								thisClass->referenceRepository[objectID][index].SetTracked(true);
+
+								thisClass->refMatchedKeypoints[objectID].push_back(thisClass->referenceRepository[objectID][index]);
+								thisClass->sceMatchedKeypoints[objectID].push_back((sceneUpdatedKeypoints)[i]);
+							}
+							LeaveCriticalSection(&csKeypointsUpdate);
 						}
-						LeaveCriticalSection(&csKeypointsUpdate);
 					}
 				}
 
@@ -302,7 +305,7 @@ bool MultipleObjectTracking::UpdateCamerapose(IplImage* grayImage)
 			}
 
 			// refinement
-			if(this->refiner)
+			if(this->refiner && sceMatchedKeypoints[i].size() > MIN_FEATURE_POINTS_COUNT)
 			{
 				this->refiner->AttatchCalibration(this->cameraParameter[i]);
 				this->refiner->AttatchReferencePoint(&(refMatchedKeypoints[i]));

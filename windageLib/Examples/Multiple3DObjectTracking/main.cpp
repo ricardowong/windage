@@ -51,7 +51,7 @@ const double REPROJECTION_ERROR = 3.0;
 const double INTRINSIC[] = {1033.93, 1033.84, 319.044, 228.858,-0.206477, 0.306424, 0.000728208, 0.0011338};
 
 const int OBJECT_COUNT = 2;
-const char* FILE_NAME[] = {	"data/reconstruction-2010-03-29_18_28_38/reconstruction.txt", 
+const char* FILE_NAME[] = {	"data/reconstruction-2010-04-06_01_37_49/reconstruction.txt", 
 							"data/reconstruction-2010-03-29_09_33_01/reconstruction.txt"};
 
 void main()
@@ -77,9 +77,9 @@ void main()
 	calibration->Initialize(INTRINSIC[0], INTRINSIC[1], INTRINSIC[2], INTRINSIC[3], INTRINSIC[4], INTRINSIC[5], INTRINSIC[6], INTRINSIC[7]);
 	opticalflow->Initialize(WIDTH, HEIGHT, cvSize(15, 15), 3);
 	estimator->SetReprojectionError(REPROJECTION_ERROR);
-	estimator->SetConfidence(0.995);
-	estimator->SetMaxIteration(1000);
-	refiner->SetMaxIteration(10);
+	estimator->SetConfidence(-1);
+	estimator->SetMaxIteration(50);
+	refiner->SetMaxIteration(5);
 
 	tracking.AttatchCalibration(calibration);
 	tracking.AttatchTracker(opticalflow);
