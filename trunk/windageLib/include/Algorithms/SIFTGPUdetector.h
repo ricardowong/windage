@@ -93,6 +93,11 @@ namespace windage
 				sift = NULL;
 				sift = CreateNewSiftGPU(numberOfPyramid);
 				sift->SetVerbose(0);
+
+//				char * argv[] = {"-fo", "-1",  "-v", "1", "-cg"};//-nogl is important for multithreading
+//				int argc = sizeof(argv)/sizeof(char*);
+//				sift->ParseParam(argc, argv);
+
 //				sift->VerifyContextGL();
 				sift->CreateContextGL();
 			}

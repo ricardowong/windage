@@ -100,27 +100,22 @@ void main()
 	// create and initialize tracker
 	windage::Frameworks::SingleObjectTracking tracking;
 	windage::Calibration* calibration;
-	windage::Algorithms::FeatureDetector* detector;
 	windage::Algorithms::SearchTree* searchtree;
 	windage::Algorithms::OpticalFlow* opticalflow;
 	windage::Algorithms::EPnPRANSACestimator* estimator;
 	windage::Algorithms::OutlierChecker* checker;
 	windage::Algorithms::PoseRefiner* refiner;
-	windage::Algorithms::KalmanFilter* filter;
-
+	
 	calibration = new windage::Calibration();
-	detector = new windage::Algorithms::SIFTGPUdetector();
 	searchtree = new windage::Algorithms::FLANNtree();
 	opticalflow = new windage::Algorithms::OpticalFlow();
 	estimator = new windage::Algorithms::EPnPRANSACestimator();
 	checker = new windage::Algorithms::OutlierChecker();
 	refiner = new windage::Algorithms::PoseLMmethod();
-	filter = new windage::Algorithms::KalmanFilter();
 
 	calibration->Initialize(INTRINSIC[0], INTRINSIC[1], INTRINSIC[2], INTRINSIC[3], INTRINSIC[4], INTRINSIC[5], INTRINSIC[6], INTRINSIC[7]);
-	detector->SetThreshold(30.0);
 	searchtree->SetRatio(0.5);
-	opticalflow->Initialize(WIDTH, HEIGHT, cvSize(15, 15), 5);
+	opticalflow->Initialize(WIDTH, HEIGHT, cvSize(15, 15), 3);
 	estimator->SetReprojectionError(REPROJECTION_ERROR);
 	estimator->SetConfidence(0.90);
 	estimator->SetMaxIteration(500);
@@ -128,15 +123,13 @@ void main()
 	refiner->SetMaxIteration(10);
 
 	tracking.AttatchCalibration(calibration);
-	tracking.AttatchDetetor(detector);
 	tracking.AttatchMatcher(searchtree);
 	tracking.AttatchTracker(opticalflow);
 	tracking.AttatchEstimator(estimator);
 	tracking.AttatchChecker(checker);
 	tracking.AttatchRefiner(refiner);
-//	tracking.AttatchFilter(filter);
 
-	tracking.SetDitectionRatio(1);
+	tracking.SetDitectionRatio(5);
 	tracking.Initialize(WIDTH, HEIGHT);
 
 	int keypointCount = 0;
