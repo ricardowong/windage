@@ -66,6 +66,8 @@
 #include "Algorithms/OpticalFlow.h"
 #include "Algorithms/PoseEstimator.h"
 #include "Algorithms/EPnPRANSACestimator.h"
+#include "Algorithms/OpenCVRANSACestimator.h"
+
 #include "Algorithms/PoseRefiner.h"
 
 /** pre-selected search tree algorithm whenever can change other search tree algorithm  */
@@ -275,13 +277,6 @@ namespace windage
 			 *		It will be called after initilization and training
 			 */
 			bool UpdateCamerapose(IplImage* grayImage);
-
-			/**
-			 * @fn	DrawOutLine
-			 * @brief
-			 *		draw recognized or tracked object outlier
-			 */
-			void DrawOutLine(IplImage* colorImage, int objectID, bool drawCross);
 
 			/**
 			 * @fn	DrawDebugInfo
