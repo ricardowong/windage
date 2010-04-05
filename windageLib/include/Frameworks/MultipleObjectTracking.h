@@ -65,11 +65,13 @@
 #include "Algorithms/FLANNtree.h"
 #include "Algorithms/OpticalFlow.h"
 #include "Algorithms/PoseEstimator.h"
+#include "Algorithms/EPnPRANSACestimator.h"
 #include "Algorithms/PoseRefiner.h"
 
 /** pre-selected search tree algorithm whenever can change other search tree algorithm  */
 #define SearchTreeT windage::Algorithms::FLANNtree
-#define SEARCH_TREE_RATIO 0.3
+#define SEARCH_TREE_RATIO 0.4
+#define PoseEstimationT windage::Algorithms::EPnPRANSACestimator
 
 namespace windage
 {
@@ -90,14 +92,15 @@ namespace windage
 		class DLLEXPORT MultipleObjectTracking
 		{
 		protected:
-			static const int MIN_FEATURE_POINTS_COUNT = 15;			///< threshold to determin whether tracked or not
+			static const int MIN_FEATURE_POINTS_COUNT = 10;			///< threshold to determin whether tracked or not
 
 			windage::Calibration* initialCamearParameter;			///< It is required elements that camera calibration parameter to attatch reference pointer at out-side
 			windage::Algorithms::FeatureDetector* detector;			///< It is required elements that feature detection algorithm to attatch reference pointer at out-side
 			windage::Algorithms::OpticalFlow* tracker;				///< It is required elements that feature tracking algorithm to attatch reference pointer at out-side
-
-			windage::Algorithms::PoseEstimator* estimator;	///< It is required elements that homography estimation algorithm to attatch reference pointer at out-side
-			windage::Algorithms::PoseRefiner* refiner;		///< It is optional elements that homography refinement algorithm to attatch reference pointer at out-side
+			
+			windage::Algorithms::PoseEstimator* estimator;			///< It is required elements that homography estimation algorithm to attatch reference pointer at out-side
+			windage::Algorithms::PoseRefiner* refiner;				///< It is optional elements that homography refinement algorithm to attatch reference pointer at out-side
+			std::vector<PoseEstimationT*> estimatorList;	///< the number of matching algorithm is dynamic that is training of the reference image
 
 			std::vector<windage::Calibration*> cameraParameter;		///< the number of camera pose is dynamic that is the result camera pose of recodnized and tracked object
 			std::vector<SearchTreeT*> searchTree;					///< the number of matching algorithm is dynamic that is training of the reference image
@@ -157,6 +160,10 @@ namespace windage
 			{
 				if(prevImage) cvReleaseImage(&prevImage);
 				prevImage = NULL;
+
+				for(unsigned int i=0; i<this->estimatorList.size(); i++)
+					if(estimatorList[i]) delete estimatorList[i];
+				this->estimatorList.clear();
 
 				for(unsigned int i=0; i<this->searchTree.size(); i++)
 					if(searchTree[i]) delete searchTree[i];

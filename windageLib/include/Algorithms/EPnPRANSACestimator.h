@@ -100,6 +100,8 @@ namespace windage
 
 			inline void SetMaxIteration(int iteration){this->maxIteration = iteration;};
 			inline void SetConfidence(double confidence){this->confidence = confidence;};
+			inline int GetMaxIteration(){return this->maxIteration;};
+			inline double GetConfidence(){return this->confidence;};
 
 			/**
 			 * @fn	Calculate
