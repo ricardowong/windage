@@ -37,9 +37,59 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
+#include "Algorithms/SIFTGPUdetector.h"
 #include "Frameworks/SingleObjectTracking.h"
 using namespace windage;
 using namespace windage::Frameworks;
+
+#include <highgui.h>
+#include <windows.h>
+#include <process.h>
+IplImage* globalGrayImage = NULL;
+CRITICAL_SECTION criticalSection;
+
+unsigned int WINAPI FeatureDetectionThread(void* pArg)
+{
+	SingleObjectTracking* thisClass = (SingleObjectTracking*)pArg;
+	windage::Algorithms::SIFTGPUdetector* detector = new windage::Algorithms::SIFTGPUdetector();
+
+	while(thisClass->processThread)
+	{
+		if(thisClass->update)
+		{
+			detector->DoExtractKeypointsDescriptor(globalGrayImage);
+			std::vector<windage::FeaturePoint>* sceneKeypoints = detector->GetKeypoints();
+
+			for(unsigned int i=0; i<sceneKeypoints->size(); i++)
+			{
+				int count = 0;
+				int index = thisClass->GetMatcher()->Matching((*sceneKeypoints)[i]);
+				if(0 <= index && index < (int)thisClass->referenceRepository.size())
+				{
+					// if not tracked have point
+					EnterCriticalSection(&criticalSection);
+					{
+						if(thisClass->referenceRepository[index].IsTracked() == false)
+						{
+							thisClass->referenceRepository[index].SetTracked(true);
+
+							thisClass->refMatchedKeypoints.push_back(thisClass->referenceRepository[index]);
+							thisClass->sceMatchedKeypoints.push_back((*sceneKeypoints)[i]);
+						}
+					}
+					LeaveCriticalSection(&criticalSection);
+					count++;
+				}
+			}
+
+			thisClass->update = false;
+		}
+	}
+
+	delete detector;
+
+	return 0;
+}
 
 bool SingleObjectTracking::Initialize(int width, int height, bool printInfo)
 {
@@ -56,7 +106,6 @@ bool SingleObjectTracking::Initialize(int width, int height, bool printInfo)
 	prevImage = cvCreateImage(cvSize(width, height), IPL_DEPTH_8U, 1);
 
 	if( this->cameraParameter	== NULL ||
-		this->detector			== NULL ||
 		this->matcher			== NULL ||
 		this->estimator			== NULL)
 	{
@@ -67,8 +116,6 @@ bool SingleObjectTracking::Initialize(int width, int height, bool printInfo)
 	if(printInfo)
 	{
 		std::cout << this->GetFunctionName() << " Initialize" << std::endl;
-		if(this->detector)
-			std::cout << "\tFeature Extractor : " << this->detector->GetFunctionName() << std::endl;
 		if(this->matcher)
 			std::cout << "\tFeature Matching : " << this->matcher->GetFunctionName() << std::endl;
 		if(this->tracker)
@@ -79,6 +126,10 @@ bool SingleObjectTracking::Initialize(int width, int height, bool printInfo)
 			std::cout << "\tFilter : " << this->filter->GetFunctionName() << std::endl;
 		std::cout << std::endl;
 	}
+
+	// create detection thread
+	InitializeCriticalSection(&criticalSection);
+	_beginthreadex(NULL, 0, FeatureDetectionThread, (void*)this, 0, NULL);
 
 	this->estimator->AttatchCameraParameter(this->cameraParameter);
 	this->initialize = true;
@@ -105,15 +156,8 @@ bool SingleObjectTracking::UpdateCamerapose(IplImage* grayImage)
 	if(initialize == false || trained == false)
 		return false;
 
-	if(tracker == NULL)
-		this->SetDitectionRatio(0);
-	
-	if(this->detectionRatio < 1)
-	{
-		refMatchedKeypoints.clear();
-		sceMatchedKeypoints.clear();
-	}
-	else // featur tracking routine
+	// featur tracking routine
+	EnterCriticalSection(&criticalSection);
 	{
 		std::vector<windage::FeaturePoint> sceneKeypoints;
 		this->tracker->TrackFeatures(prevImage, grayImage, &sceMatchedKeypoints, &sceneKeypoints);
@@ -135,67 +179,56 @@ bool SingleObjectTracking::UpdateCamerapose(IplImage* grayImage)
 			}
 		}
 	}
+	LeaveCriticalSection(&criticalSection);
 
 	if(this->step > this->detectionRatio || this->detectionRatio < 1) // detection routine (add new points)
 	{
 		step = 0;
-		this->detector->DoExtractKeypointsDescriptor(grayImage);
-		std::vector<windage::FeaturePoint>* sceneKeypoints = this->detector->GetKeypoints();
 
-		for(unsigned int i=0; i<sceneKeypoints->size(); i++)
-		{
-			int count = 0;
-			int index = this->matcher->Matching((*sceneKeypoints)[i]);
-			if(0 <= index && index < (int)this->referenceRepository.size())
-			{
-				// if not tracked have point
-				if(this->referenceRepository[index].IsTracked() == false)
-				{
-					this->referenceRepository[index].SetTracked(true);
-
-					refMatchedKeypoints.push_back(this->referenceRepository[index]);
-					sceMatchedKeypoints.push_back((*sceneKeypoints)[i]);
-				}
-				count++;
-			}
-		}
+		if(globalGrayImage) cvCopyImage(grayImage, globalGrayImage);
+		else				globalGrayImage = cvCloneImage(grayImage);
+		this->update = true;
 	}
 
 	if((int)refMatchedKeypoints.size() > MIN_FEATURE_POINTS_COUNT)
 	{
-		// pose estimate
-		this->estimator->AttatchReferencePoint(&refMatchedKeypoints);
-		this->estimator->AttatchScenePoint(&sceMatchedKeypoints);
-		this->estimator->Calculate();
-
-		// outlier checker
-		if(checker)
+		EnterCriticalSection(&criticalSection);
 		{
-			this->checker->AttatchEstimator(this->estimator);
-			this->checker->Calculate();
+			// pose estimate
+			this->estimator->AttatchReferencePoint(&refMatchedKeypoints);
+			this->estimator->AttatchScenePoint(&sceMatchedKeypoints);
+			this->estimator->Calculate();
 
-			int index = 0;
-			for(int i=0; i<(int)refMatchedKeypoints.size(); i++)
+			// outlier checker
+			if(checker)
 			{
-				if(refMatchedKeypoints[i].IsOutlier() == true)
-				{
-					this->referenceRepository[refMatchedKeypoints[i].GetRepositoryID()].SetTracked(false);
+				this->checker->AttatchEstimator(this->estimator);
+				this->checker->Calculate();
 
-					refMatchedKeypoints.erase(refMatchedKeypoints.begin() + i);
-					sceMatchedKeypoints.erase(sceMatchedKeypoints.begin() + i);
-					i--;
+				int index = 0;
+				for(int i=0; i<(int)refMatchedKeypoints.size(); i++)
+				{
+					if(refMatchedKeypoints[i].IsOutlier() == true)
+					{
+						this->referenceRepository[refMatchedKeypoints[i].GetRepositoryID()].SetTracked(false);
+
+						refMatchedKeypoints.erase(refMatchedKeypoints.begin() + i);
+						sceMatchedKeypoints.erase(sceMatchedKeypoints.begin() + i);
+						i--;
+					}
 				}
 			}
-		}
 
-		// refinement
-		if(refiner)
-		{
-			this->refiner->AttatchCalibration(this->estimator->GetCameraParameter());
-			this->refiner->AttatchReferencePoint(&refMatchedKeypoints);
-			this->refiner->AttatchScenePoint(&sceMatchedKeypoints);
-			this->refiner->Calculate();
+			// refinement
+			if(refiner)
+			{
+				this->refiner->AttatchCalibration(this->estimator->GetCameraParameter());
+				this->refiner->AttatchReferencePoint(&refMatchedKeypoints);
+				this->refiner->AttatchScenePoint(&sceMatchedKeypoints);
+				this->refiner->Calculate();
+			}
 		}
+		LeaveCriticalSection(&criticalSection);
 
 		// filtering
 		if(filter)
@@ -258,6 +291,8 @@ void SingleObjectTracking::DrawDebugInfo(IplImage* colorImage)
 	int b = 0;
 
 	int size = 4;
+
+	EnterCriticalSection(&criticalSection);
 	for(unsigned int i=0; i<refMatchedKeypoints.size(); i++)
 	{
 		CvPoint imagePoint = cvPoint((int)sceMatchedKeypoints[i].GetPoint().x, (int)sceMatchedKeypoints[i].GetPoint().y);
@@ -265,4 +300,5 @@ void SingleObjectTracking::DrawDebugInfo(IplImage* colorImage)
 		cvCircle(colorImage, imagePoint, size+5, CV_RGB(0, 0, 0), CV_FILLED);
 		cvCircle(colorImage, imagePoint, size, CV_RGB(255, 255, 0), CV_FILLED);
 	}
+	LeaveCriticalSection(&criticalSection);
 }

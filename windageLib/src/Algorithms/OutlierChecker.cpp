@@ -37,6 +37,7 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
+#include <omp.h>
 #include "Algorithms/OutlierChecker.h"
 using namespace windage;
 using namespace windage::Algorithms;
@@ -50,7 +51,9 @@ bool OutlierChecker::Calculate()
 	{
 		std::vector<windage::FeaturePoint>* refPoints = this->homographyEstimator->GetReferencePoint();
 		std::vector<windage::FeaturePoint>* scePoints = this->homographyEstimator->GetScenePoint();
-		for(unsigned int i=0; i<refPoints->size(); i++)
+
+		#pragma omp for
+		for(int i=0; i<refPoints->size(); i++)
 		{
 			windage::Vector3 imagePoint = this->homographyEstimator->ConvertObjectToImage((*refPoints)[i].GetPoint());
 			imagePoint /= imagePoint.z;
@@ -74,7 +77,9 @@ bool OutlierChecker::Calculate()
 	{
 		std::vector<windage::FeaturePoint>* refPoints = this->poseEstimator->GetReferencePoint();
 		std::vector<windage::FeaturePoint>* scePoints = this->poseEstimator->GetScenePoint();
-		for(unsigned int i=0; i<refPoints->size(); i++)
+
+		#pragma omp for
+		for(int i=0; i<refPoints->size(); i++)
 		{
 			windage::Vector3 imagePoint = this->poseEstimator->ConvertWorldToImage((*refPoints)[i].GetPoint());
 			imagePoint /= imagePoint.z;

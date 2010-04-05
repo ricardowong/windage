@@ -90,7 +90,6 @@ namespace windage
 			static const int MIN_FEATURE_POINTS_COUNT = 9;			///< threshold to determin whether tracked or not
 
 			windage::Calibration* cameraParameter;					///< It is required elements that camera calibration parameter to attatch reference pointer at out-side
-			windage::Algorithms::FeatureDetector* detector;			///< It is required elements that feature detection algorithm to attatch reference pointer at out-side
 			windage::Algorithms::SearchTree* matcher;				///< It is required elements that feature matching algorithm to attatch reference pointer at out-side
 			windage::Algorithms::PoseEstimator* estimator;			///< It is required elements that homography estimation algorithm to attatch reference pointer at out-side
 
@@ -101,19 +100,23 @@ namespace windage
 			int filterStep;
 
 			IplImage* prevImage;									///< gray image for feature tracking
-			std::vector<windage::FeaturePoint> refMatchedKeypoints;	///< matched point at reference image
-			std::vector<windage::FeaturePoint> sceMatchedKeypoints;	///< matched point at scene image
-
+			
 			int width;												///< input image width
 			int height;												///< input image height
 
 			int step;												///< current step (detectionRatio < step = detection step)
 			int detectionRatio;										///< 1 / detection ratio for tracking step
 
-			std::vector<windage::FeaturePoint> referenceRepository;	///< reference keypoint repository
-
 			bool initialize;										///< checked initialized
 			bool trained;											///< checked trained
+
+		public:
+			std::vector<windage::FeaturePoint> referenceRepository;	///< reference keypoint repository
+			std::vector<windage::FeaturePoint> refMatchedKeypoints;	///< matched point at reference image
+			std::vector<windage::FeaturePoint> sceMatchedKeypoints;	///< matched point at scene image
+
+			bool update;
+			bool processThread;
 			
 		public:
 			virtual char* GetFunctionName(){return "SingleObjectTracking";};
@@ -122,7 +125,6 @@ namespace windage
 				prevImage = NULL;
 
 				cameraParameter = NULL;
-				detector = NULL;
 				matcher = NULL;
 				estimator = NULL;
 				tracker = NULL;
@@ -134,6 +136,9 @@ namespace windage
 
 				initialize = false;
 				trained = false;
+
+				update = false;
+				processThread = true;
 
 				step = 1;
 				detectionRatio = 0;
@@ -164,18 +169,6 @@ namespace windage
 			 */
 			inline void AttatchCalibration(windage::Calibration* calibration){this->cameraParameter = calibration;};
 			
-			/**
-			 * @fn	AttatchDetetor
-			 * @brief
-			 *		attatch detection algorithm to member pointer from out-side
-			 * @remark
-			 *		detection algorithm is to be initialized at out-side
-			 * @warning
-			 *		It is required elements
-			 *		detection algorithm is not create in-side at this class so do not release this pointer
-			 */
-			inline void AttatchDetetor(windage::Algorithms::FeatureDetector* detector){this->detector = detector;};
-
 			/**
 			 * @fn	AttatchMatcher
 			 * @brief
@@ -249,7 +242,6 @@ namespace windage
 			inline void AttatchFilter(windage::Algorithms::KalmanFilter* filter){this->filter = filter;};
 
 			inline windage::Calibration* GetCameraParameter(){return this->cameraParameter;};
-			inline windage::Algorithms::FeatureDetector* GetDetector(){return this->detector;};
 			inline windage::Algorithms::SearchTree* GetMatcher(){return this->matcher;};
 			inline windage::Algorithms::OpticalFlow* GetTracker(){return this->tracker;};
 			inline windage::Algorithms::PoseEstimator* GetEstimator(){return this->estimator;};
