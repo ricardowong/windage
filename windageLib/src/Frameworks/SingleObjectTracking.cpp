@@ -46,18 +46,27 @@ using namespace windage::Frameworks;
 #include <windows.h>
 #include <process.h>
 IplImage* globalGrayImage = NULL;
+IplImage* globalCurrentGrayImage = NULL;
 CRITICAL_SECTION criticalSection;
+CRITICAL_SECTION criticalSectionImage;
 
 unsigned int WINAPI FeatureDetectionThread(void* pArg)
 {
 	SingleObjectTracking* thisClass = (SingleObjectTracking*)pArg;
 	windage::Algorithms::SIFTGPUdetector* detector = new windage::Algorithms::SIFTGPUdetector();
+	windage::Algorithms::OpticalFlow* tracker = new windage::Algorithms::OpticalFlow(50);
+	tracker->Initialize(thisClass->GetSize().width, thisClass->GetSize().height, cvSize(15, 15), 3);
+
+	cvGetTickCount();
 
 	while(thisClass->processThread)
 	{
 		if(thisClass->update)
 		{
+			// detect feature
 			detector->DoExtractKeypointsDescriptor(globalGrayImage);
+			std::vector<windage::FeaturePoint> refMatchedKeypoints;
+			std::vector<windage::FeaturePoint> sceMatchedKeypoints;
 			std::vector<windage::FeaturePoint>* sceneKeypoints = detector->GetKeypoints();
 
 			for(unsigned int i=0; i<sceneKeypoints->size(); i++)
@@ -66,19 +75,33 @@ unsigned int WINAPI FeatureDetectionThread(void* pArg)
 				int index = thisClass->GetMatcher()->Matching((*sceneKeypoints)[i]);
 				if(0 <= index && index < (int)thisClass->referenceRepository.size())
 				{
-					// if not tracked have point
+					(*sceneKeypoints)[i].SetRepositoryID(index);
+
+					refMatchedKeypoints.push_back(thisClass->referenceRepository[index]);
+					sceMatchedKeypoints.push_back((*sceneKeypoints)[i]);
+				}
+			}
+
+			// track feature
+			std::vector<windage::FeaturePoint> sceneUpdatedKeypoints;
+			EnterCriticalSection(&criticalSectionImage);
+			tracker->TrackFeatures(globalGrayImage, globalCurrentGrayImage, &sceMatchedKeypoints, &sceneUpdatedKeypoints);
+			LeaveCriticalSection(&criticalSectionImage);
+
+			for(unsigned int i=0; i<sceneUpdatedKeypoints.size(); i++)
+			{
+				// if not tracked have point
+				int index = sceneUpdatedKeypoints[i].GetRepositoryID();
+				if(sceneUpdatedKeypoints[i].IsOutlier() == false && thisClass->referenceRepository[index].IsTracked() == false)
+				{
 					EnterCriticalSection(&criticalSection);
 					{
-						if(thisClass->referenceRepository[index].IsTracked() == false)
-						{
-							thisClass->referenceRepository[index].SetTracked(true);
+						thisClass->referenceRepository[index].SetTracked(true);
 
-							thisClass->refMatchedKeypoints.push_back(thisClass->referenceRepository[index]);
-							thisClass->sceMatchedKeypoints.push_back((*sceneKeypoints)[i]);
-						}
+						thisClass->refMatchedKeypoints.push_back(thisClass->referenceRepository[index]);
+						thisClass->sceMatchedKeypoints.push_back((sceneUpdatedKeypoints)[i]);
 					}
 					LeaveCriticalSection(&criticalSection);
-					count++;
 				}
 			}
 
@@ -87,6 +110,7 @@ unsigned int WINAPI FeatureDetectionThread(void* pArg)
 	}
 
 	delete detector;
+	delete tracker;
 
 	return 0;
 }
@@ -99,9 +123,6 @@ bool SingleObjectTracking::Initialize(int width, int height, bool printInfo)
 	this->width = width;
 	this->height = height;
 
-	if(this->checker != NULL)
-		this->checker->AttatchEstimator(this->estimator);
-	
 	if(prevImage) cvReleaseImage(&prevImage);
 	prevImage = cvCreateImage(cvSize(width, height), IPL_DEPTH_8U, 1);
 
@@ -129,6 +150,7 @@ bool SingleObjectTracking::Initialize(int width, int height, bool printInfo)
 
 	// create detection thread
 	InitializeCriticalSection(&criticalSection);
+	InitializeCriticalSection(&criticalSectionImage);
 	_beginthreadex(NULL, 0, FeatureDetectionThread, (void*)this, 0, NULL);
 
 	this->estimator->AttatchCameraParameter(this->cameraParameter);
@@ -181,6 +203,11 @@ bool SingleObjectTracking::UpdateCamerapose(IplImage* grayImage)
 	}
 	LeaveCriticalSection(&criticalSection);
 
+	EnterCriticalSection(&criticalSectionImage);
+	if(globalCurrentGrayImage)	cvCopyImage(grayImage, globalCurrentGrayImage);
+	else						globalCurrentGrayImage = cvCloneImage(grayImage);
+	LeaveCriticalSection(&criticalSectionImage);
+
 	if(this->step > this->detectionRatio || this->detectionRatio < 1) // detection routine (add new points)
 	{
 		step = 0;
@@ -189,6 +216,7 @@ bool SingleObjectTracking::UpdateCamerapose(IplImage* grayImage)
 		else				globalGrayImage = cvCloneImage(grayImage);
 		this->update = true;
 	}
+
 
 	if((int)refMatchedKeypoints.size() > MIN_FEATURE_POINTS_COUNT)
 	{
@@ -199,28 +227,21 @@ bool SingleObjectTracking::UpdateCamerapose(IplImage* grayImage)
 			this->estimator->AttatchScenePoint(&sceMatchedKeypoints);
 			this->estimator->Calculate();
 
-			// outlier checker
-			if(checker)
+			// outlier remove
+			for(int i=0; i<(int)refMatchedKeypoints.size(); i++)
 			{
-				this->checker->AttatchEstimator(this->estimator);
-				this->checker->Calculate();
-
-				int index = 0;
-				for(int i=0; i<(int)refMatchedKeypoints.size(); i++)
+				if(refMatchedKeypoints[i].IsOutlier() == true)
 				{
-					if(refMatchedKeypoints[i].IsOutlier() == true)
-					{
-						this->referenceRepository[refMatchedKeypoints[i].GetRepositoryID()].SetTracked(false);
+					this->referenceRepository[refMatchedKeypoints[i].GetRepositoryID()].SetTracked(false);
 
-						refMatchedKeypoints.erase(refMatchedKeypoints.begin() + i);
-						sceMatchedKeypoints.erase(sceMatchedKeypoints.begin() + i);
-						i--;
-					}
+					refMatchedKeypoints.erase(refMatchedKeypoints.begin() + i);
+					sceMatchedKeypoints.erase(sceMatchedKeypoints.begin() + i);
+					i--;
 				}
 			}
 
 			// refinement
-			if(refiner)
+			if(refiner && (int)refMatchedKeypoints.size() > MIN_FEATURE_POINTS_COUNT)
 			{
 				this->refiner->AttatchCalibration(this->estimator->GetCameraParameter());
 				this->refiner->AttatchReferencePoint(&refMatchedKeypoints);
