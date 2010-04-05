@@ -244,6 +244,7 @@ bool MultipleObjectTracking::UpdateCamerapose(IplImage* grayImage)
 
 					sceMatchedKeypoints[i].erase(sceMatchedKeypoints[i].begin() + index);
 					refMatchedKeypoints[i].erase(refMatchedKeypoints[i].begin() + index);
+					j--;
 				}
 				iter++;
 			}
@@ -275,7 +276,8 @@ bool MultipleObjectTracking::UpdateCamerapose(IplImage* grayImage)
 
 	// pose estimate
 	EnterCriticalSection(&MultipleOjbectThread::csKeypointsUpdate);
-	#pragma omp parallel for
+
+	#pragma omp parallel for schedule(dynamic, 15)
 	for(int i=0; i<this->objectCount; i++)
 	{
 		if((int)refMatchedKeypoints[i].size() > MIN_FEATURE_POINTS_COUNT)
@@ -312,44 +314,17 @@ bool MultipleObjectTracking::UpdateCamerapose(IplImage* grayImage)
 				this->refiner->AttatchScenePoint(&(sceMatchedKeypoints[i]));
 				this->refiner->Calculate();
 			}
+
 		}
 	}
+	
 	LeaveCriticalSection(&MultipleOjbectThread::csKeypointsUpdate);
 
 	cvCopyImage(grayImage, this->prevImage);
-
 	this->step++;
 	if(this->step >= this->detectionStep)
 		this->step = 0;
 	return true;
-}
-
-void MultipleObjectTracking::DrawOutLine(IplImage* colorImage, int objectID, bool drawCross)
-{
-	int size = 4;
-	CvScalar color = CV_RGB(255, 0, 255);
-	CvScalar color2 = CV_RGB(255, 255, 255);
-
-	windage::Calibration* calibration = this->cameraParameter[objectID];
-
-	cvLine(colorImage, calibration->ConvertWorld2Image(-this->width/2, -this->height/2, 0.0),	calibration->ConvertWorld2Image(+this->width/2, -this->height/2, 0.0),	color2, 6);
-	cvLine(colorImage, calibration->ConvertWorld2Image(+this->width/2, -this->height/2, 0.0),	calibration->ConvertWorld2Image(+this->width/2, +this->height/2, 0.0),	color2, 6);
-	cvLine(colorImage, calibration->ConvertWorld2Image(+this->width/2, +this->height/2, 0.0),	calibration->ConvertWorld2Image(-this->width/2, +this->height/2, 0.0),	color2, 6);
-	cvLine(colorImage, calibration->ConvertWorld2Image(-this->width/2, +this->height/2, 0.0),	calibration->ConvertWorld2Image(-this->width/2, -this->height/2, 0.0),	color2, 6);
-
-	cvLine(colorImage, calibration->ConvertWorld2Image(-this->width/2, -this->height/2, 0.0),	calibration->ConvertWorld2Image(+this->width/2, -this->height/2, 0.0),	color, 2);
-	cvLine(colorImage, calibration->ConvertWorld2Image(+this->width/2, -this->height/2, 0.0),	calibration->ConvertWorld2Image(+this->width/2, +this->height/2, 0.0),	color, 2);
-	cvLine(colorImage, calibration->ConvertWorld2Image(+this->width/2, +this->height/2, 0.0),	calibration->ConvertWorld2Image(-this->width/2, +this->height/2, 0.0),	color, 2);
-	cvLine(colorImage, calibration->ConvertWorld2Image(-this->width/2, +this->height/2, 0.0),	calibration->ConvertWorld2Image(-this->width/2, -this->height/2, 0.0),	color, 2);
-
-	if(drawCross)
-	{
-		cvLine(colorImage, calibration->ConvertWorld2Image(-this->width/2, -this->height/2, 0.0),	calibration->ConvertWorld2Image(+this->width/2, +this->height/2, 0.0),	color2, 6);
-		cvLine(colorImage, calibration->ConvertWorld2Image(-this->width/2, +this->height/2, 0.0),	calibration->ConvertWorld2Image(+this->width/2, -this->height/2, 0.0),	color2, 6);
-
-		cvLine(colorImage, calibration->ConvertWorld2Image(-this->width/2, -this->height/2, 0.0),	calibration->ConvertWorld2Image(+this->width/2, +this->height/2, 0.0),	color, 2);
-		cvLine(colorImage, calibration->ConvertWorld2Image(-this->width/2, +this->height/2, 0.0),	calibration->ConvertWorld2Image(+this->width/2, -this->height/2, 0.0),	color, 2);
-	}
 }
 
 void MultipleObjectTracking::DrawDebugInfo(IplImage* colorImage, int objectID)
@@ -361,30 +336,28 @@ void MultipleObjectTracking::DrawDebugInfo(IplImage* colorImage, int objectID)
 
 	double count = (double)this->objectCount - 1;
 
-	int size = 4;
+	int size = 2;
 	EnterCriticalSection(&MultipleOjbectThread::csKeypointsUpdate);
-	for(unsigned int j=0; j<refMatchedKeypoints.size(); j++)
+	int j = objectID;
+	if(count > 0)
 	{
-		if(count > 0)
-		{
-			r = cvRound((double)(count - j)/count * 255.0);
-			g = cvRound((double)(count - j)/count * 255.0);
-			b = cvRound((double)j/count * 255.0);
-		}
-		else
-		{
-			r = cvRound((double)255.0);
-			g = cvRound((double)255.0);
-			b = cvRound((double)255.0);
-		}
+		r = cvRound((double)(count - j)/count * 255.0);
+		g = cvRound((double)(count - j)/count * 255.0);
+		b = cvRound((double)j/count * 255.0);
+	}
+	else
+	{
+		r = cvRound((double)255.0);
+		g = cvRound((double)255.0);
+		b = cvRound((double)255.0);
+	}
 
-		for(unsigned int i=0; i<refMatchedKeypoints[j].size(); i++)
-		{
-			CvPoint imagePoint = cvPoint((int)sceMatchedKeypoints[j][i].GetPoint().x, (int)sceMatchedKeypoints[j][i].GetPoint().y);
+	for(unsigned int i=0; i<refMatchedKeypoints[j].size(); i++)
+	{
+		CvPoint imagePoint = cvPoint((int)sceMatchedKeypoints[j][i].GetPoint().x, (int)sceMatchedKeypoints[j][i].GetPoint().y);
 
-			cvCircle(colorImage, imagePoint, size+5, CV_RGB(0, 0, 0), CV_FILLED);
-			cvCircle(colorImage, imagePoint, size, CV_RGB(r, g, b), CV_FILLED);
-		}
+		cvCircle(colorImage, imagePoint, size+3, CV_RGB(0, 0, 0), CV_FILLED);
+		cvCircle(colorImage, imagePoint, size, CV_RGB(r, g, b), CV_FILLED);
 	}
 	LeaveCriticalSection(&MultipleOjbectThread::csKeypointsUpdate);
 }

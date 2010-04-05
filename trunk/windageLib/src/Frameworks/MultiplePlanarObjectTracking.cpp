@@ -209,6 +209,7 @@ bool MultiplePlanarObjectTracking::UpdateCamerapose(IplImage* grayImage)
 
 					sceMatchedKeypoints[i].erase(sceMatchedKeypoints[i].begin() + index);
 					refMatchedKeypoints[i].erase(refMatchedKeypoints[i].begin() + index);
+					j--;
 				}
 				iter++;
 			}

@@ -159,6 +159,7 @@ void main()
 				if(matchedCount > 9)
 				{
 					tracking.DrawDebugInfo(resultImage, i);
+					
 					windage::Calibration* cameraParam = tracking.GetCameraParameter(i);
 					cameraParam->DrawInfomation(resultImage, 50);
 
