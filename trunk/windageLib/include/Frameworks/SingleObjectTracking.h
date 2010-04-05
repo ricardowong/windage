@@ -94,7 +94,6 @@ namespace windage
 			windage::Algorithms::PoseEstimator* estimator;			///< It is required elements that homography estimation algorithm to attatch reference pointer at out-side
 
 			windage::Algorithms::OpticalFlow* tracker;				///< It is optional elements that feature tracking algorithm to attatch reference pointer at out-side
-			windage::Algorithms::OutlierChecker* checker;			///< It is optional elements that outlier checker algorithm to attatch reference pointer at out-side
 			windage::Algorithms::PoseRefiner* refiner;				///< It is optional elements that homography refinement algorithm to attatch reference pointer at out-side
 			windage::Algorithms::KalmanFilter* filter;				///< It is optional elements that kalman filter algorithm to attatch reference pointer at out-side
 			int filterStep;
@@ -128,7 +127,6 @@ namespace windage
 				matcher = NULL;
 				estimator = NULL;
 				tracker = NULL;
-				checker = NULL;
 				refiner = NULL;
 				filter = NULL;
 
@@ -206,18 +204,6 @@ namespace windage
 			inline void AttatchTracker(windage::Algorithms::OpticalFlow* tracker){this->tracker = tracker;};
 
 			/**
-			 * @fn	AttatchChecker
-			 * @brief
-			 *		attatch outlier checke algorithm to member pointer from out-side
-			 * @remark
-			 *		outlier checke algorithm is to be initialized at out-side
-			 * @warning
-			 *		It is optional elements
-			 *		outlier checke algorithm is not create in-side at this class so do not release this pointer
-			 */
-			inline void AttatchChecker(windage::Algorithms::OutlierChecker* checker){this->checker = checker;};
-
-			/**
 			 * @fn	AttatchRefiner
 			 * @brief
 			 *		attatch homography refinement algorithm to member pointer from out-side
@@ -245,7 +231,6 @@ namespace windage
 			inline windage::Algorithms::SearchTree* GetMatcher(){return this->matcher;};
 			inline windage::Algorithms::OpticalFlow* GetTracker(){return this->tracker;};
 			inline windage::Algorithms::PoseEstimator* GetEstimator(){return this->estimator;};
-			inline windage::Algorithms::OutlierChecker* GetChecker(){return this->checker;};
 			inline windage::Algorithms::PoseRefiner* GetRefiner(){return this->refiner;};
 
 			/**
