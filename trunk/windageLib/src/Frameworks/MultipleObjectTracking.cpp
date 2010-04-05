@@ -190,6 +190,12 @@ bool MultipleObjectTracking::TrainingReference(std::vector<windage::FeaturePoint
 															this->initialCamearParameter->GetParameters()[6],
 															this->initialCamearParameter->GetParameters()[7]);
 
+	this->estimatorList.resize(this->objectCount+1);
+	this->estimatorList[this->objectCount] = new PoseEstimationT();
+	this->estimatorList[this->objectCount]->SetReprojectionError(this->estimator->GetReprojectionError());
+	this->estimatorList[this->objectCount]->SetConfidence(((PoseEstimationT*)this->estimator)->GetConfidence());
+	this->estimatorList[this->objectCount]->SetMaxIteration(((PoseEstimationT*)this->estimator)->GetMaxIteration());
+
 	this->objectCount++;
 	this->detectionStep = this->objectCount * this->detectionRatio;
 	this->trained = true;
@@ -266,16 +272,21 @@ bool MultipleObjectTracking::UpdateCamerapose(IplImage* grayImage)
 
 	// pose estimate
 	EnterCriticalSection(&MultipleOjbectThread::csKeypointsUpdate);
-//	#pragma omp parallel for
+	#pragma omp parallel for
 	for(int i=0; i<this->objectCount; i++)
 	{
 		if((int)refMatchedKeypoints[i].size() > MIN_FEATURE_POINTS_COUNT)
 		{
-
+/*
 			this->estimator->AttatchCameraParameter(this->cameraParameter[i]);
 			this->estimator->AttatchReferencePoint(&(refMatchedKeypoints[i]));
 			this->estimator->AttatchScenePoint(&(sceMatchedKeypoints[i]));
 			this->estimator->Calculate();
+//*/
+			this->estimatorList[i]->AttatchCameraParameter(this->cameraParameter[i]);
+			this->estimatorList[i]->AttatchReferencePoint(&(refMatchedKeypoints[i]));
+			this->estimatorList[i]->AttatchScenePoint(&(sceMatchedKeypoints[i]));
+			this->estimatorList[i]->Calculate();
 
 			// outlier rejection
 			for(int j=0; j<(int)refMatchedKeypoints[i].size(); j++)
