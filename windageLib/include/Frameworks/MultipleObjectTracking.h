@@ -69,7 +69,7 @@
 
 /** pre-selected search tree algorithm whenever can change other search tree algorithm  */
 #define SearchTreeT windage::Algorithms::FLANNtree
-#define SEARCH_TREE_RATIO 0.5
+#define SEARCH_TREE_RATIO 0.3
 
 namespace windage
 {
@@ -90,7 +90,7 @@ namespace windage
 		class DLLEXPORT MultipleObjectTracking
 		{
 		protected:
-			static const int MIN_FEATURE_POINTS_COUNT = 10;			///< threshold to determin whether tracked or not
+			static const int MIN_FEATURE_POINTS_COUNT = 15;			///< threshold to determin whether tracked or not
 
 			windage::Calibration* initialCamearParameter;			///< It is required elements that camera calibration parameter to attatch reference pointer at out-side
 			windage::Algorithms::FeatureDetector* detector;			///< It is required elements that feature detection algorithm to attatch reference pointer at out-side

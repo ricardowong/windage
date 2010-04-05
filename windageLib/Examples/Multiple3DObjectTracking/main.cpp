@@ -47,7 +47,7 @@
 const int WIDTH = 640;
 const int HEIGHT = (WIDTH * 3) / 4;
 
-const double REPROJECTION_ERROR = 5.0;
+const double REPROJECTION_ERROR = 3.0;
 const double INTRINSIC[] = {1033.93, 1033.84, 319.044, 228.858,-0.206477, 0.306424, 0.000728208, 0.0011338};
 
 const int OBJECT_COUNT = 2;
@@ -69,16 +69,11 @@ void main()
 
 	// create and initialize tracker
 	windage::Frameworks::MultipleObjectTracking tracking;
-	windage::Calibration* calibration;
-	windage::Algorithms::OpticalFlow* opticalflow;
-	windage::Algorithms::EPnPRANSACestimator* estimator;
-	windage::Algorithms::PoseRefiner* refiner;
+	windage::Calibration* calibration					= new windage::Calibration();
+	windage::Algorithms::OpticalFlow* opticalflow		= new windage::Algorithms::OpticalFlow();
+	windage::Algorithms::EPnPRANSACestimator* estimator	= new windage::Algorithms::EPnPRANSACestimator();
+	windage::Algorithms::PoseRefiner* refiner			= new windage::Algorithms::PoseLMmethod();
 	
-	calibration = new windage::Calibration();
-	opticalflow = new windage::Algorithms::OpticalFlow();
-	estimator = new windage::Algorithms::EPnPRANSACestimator();
-	refiner = new windage::Algorithms::PoseLMmethod();
-
 	calibration->Initialize(INTRINSIC[0], INTRINSIC[1], INTRINSIC[2], INTRINSIC[3], INTRINSIC[4], INTRINSIC[5], INTRINSIC[6], INTRINSIC[7]);
 	opticalflow->Initialize(WIDTH, HEIGHT, cvSize(15, 15), 3);
 	estimator->SetReprojectionError(REPROJECTION_ERROR);
@@ -113,6 +108,7 @@ void main()
 
 	for(int i=0; i<OBJECT_COUNT; i++)
 	{
+		referenceRepository.clear();
 		reconstructionPoints.clear();
 		loader->DoLoad(FILE_NAME[i]);
 
@@ -153,18 +149,25 @@ void main()
 		if(trained)
 		{
 			tracking.UpdateCamerapose(grayImage);
+			matchingCount = 0;
 
 			// draw result
 			for(int i=0; i<tracking.GetObjectCount(); i++)
 			{
-				if(tracking.GetMatchingCount(i) > 9)
+				matchingCount += tracking.GetMatchingCount(i);
+				int matchedCount = tracking.GetMatchingCount(i);
+				if(matchedCount > 9)
 				{
-//					tracking.DrawOutLine(resultImage, true);
-					
-					// draw rectangle
-//					DrawRectangle(resultImage, calibration, 80, 15, 35);
 					tracking.DrawDebugInfo(resultImage, i);
-					tracking.GetCameraParameter(i)->DrawInfomation(resultImage, 50);
+					windage::Calibration* cameraParam = tracking.GetCameraParameter(i);
+					cameraParam->DrawInfomation(resultImage, 50);
+
+					CvPoint point = cameraParam->ConvertWorld2Image(0.0, 0.0, 0.0);
+					point.x += 5;
+					point.y += 10;
+					sprintf_s(message, "object #%d (%03d)", i+1, matchedCount);
+
+					windage::Utils::DrawTextToImage(resultImage, point, 0.6, message);
 				}
 			}
 		}
