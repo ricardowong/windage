@@ -42,7 +42,7 @@
  * @author	Woonhyuk Baek
  * @version 1.0
  * @date	2010.02.04
- * @brief	It is framework class for single planar object tracker
+ * @brief	It is framework class for single 3d object tracker
  */
 
 #ifndef _SINGLE_OBJECT_TRACKING_H_

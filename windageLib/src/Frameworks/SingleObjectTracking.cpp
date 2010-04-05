@@ -45,74 +45,77 @@ using namespace windage::Frameworks;
 #include <highgui.h>
 #include <windows.h>
 #include <process.h>
-IplImage* globalGrayImage = NULL;
-IplImage* globalCurrentGrayImage = NULL;
-CRITICAL_SECTION criticalSection;
-CRITICAL_SECTION criticalSectionImage;
-
-unsigned int WINAPI FeatureDetectionThread(void* pArg)
+namespace SingleOjbectThread
 {
-	SingleObjectTracking* thisClass = (SingleObjectTracking*)pArg;
-	windage::Algorithms::SIFTGPUdetector* detector = new windage::Algorithms::SIFTGPUdetector();
-	windage::Algorithms::OpticalFlow* tracker = new windage::Algorithms::OpticalFlow(50);
-	tracker->Initialize(thisClass->GetSize().width, thisClass->GetSize().height, cvSize(15, 15), 3);
+	IplImage* globalGrayImage = NULL;
+	IplImage* globalCurrentGrayImage = NULL;
+	CRITICAL_SECTION csKeypointsUpdate;
+	CRITICAL_SECTION csImageUpdate;
 
-	cvGetTickCount();
-
-	while(thisClass->processThread)
+	unsigned int WINAPI FeatureDetectionThread(void* pArg)
 	{
-		if(thisClass->update)
+		SingleObjectTracking* thisClass = (SingleObjectTracking*)pArg;
+		windage::Algorithms::SIFTGPUdetector* detector = new windage::Algorithms::SIFTGPUdetector();
+		windage::Algorithms::OpticalFlow* tracker = new windage::Algorithms::OpticalFlow(50);
+		tracker->Initialize(thisClass->GetSize().width, thisClass->GetSize().height, cvSize(15, 15), 3);
+
+		cvGetTickCount();
+
+		while(thisClass->processThread)
 		{
-			// detect feature
-			detector->DoExtractKeypointsDescriptor(globalGrayImage);
-			std::vector<windage::FeaturePoint> refMatchedKeypoints;
-			std::vector<windage::FeaturePoint> sceMatchedKeypoints;
-			std::vector<windage::FeaturePoint>* sceneKeypoints = detector->GetKeypoints();
-
-			for(unsigned int i=0; i<sceneKeypoints->size(); i++)
+			if(thisClass->update)
 			{
-				int count = 0;
-				int index = thisClass->GetMatcher()->Matching((*sceneKeypoints)[i]);
-				if(0 <= index && index < (int)thisClass->referenceRepository.size())
+				// detect feature
+				detector->DoExtractKeypointsDescriptor(SingleOjbectThread::globalGrayImage);
+				std::vector<windage::FeaturePoint> refMatchedKeypoints;
+				std::vector<windage::FeaturePoint> sceMatchedKeypoints;
+				std::vector<windage::FeaturePoint>* sceneKeypoints = detector->GetKeypoints();
+
+				for(unsigned int i=0; i<sceneKeypoints->size(); i++)
 				{
-					(*sceneKeypoints)[i].SetRepositoryID(index);
-
-					refMatchedKeypoints.push_back(thisClass->referenceRepository[index]);
-					sceMatchedKeypoints.push_back((*sceneKeypoints)[i]);
-				}
-			}
-
-			// track feature
-			std::vector<windage::FeaturePoint> sceneUpdatedKeypoints;
-			EnterCriticalSection(&criticalSectionImage);
-			tracker->TrackFeatures(globalGrayImage, globalCurrentGrayImage, &sceMatchedKeypoints, &sceneUpdatedKeypoints);
-			LeaveCriticalSection(&criticalSectionImage);
-
-			for(unsigned int i=0; i<sceneUpdatedKeypoints.size(); i++)
-			{
-				// if not tracked have point
-				int index = sceneUpdatedKeypoints[i].GetRepositoryID();
-				if(sceneUpdatedKeypoints[i].IsOutlier() == false && thisClass->referenceRepository[index].IsTracked() == false)
-				{
-					EnterCriticalSection(&criticalSection);
+					int count = 0;
+					int index = thisClass->GetMatcher()->Matching((*sceneKeypoints)[i]);
+					if(0 <= index && index < (int)thisClass->referenceRepository.size())
 					{
-						thisClass->referenceRepository[index].SetTracked(true);
+						(*sceneKeypoints)[i].SetRepositoryID(index);
 
-						thisClass->refMatchedKeypoints.push_back(thisClass->referenceRepository[index]);
-						thisClass->sceMatchedKeypoints.push_back((sceneUpdatedKeypoints)[i]);
+						refMatchedKeypoints.push_back(thisClass->referenceRepository[index]);
+						sceMatchedKeypoints.push_back((*sceneKeypoints)[i]);
 					}
-					LeaveCriticalSection(&criticalSection);
 				}
+
+				// track feature
+				std::vector<windage::FeaturePoint> sceneUpdatedKeypoints;
+				EnterCriticalSection(&SingleOjbectThread::csImageUpdate);
+				tracker->TrackFeatures(SingleOjbectThread::globalGrayImage, SingleOjbectThread::globalCurrentGrayImage, &sceMatchedKeypoints, &sceneUpdatedKeypoints);
+				LeaveCriticalSection(&SingleOjbectThread::csImageUpdate);
+
+				for(unsigned int i=0; i<sceneUpdatedKeypoints.size(); i++)
+				{
+					// if not tracked have point
+					int index = sceneUpdatedKeypoints[i].GetRepositoryID();
+					if(sceneUpdatedKeypoints[i].IsOutlier() == false && thisClass->referenceRepository[index].IsTracked() == false)
+					{
+						EnterCriticalSection(&SingleOjbectThread::csKeypointsUpdate);
+						{
+							thisClass->referenceRepository[index].SetTracked(true);
+
+							thisClass->refMatchedKeypoints.push_back(thisClass->referenceRepository[index]);
+							thisClass->sceMatchedKeypoints.push_back((sceneUpdatedKeypoints)[i]);
+						}
+						LeaveCriticalSection(&SingleOjbectThread::csKeypointsUpdate);
+					}
+				}
+
+				thisClass->update = false;
 			}
-
-			thisClass->update = false;
 		}
+
+		delete detector;
+		delete tracker;
+
+		return 0;
 	}
-
-	delete detector;
-	delete tracker;
-
-	return 0;
 }
 
 bool SingleObjectTracking::Initialize(int width, int height, bool printInfo)
@@ -149,9 +152,9 @@ bool SingleObjectTracking::Initialize(int width, int height, bool printInfo)
 	}
 
 	// create detection thread
-	InitializeCriticalSection(&criticalSection);
-	InitializeCriticalSection(&criticalSectionImage);
-	_beginthreadex(NULL, 0, FeatureDetectionThread, (void*)this, 0, NULL);
+	InitializeCriticalSection(&SingleOjbectThread::csKeypointsUpdate);
+	InitializeCriticalSection(&SingleOjbectThread::csImageUpdate);
+	_beginthreadex(NULL, 0, SingleOjbectThread::FeatureDetectionThread, (void*)this, 0, NULL);
 
 	this->estimator->AttatchCameraParameter(this->cameraParameter);
 	this->initialize = true;
@@ -179,7 +182,7 @@ bool SingleObjectTracking::UpdateCamerapose(IplImage* grayImage)
 		return false;
 
 	// featur tracking routine
-	EnterCriticalSection(&criticalSection);
+	EnterCriticalSection(&SingleOjbectThread::csKeypointsUpdate);
 	{
 		std::vector<windage::FeaturePoint> sceneKeypoints;
 		this->tracker->TrackFeatures(prevImage, grayImage, &sceMatchedKeypoints, &sceneKeypoints);
@@ -201,26 +204,26 @@ bool SingleObjectTracking::UpdateCamerapose(IplImage* grayImage)
 			}
 		}
 	}
-	LeaveCriticalSection(&criticalSection);
+	LeaveCriticalSection(&SingleOjbectThread::csKeypointsUpdate);
 
-	EnterCriticalSection(&criticalSectionImage);
-	if(globalCurrentGrayImage)	cvCopyImage(grayImage, globalCurrentGrayImage);
-	else						globalCurrentGrayImage = cvCloneImage(grayImage);
-	LeaveCriticalSection(&criticalSectionImage);
+	EnterCriticalSection(&SingleOjbectThread::csImageUpdate);
+	if(SingleOjbectThread::globalCurrentGrayImage)	cvCopyImage(grayImage, SingleOjbectThread::globalCurrentGrayImage);
+	else						SingleOjbectThread::globalCurrentGrayImage = cvCloneImage(grayImage);
+	LeaveCriticalSection(&SingleOjbectThread::csImageUpdate);
 
 	if(this->step > this->detectionRatio || this->detectionRatio < 1) // detection routine (add new points)
 	{
 		step = 0;
 
-		if(globalGrayImage) cvCopyImage(grayImage, globalGrayImage);
-		else				globalGrayImage = cvCloneImage(grayImage);
+		if(SingleOjbectThread::globalGrayImage) cvCopyImage(grayImage, SingleOjbectThread::globalGrayImage);
+		else				SingleOjbectThread::globalGrayImage = cvCloneImage(grayImage);
 		this->update = true;
 	}
 
 
 	if((int)refMatchedKeypoints.size() > MIN_FEATURE_POINTS_COUNT)
 	{
-		EnterCriticalSection(&criticalSection);
+		EnterCriticalSection(&SingleOjbectThread::csKeypointsUpdate);
 		{
 			// pose estimate
 			this->estimator->AttatchReferencePoint(&refMatchedKeypoints);
@@ -249,7 +252,7 @@ bool SingleObjectTracking::UpdateCamerapose(IplImage* grayImage)
 				this->refiner->Calculate();
 			}
 		}
-		LeaveCriticalSection(&criticalSection);
+		LeaveCriticalSection(&SingleOjbectThread::csKeypointsUpdate);
 
 		// filtering
 		if(filter)
@@ -313,7 +316,7 @@ void SingleObjectTracking::DrawDebugInfo(IplImage* colorImage)
 
 	int size = 4;
 
-	EnterCriticalSection(&criticalSection);
+	EnterCriticalSection(&SingleOjbectThread::csKeypointsUpdate);
 	for(unsigned int i=0; i<refMatchedKeypoints.size(); i++)
 	{
 		CvPoint imagePoint = cvPoint((int)sceMatchedKeypoints[i].GetPoint().x, (int)sceMatchedKeypoints[i].GetPoint().y);
@@ -321,5 +324,5 @@ void SingleObjectTracking::DrawDebugInfo(IplImage* colorImage)
 		cvCircle(colorImage, imagePoint, size+5, CV_RGB(0, 0, 0), CV_FILLED);
 		cvCircle(colorImage, imagePoint, size, CV_RGB(255, 255, 0), CV_FILLED);
 	}
-	LeaveCriticalSection(&criticalSection);
+	LeaveCriticalSection(&SingleOjbectThread::csKeypointsUpdate);
 }

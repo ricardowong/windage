@@ -107,6 +107,7 @@
 #include "Frameworks/PlanarObjectTracking.h"
 #include "Frameworks/MultiplePlanarObjectTracking.h"
 #include "Frameworks/SingleObjectTracking.h"
+#include "Frameworks/MultipleObjectTracking.h"
 
 // Coordinator
 #include "Coordinator/RotationConverter.h"
