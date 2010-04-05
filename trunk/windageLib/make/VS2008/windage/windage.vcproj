@@ -513,6 +513,14 @@
 			Name="Frameworks"
 			>
 			<File
+				RelativePath="..\..\..\src\Frameworks\MultipleObjectTracking.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\include\Frameworks\MultipleObjectTracking.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\src\Frameworks\MultiplePlanarObjectTracking.cpp"
 				>
 			</File>
