@@ -99,14 +99,14 @@ void main()
 
 	// create and initialize tracker
 	windage::Frameworks::SingleObjectTracking tracking;
-	windage::Calibration* calibration;
-	windage::Algorithms::SearchTree* searchtree;
-	windage::Algorithms::OpticalFlow* opticalflow;
-	windage::Algorithms::EPnPRANSACestimator* estimator;
-	windage::Algorithms::PoseRefiner* refiner;
+	windage::Calibration* calibration					= new windage::Calibration();
+	windage::Algorithms::SearchTree* searchtree			= new windage::Algorithms::FLANNtree(30);
+	windage::Algorithms::OpticalFlow* opticalflow		= new windage::Algorithms::OpticalFlow();
+	windage::Algorithms::EPnPRANSACestimator* estimator	= new windage::Algorithms::EPnPRANSACestimator();
+	windage::Algorithms::PoseRefiner* refiner			= new windage::Algorithms::PoseLMmethod();
 	
 	calibration = new windage::Calibration();
-	searchtree = new windage::Algorithms::FLANNtree(30);
+	
 	opticalflow = new windage::Algorithms::OpticalFlow();
 	estimator = new windage::Algorithms::EPnPRANSACestimator();
 	refiner = new windage::Algorithms::PoseLMmethod();

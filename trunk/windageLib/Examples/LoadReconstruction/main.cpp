@@ -65,8 +65,6 @@ void main()
 
 	int selectedCamera = -1;
 
-	windage::Logger* logging;
-
 	// load data
 	std::cout << "load reconstruction datas" << std::endl;
 	std::cout << std::endl;

@@ -266,11 +266,12 @@ bool MultipleObjectTracking::UpdateCamerapose(IplImage* grayImage)
 
 	// pose estimate
 	EnterCriticalSection(&MultipleOjbectThread::csKeypointsUpdate);
-	#pragma omp parallel for
+//	#pragma omp parallel for
 	for(int i=0; i<this->objectCount; i++)
 	{
 		if((int)refMatchedKeypoints[i].size() > MIN_FEATURE_POINTS_COUNT)
 		{
+
 			this->estimator->AttatchCameraParameter(this->cameraParameter[i]);
 			this->estimator->AttatchReferencePoint(&(refMatchedKeypoints[i]));
 			this->estimator->AttatchScenePoint(&(sceMatchedKeypoints[i]));
@@ -344,15 +345,24 @@ void MultipleObjectTracking::DrawDebugInfo(IplImage* colorImage, int objectID)
 	int g = 0;
 	int b = 0;
 
-	double count = (double)this->objectCount;
+	double count = (double)this->objectCount - 1;
 
 	int size = 4;
 	EnterCriticalSection(&MultipleOjbectThread::csKeypointsUpdate);
 	for(unsigned int j=0; j<refMatchedKeypoints.size(); j++)
 	{
-		r = cvRound((double)(count - j)/count * 255.0);
-		g = cvRound((double)(count - j)/count * 255.0);
-		b = cvRound((double)j/count * 255.0);
+		if(count > 0)
+		{
+			r = cvRound((double)(count - j)/count * 255.0);
+			g = cvRound((double)(count - j)/count * 255.0);
+			b = cvRound((double)j/count * 255.0);
+		}
+		else
+		{
+			r = cvRound((double)255.0);
+			g = cvRound((double)255.0);
+			b = cvRound((double)255.0);
+		}
 
 		for(unsigned int i=0; i<refMatchedKeypoints[j].size(); i++)
 		{
