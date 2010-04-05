@@ -51,8 +51,8 @@ const int WIDTH = 640;
 const int HEIGHT = (WIDTH * 3) / 4;
 const int FEATURE_COUNT = WIDTH;
 
-const double SCALE_FACTOR = 4.0;
-const int SCALE_STEP = 4;
+const double SCALE_FACTOR = 1.0;
+const int SCALE_STEP = 1;
 const double REPROJECTION_ERROR = 5.0;
 
 #define USE_ADAPTIVE_THRESHOLD 1
@@ -75,7 +75,7 @@ windage::Frameworks::PlanarObjectTracking* CreateTracker()
 
 	calibration->Initialize(INTRINSIC[0], INTRINSIC[1], INTRINSIC[2], INTRINSIC[3], INTRINSIC[4], INTRINSIC[5], INTRINSIC[6], INTRINSIC[7]);
 	detector->SetThreshold(30.0);
-	searchtree->SetRatio(0.7);
+	searchtree->SetRatio(0.5);
 	opticalflow->Initialize(WIDTH, HEIGHT, cvSize(15, 15), 3);
 	estimator->SetReprojectionError(REPROJECTION_ERROR);
 	checker->SetReprojectionError(REPROJECTION_ERROR);

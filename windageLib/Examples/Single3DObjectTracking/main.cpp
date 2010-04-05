@@ -50,8 +50,8 @@ const int HEIGHT = (WIDTH * 3) / 4;
 const double REPROJECTION_ERROR = 5.0;
 const double INTRINSIC[] = {1033.93, 1033.84, 319.044, 228.858,-0.206477, 0.306424, 0.000728208, 0.0011338};
 
-const char* FILE_NAME = "data/reconstruction-2010-03-29_18_28_38/reconstruction.txt";
-//const char* FILE_NAME = "data/reconstruction-2010-03-29_09_33_01/reconstruction.txt";
+//const char* FILE_NAME = "data/reconstruction-2010-03-29_18_28_38/reconstruction.txt";
+const char* FILE_NAME = "data/reconstruction-2010-03-29_09_33_01/reconstruction.txt";
 
 void DrawRectangle(IplImage* image, windage::Calibration* calibration, double dx, double dy, double dz)
 {
@@ -106,7 +106,7 @@ void main()
 	windage::Algorithms::PoseRefiner* refiner;
 	
 	calibration = new windage::Calibration();
-	searchtree = new windage::Algorithms::FLANNtree();
+	searchtree = new windage::Algorithms::FLANNtree(30);
 	opticalflow = new windage::Algorithms::OpticalFlow();
 	estimator = new windage::Algorithms::EPnPRANSACestimator();
 	refiner = new windage::Algorithms::PoseLMmethod();
@@ -125,7 +125,7 @@ void main()
 	tracking.AttatchEstimator(estimator);
 	tracking.AttatchRefiner(refiner);
 
-	tracking.SetDitectionRatio(10);
+	tracking.SetDitectionRatio(5);
 	tracking.Initialize(WIDTH, HEIGHT);
 
 	int keypointCount = 0;
@@ -148,7 +148,8 @@ void main()
 
 	for(unsigned int i=0; i<reconstructionPoints.size(); i++)
 	{
-		windage::FeaturePoint feature = reconstructionPoints[i].GetFeature(0);
+		int index = cvRound((double)reconstructionPoints[i].GetFeatureList()->size() / 2.0);
+		windage::FeaturePoint feature = reconstructionPoints[i].GetFeature(index);
 		windage::Vector4 point = reconstructionPoints[i].GetPoint();
 		feature.SetPoint(windage::Vector3(point.x, point.y, point.z));
 		feature.SetObjectID(0);
