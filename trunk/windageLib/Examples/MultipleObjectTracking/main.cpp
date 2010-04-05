@@ -48,11 +48,11 @@ const int WIDTH = 640;
 const int HEIGHT = (WIDTH * 3) / 4;
 const double INTRINSIC[] = {1033.93, 1033.84, 319.044, 228.858,-0.206477, 0.306424, 0.000728208, 0.0011338};
 
-#define ADAPTIVE_THRESHOLD 0
-const int FEATURE_COUNT = WIDTH * 2;
+#define ADAPTIVE_THRESHOLD 1
+const int FEATURE_COUNT = WIDTH;
 
-const double SCALE_FACTOR = 1.0;
-const int SCALE_STEP = 1;
+const double SCALE_FACTOR = 3.0;
+const int SCALE_STEP = 6;
 const double REPROJECTION_ERROR = 5.0;
 
 #define USE_TEMPLATE_IMAEG 1
@@ -82,7 +82,7 @@ void main()
 	windage::Algorithms::HomographyRefiner* refiner;
 
 	calibration = new windage::Calibration();
-	detector = new windage::Algorithms::SIFTGPUdetector();
+	detector = new windage::Algorithms::WSURFdetector();
 	opticalflow = new windage::Algorithms::OpticalFlow();
 	estimator = new windage::Algorithms::ProSACestimator();
 	checker = new windage::Algorithms::OutlierChecker();
@@ -148,7 +148,7 @@ void main()
 		if(trained)
 		{
 			tracking.UpdateCamerapose(grayImage);
-			tracking.GetDetector()->DrawKeypoints(resultImage);
+//			tracking.GetDetector()->DrawKeypoints(resultImage);
 
 			// adaptive threshold
 #if ADAPTIVE_THRESHOLD
