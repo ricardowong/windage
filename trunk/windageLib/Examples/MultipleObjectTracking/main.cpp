@@ -51,11 +51,11 @@ const double INTRINSIC[] = {1033.93, 1033.84, 319.044, 228.858,-0.206477, 0.3064
 #define ADAPTIVE_THRESHOLD 1
 const int FEATURE_COUNT = WIDTH;
 
-const double SCALE_FACTOR = 3.0;
-const int SCALE_STEP = 6;
+const double SCALE_FACTOR = 1.0;
+const int SCALE_STEP = 1;
 const double REPROJECTION_ERROR = 5.0;
 
-#define USE_TEMPLATE_IMAEG 1
+#define USE_TEMPLATE_IMAEG 0
 const char* TEMPLATE_IMAGE = "reference%d_320.png";
 const int TEMPLATE_IMAGE_COUNT = 2;
 void main()
@@ -82,7 +82,7 @@ void main()
 	windage::Algorithms::HomographyRefiner* refiner;
 
 	calibration = new windage::Calibration();
-	detector = new windage::Algorithms::WSURFdetector();
+	detector = new windage::Algorithms::SIFTGPUdetector();
 	opticalflow = new windage::Algorithms::OpticalFlow();
 	estimator = new windage::Algorithms::ProSACestimator();
 	checker = new windage::Algorithms::OutlierChecker();

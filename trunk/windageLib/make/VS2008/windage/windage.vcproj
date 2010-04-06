@@ -523,6 +523,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\src\Frameworks\MultiplePlanarObjectThreadTracking.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\include\Frameworks\MultiplePlanarObjectThreadTracking.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\src\Frameworks\MultiplePlanarObjectTracking.cpp"
 				>
 			</File>

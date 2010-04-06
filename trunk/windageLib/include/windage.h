@@ -108,6 +108,7 @@
 // Frameworks
 #include "Frameworks/PlanarObjectTracking.h"
 #include "Frameworks/MultiplePlanarObjectTracking.h"
+#include "Frameworks/MultiplePlanarObjectThreadTracking.h"
 #include "Frameworks/SingleObjectTracking.h"
 #include "Frameworks/MultipleObjectTracking.h"
 

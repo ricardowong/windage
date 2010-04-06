@@ -88,7 +88,7 @@ namespace windage
 
 		public:
 			virtual char* GetFunctionName(){return "SIFTGPUdetector";};
-			SIFTGPUdetector(int numberOfPyramid = 1) : FeatureDetector()
+			SIFTGPUdetector(int numberOfPyramid = 3) : FeatureDetector()
 			{
 				sift = NULL;
 				sift = CreateNewSiftGPU(numberOfPyramid);
