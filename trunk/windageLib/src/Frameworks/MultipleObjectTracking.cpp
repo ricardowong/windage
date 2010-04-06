@@ -335,8 +335,7 @@ void MultipleObjectTracking::DrawDebugInfo(IplImage* colorImage, int objectID)
 	int b = 0;
 
 	double count = (double)this->objectCount - 1;
-
-	int size = 2;
+	
 	EnterCriticalSection(&MultipleOjbectThread::csKeypointsUpdate);
 	int j = objectID;
 	if(count > 0)
@@ -352,11 +351,13 @@ void MultipleObjectTracking::DrawDebugInfo(IplImage* colorImage, int objectID)
 		b = cvRound((double)255.0);
 	}
 
+//	int size = 3;
 	for(unsigned int i=0; i<refMatchedKeypoints[j].size(); i++)
 	{
 		CvPoint imagePoint = cvPoint((int)sceMatchedKeypoints[j][i].GetPoint().x, (int)sceMatchedKeypoints[j][i].GetPoint().y);
+		int size = sceMatchedKeypoints[j][i].GetSize();
 
-		cvCircle(colorImage, imagePoint, size+3, CV_RGB(0, 0, 0), CV_FILLED);
+		cvCircle(colorImage, imagePoint, size+2, CV_RGB(0, 0, 0), CV_FILLED);
 		cvCircle(colorImage, imagePoint, size, CV_RGB(r, g, b), CV_FILLED);
 	}
 	LeaveCriticalSection(&MultipleOjbectThread::csKeypointsUpdate);

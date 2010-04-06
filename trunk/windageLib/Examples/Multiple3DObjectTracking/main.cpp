@@ -86,7 +86,7 @@ void main()
 	tracking.AttatchEstimator(estimator);
 	tracking.AttatchRefiner(refiner);
 
-	tracking.SetDitectionRatio(5);
+	tracking.SetDitectionRatio(3);
 	tracking.Initialize(WIDTH, HEIGHT);
 
 	int keypointCount = 0;
