@@ -79,7 +79,7 @@ void main()
 	opticalflow->Initialize(WIDTH, HEIGHT, cvSize(15, 15), 3);
 	estimator->SetReprojectionError(REPROJECTION_ERROR);
 	estimator->SetConfidence(0.95);
-	estimator->SetMaxIteration(500);
+	estimator->SetMaxIteration(50);
 	refiner->SetMaxIteration(5);
 
 	tracking.AttatchCalibration(calibration);
@@ -134,7 +134,14 @@ void main()
 	baseLoader->AttatchFeaturePoints(&baseFeaturePoints);
 	baseLoader->DoLoad(BASE_FEATURE_NAME);
 
-//	tracking.TrainingReference(&baseFeaturePoints);
+	for(unsigned int i=0; i<baseFeaturePoints.size(); i++)
+	{
+		windage::Vector3 pt = baseFeaturePoints[i].GetPoint();
+		pt /= pt.z;
+		pt.z = 0.0;
+		baseFeaturePoints[i].SetPoint(pt);
+	}
+	tracking.TrainingReference(&baseFeaturePoints);
 	
 	trained = true;
 

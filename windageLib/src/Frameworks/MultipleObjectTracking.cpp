@@ -288,6 +288,7 @@ bool MultipleObjectTracking::UpdateCamerapose(IplImage* grayImage)
 			this->estimator->AttatchScenePoint(&(sceMatchedKeypoints[i]));
 			this->estimator->Calculate();
 //*/
+//*
 			this->estimatorList[i]->AttatchCameraParameter(this->cameraParameter[i]);
 			this->estimatorList[i]->AttatchReferencePoint(&(refMatchedKeypoints[i]));
 			this->estimatorList[i]->AttatchScenePoint(&(sceMatchedKeypoints[i]));
@@ -317,7 +318,7 @@ bool MultipleObjectTracking::UpdateCamerapose(IplImage* grayImage)
 					this->refiner->Calculate();
 				}
 			}
-
+//*/
 		}
 	}
 	
@@ -338,8 +339,6 @@ void MultipleObjectTracking::DrawDebugInfo(IplImage* colorImage, int objectID)
 	int b = 0;
 
 	double count = (double)this->objectCount - 1;
-	
-	
 	int j = objectID;
 	if(count > 0)
 	{
