@@ -387,19 +387,29 @@ void MultiplePlanarObjectThreadTracking::DrawDebugInfo(IplImage* colorImage, int
 	int g = 0;
 	int b = 0;
 
-	EnterCriticalSection(&MultiplePlanarObjectThread::csKeypointsUpdate);
-	for(unsigned int i=0; i<refMatchedKeypoints[objectID].size(); i++)
+	double count = (double)this->objectCount - 1;
+	int j = objectID;
+	if(count > 0)
 	{
-		CvPoint referencePoint = cvPoint((int)(refMatchedKeypoints[objectID][i].GetPoint().x * colorImage->width/realWidth + colorImage->width/2),
-									(int)(colorImage->height - refMatchedKeypoints[objectID][i].GetPoint().y * colorImage->height/realHeight - colorImage->height/2));
-		CvPoint imagePoint = cvPoint((int)sceMatchedKeypoints[objectID][i].GetPoint().x, (int)sceMatchedKeypoints[objectID][i].GetPoint().y);
+		r = cvRound((double)(count - j)/count * 255.0);
+		g = cvRound((double)(count - j)/count * 255.0);
+		b = cvRound((double)j/count * 255.0);
+	}
+	else
+	{
+		r = cvRound((double)255.0);
+		g = cvRound((double)255.0);
+		b = cvRound((double)255.0);
+	}
 
-//		cvCircle(colorImage, referencePoint, size, CV_RGB(0, 255, 255), CV_FILLED);
-		int size = sceMatchedKeypoints[objectID][i].GetSize();
+	EnterCriticalSection(&MultiplePlanarObjectThread::csKeypointsUpdate);
+	for(unsigned int i=0; i<refMatchedKeypoints[j].size(); i++)
+	{
+		CvPoint imagePoint = cvPoint((int)sceMatchedKeypoints[j][i].GetPoint().x, (int)sceMatchedKeypoints[j][i].GetPoint().y);
+		int size = sceMatchedKeypoints[j][i].GetSize();
+
 		cvCircle(colorImage, imagePoint, size+2, CV_RGB(0, 0, 0), CV_FILLED);
-		cvCircle(colorImage, imagePoint, size, CV_RGB(255, 255, 0), CV_FILLED);
-
-//		cvLine(colorImage, referencePoint, imagePoint, CV_RGB(255, 0, 0));
+		cvCircle(colorImage, imagePoint, size, CV_RGB(r, g, b), CV_FILLED);
 	}
 	LeaveCriticalSection(&MultiplePlanarObjectThread::csKeypointsUpdate);
 }

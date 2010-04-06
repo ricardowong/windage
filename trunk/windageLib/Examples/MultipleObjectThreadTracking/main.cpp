@@ -47,10 +47,7 @@
 const int WIDTH = 640;
 const int HEIGHT = (WIDTH * 3) / 4;
 const double INTRINSIC[] = {1033.93, 1033.84, 319.044, 228.858,-0.206477, 0.306424, 0.000728208, 0.0011338};
-
-const double SCALE_FACTOR = 1.0;
-const int SCALE_STEP = 1;
-const double REPROJECTION_ERROR = 5.0;
+const double REPROJECTION_ERROR = 2.0;
 
 const int OBJECT_COUNT = 6;
 const char* FEATURE_NAME = {"data/PlanarImage/descriptor%03d.txt"};
@@ -81,14 +78,14 @@ void main()
 	calibration = new windage::Calibration();
 //	detector = new windage::Algorithms::SIFTGPUdetector();
 	opticalflow = new windage::Algorithms::OpticalFlow();
-	estimator = new windage::Algorithms::ProSACestimator();
+	estimator = new windage::Algorithms::RANSACestimator();
 	checker = new windage::Algorithms::OutlierChecker();
 	refiner = new windage::Algorithms::LMmethod();
 
 	calibration->Initialize(INTRINSIC[0], INTRINSIC[1], INTRINSIC[2], INTRINSIC[3], INTRINSIC[4], INTRINSIC[5], INTRINSIC[6], INTRINSIC[7]);
 	opticalflow->Initialize(WIDTH, HEIGHT, cvSize(15, 15), 3);
 	estimator->SetReprojectionError(REPROJECTION_ERROR);
-	checker->SetReprojectionError(REPROJECTION_ERROR * 3);
+	checker->SetReprojectionError(REPROJECTION_ERROR * 2);
 	refiner->SetMaxIteration(10);
 
 	tracking.AttatchCalibration(calibration);

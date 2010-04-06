@@ -73,7 +73,7 @@
 /** pre-selected search tree algorithm whenever can change other search tree algorithm  */
 #define SearchTreeT windage::Algorithms::FLANNtree
 #define SEARCH_TREE_RATIO 0.4
-#define PoseEstimationT windage::Algorithms::EPnPRANSACestimator
+#define PoseEstimationT windage::Algorithms::OpenCVRANSACestimator
 
 namespace windage
 {
