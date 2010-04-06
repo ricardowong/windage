@@ -16,10 +16,10 @@ void main()
 	IplImage* resultImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
 	IplImage* grayImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 1);
 
-//	windage::Algorithms::FeatureDetector* detector = new windage::Algorithms::SIFTGPUdetector();
+	windage::Algorithms::FeatureDetector* detector = new windage::Algorithms::SIFTGPUdetector();
 //	windage::Algorithms::FeatureDetector* detector = new windage::Algorithms::SIFTdetector();
 //	windage::Algorithms::FeatureDetector* detector = new windage::Algorithms::SURFdetector();
-	windage::Algorithms::FeatureDetector* detector = new windage::Algorithms::WSURFMultidetector(WIDTH, HEIGHT);
+//	windage::Algorithms::FeatureDetector* detector = new windage::Algorithms::WSURFMultidetector(WIDTH, HEIGHT);
 	detector->SetThreshold(60);
 
 	CvCapture* capture = cvCaptureFromCAM(CV_CAP_ANY);
@@ -71,9 +71,27 @@ void main()
 			break;
 		case 's':
 		case 'S':
-			sprintf_s(message, "save/image%03d.png", index);
-			cvSaveImage(message, resultImage);
-			index++;
+			{
+				sprintf_s(message, "save/image%03d_original.png", index);
+				cvSaveImage(message, inputImage);
+
+				sprintf_s(message, "save/image%03d_featureinfo.png", index);
+				cvSaveImage(message, resultImage);
+
+				sprintf_s(message, "save/descriptor%03d", index);
+				windage::Logger* featureLogger = new windage::Logger(message, "txt");
+
+				index++;
+
+				windage::FeatureExportor exportor;
+				exportor.AttatchLogger(featureLogger);
+				exportor.SetFunctionName(detector->GetFunctionName());
+				exportor.SetFeaturePoints(detector->GetKeypoints());
+
+				exportor.DoExport();
+				delete featureLogger;
+				featureLogger = NULL;
+			}
 			break;
 		}
 	}

@@ -47,12 +47,13 @@
 const int WIDTH = 640;
 const int HEIGHT = (WIDTH * 3) / 4;
 
-const double REPROJECTION_ERROR = 10.0;
+const double REPROJECTION_ERROR = 2.0;
 const double INTRINSIC[] = {1033.93, 1033.84, 319.044, 228.858,-0.206477, 0.306424, 0.000728208, 0.0011338};
 
 const int OBJECT_COUNT = 2;
 const char* FILE_NAME[] = {	"data/reconstruction-2010-04-06_01_37_49/reconstruction.txt", 
 							"data/reconstruction-2010-03-29_09_33_01/reconstruction.txt"};
+const char* BASE_FEATURE_NAME = {"data/descriptor-2010-04-26.txt"};
 
 void main()
 {
@@ -71,14 +72,14 @@ void main()
 	windage::Frameworks::MultipleObjectTracking tracking;
 	windage::Calibration* calibration					= new windage::Calibration();
 	windage::Algorithms::OpticalFlow* opticalflow		= new windage::Algorithms::OpticalFlow();
-	windage::Algorithms::EPnPRANSACestimator* estimator	= new windage::Algorithms::EPnPRANSACestimator();
+	windage::Algorithms::OpenCVRANSACestimator* estimator	= new windage::Algorithms::OpenCVRANSACestimator();
 	windage::Algorithms::PoseRefiner* refiner			= new windage::Algorithms::PoseLMmethod();
 	
 	calibration->Initialize(INTRINSIC[0], INTRINSIC[1], INTRINSIC[2], INTRINSIC[3], INTRINSIC[4], INTRINSIC[5], INTRINSIC[6], INTRINSIC[7]);
 	opticalflow->Initialize(WIDTH, HEIGHT, cvSize(15, 15), 3);
 	estimator->SetReprojectionError(REPROJECTION_ERROR);
 	estimator->SetConfidence(0.95);
-	estimator->SetMaxIteration(1000);
+	estimator->SetMaxIteration(500);
 	refiner->SetMaxIteration(5);
 
 	tracking.AttatchCalibration(calibration);
@@ -127,6 +128,14 @@ void main()
 		tracking.TrainingReference(&referenceRepository);
 	}
 
+	std::vector<windage::FeaturePoint> baseFeaturePoints;
+	
+	windage::FeatureLoader* baseLoader = new windage::FeatureLoader();
+	baseLoader->AttatchFeaturePoints(&baseFeaturePoints);
+	baseLoader->DoLoad(BASE_FEATURE_NAME);
+
+	tracking.TrainingReference(&baseFeaturePoints);
+	
 	trained = true;
 
 	char message[100];
