@@ -40,7 +40,7 @@
 /**
  * @file	SearchTree.h
  * @author	Woonhyuk Baek
- * @version 1.0
+ * @version 2.0
  * @date	2010.02.04
  * @brief	It is abstract class for feature matching to use searching tree
  */

@@ -40,7 +40,7 @@
 /**
  * @file	ConvertCoordination.h
  * @author	Woonhyuk Baek
- * @version 1.0
+ * @version 2.0
  * @date	2010.03.01
  * @brief	It is log class for logging at reconstruction informations
  */

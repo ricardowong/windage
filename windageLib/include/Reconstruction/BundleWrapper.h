@@ -40,7 +40,7 @@
 /**
  * @file	BundleWrapper.h
  * @author	Kiyoung Kim (kkim@gist.ac.kr)
- * @version 1.0
+ * @version 2.0
  * @brief	
  *		Perform Bundle adjustment using Sparse Bundle Adjustment Algorithm
  *		borrowed code from kcvlib

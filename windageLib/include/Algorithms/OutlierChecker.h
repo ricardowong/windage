@@ -40,7 +40,7 @@
 /**
  * @file	OutlierChecker.h
  * @author	Woonhyuk Baek
- * @version 1.0
+ * @version 2.0
  * @date	2010.02.04
  * @brief	It is implemetation to check whether outlier or not
  */
