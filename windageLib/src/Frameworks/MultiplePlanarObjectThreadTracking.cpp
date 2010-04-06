@@ -38,13 +38,14 @@
  * ======================================================================== */
 
 #include "Algorithms/SIFTGPUdetector.h"
-#include "Frameworks/MultipleObjectTracking.h"
+#include "Frameworks/MultiplePlanarObjectThreadTracking.h"
 using namespace windage;
 using namespace windage::Frameworks;
 
+#include <highgui.h>
 #include <windows.h>
 #include <process.h>
-namespace MultipleOjbectThread
+namespace MultiplePlanarObjectThread
 {
 	IplImage* globalGrayImage = NULL;
 	IplImage* globalCurrentGrayImage = NULL;
@@ -53,7 +54,7 @@ namespace MultipleOjbectThread
 
 	unsigned int WINAPI FeatureDetectionThread(void* pArg)
 	{
-		windage::Frameworks::MultipleObjectTracking* thisClass = (windage::Frameworks::MultipleObjectTracking*)pArg;
+		windage::Frameworks::MultiplePlanarObjectThreadTracking* thisClass = (windage::Frameworks::MultiplePlanarObjectThreadTracking*)pArg;
 		windage::Algorithms::SIFTGPUdetector* detector = new windage::Algorithms::SIFTGPUdetector();
 		windage::Algorithms::OpticalFlow* tracker = new windage::Algorithms::OpticalFlow(50);
 		tracker->Initialize(thisClass->GetSize().width, thisClass->GetSize().height, cvSize(15, 15), 3);
@@ -72,6 +73,8 @@ namespace MultipleOjbectThread
 				detector->DoExtractKeypointsDescriptor(globalGrayImage);
 				std::vector<windage::FeaturePoint>* sceneKeypoints = detector->GetKeypoints();
 
+				detector->DrawKeypoints(globalGrayImage);
+
 				for(unsigned int i=0; i<sceneKeypoints->size(); i++)
 				{
 					int count = 0;
@@ -85,7 +88,7 @@ namespace MultipleOjbectThread
 					}
 				}
 
-				if(sceMatchedKeypoints.size() > 1)
+				if(sceMatchedKeypoints.size() > 10)
 				{
 					// track feature
 					std::vector<windage::FeaturePoint> sceneUpdatedKeypoints;
@@ -122,13 +125,19 @@ namespace MultipleOjbectThread
 	}
 };
 
-bool MultipleObjectTracking::Initialize(int width, int height, bool printInfo)
+
+bool MultiplePlanarObjectThreadTracking::Initialize(int width, int height, double realWidth, double realHeight, bool printInfo)
 {
 	if(this->initialCamearParameter == NULL)
 		return false;
 	
 	this->width = width;
 	this->height = height;
+	this->realWidth = realWidth;
+	this->realHeight = realHeight;
+
+	if(this->checker)
+		this->checker->AttatchEstimator(this->estimator);
 	
 	if(prevImage) cvReleaseImage(&prevImage);
 	prevImage = cvCreateImage(cvSize(width, height), IPL_DEPTH_8U, 1);
@@ -144,8 +153,6 @@ bool MultipleObjectTracking::Initialize(int width, int height, bool printInfo)
 	if(printInfo)
 	{
 		std::cout << this->GetFunctionName() << " Initialize" << std::endl;
-		if(this->detector)
-			std::cout << "\tFeature Extractor : " << this->detector->GetFunctionName() << std::endl;
 		if(this->tracker)
 			std::cout << "\tFeature Tracking : " << this->tracker->GetFunctionName() << std::endl;
 		if(this->estimator)
@@ -154,15 +161,15 @@ bool MultipleObjectTracking::Initialize(int width, int height, bool printInfo)
 	}
 
 	// create detection thread
-	InitializeCriticalSection(&MultipleOjbectThread::csKeypointsUpdate);
-	InitializeCriticalSection(&MultipleOjbectThread::csImageUpdate);
-	_beginthreadex(NULL, 0, MultipleOjbectThread::FeatureDetectionThread, (void*)this, 0, NULL);
+	InitializeCriticalSection(&MultiplePlanarObjectThread::csKeypointsUpdate);
+	InitializeCriticalSection(&MultiplePlanarObjectThread::csImageUpdate);
+	_beginthreadex(NULL, 0, MultiplePlanarObjectThread::FeatureDetectionThread, (void*)this, 0, NULL);
 
 	this->initialize = true;
 	return true;
 }
 
-bool MultipleObjectTracking::TrainingReference(std::vector<windage::FeaturePoint>* referenceFeatures)
+bool MultiplePlanarObjectThreadTracking::TrainingReference(std::vector<windage::FeaturePoint>* referenceFeatures)
 {
 	if(this->initialize == false)
 		return false;
@@ -196,8 +203,6 @@ bool MultipleObjectTracking::TrainingReference(std::vector<windage::FeaturePoint
 	this->estimatorList.resize(this->objectCount+1);
 	this->estimatorList[this->objectCount] = new PoseEstimationT();
 	this->estimatorList[this->objectCount]->SetReprojectionError(this->estimator->GetReprojectionError());
-	this->estimatorList[this->objectCount]->SetConfidence(((PoseEstimationT*)this->estimator)->GetConfidence());
-	this->estimatorList[this->objectCount]->SetMaxIteration(((PoseEstimationT*)this->estimator)->GetMaxIteration());
 
 	this->objectCount++;
 	this->detectionStep = this->objectCount * this->detectionRatio;
@@ -206,7 +211,7 @@ bool MultipleObjectTracking::TrainingReference(std::vector<windage::FeaturePoint
 	return true;
 }
 
-bool MultipleObjectTracking::UpdateCamerapose(IplImage* grayImage)
+bool MultiplePlanarObjectThreadTracking::UpdateCamerapose(IplImage* grayImage)
 {
 	if(initialize == false || trained == false)
 		return false;
@@ -215,7 +220,7 @@ bool MultipleObjectTracking::UpdateCamerapose(IplImage* grayImage)
 	std::vector<windage::FeaturePoint> sceneKeypoints1;
 	std::vector<windage::FeaturePoint> sceneKeypoints2;
 
-	EnterCriticalSection(&MultipleOjbectThread::csKeypointsUpdate);
+	EnterCriticalSection(&MultiplePlanarObjectThread::csKeypointsUpdate);
 	{
 		for(unsigned int i=0; i<this->sceMatchedKeypoints.size(); i++)
 		{
@@ -251,14 +256,14 @@ bool MultipleObjectTracking::UpdateCamerapose(IplImage* grayImage)
 			
 		}
 	}
-	LeaveCriticalSection(&MultipleOjbectThread::csKeypointsUpdate);
-
+	LeaveCriticalSection(&MultiplePlanarObjectThread::csKeypointsUpdate);
+	
 	// feature detection
 	{
-		EnterCriticalSection(&MultipleOjbectThread::csImageUpdate);
-		if(MultipleOjbectThread::globalCurrentGrayImage)	cvCopyImage(grayImage, MultipleOjbectThread::globalCurrentGrayImage);
-		else						MultipleOjbectThread::globalCurrentGrayImage = cvCloneImage(grayImage);
-		LeaveCriticalSection(&MultipleOjbectThread::csImageUpdate);
+		EnterCriticalSection(&MultiplePlanarObjectThread::csImageUpdate);
+		if(MultiplePlanarObjectThread::globalCurrentGrayImage)	cvCopyImage(grayImage, MultiplePlanarObjectThread::globalCurrentGrayImage);
+		else						MultiplePlanarObjectThread::globalCurrentGrayImage = cvCloneImage(grayImage);
+		LeaveCriticalSection(&MultiplePlanarObjectThread::csImageUpdate);
 
 		int objectID = this->step;
 		if(objectID % this->detectionRatio == 0)
@@ -266,8 +271,8 @@ bool MultipleObjectTracking::UpdateCamerapose(IplImage* grayImage)
 			objectID /= this->detectionRatio;
 			if(objectID < this->objectCount)
 			{
-				if(MultipleOjbectThread::globalGrayImage) cvCopyImage(grayImage, MultipleOjbectThread::globalGrayImage);
-				else				MultipleOjbectThread::globalGrayImage = cvCloneImage(grayImage);
+				if(MultiplePlanarObjectThread::globalGrayImage) cvCopyImage(grayImage, MultiplePlanarObjectThread::globalGrayImage);
+				else											MultiplePlanarObjectThread::globalGrayImage = cvCloneImage(grayImage);
 				this->objectID = objectID;
 				this->update = true;
 			}
@@ -275,23 +280,19 @@ bool MultipleObjectTracking::UpdateCamerapose(IplImage* grayImage)
 	}
 
 	// pose estimate
-	EnterCriticalSection(&MultipleOjbectThread::csKeypointsUpdate);
-
-	#pragma omp parallel for
+	EnterCriticalSection(&MultiplePlanarObjectThread::csKeypointsUpdate);
 	for(int i=0; i<this->objectCount; i++)
 	{
 		if((int)refMatchedKeypoints[i].size() > MIN_FEATURE_POINTS_COUNT)
 		{
-/*
-			this->estimator->AttatchCameraParameter(this->cameraParameter[i]);
 			this->estimator->AttatchReferencePoint(&(refMatchedKeypoints[i]));
 			this->estimator->AttatchScenePoint(&(sceMatchedKeypoints[i]));
 			this->estimator->Calculate();
-//*/
-			this->estimatorList[i]->AttatchCameraParameter(this->cameraParameter[i]);
-			this->estimatorList[i]->AttatchReferencePoint(&(refMatchedKeypoints[i]));
-			this->estimatorList[i]->AttatchScenePoint(&(sceMatchedKeypoints[i]));
-			this->estimatorList[i]->Calculate();
+	//		this->estimator->DecomposeHomography((this->cameraParameter[i]));
+
+			// outlier checker
+			this->checker->AttatchEstimator(this->estimator);
+			this->checker->Calculate();
 
 			// outlier rejection
 			for(int j=0; j<(int)refMatchedKeypoints[i].size(); j++)
@@ -307,61 +308,98 @@ bool MultipleObjectTracking::UpdateCamerapose(IplImage* grayImage)
 			}
 
 			// refinement
-			if(this->refiner && sceMatchedKeypoints[i].size() > MIN_FEATURE_POINTS_COUNT)
+			if(this->refiner)
 			{
-				#pragma omp critical
-				{
-					this->refiner->AttatchCalibration(this->cameraParameter[i]);
-					this->refiner->AttatchReferencePoint(&(refMatchedKeypoints[i]));
-					this->refiner->AttatchScenePoint(&(sceMatchedKeypoints[i]));
-					this->refiner->Calculate();
-				}
+				this->refiner->AttatchHomography(this->estimator->GetHomography());
+				this->refiner->AttatchReferencePoint(&(refMatchedKeypoints[i]));
+				this->refiner->AttatchScenePoint(&(sceMatchedKeypoints[i]));
+				this->refiner->Calculate();
 			}
 
+			this->estimator->DecomposeHomography((this->cameraParameter[i]));
+
+			// filtering
+			if(this->useFilter)
+			{
+				windage::Vector3 T;
+				T.x = this->cameraParameter[i]->GetCameraPosition().val[0];
+				T.y = this->cameraParameter[i]->GetCameraPosition().val[1];
+				T.z = this->cameraParameter[i]->GetCameraPosition().val[2];
+
+				for(int j=0; j<filterStep; j++)
+				{
+					filters[i]->Predict();
+					filters[i]->Correct(T);
+				}
+
+				windage::Vector3 prediction = filters[i]->Predict();
+				filters[i]->Correct(T);
+
+				this->cameraParameter[i]->SetCameraPosition(cvScalar(prediction.x, prediction.y, prediction.z));
+			}
 		}
 	}
-	
-	LeaveCriticalSection(&MultipleOjbectThread::csKeypointsUpdate);
+	LeaveCriticalSection(&MultiplePlanarObjectThread::csKeypointsUpdate);
 
 	cvCopyImage(grayImage, this->prevImage);
+
 	this->step++;
 	if(this->step >= this->detectionStep)
 		this->step = 0;
 	return true;
 }
 
-void MultipleObjectTracking::DrawDebugInfo(IplImage* colorImage, int objectID)
+void MultiplePlanarObjectThreadTracking::DrawOutLine(IplImage* colorImage, int objectID, bool drawCross)
+{
+	int size = 4;
+	CvScalar color = CV_RGB(255, 0, 255);
+	CvScalar color2 = CV_RGB(255, 255, 255);
+
+	windage::Calibration* calibration = this->cameraParameter[objectID];
+
+	int dx = this->width/2;
+	int dy = this->height/2;
+
+	cvLine(colorImage, calibration->ConvertWorld2Image(-this->width/2 + dx, -this->height/2 + dy, 0.0),	calibration->ConvertWorld2Image(+this->width/2 + dx, -this->height/2 + dy, 0.0),	color2, 6);
+	cvLine(colorImage, calibration->ConvertWorld2Image(+this->width/2 + dx, -this->height/2 + dy, 0.0),	calibration->ConvertWorld2Image(+this->width/2 + dx, +this->height/2 + dy, 0.0),	color2, 6);
+	cvLine(colorImage, calibration->ConvertWorld2Image(+this->width/2 + dx, +this->height/2 + dy, 0.0),	calibration->ConvertWorld2Image(-this->width/2 + dx, +this->height/2 + dy, 0.0),	color2, 6);
+	cvLine(colorImage, calibration->ConvertWorld2Image(-this->width/2 + dx, +this->height/2 + dy, 0.0),	calibration->ConvertWorld2Image(-this->width/2 + dx, -this->height/2 + dy, 0.0),	color2, 6);
+
+	cvLine(colorImage, calibration->ConvertWorld2Image(-this->width/2 + dx, -this->height/2 + dy, 0.0),	calibration->ConvertWorld2Image(+this->width/2 + dx, -this->height/2 + dy, 0.0),	color, 2);
+	cvLine(colorImage, calibration->ConvertWorld2Image(+this->width/2 + dx, -this->height/2 + dy, 0.0),	calibration->ConvertWorld2Image(+this->width/2 + dx, +this->height/2 + dy, 0.0),	color, 2);
+	cvLine(colorImage, calibration->ConvertWorld2Image(+this->width/2 + dx, +this->height/2 + dy, 0.0),	calibration->ConvertWorld2Image(-this->width/2 + dx, +this->height/2 + dy, 0.0),	color, 2);
+	cvLine(colorImage, calibration->ConvertWorld2Image(-this->width/2 + dx, +this->height/2 + dy, 0.0),	calibration->ConvertWorld2Image(-this->width/2 + dx, -this->height/2 + dy, 0.0),	color, 2);
+
+	if(drawCross)
+	{
+		cvLine(colorImage, calibration->ConvertWorld2Image(-this->width/2 + dx, -this->height/2 + dy, 0.0),	calibration->ConvertWorld2Image(+this->width/2 + dx, +this->height/2 + dy, 0.0),	color2, 6);
+		cvLine(colorImage, calibration->ConvertWorld2Image(-this->width/2 + dx, +this->height/2 + dy, 0.0),	calibration->ConvertWorld2Image(+this->width/2 + dx, -this->height/2 + dy, 0.0),	color2, 6);
+
+		cvLine(colorImage, calibration->ConvertWorld2Image(-this->width/2 + dx, -this->height/2 + dy, 0.0),	calibration->ConvertWorld2Image(+this->width/2 + dx, +this->height/2 + dy, 0.0),	color, 2);
+		cvLine(colorImage, calibration->ConvertWorld2Image(-this->width/2 + dx, +this->height/2 + dy, 0.0),	calibration->ConvertWorld2Image(+this->width/2 + dx, -this->height/2 + dy, 0.0),	color, 2);
+	}
+}
+
+void MultiplePlanarObjectThreadTracking::DrawDebugInfo(IplImage* colorImage, int objectID)
 {
 	int pointCount = (int)refMatchedKeypoints.size();
 	int r = 255;
 	int g = 0;
 	int b = 0;
 
-	double count = (double)this->objectCount - 1;
-	
-	
-	int j = objectID;
-	if(count > 0)
+	EnterCriticalSection(&MultiplePlanarObjectThread::csKeypointsUpdate);
+	for(unsigned int i=0; i<refMatchedKeypoints[objectID].size(); i++)
 	{
-		r = cvRound((double)(count - j)/count * 255.0);
-		g = cvRound((double)(count - j)/count * 255.0);
-		b = cvRound((double)j/count * 255.0);
-	}
-	else
-	{
-		r = cvRound((double)255.0);
-		g = cvRound((double)255.0);
-		b = cvRound((double)255.0);
-	}
+		CvPoint referencePoint = cvPoint((int)(refMatchedKeypoints[objectID][i].GetPoint().x * colorImage->width/realWidth + colorImage->width/2),
+									(int)(colorImage->height - refMatchedKeypoints[objectID][i].GetPoint().y * colorImage->height/realHeight - colorImage->height/2));
+		CvPoint imagePoint = cvPoint((int)sceMatchedKeypoints[objectID][i].GetPoint().x, (int)sceMatchedKeypoints[objectID][i].GetPoint().y);
 
-	EnterCriticalSection(&MultipleOjbectThread::csKeypointsUpdate);
-	for(unsigned int i=0; i<refMatchedKeypoints[j].size(); i++)
-	{
-		CvPoint imagePoint = cvPoint((int)sceMatchedKeypoints[j][i].GetPoint().x, (int)sceMatchedKeypoints[j][i].GetPoint().y);
-		int size = sceMatchedKeypoints[j][i].GetSize();
-
+//		cvCircle(colorImage, referencePoint, size, CV_RGB(0, 255, 255), CV_FILLED);
+		int size = sceMatchedKeypoints[objectID][i].GetSize();
 		cvCircle(colorImage, imagePoint, size+2, CV_RGB(0, 0, 0), CV_FILLED);
-		cvCircle(colorImage, imagePoint, size, CV_RGB(r, g, b), CV_FILLED);
+		cvCircle(colorImage, imagePoint, size, CV_RGB(255, 255, 0), CV_FILLED);
+
+//		cvLine(colorImage, referencePoint, imagePoint, CV_RGB(255, 0, 0));
 	}
-	LeaveCriticalSection(&MultipleOjbectThread::csKeypointsUpdate);
+	LeaveCriticalSection(&MultiplePlanarObjectThread::csKeypointsUpdate);
 }

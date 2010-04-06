@@ -134,7 +134,7 @@ void main()
 	baseLoader->AttatchFeaturePoints(&baseFeaturePoints);
 	baseLoader->DoLoad(BASE_FEATURE_NAME);
 
-	tracking.TrainingReference(&baseFeaturePoints);
+//	tracking.TrainingReference(&baseFeaturePoints);
 	
 	trained = true;
 

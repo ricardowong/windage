@@ -46,16 +46,14 @@
 
 const int WIDTH = 640;
 const int HEIGHT = (WIDTH * 3) / 4;
-const int FEATURE_COUNT = WIDTH;
+const double INTRINSIC[] = {1033.93, 1033.84, 319.044, 228.858,-0.206477, 0.306424, 0.000728208, 0.0011338};
 
 const double SCALE_FACTOR = 1.0;
 const int SCALE_STEP = 1;
 const double REPROJECTION_ERROR = 5.0;
 
-#define USE_ADAPTIVE_THRESHOLD 1
-#define USE_TEMPLATE_IMAEG 1
-const char* TEMPLATE_IMAGE = "reference1_320.png";
-const double INTRINSIC[] = {1033.93, 1033.84, 319.044, 228.858,-0.206477, 0.306424, 0.000728208, 0.0011338};
+const int OBJECT_COUNT = 6;
+const char* FEATURE_NAME = {"data/PlanarImage/descriptor%03d.txt"};
 
 void main()
 {
@@ -70,71 +68,73 @@ void main()
 	cvNamedWindow("result");
 
 	// create and initialize tracker
-	windage::Frameworks::PlanarObjectTracking tracking;
+	double threshold = 50.0;
+
+	windage::Frameworks::MultiplePlanarObjectThreadTracking tracking;
 	windage::Calibration* calibration;
 	windage::Algorithms::FeatureDetector* detector;
-	windage::Algorithms::SearchTree* searchtree;
 	windage::Algorithms::OpticalFlow* opticalflow;
 	windage::Algorithms::HomographyEstimator* estimator;
 	windage::Algorithms::OutlierChecker* checker;
 	windage::Algorithms::HomographyRefiner* refiner;
-	windage::Algorithms::KalmanFilter* filter;
 
 	calibration = new windage::Calibration();
-	detector = new windage::Algorithms::SIFTGPUdetector();
-	searchtree = new windage::Algorithms::FLANNtree();
+//	detector = new windage::Algorithms::SIFTGPUdetector();
 	opticalflow = new windage::Algorithms::OpticalFlow();
 	estimator = new windage::Algorithms::ProSACestimator();
 	checker = new windage::Algorithms::OutlierChecker();
 	refiner = new windage::Algorithms::LMmethod();
-	filter = new windage::Algorithms::KalmanFilter();
 
 	calibration->Initialize(INTRINSIC[0], INTRINSIC[1], INTRINSIC[2], INTRINSIC[3], INTRINSIC[4], INTRINSIC[5], INTRINSIC[6], INTRINSIC[7]);
-	detector->SetThreshold(30.0);
-	searchtree->SetRatio(0.5);
 	opticalflow->Initialize(WIDTH, HEIGHT, cvSize(15, 15), 3);
 	estimator->SetReprojectionError(REPROJECTION_ERROR);
 	checker->SetReprojectionError(REPROJECTION_ERROR * 3);
 	refiner->SetMaxIteration(10);
 
 	tracking.AttatchCalibration(calibration);
-	tracking.AttatchDetetor(detector);
-	tracking.AttatchMatcher(searchtree);
+//	tracking.AttatchDetetor(detector);
 	tracking.AttatchTracker(opticalflow);
 	tracking.AttatchEstimator(estimator);
 	tracking.AttatchChecker(checker);
 	tracking.AttatchRefiner(refiner);
-//	tracking.AttatchFilter(filter);
-
-	tracking.SetDitectionRatio(10);
+	
 	tracking.Initialize(WIDTH, HEIGHT, (double)WIDTH, (double)HEIGHT);
-
-	int keypointCount = 0;
-	int matchingCount = 0;
-	double threshold = 50.0;
-	double processingTime = 0.0;
+	tracking.SetFilter(false);
+	tracking.SetDitectionRatio(5);
 
 	bool trained = false;
+	std::vector<windage::FeaturePoint> baseFeaturePoints;
+	
+	windage::FeatureLoader* baseLoader = new windage::FeatureLoader();
+	baseLoader->AttatchFeaturePoints(&baseFeaturePoints);
 
-#if USE_TEMPLATE_IMAEG
-	IplImage* sampleImage = cvLoadImage(TEMPLATE_IMAGE, 0);
-	detector->SetThreshold(30.0);
-	tracking.AttatchReferenceImage(sampleImage);
-	tracking.TrainingReference(SCALE_FACTOR, SCALE_STEP);
-	detector->SetThreshold(threshold);
+	for(int i=0; i<OBJECT_COUNT; i++)
+	{
+		char filename[100];
+		sprintf(filename, FEATURE_NAME, i);
+
+		baseFeaturePoints.clear();
+		baseLoader->DoLoad(filename);
+		tracking.TrainingReference(&baseFeaturePoints);
+	}
+
 	trained = true;
-#endif
+	
+	int keypointCount = 0;
+	int matchingCount = 0;
+	double processingTime = 0.0;
 
 	char message[100];
-	bool flip = true;
+	bool fliping = true;
 	bool processing = true;
 	while(processing)
 	{
 		// capture image
 		inputImage = cvRetrieveFrame(capture);
-		if(flip)
-			cvFlip(inputImage, inputImage);
 		cvResize(inputImage, resizeImage);
+		if(fliping)
+			cvFlip(resizeImage, resizeImage);
+
 		cvCvtColor(resizeImage, grayImage, CV_BGR2GRAY);
 		cvCopyImage(resizeImage, resultImage);
 
@@ -144,27 +144,29 @@ void main()
 		if(trained)
 		{
 			tracking.UpdateCamerapose(grayImage);
+			matchingCount = 0;
 
-			// adaptive threshold
-#if USE_ADAPTIVE_THRESHOLD
-			int localcount = detector->GetKeypointsCount();
-			if(keypointCount != localcount)
-			{
-				if(localcount > FEATURE_COUNT)
-					threshold += 1;
-				if(localcount < FEATURE_COUNT)
-					threshold -= 1;
-				detector->SetThreshold(threshold);
-				keypointCount = localcount;
-			}
-#endif
 			// draw result
-//			detector->DrawKeypoints(resultImage);
-			tracking.DrawDebugInfo(resultImage);
-			tracking.DrawOutLine(resultImage, true);
-			calibration->DrawInfomation(resultImage, 100);
+			for(int i=0; i<tracking.GetObjectCount(); i++)
+			{
+				matchingCount += tracking.GetMatchingCount(i);
+				int matchedCount = tracking.GetMatchingCount(i);
+				if(matchedCount > 9)
+				{
+					tracking.DrawDebugInfo(resultImage, i);
+					tracking.DrawOutLine(resultImage, i, true);
+
+					windage::Calibration* calibrationTemp = tracking.GetCameraParameter(i);
+					calibrationTemp->DrawInfomation(resultImage, 100);
+					CvPoint centerPoint = calibrationTemp->ConvertWorld2Image(0.0, 0.0, 0.0);
+					centerPoint.x += 5;
+					centerPoint.y += 10;
+					sprintf_s(message, "object #%d (%03d)", i+1, matchedCount);
+
+					windage::Utils::DrawTextToImage(resultImage, centerPoint, 0.6, message);
+				}
+			}
 		}
-		matchingCount = tracking.GetMatchingCount();
 
 		processingTime = logger.calculateProcessTime();
 		logger.log("processingTime", processingTime);
@@ -177,10 +179,8 @@ void main()
 		sprintf_s(message, "Matching Count : %d", matchingCount);
 		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 60), 0.6, message);
 
-		sprintf_s(message, "Press 'Space' to track the current image");
-		windage::Utils::DrawTextToImage(resultImage, cvPoint(WIDTH-270, HEIGHT-10), 0.5, message);
-		sprintf_s(message, "Press 'F' to flip image");
-		windage::Utils::DrawTextToImage(resultImage, cvPoint(WIDTH-270, HEIGHT-25), 0.5, message);
+		sprintf_s(message, "Press 'Space' to add tracking the current image", keypointCount, threshold);
+		windage::Utils::DrawTextToImage(resultImage, cvPoint(WIDTH-315, HEIGHT-10), 0.5, message);
 		cvShowImage("result", resultImage);
 
 		char ch = cvWaitKey(1);
@@ -192,16 +192,11 @@ void main()
 			break;
 		case 'f':
 		case 'F':
-			flip = !flip;
+			fliping = !fliping;
 			break;
 		case ' ':
 		case 's':
 		case 'S':
-			detector->SetThreshold(30.0);
-			tracking.AttatchReferenceImage(grayImage);
-			tracking.TrainingReference(SCALE_FACTOR, SCALE_STEP);
-			detector->SetThreshold(threshold);
-			trained = true;
 			break;
 		}		
 	}
