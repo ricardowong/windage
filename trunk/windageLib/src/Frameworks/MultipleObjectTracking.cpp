@@ -277,7 +277,7 @@ bool MultipleObjectTracking::UpdateCamerapose(IplImage* grayImage)
 	// pose estimate
 	EnterCriticalSection(&MultipleOjbectThread::csKeypointsUpdate);
 
-	#pragma omp parallel for schedule(dynamic, 15)
+	#pragma omp parallel for
 	for(int i=0; i<this->objectCount; i++)
 	{
 		if((int)refMatchedKeypoints[i].size() > MIN_FEATURE_POINTS_COUNT)
@@ -309,10 +309,13 @@ bool MultipleObjectTracking::UpdateCamerapose(IplImage* grayImage)
 			// refinement
 			if(this->refiner && sceMatchedKeypoints[i].size() > MIN_FEATURE_POINTS_COUNT)
 			{
-				this->refiner->AttatchCalibration(this->cameraParameter[i]);
-				this->refiner->AttatchReferencePoint(&(refMatchedKeypoints[i]));
-				this->refiner->AttatchScenePoint(&(sceMatchedKeypoints[i]));
-				this->refiner->Calculate();
+				#pragma omp critical
+				{
+					this->refiner->AttatchCalibration(this->cameraParameter[i]);
+					this->refiner->AttatchReferencePoint(&(refMatchedKeypoints[i]));
+					this->refiner->AttatchScenePoint(&(sceMatchedKeypoints[i]));
+					this->refiner->Calculate();
+				}
 			}
 
 		}

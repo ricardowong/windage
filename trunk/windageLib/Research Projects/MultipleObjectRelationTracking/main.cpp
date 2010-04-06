@@ -65,8 +65,8 @@ const double INTRINSIC[] = {1033.93, 1033.84, 319.044, 228.858,-0.206477, 0.3064
 #define ADAPTIVE_THRESHOLD 0
 const int FEATURE_COUNT = WIDTH * 2;
 
-const double SCALE_FACTOR = 2.0;
-const int SCALE_STEP = 3;
+const double SCALE_FACTOR = 1.0;
+const int SCALE_STEP = 1;
 const double REPROJECTION_ERROR = 5.0;
 
 #define USE_TEMPLATE_IMAEG 1
