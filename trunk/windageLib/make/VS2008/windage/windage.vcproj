@@ -655,6 +655,22 @@
 			Name="Utilities"
 			>
 			<File
+				RelativePath="..\..\..\src\Utilities\FeatureExportor.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\include\Utilities\FeatureExportor.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\Utilities\FeatureLoader.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\include\Utilities\FeatureLoader.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\src\Utilities\Logger.cpp"
 				>
 			</File>

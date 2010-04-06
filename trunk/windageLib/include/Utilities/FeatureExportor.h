@@ -38,15 +38,15 @@
  * ======================================================================== */
 
 /**
- * @file	Exportor.h
+ * @file	FeatureExportor.h
  * @author	Woonhyuk Baek
  * @version 2.0
  * @date	2010.03.01
  * @brief	It is log class for logging at reconstruction informations
  */
 
-#ifndef _EXPORTOR_H_
-#define _EXPORTOR_H_
+#ifndef _FEATURE_POINT_EXPORTOR_H_
+#define _FEATURE_POINT_EXPORTOR_H_
 
 #include <vector>
 #include <string>
@@ -60,51 +60,34 @@
 
 namespace windage
 {
-	namespace Reconstruction
+	/**
+	 * @brief	Class for Logging at feature data
+	 * @author	Woonhyuk Baek
+	 */
+	class DLLEXPORT FeatureExportor
 	{
-		/**
-		 * @defgroup Reconstruction Reconstruction classes
-		 * @brief
-		 *		Reconstruction classes
-		 * @addtogroup Reconstruction
-		 * @{
-		 */
+	private:
+		windage::Logger* logger;
+		std::string function_name;
+		std::vector<windage::FeaturePoint>* featurePoints;
 
-		/**
-		 * @brief	Class for Logging at reconstruction data
-		 * @author	Woonhyuk Baek
-		 */
-		class DLLEXPORT Exportor
+	public:
+		FeatureExportor()
 		{
-		private:
-			windage::Logger* logger;
-			std::string function_name;
-			std::vector<std::string> imageFileList;
-			std::vector<windage::Calibration*> calibrationList;
-			std::vector<windage::ReconstructionPoint>* reconstructionPoints;
+			logger = NULL;
+			featurePoints = NULL;
+			function_name = std::string("");
+		}
+		~FeatureExportor()
+		{
+		}
 
-		public:
-			Exportor()
-			{
-				logger = NULL;
-				reconstructionPoints = NULL;
-				function_name = std::string("");
-			}
-			~Exportor()
-			{
-				calibrationList.clear();
-			}
-
-			inline void SetFunctionName(std::string function_name){this->function_name = function_name;};
-			inline void AttatchLogger(windage::Logger* logger){this->logger = logger;};
-			inline void PushImageFile(std::string fileName){this->imageFileList.push_back(fileName);};
-			inline void PushCalibration(windage::Calibration* calibration){this->calibrationList.push_back(calibration);};
-			inline void SetReconstructionPoints(std::vector<windage::ReconstructionPoint>* reconstructionPoints){this->reconstructionPoints = reconstructionPoints;};
-			
-			bool DoExport();
-		};
-		/** @} */ // addtogroup Reconstruction
-	}
+		inline void SetFunctionName(std::string function_name){this->function_name = function_name;};
+		inline void AttatchLogger(windage::Logger* logger){this->logger = logger;};
+		inline void SetFeaturePoints(std::vector<windage::FeaturePoint>* featurePoints){this->featurePoints = featurePoints;};
+		
+		bool DoExport();
+	};
 }
 
-#endif
+#endif //_FEATURE_POINT_EXPORTOR_H_

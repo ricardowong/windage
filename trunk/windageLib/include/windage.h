@@ -102,6 +102,8 @@
 // Utilities
 #include "Utilities/Utils.h"
 #include "Utilities/Logger.h"
+#include "Utilities/FeatureExportor.h"
+#include "Utilities/FeatureLoader.h"
 
 // Frameworks
 #include "Frameworks/PlanarObjectTracking.h"
