@@ -40,7 +40,7 @@
 /**
  * @file	ReconstructionPoint.h
  * @author	Woonhyuk Baek
- * @version 1.0
+ * @version 2.0
  * @date	2010.02.05
  * @brief	It has reconstruction point information
  */

@@ -40,7 +40,7 @@
 /**
  * @file	KalmanFilter.h
  * @author	Woonhyuk Baek
- * @version 1.0
+ * @version 2.0
  * @date	2010.02.12
  * @brief	It is implemetation of kalman filter class to prevent zitering
  */

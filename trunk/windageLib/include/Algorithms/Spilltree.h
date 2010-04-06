@@ -40,7 +40,7 @@
 /**
  * @file	Spilltree.h
  * @author	Woonhyuk Baek
- * @version 1.0
+ * @version 2.0
  * @date	2010.02.04
  * @brief	It is implemetation of search tree class to use Spill-tree altorithm
  */

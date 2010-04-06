@@ -40,7 +40,7 @@
 /**
  * @file	EPnPRANSACestimator.h
  * @author	Woonhyuk Baek
- * @version 1.0
+ * @version 2.0
  * @date	2010.02.09
  * @brief	It is implemetation of camera pose estimator class to use EPnP & RANSAC techniq
  */
