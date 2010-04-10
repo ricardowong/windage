@@ -239,7 +239,7 @@ void main()
 
 					int startIndex = MAX(0, imageCount - BUNDLEADSUTMENT_COUNT);
 					int countNumber = MIN(imageCount, BUNDLEADSUTMENT_COUNT);
-					reconstructor->BundleAdjustment(startIndex, countNumber);
+//					reconstructor->BundleAdjustment(startIndex, countNumber);
 
 					reconstructor->ResizeScale(RECONSTRUCTION_SIZE);
 
