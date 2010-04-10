@@ -25,6 +25,7 @@ void main()
 	CvCapture* capture = cvCaptureFromCAM(CV_CAP_ANY);
 	cvNamedWindow("result");
 
+	double threshold = 1.0;
 	int index = 0;
 	char message[100];
 	bool flip = true;
@@ -41,6 +42,7 @@ void main()
 		int64 startTime = cvGetTickCount();
 
 //		cvSmooth(grayImage, grayImage, CV_GAUSSIAN, 3, 3);
+		detector->SetThreshold(threshold);
 		detector->DoExtractKeypointsDescriptor(grayImage);
 
 		int64 endTime = cvGetTickCount();
@@ -52,8 +54,11 @@ void main()
 		char message[100];
 		sprintf_s(message, "Processing Time : %.2lf ms", processingTime);
 		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 20), 0.6, message);
+		sprintf_s(message, "Threshold : %.2lf ms", threshold);
+		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 40), 0.6, message);
+
 		sprintf_s(message, "Press 'F' to flip image");
-		windage::Utils::DrawTextToImage(resultImage, cvPoint(WIDTH-270, HEIGHT-25), 0.5, message);
+		windage::Utils::DrawTextToImage(resultImage, cvPoint(WIDTH-200, HEIGHT-25), 0.5, message);
 
 		cvShowImage("result", resultImage);
 
@@ -68,6 +73,12 @@ void main()
 		case 'Q':
 		case 27:
 			processing = false;
+			break;
+		case '+':
+			threshold *= 2.0;
+			break;
+		case '-':
+			threshold /= 2.0;
 			break;
 		case 's':
 		case 'S':

@@ -91,9 +91,9 @@ const char* IMAGE_FILE_NAME = "Miniature/result.imgr%d_COL.jpg";
 
 #if RECONSTRUCTION_INCREAMENTAL
 const int START_INDEX = 0;
-const int IMAGE_FILE_COUNT = 31;
+const int IMAGE_FILE_COUNT = 32;
 const double INTRINSIC_VALUES[8] = {1033.93, 1033.84, 319.044, 228.858,-0.206477, 0.306424, 0.000728208, 0.0011338};
-const char* IMAGE_FILE_NAME = "data/reconstruction-2010-03-29_08_44_23/image%03d.png";
+const char* IMAGE_FILE_NAME = "data/reconstruction-2010-04-08_15_09_46/image%03d.png";
 #endif
 
 void main()

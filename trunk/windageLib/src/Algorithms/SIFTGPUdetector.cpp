@@ -53,6 +53,8 @@ bool SIFTGPUdetector::DoExtractKeypointsDescriptor(IplImage* grayImage)
 
 	const int DESCRIPTOR_DIMENSION = 128;
 	this->keypoints.clear();
+
+	sift->_dog_threshold = (float)this->threshold;
 	
 	std::vector<SiftGPU::SiftKeypoint> keypoints;
 	std::vector<float> descriptors;

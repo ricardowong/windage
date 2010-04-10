@@ -51,7 +51,8 @@ const double REPROJECTION_ERROR = 5.0;
 const double INTRINSIC[] = {1033.93, 1033.84, 319.044, 228.858,-0.206477, 0.306424, 0.000728208, 0.0011338};
 
 //const char* FILE_NAME = "data/reconstruction-2010-03-29_18_28_38/reconstruction.txt";
-const char* FILE_NAME = "data/reconstruction-2010-03-29_09_33_01/reconstruction.txt";
+//const char* FILE_NAME = "data/reconstruction-2010-03-29_09_33_01/reconstruction.txt";
+const char* FILE_NAME = "data/reconstruction-2010-04-08_15_09_46/reconstruction.txt";
 
 void DrawRectangle(IplImage* image, windage::Calibration* calibration, double dx, double dy, double dz)
 {
@@ -106,7 +107,6 @@ void main()
 	windage::Algorithms::PoseRefiner* refiner			= new windage::Algorithms::PoseLMmethod();
 	
 	calibration = new windage::Calibration();
-	
 	opticalflow = new windage::Algorithms::OpticalFlow();
 	estimator = new windage::Algorithms::EPnPRANSACestimator();
 	refiner = new windage::Algorithms::PoseLMmethod();
@@ -115,8 +115,8 @@ void main()
 	searchtree->SetRatio(0.3);
 	opticalflow->Initialize(WIDTH, HEIGHT, cvSize(15, 15), 3);
 	estimator->SetReprojectionError(REPROJECTION_ERROR);
-	estimator->SetConfidence(0.995);
-	estimator->SetMaxIteration(1000);
+	estimator->SetConfidence(0.95);
+	estimator->SetMaxIteration(100);
 	refiner->SetMaxIteration(10);
 
 	tracking.AttatchCalibration(calibration);

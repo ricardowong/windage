@@ -314,13 +314,12 @@ void SingleObjectTracking::DrawDebugInfo(IplImage* colorImage)
 	int g = 0;
 	int b = 0;
 
-	int size = 4;
-
 	EnterCriticalSection(&SingleOjbectThread::csKeypointsUpdate);
 	for(unsigned int i=0; i<refMatchedKeypoints.size(); i++)
 	{
 		CvPoint imagePoint = cvPoint((int)sceMatchedKeypoints[i].GetPoint().x, (int)sceMatchedKeypoints[i].GetPoint().y);
 
+		int size = sceMatchedKeypoints[i].GetSize();
 		cvCircle(colorImage, imagePoint, size+5, CV_RGB(0, 0, 0), CV_FILLED);
 		cvCircle(colorImage, imagePoint, size, CV_RGB(255, 255, 0), CV_FILLED);
 	}

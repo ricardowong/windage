@@ -141,7 +141,7 @@ void main()
 		pt.z = 0.0;
 		baseFeaturePoints[i].SetPoint(pt);
 	}
-	tracking.TrainingReference(&baseFeaturePoints);
+//	tracking.TrainingReference(&baseFeaturePoints);
 	
 	trained = true;
 
