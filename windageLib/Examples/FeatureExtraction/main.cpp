@@ -16,16 +16,17 @@ void main()
 	IplImage* resultImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
 	IplImage* grayImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 1);
 
-	windage::Algorithms::FeatureDetector* detector = new windage::Algorithms::SIFTGPUdetector();
+//	windage::Algorithms::FeatureDetector* detector = new windage::Algorithms::SIFTGPUdetector();
 //	windage::Algorithms::FeatureDetector* detector = new windage::Algorithms::SIFTdetector();
 //	windage::Algorithms::FeatureDetector* detector = new windage::Algorithms::SURFdetector();
+	windage::Algorithms::FeatureDetector* detector = new windage::Algorithms::WSURFdetector();
 //	windage::Algorithms::FeatureDetector* detector = new windage::Algorithms::WSURFMultidetector(WIDTH, HEIGHT);
 	detector->SetThreshold(60);
 
 	CvCapture* capture = cvCaptureFromCAM(CV_CAP_ANY);
 	cvNamedWindow("result");
 
-	double threshold = 1.0;
+	double threshold = 30.0;
 	int index = 0;
 	char message[100];
 	bool flip = true;
