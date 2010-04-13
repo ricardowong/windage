@@ -49,10 +49,12 @@
 #include "Coordinator/ARForOSG.h"
 #include "../Common/IrrlichtRenderer.h"
 
-const char* FILE_NAME = "data/reconstruction-2010-03-29_18_28_38/reconstruction.txt";
+const char* FILE_NAME = "data/reconstruction-2010-03-29_09_33_01/reconstruction.txt";
 const char* COORDINATION_ALIGN_IMAGE = "data/reconstruction-2010-03-29_18_28_38/coordination.jpg";
+/*
 const char* MODEL_FILE_NAME = "data/Model/Tank/Tank.obj";
 const char* MODEL_TEXTURE_FILE_NAME = "data/Model/Tank/images/M1_ABRAM.png";
+*/
 const double MODEL_SCALE = 0.1;
 
 const int WIDTH = 640;
@@ -122,7 +124,7 @@ void main()
 
 		referenceRepository.push_back(feature);
 	}
-
+/*
 	windage::Calibration* calibrationTemp = new windage::Calibration();
 	calibrationTemp->Initialize(INTRINSIC[0], INTRINSIC[1], INTRINSIC[2], INTRINSIC[3], INTRINSIC[4], INTRINSIC[5], INTRINSIC[6], INTRINSIC[7]);
 
@@ -142,6 +144,7 @@ void main()
 	IplImage* coordinationImage = cvLoadImage(COORDINATION_ALIGN_IMAGE);
 	IplImage* grayImage = cvCreateImage(cvGetSize(coordinationImage), IPL_DEPTH_8U, 1);
 	cvCvtColor(coordinationImage, grayImage, CV_BGR2GRAY);
+
 
 	// model pose
 	detector->DoExtractKeypointsDescriptor(grayImage);
@@ -222,7 +225,8 @@ void main()
 		windage::Matrix4 extrinsic = windage::Coordinator::MultiMarkerCoordinator::CalculateExtrinsic(calibrationList[i], rotation.Transpose(), translation);
 		calibrationList[i]->SetExtrinsicMatrix(extrinsic.m1);
 	}
-	
+//*/
+
 	// for rendering
 //*
 	KeyEventReceiver receiver;
