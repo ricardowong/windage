@@ -115,12 +115,14 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="2"
+				Optimization="3"
 				EnableIntrinsicFunctions="true"
+				FavorSizeOrSpeed="1"
 				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../include&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.0/include&quot;;&quot;$(SolutionDir)../../component/GLUT/include&quot;;&quot;$(SolutionDir)../../component/SBA-1.5/include&quot;;&quot;$(SolutionDir)../../component/SiftGPU-V340/include&quot;;&quot;$(SolutionDir)../../component/OpenSceneGraph2.8.1/include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
+				OpenMP="true"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"

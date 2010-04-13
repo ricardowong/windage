@@ -68,11 +68,12 @@ const int FPS_UPDATE_STEP = 30;
 int fpsStep = 0;
 
 // adaptive threshold
-#define ADAPTIVE_THRESHOLD
-int fastThreshold = 70;
+#define ADAPTIVE_THRESHOLD 1
+int beforeCount = -1;
+int fastThreshold = 30;
 const int MAX_FAST_THRESHOLD = 80;
-const int MIN_FAST_THRESHOLD = 30;
-const int ADAPTIVE_THRESHOLD_VALUE = 1000;
+const int MIN_FAST_THRESHOLD = 10;
+const int ADAPTIVE_THRESHOLD_VALUE = 500;
 const int THRESHOLD_STEP = 1;
 
 bool flip = true;
@@ -83,6 +84,7 @@ IplImage* input;
 IplImage* gray;
 
 CvVideoWriter* writer;
+#define SAVE_RENDERING_IMAGE
 
 // class to handle events with a pick
 class PickHandler : public osgGA::GUIEventHandler
@@ -110,8 +112,10 @@ public:
 					exit(0);
 					break;
 				case ' ':
+					tracker->GetDetector()->SetThreshold(15.0);
 					tracker->AttatchReferenceImage(gray);
 					tracker->TrainingReference(4.0, 8);
+					tracker->GetDetector()->SetThreshold(fastThreshold);
 					break;
 				}
 			}
@@ -140,8 +144,8 @@ windage::Frameworks::PlanarObjectTracking* CreateTracker()
 	detector->SetThreshold(30.0);
 	searchtree->SetRatio(0.7);
 	opticalflow->Initialize(WIDTH, HEIGHT, cvSize(8, 8), 3);
-	estimator->SetReprojectionError(10.0);
-	checker->SetReprojectionError(10.0);
+	estimator->SetReprojectionError(5.0);
+	checker->SetReprojectionError(5.0);
 	refiner->SetMaxIteration(10);
 
 	tracker->AttatchCalibration(calibration);
@@ -152,7 +156,7 @@ windage::Frameworks::PlanarObjectTracking* CreateTracker()
 	tracker->AttatchChecker(checker);
 	tracker->AttatchRefiner(refiner);
 
-	tracker->SetDitectionRatio(30);
+	tracker->SetDitectionRatio(15);
 	tracker->Initialize(WIDTH, HEIGHT, (double)WIDTH, (double)HEIGHT);
 
 	return tracker;
@@ -175,8 +179,13 @@ osg::Matrixd GetTrackerCoordinate()
 	int featureCount = tracker->GetDetector()->GetKeypointsCount();
 	int matchingCount = tracker->GetMatchingCount();
 #ifdef ADAPTIVE_THRESHOLD
-	if(featureCount > ADAPTIVE_THRESHOLD_VALUE )	fastThreshold = MIN(MAX_FAST_THRESHOLD, fastThreshold+THRESHOLD_STEP);
-	else											fastThreshold = MAX(MIN_FAST_THRESHOLD, fastThreshold-THRESHOLD_STEP);
+	if(beforeCount != featureCount)
+	{
+		if(featureCount > ADAPTIVE_THRESHOLD_VALUE )	fastThreshold = MIN(MAX_FAST_THRESHOLD, fastThreshold+THRESHOLD_STEP);
+		else											fastThreshold = MAX(MIN_FAST_THRESHOLD, fastThreshold-THRESHOLD_STEP);
+		tracker->GetDetector()->SetThreshold(fastThreshold);
+	}
+	beforeCount = featureCount;
 #endif
 
 	// calculate fps
@@ -199,12 +208,14 @@ osg::Matrixd GetTrackerCoordinate()
 	}
 
 	char message[100];
-	sprintf(message, "FPS : %.2lf", fps);
+	sprintf_s(message, "FPS : %.2lf", fps);
 	windage::Utils::DrawTextToImage(input, cvPoint(20, 40), 0.7, message);
-	sprintf(message, "FAST feature count : %d, threashold : %d", featureCount, fastThreshold);
+	sprintf_s(message, "FAST feature count : %d, threashold : %d", featureCount, fastThreshold);
 	windage::Utils::DrawTextToImage(input, cvPoint(20, 60), 0.7, message);
-	sprintf(message, "Match count : %d", matchingCount);
+	sprintf_s(message, "Match count : %d", matchingCount);
 	windage::Utils::DrawTextToImage(input, cvPoint(20, 80), 0.7, message);
+	sprintf_s(message, "Press 'F' to flip image");
+	windage::Utils::DrawTextToImage(input, cvPoint(WIDTH-170, HEIGHT-25), 0.5, message);
 
 	return modelView;
 }
@@ -292,10 +303,31 @@ int main(int argc, char ** argv )
 	objectCoordinate->postMult(scale);
 	objectCoordinate->addChild(LoadModel("model/cow.osg"));
 
+#ifdef SAVE_RENDERING_IMAGE
+	    IplImage* saveImage = cvCreateImage(cvSize(640, 480), IPL_DEPTH_8U, 3);
+        IplImage* saveTempImage = cvCreateImage(cvSize(640, 480), IPL_DEPTH_8U, 4);
+        bool saving = false;
+        writer = cvCreateVideoWriter("rendering.avi", CV_FOURCC_DEFAULT, 30, cvSize(saveImage->width, saveImage->height), 1);
+
+        osg::Image* osgImage = new osg::Image();
+        osgImage->allocateImage(saveImage->width, saveImage->height, 1, GL_RGBA, GL_UNSIGNED_BYTE);
+        viewer->getCamera()->attach(osg::Camera::COLOR_BUFFER, osgImage);
+#endif
+
 	while (!viewer->done())
     {
 		localCoordinates->setMatrix(GetTrackerCoordinate());
 		viewer->frame();
+
+#ifdef SAVE_RENDERING_IMAGE
+                std::cout << "read buffer" << std::endl;
+                osgImage->readPixels(0, 0, saveImage->width, saveImage->height, GL_RGBA, GL_UNSIGNED_BYTE);
+                memcpy(saveTempImage->imageData, osgImage->data(), sizeof(char)*saveImage->width*saveImage->height*4);
+                cvCvtColor(saveTempImage, saveImage, CV_RGBA2BGR);
+                cvFlip(saveImage, saveImage);
+                
+                if(writer) cvWriteFrame(writer, saveImage);
+#endif
     }
 
 	cvReleaseCapture(&capture);
