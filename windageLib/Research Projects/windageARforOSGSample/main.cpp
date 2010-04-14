@@ -56,7 +56,7 @@
 #include <Coordinator/ARForOSG.h>
 #include <ARforOSG/windageARforOSG.h>
 #include <ARforOSG/NVideoLayer.h>
-#include "OSGWrapper.h"
+#include "../Common/OSG/OSGWrapper.h"
 
 const int WIDTH = 640;
 const int HEIGHT = 480;
@@ -304,14 +304,14 @@ int main(int argc, char ** argv )
 	objectCoordinate->addChild(LoadModel("model/cow.osg"));
 
 #ifdef SAVE_RENDERING_IMAGE
-	    IplImage* saveImage = cvCreateImage(cvSize(640, 480), IPL_DEPTH_8U, 3);
-        IplImage* saveTempImage = cvCreateImage(cvSize(640, 480), IPL_DEPTH_8U, 4);
-        bool saving = false;
-        writer = cvCreateVideoWriter("rendering.avi", CV_FOURCC_DEFAULT, 30, cvSize(saveImage->width, saveImage->height), 1);
+    IplImage* saveImage = cvCreateImage(cvSize(640, 480), IPL_DEPTH_8U, 3);
+    IplImage* saveTempImage = cvCreateImage(cvSize(640, 480), IPL_DEPTH_8U, 4);
+    bool saving = false;
+    writer = cvCreateVideoWriter("rendering.avi", CV_FOURCC_DEFAULT, 30, cvSize(saveImage->width, saveImage->height), 1);
 
-        osg::Image* osgImage = new osg::Image();
-        osgImage->allocateImage(saveImage->width, saveImage->height, 1, GL_RGBA, GL_UNSIGNED_BYTE);
-        viewer->getCamera()->attach(osg::Camera::COLOR_BUFFER, osgImage);
+    osg::Image* osgImage = new osg::Image();
+    osgImage->allocateImage(saveImage->width, saveImage->height, 1, GL_RGBA, GL_UNSIGNED_BYTE);
+    viewer->getCamera()->attach(osg::Camera::COLOR_BUFFER, osgImage);
 #endif
 
 	while (!viewer->done())
@@ -320,13 +320,13 @@ int main(int argc, char ** argv )
 		viewer->frame();
 
 #ifdef SAVE_RENDERING_IMAGE
-                std::cout << "read buffer" << std::endl;
-                osgImage->readPixels(0, 0, saveImage->width, saveImage->height, GL_RGBA, GL_UNSIGNED_BYTE);
-                memcpy(saveTempImage->imageData, osgImage->data(), sizeof(char)*saveImage->width*saveImage->height*4);
-                cvCvtColor(saveTempImage, saveImage, CV_RGBA2BGR);
-                cvFlip(saveImage, saveImage);
-                
-                if(writer) cvWriteFrame(writer, saveImage);
+        std::cout << "read buffer" << std::endl;
+        osgImage->readPixels(0, 0, saveImage->width, saveImage->height, GL_RGBA, GL_UNSIGNED_BYTE);
+        memcpy(saveTempImage->imageData, osgImage->data(), sizeof(char)*saveImage->width*saveImage->height*4);
+        cvCvtColor(saveTempImage, saveImage, CV_RGBA2BGR);
+        cvFlip(saveImage, saveImage);
+        
+        if(writer) cvWriteFrame(writer, saveImage);
 #endif
     }
 
