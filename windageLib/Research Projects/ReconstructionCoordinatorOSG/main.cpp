@@ -37,7 +37,7 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#include <osg/LineWidth>
+#include <osg/Point>
 #include <osg/ShapeDrawable>
 #include <osg/Geometry>
 #include <osg/DisplaySettings>
@@ -59,13 +59,29 @@
 */
 #include "RecompositeDragger.h"
 
+#include <highgui.h>
+
 #include <windage.h>
+#include <Coordinator/ARForOSG.h>
+#include <ARforOSG/windageARforOSG.h>
+#include <ARforOSG/NVideoLayer.h>
+
 #include <iostream>
 
 #include "../Common/OSG/OSGWrapper.h"
 
 const char* FILE_NAME = "data/reconstruction-2010-03-29_18_28_38/reconstruction.txt";
 const char* MODEL_FILE_NAME = "data/Model/Tank2/Leopard.osg";
+
+//#define AR_COORDINATION_MODE 1
+
+const int WIDTH = 640;
+const int HEIGHT = 480;
+int selecteID = 0;
+std::vector<windage::Calibration*> calibrationList;
+std::vector<IplImage*> imageList;
+IplImage* textureImage;
+windage::Coordinator::ARForOSG* arTool = NULL;
 
 osg::Node* createHUD()
 {
@@ -116,7 +132,7 @@ osg::Node* addDraggerToScene(osg::Node* scene, osgManipulator::CommandManager* c
     root->addChild(selection);
     root->addChild(createHUD());
 
-    float scale = scene->getBound().radius() * 2.0;
+    float scale = scene->getBound().radius() * 1.0;
     dragger->setMatrix(osg::Matrix::scale(scale, scale, scale) *
                        osg::Matrix::translate(scene->getBound().center()));
 
@@ -125,23 +141,17 @@ osg::Node* addDraggerToScene(osg::Node* scene, osgManipulator::CommandManager* c
     return root;
 }
 
-osg::Node* createReconstructionScene(osgManipulator::CommandManager* cmdMgr, std::vector<windage::FeaturePoint>* referenceRepository)
+osg::Node* createModelScene(osgManipulator::CommandManager* cmdMgr)
 { 
-    osg::Group* root = new osg::Group;
-
 	// for model
-    osg::ref_ptr<osg::Geode> geode = new osg::Geode;
-    osg::ref_ptr<osg::MatrixTransform> transform = new osg::MatrixTransform;
+	osg::MatrixTransform* transform = new osg::MatrixTransform;
+    osg::ref_ptr<osg::Node> modelNode = LoadModel(MODEL_FILE_NAME);
+	transform->addChild(addDraggerToScene(modelNode.get(), cmdMgr));
+    return transform;
+}
 
-	const float radius = 0.8f;
-    const float height = 1.0f;
-    osg::ref_ptr<osg::TessellationHints> hints = new osg::TessellationHints;
-    hints->setDetailRatio(2.0f);
-	osg::ref_ptr<osg::Node> modelNode = LoadModel(MODEL_FILE_NAME);
-	
-    transform.get()->addChild(addDraggerToScene(modelNode.get(), cmdMgr));
-	root->addChild(transform.get());
-
+osg::Node* createReconstructionScene(std::vector<windage::FeaturePoint>* referenceRepository)
+{ 
 	// for reconstruction points
 	int count = referenceRepository->size();
 
@@ -155,24 +165,17 @@ osg::Node* createReconstructionScene(osgManipulator::CommandManager* cmdMgr, std
 		(*vertices)[i] = osg::Vec3d(point.x, point.y, point.z);
 		
 		CvScalar color = (*referenceRepository)[i].GetColor();
-		(*colors)[i] = osg::Vec4d(color.val[2], color.val[1], color.val[0], 1.0);
+		(*colors)[i] = osg::Vec4d(color.val[2]/255.0, color.val[1]/255.0, color.val[0]/255.0, 1.0);
 	}
 	geometry->setVertexArray(vertices);
 	geometry->setColorArray(colors);
 	geometry->setColorBinding(osg::Geometry::BIND_PER_VERTEX);
 	geometry->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::POINTS, 0, count));
-
-	osg::StateSet* stateset = new osg::StateSet;
-	osg::LineWidth* linewidth = new osg::LineWidth();
-	linewidth->setWidth(10.0f);
-	stateset->setAttributeAndModes(linewidth,osg::StateAttribute::ON);
-	stateset->setMode(GL_LIGHTING,osg::StateAttribute::OFF);
-	geometry->setStateSet(stateset);
+	geometry->getOrCreateStateSet()->setAttribute(new osg::Point(3.0f), osg::StateAttribute::ON);
 
 	reconstructionGeode->addDrawable(geometry);
-	root->addChild(reconstructionGeode);
-    
-    return root;
+	
+    return reconstructionGeode;
 }
 
 class PickModeHandler : public osgGA::GUIEventHandler
@@ -201,6 +204,22 @@ class PickModeHandler : public osgGA::GUIEventHandler
 				{
 					_mode = ! _mode;
 				}
+				break;
+			case osgGA::GUIEventAdapter::KEY_Up:
+			case osgGA::GUIEventAdapter::KEY_Right:
+				selecteID++;
+				if(selecteID >= imageList.size()) selecteID = 0;
+				cvCopyImage(imageList[selecteID], textureImage);
+				break;
+			case osgGA::GUIEventAdapter::KEY_Down:
+			case osgGA::GUIEventAdapter::KEY_Left:
+				selecteID--;
+				if(selecteID < 0) selecteID = imageList.size() - 1;
+				cvCopyImage(imageList[selecteID], textureImage);
+				break;
+			case 'c':
+			case 'C':
+				selecteID = 0;
 				break;
 			}
             
@@ -272,14 +291,34 @@ class PickModeHandler : public osgGA::GUIEventHandler
         osgManipulator::PointerInfo _pointer;
 };
 
+osg::Matrixd GetTrackerCoordinate()
+{
+	// camera frame grabbing
+	IplImage* backgroundImage;
+
+	arTool->AttatchCameraParameter(calibrationList[selecteID]);
+	arTool->SetModelViewMatrix();
+	osg::Matrixd modelView;
+	modelView.identity();
+	modelView = windageARTool::ForOSG::ConvertOSGMatrix(arTool->GetModelViewMatrix());
+
+	return modelView;
+}
+
 int main( int argc, char **argv )
 {
+	osg::Group* root = new osg::Group;
+	osg::ref_ptr<osg::Projection>		projectionMatrix;
+	osg::ref_ptr<osg::MatrixTransform>	modelViewMatrix;
+
+	osg::ref_ptr<osg::Group>	sceneGroup = new osg::Group();
+	osg::ref_ptr<osg::Group>	foregroundGroup = new osg::Group();
+	osg::ref_ptr<CNVideoLayer>	videoBackground;
+	osg::ref_ptr<osg::Image>	cameraImage = new osg::Image();
+
 	// for reconstruction data
-	std::vector<IplImage*> inputImage;
 	std::vector<windage::ReconstructionPoint> reconstructionPoints;
 	std::vector<std::string> filenameList;
-	std::vector<IplImage*> imageList;
-	std::vector<windage::Calibration*> calibrationList;
 
 	// load data
 	std::cout << "load reconstruction datas" << std::endl;
@@ -290,6 +329,11 @@ int main( int argc, char **argv )
 	loader->AttatchFilename(&filenameList);
 	loader->AttatchReconstructionPoints(&reconstructionPoints);
 	loader->DoLoad(FILE_NAME);
+
+	for(unsigned int i=0; i<filenameList.size(); i++)
+	{
+		imageList.push_back(cvLoadImage(filenameList[i].c_str()));
+	}
 
 	std::cout << std::endl;
 	std::cout << "complete load reconstruction datas" << std::endl;
@@ -309,38 +353,72 @@ int main( int argc, char **argv )
 		referenceRepository.push_back(feature);
 	}
 
+	// for rendering
+	arTool = new windage::Coordinator::ARForOSG();
+	arTool->Initialize(WIDTH, HEIGHT);
+	arTool->AttatchCameraParameter(calibrationList[0]);
+	textureImage = cvCloneImage(imageList[0]);
+
+	// initialize OSG
+	// create projection matrix
+	arTool->SetProjectionMatrix();
+	osg::Matrixd _proj = windageARTool::ForOSG::ConvertOSGMatrix(arTool->GetProjectionMatrix());
+	projectionMatrix = new osg::Projection(_proj);
+	modelViewMatrix  = new osg::MatrixTransform();
+
+	// setup scene graph
+	root->addChild(projectionMatrix.get());
+	projectionMatrix->addChild(modelViewMatrix.get());
+	modelViewMatrix->addChild(sceneGroup.get());
+
+	// create background scene
+	cameraImage->setImage(WIDTH, HEIGHT, 1, GL_BGRA, GL_BGR, GL_UNSIGNED_BYTE, (unsigned char*)textureImage->imageData, osg::Image::NO_DELETE);	
+	videoBackground = new CNVideoLayer(cameraImage.get(), 1);
+	videoBackground->init();
+
+	// create foregruond scene
+	foregroundGroup->getOrCreateStateSet()->setRenderBinDetails(100, "RenderBin");
+	foregroundGroup->getOrCreateStateSet()->setMode(GL_NORMALIZE, osg::StateAttribute::ON);
+	sceneGroup->addChild(foregroundGroup.get());
+
+	// tracker transform
+	osg::ref_ptr<osg::MatrixTransform> localCoordinates;
+	localCoordinates = new osg::MatrixTransform();
+	foregroundGroup->addChild(localCoordinates.get());
+
     // construct the viewer.
-    osgViewer::Viewer viewer;
-	viewer.setUpViewInWindow(10, 40, 640, 480 );
-
-    // read the scene from the list of file specified command line args.
-    osg::ref_ptr<osg::Node> loadedModel;
-
-    // create a command manager
+    osgViewer::Viewer* viewer;
+	viewer = new osgViewer::Viewer();
+	viewer->setUpViewInWindow(10, 40, 640, 480 );
+	
+	// create a command manager
     osg::ref_ptr<osgManipulator::CommandManager> cmdMgr = new osgManipulator::CommandManager;
 
     // if no model has been successfully loaded report failure.
-    bool tragger2Scene = true;
-    if (!loadedModel) 
-    {
-        //std::cout << arguments.getApplicationName() <<": No data loaded" << std::endl;
-        //return 1;
-        loadedModel = createReconstructionScene(cmdMgr.get(), &referenceRepository);
-        tragger2Scene = false;
-    }
+	localCoordinates->addChild(createModelScene(cmdMgr.get()));
+	localCoordinates->addChild(createReconstructionScene(&referenceRepository));
 
     // optimize the scene graph, remove redundant nodes and state etc.
     osgUtil::Optimizer optimizer;
-    optimizer.optimize(loadedModel.get());
+    optimizer.optimize(root);
     
-    // pass the loaded scene graph to the viewer.
-    if ( tragger2Scene ) {
-        viewer.setSceneData(addDraggerToScene(loadedModel.get(), cmdMgr.get()));
-    } else { 
-        viewer.setSceneData(loadedModel.get());
-    }
-    viewer.addEventHandler(new PickModeHandler());
+    // pass the loaded scene graph to the viewer
+	viewer->setSceneData(root);
+    viewer->addEventHandler(new PickModeHandler());
+	viewer->setThreadingModel(osgViewer::ViewerBase::ThreadingModel::ThreadPerContext);
+	viewer->realize();
 
-    return viewer.run();
+#if AR_COORDINATION_MODE
+	sceneGroup->addChild(videoBackground.get());
+	while(!viewer->done())
+	{
+		localCoordinates->setMatrix(GetTrackerCoordinate());
+		viewer->frame();
+	}
+#else
+	viewer->run();
+#endif
+
+    return 0;
 }
 

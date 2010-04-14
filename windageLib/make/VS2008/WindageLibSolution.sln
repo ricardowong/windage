@@ -123,6 +123,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "windageARforOSGSample", "..
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ReconstructionCoordinatorOSG", "..\..\Research Projects\ReconstructionCoordinatorOSG\ReconstructionCoordinatorOSG.vcproj", "{5B7756FE-C6C1-4F8B-B1B6-E2508A4CCC1F}"
 	ProjectSection(ProjectDependencies) = postProject
+		{57640631-77F9-476E-B0E0-20DA43FE8F52} = {57640631-77F9-476E-B0E0-20DA43FE8F52}
 		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B} = {BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}
 	EndProjectSection
 EndProject
