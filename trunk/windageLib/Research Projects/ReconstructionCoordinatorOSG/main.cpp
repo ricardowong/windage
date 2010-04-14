@@ -83,6 +83,8 @@ std::vector<IplImage*> imageList;
 IplImage* textureImage;
 windage::Coordinator::ARForOSG* arTool = NULL;
 
+osg::MatrixTransform* modelNode = NULL;
+
 osg::Node* createHUD()
 {
     osg::Geode* geode = new osg::Geode();
@@ -144,10 +146,9 @@ osg::Node* addDraggerToScene(osg::Node* scene, osgManipulator::CommandManager* c
 osg::Node* createModelScene(osgManipulator::CommandManager* cmdMgr)
 { 
 	// for model
-	osg::MatrixTransform* transform = new osg::MatrixTransform;
-    osg::ref_ptr<osg::Node> modelNode = LoadModel(MODEL_FILE_NAME);
-	transform->addChild(addDraggerToScene(modelNode.get(), cmdMgr));
-    return transform;
+	modelNode = new osg::MatrixTransform;
+	modelNode->addChild(addDraggerToScene(LoadModel(MODEL_FILE_NAME), cmdMgr));
+    return modelNode;
 }
 
 osg::Node* createReconstructionScene(std::vector<windage::FeaturePoint>* referenceRepository)
@@ -219,7 +220,15 @@ class PickModeHandler : public osgGA::GUIEventHandler
 				break;
 			case 'c':
 			case 'C':
-				selecteID = 0;
+//*
+				osg::Vec3d trans = ((osg::MatrixTransform*)modelNode->getChild(0)->asGroup()->getChild(0))->getMatrix().getTrans();
+				osg::Vec3d rotat = ((osg::MatrixTransform*)modelNode->getChild(0)->asGroup()->getChild(0))->getMatrix().getRotate().asVec3();
+				osg::Vec3d scale = ((osg::MatrixTransform*)modelNode->getChild(0)->asGroup()->getChild(0))->getMatrix().getScale();
+
+				std::cout << "Translation : " << trans[0] << ", " << trans[1] << ", " << trans[2] << std::endl;
+				std::cout << "Rotation : " << rotat[0] << ", " << rotat[1] << ", " << rotat[2] << std::endl;
+				std::cout << "Scale : " << scale[0] << ", " << scale[1] << ", " << scale[2] << std::endl;
+//*/
 				break;
 			}
             

@@ -213,7 +213,7 @@ public:
 		layerGroup->setStateSet(m_layerStateSet.get());
 
 		setLayerDepth(m_layerDepth);
-		layerGroup->getOrCreateStateSet()->setAttribute(new osg::Depth(osg::Depth::ALWAYS, 1.0f, 1.0f));
+		layerGroup->getOrCreateStateSet()->setAttribute(new osg::Depth(osg::Depth::ALWAYS, 0.1f, 1.0f));
 		layerGroup->addChild(buildLayerGeometry().get());
 
 		return m_layerProjectionMatrix;
