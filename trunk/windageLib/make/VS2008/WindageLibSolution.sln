@@ -121,6 +121,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "windageARforOSGSample", "..
 		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B} = {BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ReconstructionCoordinatorOSG", "..\..\Research Projects\ReconstructionCoordinatorOSG\ReconstructionCoordinatorOSG.vcproj", "{5B7756FE-C6C1-4F8B-B1B6-E2508A4CCC1F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B} = {BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -219,6 +224,10 @@ Global
 		{4A86785A-A745-4544-AA1E-830D45E89E72}.Debug|Win32.Build.0 = Debug|Win32
 		{4A86785A-A745-4544-AA1E-830D45E89E72}.Release|Win32.ActiveCfg = Release|Win32
 		{4A86785A-A745-4544-AA1E-830D45E89E72}.Release|Win32.Build.0 = Release|Win32
+		{5B7756FE-C6C1-4F8B-B1B6-E2508A4CCC1F}.Debug|Win32.ActiveCfg = Debug|Win32
+		{5B7756FE-C6C1-4F8B-B1B6-E2508A4CCC1F}.Debug|Win32.Build.0 = Debug|Win32
+		{5B7756FE-C6C1-4F8B-B1B6-E2508A4CCC1F}.Release|Win32.ActiveCfg = Release|Win32
+		{5B7756FE-C6C1-4F8B-B1B6-E2508A4CCC1F}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -251,5 +260,6 @@ Global
 		{3C201E23-AB9E-4474-8199-22E70A0627F1} = {3AB01E6B-797C-4039-BA7D-96F9CAC6F432}
 		{57640631-77F9-476E-B0E0-20DA43FE8F52} = {46B70D48-3BF4-420C-825D-3B1F185A5A55}
 		{4A86785A-A745-4544-AA1E-830D45E89E72} = {46B70D48-3BF4-420C-825D-3B1F185A5A55}
+		{5B7756FE-C6C1-4F8B-B1B6-E2508A4CCC1F} = {46B70D48-3BF4-420C-825D-3B1F185A5A55}
 	EndGlobalSection
 EndGlobal

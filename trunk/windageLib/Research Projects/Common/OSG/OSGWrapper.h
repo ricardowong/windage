@@ -78,7 +78,7 @@ osg::Drawable* CreateAxis(const osg::Vec3& corner,const osg::Vec3& xdir,const os
 	return geom;
 }
 
-osg::Node* LoadModel(char* filename)
+osg::Node* LoadModel(const char* filename)
 {
 	osg::Node* scene = NULL;
 	if (!scene)

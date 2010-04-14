@@ -89,14 +89,14 @@ namespace windage
 			virtual char* GetFunctionName(){return "WSURFdetector";};
 			WSURFdetector(double threshold = 30.0) : FeatureDetector()
 			{
-				FAST_INDEX = 12;
+				FAST_INDEX = 10;
 				this->threshold = threshold;
 			}
 			~WSURFdetector()
 			{
 			}
 
-			void SetFunction(int n=9)
+			void SetFunction(int n=10)
 			{
 				if(n < 9) n = 9;
 				if(n > 12) n = 12;
