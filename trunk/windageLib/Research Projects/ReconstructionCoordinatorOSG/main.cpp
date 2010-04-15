@@ -73,7 +73,7 @@
 const char* FILE_NAME = "data/reconstruction-2010-03-29_18_28_38/reconstruction.txt";
 const char* MODEL_FILE_NAME = "data/Model/Tank2/Leopard.osg";
 
-//#define AR_COORDINATION_MODE 1
+#define AR_COORDINATION_MODE 1
 
 const int WIDTH = 640;
 const int HEIGHT = 480;
@@ -384,6 +384,9 @@ int main( int argc, char **argv )
 	cameraImage->setImage(WIDTH, HEIGHT, 1, GL_BGRA, GL_BGR, GL_UNSIGNED_BYTE, (unsigned char*)textureImage->imageData, osg::Image::NO_DELETE);	
 	videoBackground = new CNVideoLayer(cameraImage.get(), 1);
 	videoBackground->init();
+#if AR_COORDINATION_MODE
+	sceneGroup->addChild(videoBackground.get());
+#endif
 
 	// create foregruond scene
 	foregroundGroup->getOrCreateStateSet()->setRenderBinDetails(100, "RenderBin");
@@ -418,7 +421,6 @@ int main( int argc, char **argv )
 	viewer->realize();
 
 #if AR_COORDINATION_MODE
-	sceneGroup->addChild(videoBackground.get());
 	while(!viewer->done())
 	{
 		localCoordinates->setMatrix(GetTrackerCoordinate());
