@@ -52,11 +52,6 @@
 #include <osgText/Text>
 
 #include <osgManipulator/CommandManager>
-/*
-#include <osgManipulator/TranslateAxisDragger>
-#include <osgManipulator/TrackballDragger>
-#include "ScaleUniformDragger.h"
-*/
 #include "RecompositeDragger.h"
 
 #include <highgui.h>
