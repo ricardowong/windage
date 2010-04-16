@@ -125,7 +125,7 @@ void main()
 	tracking.AttatchEstimator(estimator);
 	tracking.AttatchRefiner(refiner);
 
-	tracking.SetDitectionRatio(5);
+	tracking.SetDitectionRatio(3);
 	tracking.Initialize(WIDTH, HEIGHT);
 
 	int keypointCount = 0;
@@ -146,17 +146,36 @@ void main()
 	loader->AttatchReconstructionPoints(&reconstructionPoints);
 	loader->DoLoad(FILE_NAME);
 
+	int index = 0;
 	for(unsigned int i=0; i<reconstructionPoints.size(); i++)
 	{
-		int index = cvRound((double)reconstructionPoints[i].GetFeatureList()->size() / 2.0);
-		windage::FeaturePoint feature = reconstructionPoints[i].GetFeature(index);
-		windage::Vector4 point = reconstructionPoints[i].GetPoint();
-		feature.SetPoint(windage::Vector3(point.x, point.y, point.z));
-		feature.SetObjectID(0);
-		feature.SetRepositoryID(i);
+		std::vector<windage::FeaturePoint>* featureList = reconstructionPoints[i].GetFeatureList();
 
-		referenceRepository.push_back(feature);
+		// remove less matched feature points
+		if(featureList->size() > 2)
+		{
+			windage::FeaturePoint feature = (*featureList)[0];
+			windage::Vector4 point = reconstructionPoints[i].GetPoint();
+			feature.SetPoint(windage::Vector3(point.x, point.y, point.z));
+			feature.SetObjectID(0);
+			feature.SetRepositoryID(index);
+
+			// normalize descriptor
+			int featureCount = (int)featureList->size();
+			for(int j=1; j<featureCount; j++)
+			{
+				for(int k=0; k<(*featureList)[j].DESCRIPTOR_DIMENSION; k++)
+					feature.descriptor[k] += (*featureList)[j].descriptor[k];
+			}
+
+			for(int k=0; k<feature.DESCRIPTOR_DIMENSION; k++)
+				feature.descriptor[k] /= (double)featureCount;
+
+			referenceRepository.push_back(feature);
+			index++;
+		}
 	}
+	std::cout << "reference repository size : " << referenceRepository.size() << std::endl;
 
 	tracking.TrainingReference(&referenceRepository);
 	trained = true;
@@ -186,10 +205,6 @@ void main()
 			if(tracking.GetMatchingCount() > 9)
 			{
 				tracking.DrawDebugInfo(resultImage);
-//				tracking.DrawOutLine(resultImage, true);
-				
-				// draw rectangle
-//				DrawRectangle(resultImage, calibration, 80, 15, 35);
 				calibration->DrawInfomation(resultImage, 50);
 			}
 		}
