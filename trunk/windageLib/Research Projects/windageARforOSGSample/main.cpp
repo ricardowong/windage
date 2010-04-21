@@ -84,7 +84,7 @@ IplImage* input;
 IplImage* gray;
 
 CvVideoWriter* writer;
-#define SAVE_RENDERING_IMAGE
+//#define SAVE_RENDERING_IMAGE
 
 // class to handle events with a pick
 class PickHandler : public osgGA::GUIEventHandler
@@ -241,7 +241,6 @@ int main(int argc, char ** argv )
 	input = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
 	gray = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 1);
 
-//	IplImage* referenceImage = cvLoadImage("reference1_320.png", 0);
 	tracker = CreateTracker();
 
 	// initialize ar tool

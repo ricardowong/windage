@@ -49,7 +49,7 @@
 #include "Coordinator/ARForOSG.h"
 #include "../Common/IrrlichtRenderer.h"
 
-const char* FILE_NAME = "data/reconstruction-2010-03-29_09_33_01/reconstruction.txt";
+const char* FILE_NAME = "data/reconstruction-2010-04-08_15_09_46/reconstruction.txt";
 const char* COORDINATION_ALIGN_IMAGE = "data/reconstruction-2010-03-29_18_28_38/coordination.jpg";
 /*
 const char* MODEL_FILE_NAME = "data/Model/Tank/Tank.obj";

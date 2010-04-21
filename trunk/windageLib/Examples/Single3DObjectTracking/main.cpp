@@ -52,7 +52,7 @@ const double INTRINSIC[] = {1033.93, 1033.84, 319.044, 228.858,-0.206477, 0.3064
 
 //const char* FILE_NAME = "data/reconstruction-2010-03-29_18_28_38/reconstruction.txt";
 //const char* FILE_NAME = "data/reconstruction-2010-03-29_09_33_01/reconstruction.txt";
-const char* FILE_NAME = "data/reconstruction-2010-04-08_15_09_46/reconstruction.txt";
+const char* FILE_NAME = "data/reconstruction-2010-03-29_09_33_01/reconstruction.txt";
 
 void DrawRectangle(IplImage* image, windage::Calibration* calibration, double dx, double dy, double dz)
 {
