@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="FeatureExtraction"
-	ProjectGUID="{5BD6728C-2AA9-482E-BBD6-0BA90CCC5AD6}"
-	RootNamespace="FeatureExtraction"
+	Name="windageMultipleARforOSG"
+	ProjectGUID="{7116933B-D823-4088-AFBE-E25E9FDA7841}"
+	RootNamespace="windageMultipleARforOSG"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../include&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.0/include&quot;;&quot;$(SolutionDir)../../component/SiftGPU-V340/include&quot;;&quot;$(SolutionDir)../../component/PGR FlyCapture/include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../include&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.0/include&quot;;&quot;$(SolutionDir)../../component/GLUT/include&quot;;&quot;$(SolutionDir)../../component/SBA-1.5/include&quot;;&quot;$(SolutionDir)../../component/SiftGPU-V340/include&quot;;&quot;$(SolutionDir)../../component/OpenSceneGraph2.8.1/include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -61,10 +61,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="cv200.lib cxcore200.lib highgui200.lib SIFTGPU.lib PGRFlyCapture.lib pgrflycapturegui.lib"
-				OutputFile="$(OutDir)\$(ProjectName)d.exe"
+				AdditionalDependencies="cv200.lib cxcore200.lib highgui200.lib glut32.lib SIFTGPU.lib OpenThreads.lib osg.lib osgDB.lib osgUtil.lib osgGA.lib osgViewer.lib osgText.lib glu32.lib opengl32.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="&quot;$(SolutionDir)../../lib/&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.0/lib/&quot;;&quot;$(SolutionDir)../../component/SiftGPU-V340/lib/&quot;;&quot;$(SolutionDir)../../component/PGR FlyCapture/lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)../../lib/&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.0/lib/&quot;;&quot;$(SolutionDir)../../component/GLUT/lib/&quot;;&quot;$(SolutionDir)../../component/SiftGPU-V340/lib/&quot;;&quot;$(SolutionDir)../../component/OpenSceneGraph2.8.1/lib&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				TargetMachine="1"
@@ -118,8 +117,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				FavorSizeOrSpeed="1"
-				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../include&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.0/include&quot;;&quot;$(SolutionDir)../../component/SiftGPU-V340/include&quot;;&quot;$(SolutionDir)../../component/PGR FlyCapture/include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../include&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.0/include&quot;;&quot;$(SolutionDir)../../component/GLUT/include&quot;;&quot;$(SolutionDir)../../component/SBA-1.5/include&quot;;&quot;$(SolutionDir)../../component/SiftGPU-V340/include&quot;;&quot;$(SolutionDir)../../component/OpenSceneGraph2.8.1/include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -139,9 +137,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="cv200.lib cxcore200.lib highgui200.lib SIFTGPU.lib PGRFlyCapture.lib pgrflycapturegui.lib"
+				AdditionalDependencies="cv200.lib cxcore200.lib highgui200.lib glut32.lib SIFTGPU.lib OpenThreads.lib osg.lib osgDB.lib osgUtil.lib osgGA.lib osgViewer.lib osgText.lib glu32.lib opengl32.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;$(SolutionDir)../../lib/&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.0/lib/&quot;;&quot;$(SolutionDir)../../component/SiftGPU-V340/lib/&quot;;&quot;$(SolutionDir)../../component/PGR FlyCapture/lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)../../lib/&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.0/lib/&quot;;&quot;$(SolutionDir)../../component/GLUT/lib/&quot;;&quot;$(SolutionDir)../../component/SiftGPU-V340/lib/&quot;;&quot;$(SolutionDir)../../component/OpenSceneGraph2.8.1/lib&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"
@@ -168,7 +166,6 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="COPY /Y &quot;$(OutDir)\$(ProjectName).exe&quot; &quot;$(SolutionDir)\..\..\runtime\$(ProjectName).exe&quot;"
 			/>
 		</Configuration>
 	</Configurations>
@@ -189,11 +186,7 @@
 			Name="Common"
 			>
 			<File
-				RelativePath="..\Common\FleaCamera.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\Common\FleaCamera.h"
+				RelativePath="..\Common\OSG\OSGWrapper.h"
 				>
 			</File>
 		</Filter>

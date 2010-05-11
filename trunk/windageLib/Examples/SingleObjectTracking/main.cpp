@@ -43,13 +43,14 @@
 #include <highgui.h>
 
 #include <windage.h>
+#include "../Common/FleaCamera.h"
 
 const int WIDTH = 640;
 const int HEIGHT = (WIDTH * 3) / 4;
 const int FEATURE_COUNT = WIDTH;
 
-const double SCALE_FACTOR = 1.0;
-const int SCALE_STEP = 1;
+const double SCALE_FACTOR = 4.0;
+const int SCALE_STEP = 8;
 const double REPROJECTION_ERROR = 5.0;
 
 #define USE_ADAPTIVE_THRESHOLD 1
@@ -61,12 +62,16 @@ void main()
 {
 	windage::Logger logger(&std::cout);
 
-	IplImage* inputImage;
+	IplImage* grabImage;
+	IplImage* inputImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 4);
 	IplImage* resizeImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
 	IplImage* grayImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 1);
 	IplImage* resultImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
 
-	CvCapture* capture = cvCaptureFromCAM(CV_CAP_ANY);
+	FleaCamera* capture = new FleaCamera();
+	capture->open();
+	capture->start();
+//	CvCapture* capture = cvCaptureFromCAM(CV_CAP_ANY);
 	cvNamedWindow("result");
 
 	// create and initialize tracker
@@ -106,7 +111,7 @@ void main()
 	tracking.AttatchRefiner(refiner);
 //	tracking.AttatchFilter(filter);
 
-	tracking.SetDitectionRatio(10);
+	tracking.SetDitectionRatio(0);
 	tracking.Initialize(WIDTH, HEIGHT, (double)WIDTH, (double)HEIGHT);
 
 	int keypointCount = 0;
@@ -126,17 +131,19 @@ void main()
 #endif
 
 	char message[100];
-	bool flip = true;
+	bool flip = false;
 	bool processing = true;
 	while(processing)
 	{
 		// capture image
-		inputImage = cvRetrieveFrame(capture);
+		capture->update();
+		grabImage = capture->GetIPLImage();
+//		inputImage = cvRetrieveFrame(capture);
+		cvResize(grabImage, inputImage);
+		cvCvtColor(inputImage, resultImage, CV_BGRA2BGR);
+		cvCvtColor(resultImage, grayImage, CV_BGR2GRAY);
 		if(flip)
 			cvFlip(inputImage, inputImage);
-		cvResize(inputImage, resizeImage);
-		cvCvtColor(resizeImage, grayImage, CV_BGR2GRAY);
-		cvCopyImage(resizeImage, resultImage);
 
 		logger.updateTickCount();
 
@@ -206,6 +213,9 @@ void main()
 		}		
 	}
 
-	cvReleaseCapture(&capture);
+	capture->stop();
+	capture->close();
+	delete capture;
+//	cvReleaseCapture(&capture);
 	cvDestroyAllWindows();
 }
