@@ -104,18 +104,20 @@ void wExtractFASTSURF( const CvArr* _img, const CvArr* _mask,
 		int dy = 0;
 		for(int i=0; i<8; i++)
 		{
-			int difference = (int)((unsigned char)image->imageData[(y + dy1[i]) * image->widthStep + (x + dx1[i])] - (unsigned char)image->imageData[(y + dy2[i]) * image->widthStep + (x + dx2[i])]);
+			int intensity1 = (int)(unsigned char)image->imageData[(y+dy1[i])*image->widthStep + (x+dx1[i])];
+			int intensity2 = (int)(unsigned char)image->imageData[(y+dy2[i])*image->widthStep + (x+dx2[i])];
+			int difference = intensity1 - intensity2;
 			dx += dx1[i] * difference;
 			dy += dy1[i] * difference;
 		}
 
-        float descriptor_dir = cvFastArctan( (float)dy, (float)dx );
-        kp->dir = descriptor_dir;
-        descriptor_dir *= (float)(CV_PI/180);
+        float descriptor_dir = -cvFastArctan( (float)dy, (float)dx );
+        descriptor_dir *= (float)(CV_PI/180.0f);
+		kp->dir = descriptor_dir;
 
 		// extract descriptors
-		float sin_dir = sin(-descriptor_dir);
-        float cos_dir = cos(-descriptor_dir) ;
+		float sin_dir = sin(descriptor_dir);
+        float cos_dir = cos(descriptor_dir) ;
 
 		int PATCH[PATCH_SZ+1][PATCH_SZ+1];
 		CvMat _patch = cvMat(PATCH_SZ+1, PATCH_SZ+1, CV_8U, PATCH);

@@ -5,6 +5,7 @@
 #include <highgui.h>
 
 #include <windage.h>
+#include "../Common/FleaCamera.h"
 
 const int WIDTH = 640;
 const int HEIGHT = (WIDTH * 3) / 4;
@@ -12,7 +13,8 @@ const int HEIGHT = (WIDTH * 3) / 4;
 void main()
 {
 	// capture image
-	IplImage* inputImage = NULL;
+	IplImage* grabImage = NULL;
+	IplImage* inputImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 4);
 	IplImage* resultImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
 	IplImage* grayImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 1);
 
@@ -23,21 +25,28 @@ void main()
 //	windage::Algorithms::FeatureDetector* detector = new windage::Algorithms::WSURFMultidetector(WIDTH, HEIGHT);
 	detector->SetThreshold(60);
 
-	CvCapture* capture = cvCaptureFromCAM(CV_CAP_ANY);
+	FleaCamera* capture = new FleaCamera();
+	capture->open();
+	capture->start();
+//	CvCapture* capture = cvCaptureFromCAM(CV_CAP_ANY);
 	cvNamedWindow("result");
 
 	double threshold = 30.0;
 	int index = 0;
 	char message[100];
-	bool flip = true;
+	bool flip = false;
 	bool processing = true;
 	while(processing)
 	{
 		// grab image
-		inputImage = cvRetrieveFrame(capture);
+		capture->update();
+		grabImage = capture->GetIPLImage();
+		cvResize(grabImage, inputImage);
+		cvCvtColor(inputImage, resultImage, CV_BGRA2BGR);
+//		inputImage = cvRetrieveFrame(capture);
 		if(flip)
 			cvFlip(inputImage, inputImage);
-		cvResize(inputImage, resultImage);		
+//		cvResize(inputImage, resultImage);
 		cvCvtColor(resultImage, grayImage, CV_BGR2GRAY);
 
 		int64 startTime = cvGetTickCount();
@@ -108,6 +117,9 @@ void main()
 		}
 	}
 
-	cvReleaseCapture(&capture);
+	capture->stop();
+	capture->close();
+	delete capture;
+//	cvReleaseCapture(&capture);
 	cvDestroyAllWindows();
 }
