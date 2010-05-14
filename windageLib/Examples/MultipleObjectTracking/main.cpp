@@ -43,16 +43,17 @@
 #include <highgui.h>
 
 #include <windage.h>
+#include "../Common/FleaCamera.h"
 
 const int WIDTH = 640;
 const int HEIGHT = (WIDTH * 3) / 4;
 const double INTRINSIC[] = {1033.93, 1033.84, 319.044, 228.858,-0.206477, 0.306424, 0.000728208, 0.0011338};
 
 #define ADAPTIVE_THRESHOLD 1
-const int FEATURE_COUNT = WIDTH;
+const int FEATURE_COUNT = WIDTH*2;
 
-const double SCALE_FACTOR = 1.0;
-const int SCALE_STEP = 1;
+const double SCALE_FACTOR = 6.0;
+const int SCALE_STEP = 6;
 const double REPROJECTION_ERROR = 5.0;
 
 #define USE_TEMPLATE_IMAEG 0
@@ -67,7 +68,10 @@ void main()
 	IplImage* grayImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 1);
 	IplImage* resultImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
 
-	CvCapture* capture = cvCaptureFromCAM(CV_CAP_ANY);
+	FleaCamera* capture = new FleaCamera();
+	capture->open();
+	capture->start();
+	//CvCapture* capture = cvCaptureFromCAM(CV_CAP_ANY);
 	cvNamedWindow("result");
 
 	// create and initialize tracker
@@ -82,7 +86,7 @@ void main()
 	windage::Algorithms::HomographyRefiner* refiner;
 
 	calibration = new windage::Calibration();
-	detector = new windage::Algorithms::SIFTGPUdetector();
+	detector = new windage::Algorithms::WSURFdetector();
 	opticalflow = new windage::Algorithms::OpticalFlow();
 	estimator = new windage::Algorithms::ProSACestimator();
 	checker = new windage::Algorithms::OutlierChecker();
@@ -133,11 +137,15 @@ void main()
 	bool processing = true;
 	while(processing)
 	{
-		// capture image
+		capture->update();
+		inputImage = capture->GetIPLImage();
+		cvCvtColor(inputImage, resizeImage, CV_BGRA2BGR);
+/*
 		inputImage = cvRetrieveFrame(capture);
 		cvResize(inputImage, resizeImage);
 		if(fliping)
 			cvFlip(resizeImage, resizeImage);
+*/
 
 		cvCvtColor(resizeImage, grayImage, CV_BGR2GRAY);
 		cvCopyImage(resizeImage, resultImage);
@@ -170,7 +178,7 @@ void main()
 				matchingCount[i] = tracking.GetMatchingCount(i);
 				if(tracking.GetMatchingCount(i) > 10)
 				{
-//					tracking.DrawDebugInfo(resultImage, i);
+					tracking.DrawDebugInfo(resultImage, i);
 					tracking.DrawOutLine(resultImage, i, true);
 					windage::Calibration* calibrationTemp = tracking.GetCameraParameter(i);
 					calibrationTemp->DrawInfomation(resultImage, 100);
@@ -222,6 +230,9 @@ void main()
 		}		
 	}
 
-	cvReleaseCapture(&capture);
+	//	cvReleaseCapture(&capture);
+	capture->stop();
+	capture->close();
+
 	cvDestroyAllWindows();
 }

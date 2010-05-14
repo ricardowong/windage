@@ -47,7 +47,7 @@
 
 const int WIDTH = 640;
 const int HEIGHT = (WIDTH * 3) / 4;
-const int FEATURE_COUNT = WIDTH;
+const int FEATURE_COUNT = WIDTH/2;
 
 const double SCALE_FACTOR = 4.0;
 const int SCALE_STEP = 8;
@@ -111,7 +111,7 @@ void main()
 	tracking.AttatchRefiner(refiner);
 //	tracking.AttatchFilter(filter);
 
-	tracking.SetDitectionRatio(0);
+	tracking.SetDitectionRatio(10);
 	tracking.Initialize(WIDTH, HEIGHT, (double)WIDTH, (double)HEIGHT);
 
 	int keypointCount = 0;

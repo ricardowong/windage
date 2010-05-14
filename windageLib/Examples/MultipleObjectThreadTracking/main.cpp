@@ -43,6 +43,7 @@
 #include <highgui.h>
 
 #include <windage.h>
+#include "../Common/FleaCamera.h"
 
 const int WIDTH = 640;
 const int HEIGHT = (WIDTH * 3) / 4;
@@ -61,7 +62,10 @@ void main()
 	IplImage* grayImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 1);
 	IplImage* resultImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
 
-	CvCapture* capture = cvCaptureFromCAM(CV_CAP_ANY);
+	FleaCamera* capture = new FleaCamera();
+	capture->open();
+	capture->start();
+	//CvCapture* capture = cvCaptureFromCAM(CV_CAP_ANY);
 	cvNamedWindow("result");
 
 	// create and initialize tracker
@@ -127,10 +131,15 @@ void main()
 	while(processing)
 	{
 		// capture image
+		capture->update();
+		inputImage = capture->GetIPLImage();
+		cvCvtColor(inputImage, resizeImage, CV_BGRA2BGR);
+/*
 		inputImage = cvRetrieveFrame(capture);
 		cvResize(inputImage, resizeImage);
 		if(fliping)
 			cvFlip(resizeImage, resizeImage);
+*/
 
 		cvCvtColor(resizeImage, grayImage, CV_BGR2GRAY);
 		cvCopyImage(resizeImage, resultImage);
@@ -198,6 +207,9 @@ void main()
 		}		
 	}
 
-	cvReleaseCapture(&capture);
+//	cvReleaseCapture(&capture);
+	capture->stop();
+	capture->close();
+	
 	cvDestroyAllWindows();
 }
