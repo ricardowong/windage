@@ -139,8 +139,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="cv200.lib cxcore200.lib highgui200.lib glut32.lib sba.lib cblas.lib clapack.lib f2c.lib SIFTGPU.lib"
-				AdditionalLibraryDirectories="&quot;$(SolutionDir)../../component/OpenCV 2.0/lib&quot;;&quot;$(SolutionDir)../../component/GLUT/lib&quot;;&quot;$(SolutionDir)../../component/SBA-1.5/lib&quot;;&quot;$(SolutionDir)../../component/SiftGPU-V340/lib/&quot;"
+				AdditionalDependencies="cv200.lib cxcore200.lib highgui200.lib glut32.lib SIFTGPU.lib"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)../../component/OpenCV 2.0/lib&quot;;&quot;$(SolutionDir)../../component/GLUT/lib&quot;;&quot;$(SolutionDir)../../component/SiftGPU-V340/lib/&quot;"
 				GenerateDebugInformation="false"
 			/>
 			<Tool
