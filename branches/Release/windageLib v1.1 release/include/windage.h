@@ -119,12 +119,3 @@
 
 #include "Coordinator/MultiCameraCoordinator.h"
 #include "Coordinator/MultiMarkerCoordinator.h"
-
-// Reconstruction
-#include "Reconstruction/StereoReconstruction.h"
-#include "Reconstruction/IncrementalReconstruction.h"
-
-// Reconstruction : utilities
-#include "Reconstruction/Utilities/Exportor.h"
-#include "Reconstruction/Utilities/Loader.h"
-#include "Reconstruction/Utilities/ConvertCoordination.h"
