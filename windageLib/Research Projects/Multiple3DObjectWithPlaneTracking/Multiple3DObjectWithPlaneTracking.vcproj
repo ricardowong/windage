@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="Multiple3DObjectTracking"
-	ProjectGUID="{57FF759A-18E7-4AB4-BCAB-621F1E58B561}"
-	RootNamespace="Multiple3DObjectTracking"
+	Name="Multiple3DObjectWithPlaneTracking"
+	ProjectGUID="{7BF42CAE-C328-4A56-9BFD-CE42D83D1262}"
+	RootNamespace="Multiple3DObjectWithPlaneTracking"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
