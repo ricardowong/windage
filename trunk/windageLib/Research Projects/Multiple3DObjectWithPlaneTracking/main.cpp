@@ -48,13 +48,73 @@
 const int WIDTH = 640;
 const int HEIGHT = (WIDTH * 3) / 4;
 
-const double REPROJECTION_ERROR = 2.0;
+const double REPROJECTION_ERROR = 5.0;
 const double INTRINSIC[] = {1033.93, 1033.84, 319.044, 228.858,-0.206477, 0.306424, 0.000728208, 0.0011338};
 
 const int OBJECT_COUNT = 2;
-const char* FILE_NAME[] = {	"data/reconstruction-2010-04-08_15_09_46/reconstruction.txt", 
+const char* FILE_NAME[] = {	"data/reconstruction-2010-05-25_05_57_34/reconstruction.txt", 
 							"data/reconstruction-2010-03-29_09_33_01/reconstruction.txt"};
+const char* BASE_IMAGE_NAME = "reference1_320.png";
 const char* BASE_FEATURE_NAME = {"data/descriptor-2010-04-26.txt"};
+
+windage::Frameworks::MultipleObjectTracking* CreateMultipleObjectTracking()
+{
+	windage::Frameworks::MultipleObjectTracking* tracking = new windage::Frameworks::MultipleObjectTracking();
+	
+	windage::Calibration* calibration					= new windage::Calibration();
+	windage::Algorithms::OpticalFlow* opticalflow		= new windage::Algorithms::OpticalFlow();
+	windage::Algorithms::OpenCVRANSACestimator* estimator	= new windage::Algorithms::OpenCVRANSACestimator();
+	windage::Algorithms::PoseRefiner* refiner			= new windage::Algorithms::PoseLMmethod();
+	
+	calibration->Initialize(INTRINSIC[0], INTRINSIC[1], INTRINSIC[2], INTRINSIC[3], INTRINSIC[4], INTRINSIC[5], INTRINSIC[6], INTRINSIC[7]);
+	opticalflow->Initialize(WIDTH, HEIGHT, cvSize(15, 15), 3);
+	estimator->SetReprojectionError(REPROJECTION_ERROR);
+	estimator->SetConfidence(0.95);
+	estimator->SetMaxIteration(50);
+	refiner->SetMaxIteration(5);
+
+	tracking->AttatchCalibration(calibration);
+	tracking->AttatchTracker(opticalflow);
+	tracking->AttatchEstimator(estimator);
+	tracking->AttatchRefiner(refiner);
+
+	tracking->SetDitectionRatio(3);
+	tracking->Initialize(WIDTH, HEIGHT);
+	return tracking;
+}
+
+windage::Frameworks::PlanarObjectTracking* CreatePlanerTracking()
+{
+	windage::Frameworks::PlanarObjectTracking* tracking = new windage::Frameworks::PlanarObjectTracking();
+	
+	windage::Calibration* calibration					= new windage::Calibration();
+	windage::Algorithms::WSURFdetector* detector		= new windage::Algorithms::WSURFdetector();
+	windage::Algorithms::KDtree* tree					= new windage::Algorithms::KDtree();
+	windage::Algorithms::OpticalFlow* opticalflow		= new windage::Algorithms::OpticalFlow();
+	windage::Algorithms::RANSACestimator* estimator		= new windage::Algorithms::RANSACestimator();
+	windage::Algorithms::OutlierChecker* checker		= new windage::Algorithms::OutlierChecker();
+	windage::Algorithms::HomographyRefiner* refiner		= new windage::Algorithms::LMmethod();
+	
+	calibration->Initialize(INTRINSIC[0], INTRINSIC[1], INTRINSIC[2], INTRINSIC[3], INTRINSIC[4], INTRINSIC[5], INTRINSIC[6], INTRINSIC[7]);
+	detector->SetThreshold(30.0);
+	opticalflow->Initialize(WIDTH, HEIGHT, cvSize(15, 15), 3);
+	estimator->SetReprojectionError(REPROJECTION_ERROR);
+	refiner->SetMaxIteration(5);
+
+	tracking->AttatchDetetor(detector);
+	tracking->AttatchMatcher(tree);
+	tracking->AttatchCalibration(calibration);
+	tracking->AttatchTracker(opticalflow);
+	tracking->AttatchEstimator(estimator);
+	tracking->AttatchChecker(checker);
+	tracking->AttatchRefiner(refiner);
+
+	tracking->SetDitectionRatio(3);
+	tracking->Initialize(WIDTH, HEIGHT);
+	return tracking;
+}
+
+
 
 void main()
 {
@@ -73,26 +133,11 @@ void main()
 	cvNamedWindow("result");
 
 	// create and initialize tracker
-	windage::Frameworks::MultipleObjectTracking tracking;
-	windage::Calibration* calibration					= new windage::Calibration();
-	windage::Algorithms::OpticalFlow* opticalflow		= new windage::Algorithms::OpticalFlow();
-	windage::Algorithms::OpenCVRANSACestimator* estimator	= new windage::Algorithms::OpenCVRANSACestimator();
-	windage::Algorithms::PoseRefiner* refiner			= new windage::Algorithms::PoseLMmethod();
-	
-	calibration->Initialize(INTRINSIC[0], INTRINSIC[1], INTRINSIC[2], INTRINSIC[3], INTRINSIC[4], INTRINSIC[5], INTRINSIC[6], INTRINSIC[7]);
-	opticalflow->Initialize(WIDTH, HEIGHT, cvSize(15, 15), 3);
-	estimator->SetReprojectionError(REPROJECTION_ERROR);
-	estimator->SetConfidence(0.95);
-	estimator->SetMaxIteration(50);
-	refiner->SetMaxIteration(5);
+	windage::Frameworks::MultipleObjectTracking* tracking;
+	windage::Frameworks::PlanarObjectTracking* baseTracking;
 
-	tracking.AttatchCalibration(calibration);
-	tracking.AttatchTracker(opticalflow);
-	tracking.AttatchEstimator(estimator);
-	tracking.AttatchRefiner(refiner);
-
-	tracking.SetDitectionRatio(3);
-	tracking.Initialize(WIDTH, HEIGHT);
+	tracking = CreateMultipleObjectTracking();
+	baseTracking = CreatePlanerTracking();
 
 	int keypointCount = 0;
 	int matchingCount = 0;
@@ -129,9 +174,14 @@ void main()
 			referenceRepository.push_back(feature);
 		}
 
-		tracking.TrainingReference(&referenceRepository);
+		tracking->TrainingReference(&referenceRepository);
 	}
 
+	IplImage* baseImage = cvLoadImage(BASE_IMAGE_NAME, 0);
+	baseTracking->Initialize(WIDTH, HEIGHT, (double)WIDTH, (double)HEIGHT);
+	baseTracking->AttatchReferenceImage(baseImage);
+	baseTracking->TrainingReference(4.0, 8);
+/*
 	std::vector<windage::FeaturePoint> baseFeaturePoints;
 	
 	windage::FeatureLoader* baseLoader = new windage::FeatureLoader();
@@ -145,8 +195,8 @@ void main()
 		pt.z = 0.0;
 		baseFeaturePoints[i].SetPoint(pt);
 	}
-//	tracking.TrainingReference(&baseFeaturePoints);
-	
+//	tracking->TrainingReference(&baseFeaturePoints);
+//*/	
 	trained = true;
 
 	char message[100];
@@ -174,19 +224,29 @@ void main()
 		// track object
 		if(trained)
 		{
-			tracking.UpdateCamerapose(grayImage);
+			#pragma omp sections
+			{
+				#pragma omp section
+				{
+					tracking->UpdateCamerapose(grayImage);
+				}
+				#pragma omp section
+				{
+					baseTracking->UpdateCamerapose(grayImage);
+				}
+			}
 			matchingCount = 0;
 
 			// draw result
-			for(int i=0; i<tracking.GetObjectCount(); i++)
+			for(int i=0; i<tracking->GetObjectCount(); i++)
 			{
-				matchingCount += tracking.GetMatchingCount(i);
-				int matchedCount = tracking.GetMatchingCount(i);
+				matchingCount += tracking->GetMatchingCount(i);
+				int matchedCount = tracking->GetMatchingCount(i);
 				if(matchedCount > 9)
 				{
-					tracking.DrawDebugInfo(resultImage, i);
+					tracking->DrawDebugInfo(resultImage, i);
 					
-					windage::Calibration* cameraParam = tracking.GetCameraParameter(i);
+					windage::Calibration* cameraParam = tracking->GetCameraParameter(i);
 					cameraParam->DrawInfomation(resultImage, 50);
 
 					CvPoint point = cameraParam->ConvertWorld2Image(0.0, 0.0, 0.0);
@@ -197,8 +257,12 @@ void main()
 					windage::Utils::DrawTextToImage(resultImage, point, 0.6, message);
 				}
 			}
+
+//			baseTracking->DrawDebugInfo(resultImage);
+			baseTracking->DrawOutLine(resultImage, true);
+			baseTracking->GetCameraParameter()->DrawInfomation(resultImage, 100);
 		}
-//		matchingCount = tracking.GetMatchingCount();
+//		matchingCount = tracking->GetMatchingCount();
 
 		processingTime = logger.calculateProcessTime();
 		logger.log("processingTime", processingTime);

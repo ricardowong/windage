@@ -124,7 +124,7 @@ void main()
 	
 	tracking.Initialize(WIDTH, HEIGHT, (double)WIDTH, (double)HEIGHT);
 	tracking.SetFilter(false);
-	tracking.SetDitectionRatio(2);
+	tracking.SetDitectionRatio(5);
 
 	bool trained = false;
 #if USE_TEMPLATE_IMAEG
