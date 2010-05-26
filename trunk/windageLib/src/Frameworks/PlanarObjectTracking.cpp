@@ -200,7 +200,8 @@ bool PlanarObjectTracking::UpdateCamerapose(IplImage* grayImage)
 				// if not tracked have point
 				if(this->referenceRepository[index].IsTracked() == false)
 				{
-					this->referenceRepository[index].SetTracked(true);
+					if(this->detectionRatio >= 1)
+						this->referenceRepository[index].SetTracked(true);
 
 					refMatchedKeypoints.push_back(this->referenceRepository[index]);
 					sceMatchedKeypoints.push_back((*sceneKeypoints)[i]);

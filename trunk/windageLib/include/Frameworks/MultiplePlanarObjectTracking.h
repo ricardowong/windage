@@ -322,6 +322,7 @@ namespace windage
 			 *		draw matched feature points
 			 */
 			void DrawDebugInfo(IplImage* colorImage, int objectID);
+			void DrawDebugInfo2(IplImage* colorImage, int objectID);
 		};
 		/** @} */ // addtogroup Frameworks
 	}

@@ -47,23 +47,23 @@
 
 const int WIDTH = 640;
 const int HEIGHT = (WIDTH * 3) / 4;
-const int FEATURE_COUNT = WIDTH/2;
-
-const double SCALE_FACTOR = 4.0;
-const int SCALE_STEP = 8;
-const double REPROJECTION_ERROR = 5.0;
-
-#define USE_ADAPTIVE_THRESHOLD 1
-#define USE_TEMPLATE_IMAEG 1
-const char* TEMPLATE_IMAGE = "reference1.png";
 const double INTRINSIC[] = {1033.93, 1033.84, 319.044, 228.858,-0.206477, 0.306424, 0.000728208, 0.0011338};
 
+#define ADAPTIVE_THRESHOLD 1
+const int FEATURE_COUNT = WIDTH*2;
+
+const double SCALE_FACTOR = 6.0;
+const int SCALE_STEP = 6;
+const double REPROJECTION_ERROR = 5.0;
+
+#define USE_TEMPLATE_IMAEG 1
+const char* TEMPLATE_IMAGE = "reference%d_320.png";
+const int TEMPLATE_IMAGE_COUNT = 2;
 void main()
 {
 	windage::Logger logger(&std::cout);
 
-	IplImage* grabImage;
-	IplImage* inputImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 4);
+	IplImage* inputImage;
 	IplImage* resizeImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
 	IplImage* grayImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 1);
 	IplImage* resultImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
@@ -71,32 +71,37 @@ void main()
 	FleaCamera* capture = new FleaCamera();
 	capture->open();
 	capture->start();
-//	CvCapture* capture = cvCaptureFromCAM(CV_CAP_ANY);
+	//CvCapture* capture = cvCaptureFromCAM(CV_CAP_ANY);
+
+	IplImage* featureImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
+	IplImage* descriptorImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
+	IplImage* matchingImage = cvCreateImage(cvSize(WIDTH*2, HEIGHT*2), IPL_DEPTH_8U, 3);
+	IplImage* matchingImage2 = cvCreateImage(cvSize(WIDTH*2, HEIGHT), IPL_DEPTH_8U, 3);
+	cvNamedWindow("FEATURE");
+	cvNamedWindow("DESCRIPTOR");
+	cvNamedWindow("MATCHING");
 	cvNamedWindow("result");
 
 	// create and initialize tracker
-	windage::Frameworks::PlanarObjectTracking tracking;
+	double threshold = 50.0;
+
+	windage::Frameworks::MultiplePlanarObjectTracking tracking;
 	windage::Calibration* calibration;
 	windage::Algorithms::FeatureDetector* detector;
-	windage::Algorithms::SearchTree* searchtree;
 	windage::Algorithms::OpticalFlow* opticalflow;
 	windage::Algorithms::HomographyEstimator* estimator;
 	windage::Algorithms::OutlierChecker* checker;
 	windage::Algorithms::HomographyRefiner* refiner;
-	windage::Algorithms::KalmanFilter* filter;
 
 	calibration = new windage::Calibration();
-	detector = new windage::Algorithms::SIFTGPUdetector();
-	searchtree = new windage::Algorithms::FLANNtree();
+	detector = new windage::Algorithms::WSURFdetector();
 	opticalflow = new windage::Algorithms::OpticalFlow();
 	estimator = new windage::Algorithms::ProSACestimator();
 	checker = new windage::Algorithms::OutlierChecker();
 	refiner = new windage::Algorithms::LMmethod();
-	filter = new windage::Algorithms::KalmanFilter();
 
 	calibration->Initialize(INTRINSIC[0], INTRINSIC[1], INTRINSIC[2], INTRINSIC[3], INTRINSIC[4], INTRINSIC[5], INTRINSIC[6], INTRINSIC[7]);
-	detector->SetThreshold(30.0);
-	searchtree->SetRatio(0.5);
+	detector->SetThreshold(50.0);
 	opticalflow->Initialize(WIDTH, HEIGHT, cvSize(15, 15), 3);
 	estimator->SetReprojectionError(REPROJECTION_ERROR);
 	checker->SetReprojectionError(REPROJECTION_ERROR * 3);
@@ -104,46 +109,74 @@ void main()
 
 	tracking.AttatchCalibration(calibration);
 	tracking.AttatchDetetor(detector);
-	tracking.AttatchMatcher(searchtree);
 	tracking.AttatchTracker(opticalflow);
 	tracking.AttatchEstimator(estimator);
 	tracking.AttatchChecker(checker);
 	tracking.AttatchRefiner(refiner);
-//	tracking.AttatchFilter(filter);
-
-	tracking.SetDitectionRatio(0);
+	
 	tracking.Initialize(WIDTH, HEIGHT, (double)WIDTH, (double)HEIGHT);
+	tracking.SetFilter(false);
+	tracking.SetDitectionRatio(0);
+
+	bool trained = false;
+#if USE_TEMPLATE_IMAEG
+	for(int i=0; i<TEMPLATE_IMAGE_COUNT; i++)
+	{
+		char message[100];
+		sprintf_s(message, TEMPLATE_IMAGE, i+1);
+
+		IplImage* colorSample = cvLoadImage(message);
+		IplImage* sampleImage = cvLoadImage(message, 0);
+		detector->SetThreshold(30.0);
+		tracking.AttatchReferenceImage(sampleImage);
+
+		cvSetImageROI(matchingImage, cvRect(WIDTH*i, HEIGHT, WIDTH, HEIGHT));
+		cvResize(colorSample, matchingImage);
+
+		cvReleaseImage(&sampleImage);
+		cvReleaseImage(&colorSample);
+	}
+	cvSetImageROI(matchingImage, cvRect(0, HEIGHT, WIDTH*2, HEIGHT));
+	cvCopyImage(matchingImage, matchingImage2);
+
+	tracking.TrainingReference(SCALE_FACTOR, SCALE_STEP);
+	trained = true;
+	detector->SetThreshold(threshold);
+#endif
+
 
 	int keypointCount = 0;
 	int matchingCount = 0;
-	double threshold = 50.0;
 	double processingTime = 0.0;
 
-	bool trained = false;
-
-#if USE_TEMPLATE_IMAEG
-	IplImage* sampleImage = cvLoadImage(TEMPLATE_IMAGE, 0);
-	detector->SetThreshold(30.0);
-	tracking.AttatchReferenceImage(sampleImage);
-	tracking.TrainingReference(SCALE_FACTOR, SCALE_STEP);
-	detector->SetThreshold(threshold);
-	trained = true;
-#endif
-
 	char message[100];
-	bool flip = false;
+	bool fliping = true;
 	bool processing = true;
 	while(processing)
 	{
-		// capture image
 		capture->update();
-		grabImage = capture->GetIPLImage();
-//		inputImage = cvRetrieveFrame(capture);
-		cvResize(grabImage, inputImage);
-		cvCvtColor(inputImage, resultImage, CV_BGRA2BGR);
-		cvCvtColor(resultImage, grayImage, CV_BGR2GRAY);
-		if(flip)
-			cvFlip(inputImage, inputImage);
+		inputImage = capture->GetIPLImage();
+		cvCvtColor(inputImage, resizeImage, CV_BGRA2BGR);
+/*
+		inputImage = cvRetrieveFrame(capture);
+		cvResize(inputImage, resizeImage);
+		if(fliping)
+			cvFlip(resizeImage, resizeImage);
+*/
+		// for procedure information
+		cvCopyImage(resizeImage, featureImage);
+		cvCopyImage(resizeImage, descriptorImage);
+
+		cvSetImageROI(matchingImage, cvRect(0, 0, WIDTH, HEIGHT));
+		cvCopyImage(resizeImage, matchingImage);
+		cvSetImageROI(matchingImage, cvRect(WIDTH, 0, WIDTH, HEIGHT));
+		cvCopyImage(resizeImage, matchingImage);
+		cvSetImageROI(matchingImage, cvRect(0, HEIGHT, WIDTH*2, HEIGHT));
+		cvCopyImage(matchingImage2, matchingImage);
+		cvResetImageROI(matchingImage);
+
+		cvCvtColor(resizeImage, grayImage, CV_BGR2GRAY);
+		cvCopyImage(resizeImage, resultImage);
 
 		logger.updateTickCount();
 
@@ -151,9 +184,10 @@ void main()
 		if(trained)
 		{
 			tracking.UpdateCamerapose(grayImage);
+//			tracking.GetDetector()->DrawKeypoints(resultImage);
 
 			// adaptive threshold
-#if USE_ADAPTIVE_THRESHOLD
+#if ADAPTIVE_THRESHOLD
 			int localcount = detector->GetKeypointsCount();
 			if(keypointCount != localcount)
 			{
@@ -166,12 +200,25 @@ void main()
 			}
 #endif
 			// draw result
-//			detector->DrawKeypoints(resultImage);
-			tracking.DrawDebugInfo(resultImage);
-			tracking.DrawOutLine(resultImage, true);
-			calibration->DrawInfomation(resultImage, 100);
+			std::vector<int> matchingCount; matchingCount.resize(tracking.GetObjectCount());
+			for(int i=0; i<tracking.GetObjectCount(); i++)
+			{
+				matchingCount[i] = tracking.GetMatchingCount(i);
+				if(tracking.GetMatchingCount(i) > 10)
+				{
+//					tracking.DrawDebugInfo(resultImage, i);
+					tracking.DrawOutLine(resultImage, i, true);
+					windage::Calibration* calibrationTemp = tracking.GetCameraParameter(i);
+					calibrationTemp->DrawInfomation(resultImage, 100);
+					CvPoint centerPoint = calibrationTemp->ConvertWorld2Image(0.0, 0.0, 0.0);
+					
+					centerPoint.x += 5;
+					centerPoint.y += 10;
+					sprintf_s(message, "object #%d (%03d)", i+1, matchingCount[i]);
+					windage::Utils::DrawTextToImage(resultImage, centerPoint, 0.6, message);
+				}
+			}
 		}
-		matchingCount = tracking.GetMatchingCount();
 
 		processingTime = logger.calculateProcessTime();
 		logger.log("processingTime", processingTime);
@@ -184,11 +231,30 @@ void main()
 		sprintf_s(message, "Matching Count : %d", matchingCount);
 		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 60), 0.6, message);
 
-		sprintf_s(message, "Press 'Space' to track the current image");
-		windage::Utils::DrawTextToImage(resultImage, cvPoint(WIDTH-270, HEIGHT-10), 0.5, message);
-		sprintf_s(message, "Press 'F' to flip image");
-		windage::Utils::DrawTextToImage(resultImage, cvPoint(WIDTH-270, HEIGHT-25), 0.5, message);
+		sprintf_s(message, "Press 'Space' to add tracking the current image", keypointCount, threshold);
+		windage::Utils::DrawTextToImage(resultImage, cvPoint(WIDTH-315, HEIGHT-10), 0.5, message);
 		cvShowImage("result", resultImage);
+
+		// for procedure information
+		{
+			std::vector<windage::FeaturePoint>* features = detector->GetKeypoints();
+			for(int i=0; i<features->size(); i++)
+			{
+				cvCircle(featureImage, cvPoint((*features)[i].GetPoint().x, (*features)[i].GetPoint().y), 4, CV_RGB(255, 0, 0));
+			}
+
+			detector->DrawKeypoints(descriptorImage, CV_RGB(0, 0, 255));
+
+			cvSetImageROI(matchingImage, cvRect(WIDTH*0, 0, WIDTH, HEIGHT*2));
+			tracking.DrawDebugInfo2(matchingImage, 0);
+			cvSetImageROI(matchingImage, cvRect(WIDTH*1, 0, WIDTH, HEIGHT*2));
+			tracking.DrawDebugInfo2(matchingImage, 1);
+			cvResetImageROI(matchingImage);
+
+			cvShowImage("FEATURE", featureImage);
+			cvShowImage("DESCRIPTOR", descriptorImage);
+			cvShowImage("MATCHING", matchingImage);
+		}
 
 		char ch = cvWaitKey(1);
 		switch(ch)
@@ -199,7 +265,7 @@ void main()
 			break;
 		case 'f':
 		case 'F':
-			flip = !flip;
+			fliping = !fliping;
 			break;
 		case ' ':
 		case 's':
@@ -213,9 +279,9 @@ void main()
 		}		
 	}
 
+	//	cvReleaseCapture(&capture);
 	capture->stop();
 	capture->close();
-	delete capture;
-//	cvReleaseCapture(&capture);
+
 	cvDestroyAllWindows();
 }

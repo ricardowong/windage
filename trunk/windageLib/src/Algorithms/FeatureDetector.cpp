@@ -68,6 +68,12 @@ void FeatureDetector::DrawKeypoint(IplImage* colorImage, FeaturePoint point, CvS
 		int i2 = i==3?0:i+1;
 		cvLine(colorImage, pointList[i], pointList[i2], color);
 	}
+
+	double sinDir = sin((-dir+45) + halfPI);
+	double cosDir = cos((-dir+45) + halfPI);
+	int dx = cvRound(keypointPT.x + (cosDir * x - sinDir * y) * 2);
+	int dy = cvRound(keypointPT.y + (sinDir * x + cosDir * y) * 2);
+	cvLine(colorImage, cvPoint(keypointPT.x, keypointPT.y), cvPoint(dx, dy), CV_RGB(color.val[0], color.val[1], color.val[2]), 1);
 }
 
 void FeatureDetector::DrawKeypoints(IplImage* colorImage, CvScalar color)
