@@ -59,8 +59,19 @@ const double REPROJECTION_ERROR = 5.0;
 #define USE_TEMPLATE_IMAEG 1
 const char* TEMPLATE_IMAGE = "reference%d_320.png";
 const int TEMPLATE_IMAGE_COUNT = 2;
+
+const char* FEATURE_FILE_TEMPLATE = "demo_FEATURE/scene_%.4d.bmp";
+const char* DESCRIPTOR_FILE_TEMPLATE = "demo_DESCRIPTOR/scene_%.4d.bmp";
+const char* MATCHING_FILE_TEMPLATE = "demo_MATCHING/scene_%.4d.bmp";
+const char* RESULT_FILE_TEMPLATE = "demo_RESULT/scene_%.4d.bmp";
+const char* INPUT_IMAGE_TEMPLATE = "demo_IMAGE/flycap%d.jpg";
+
+#define USING_CAMERA 1
+#define USING_IMAGE_SEQ 0
+
 void main()
 {
+	char filename[1000];
 	windage::Logger logger(&std::cout);
 
 	IplImage* inputImage;
@@ -68,15 +79,18 @@ void main()
 	IplImage* grayImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 1);
 	IplImage* resultImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
 
+#if USING_CAMERA
 	FleaCamera* capture = new FleaCamera();
 	capture->open();
 	capture->start();
 	//CvCapture* capture = cvCaptureFromCAM(CV_CAP_ANY);
+#endif
 
 	IplImage* featureImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
 	IplImage* descriptorImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
 	IplImage* matchingImage = cvCreateImage(cvSize(WIDTH*2, HEIGHT*2), IPL_DEPTH_8U, 3);
 	IplImage* matchingImage2 = cvCreateImage(cvSize(WIDTH*2, HEIGHT), IPL_DEPTH_8U, 3);
+	IplImage* matchingResult = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
 	cvNamedWindow("FEATURE");
 	cvNamedWindow("DESCRIPTOR");
 	cvNamedWindow("MATCHING");
@@ -144,19 +158,28 @@ void main()
 	detector->SetThreshold(threshold);
 #endif
 
-
 	int keypointCount = 0;
 	int matchingCount = 0;
 	double processingTime = 0.0;
+
+	int index = 0;
 
 	char message[100];
 	bool fliping = true;
 	bool processing = true;
 	while(processing)
 	{
+#if USING_CAMERA
 		capture->update();
 		inputImage = capture->GetIPLImage();
 		cvCvtColor(inputImage, resizeImage, CV_BGRA2BGR);
+#endif
+#if USING_IMAGE_SEQ
+		sprintf(filename, INPUT_IMAGE_TEMPLATE, index);
+		inputImage = cvLoadImage(filename);
+		cvCopyImage(inputImage, resizeImage);		
+		cvReleaseImage(&inputImage);
+#endif
 /*
 		inputImage = cvRetrieveFrame(capture);
 		cvResize(inputImage, resizeImage);
@@ -224,15 +247,6 @@ void main()
 		logger.log("processingTime", processingTime);
 		logger.logNewLine();
 
-		sprintf_s(message, "Processing Time : %.2lf ms", processingTime);
-		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 20), 0.6, message);
-		sprintf_s(message, "Feature Count : %d, Threshold : %.0lf", keypointCount, threshold);
-		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 40), 0.6, message);
-		sprintf_s(message, "Matching Count : %d", matchingCount);
-		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 60), 0.6, message);
-
-		sprintf_s(message, "Press 'Space' to add tracking the current image", keypointCount, threshold);
-		windage::Utils::DrawTextToImage(resultImage, cvPoint(WIDTH-315, HEIGHT-10), 0.5, message);
 		cvShowImage("result", resultImage);
 
 		// for procedure information
@@ -240,7 +254,7 @@ void main()
 			std::vector<windage::FeaturePoint>* features = detector->GetKeypoints();
 			for(int i=0; i<features->size(); i++)
 			{
-				cvCircle(featureImage, cvPoint((*features)[i].GetPoint().x, (*features)[i].GetPoint().y), 4, CV_RGB(255, 0, 0));
+				cvCircle(featureImage, cvPoint((*features)[i].GetPoint().x, (*features)[i].GetPoint().y), 10, CV_RGB(255, 0, 0), 2);
 			}
 
 			detector->DrawKeypoints(descriptorImage, CV_RGB(0, 0, 255));
@@ -250,10 +264,22 @@ void main()
 			cvSetImageROI(matchingImage, cvRect(WIDTH*1, 0, WIDTH, HEIGHT*2));
 			tracking.DrawDebugInfo2(matchingImage, 1);
 			cvResetImageROI(matchingImage);
+			cvResize(matchingImage, matchingResult);
 
 			cvShowImage("FEATURE", featureImage);
 			cvShowImage("DESCRIPTOR", descriptorImage);
-			cvShowImage("MATCHING", matchingImage);
+			cvShowImage("MATCHING", matchingResult);
+
+			
+			sprintf(filename, FEATURE_FILE_TEMPLATE, index);
+			cvSaveImage(filename, featureImage);
+			sprintf(filename, DESCRIPTOR_FILE_TEMPLATE, index);
+			cvSaveImage(filename, descriptorImage);
+			sprintf(filename, MATCHING_FILE_TEMPLATE, index);
+			cvSaveImage(filename, matchingResult);
+			sprintf(filename, RESULT_FILE_TEMPLATE, index);
+			cvSaveImage(filename, resultImage);
+			index++;
 		}
 
 		char ch = cvWaitKey(1);
@@ -280,8 +306,10 @@ void main()
 	}
 
 	//	cvReleaseCapture(&capture);
+#if USING_CAMERA
 	capture->stop();
 	capture->close();
+#endif
 
 	cvDestroyAllWindows();
 }
