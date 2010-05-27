@@ -370,17 +370,18 @@ void MultiplePlanarObjectTracking::DrawDebugInfo2(IplImage* colorImage, int obje
 	int g = 0;
 	int b = 0;
 	int height = colorImage->height/2;
+	int width = colorImage->width/2;
 
-	int size = 4;
+	int size = 8;
 	for(unsigned int i=0; i<refMatchedKeypoints[objectID].size(); i++)
 	{
-		CvPoint referencePoint = cvPoint((int)(refMatchedKeypoints[objectID][i].GetPoint().x * colorImage->width/realWidth + colorImage->width/2),
-									(int)(colorImage->height - refMatchedKeypoints[objectID][i].GetPoint().y * colorImage->height/realHeight - colorImage->height/2) + height);
+		CvPoint referencePoint = cvPoint((int)(refMatchedKeypoints[objectID][i].GetPoint().x * width/realWidth + width/2),
+									(int)(height - refMatchedKeypoints[objectID][i].GetPoint().y * height/realHeight - height/2) + height);
 		CvPoint imagePoint = cvPoint((int)sceMatchedKeypoints[objectID][i].GetPoint().x, (int)sceMatchedKeypoints[objectID][i].GetPoint().y);
 
 		cvCircle(colorImage, referencePoint, size, CV_RGB(0, 255, 255), CV_FILLED);
 		cvCircle(colorImage, imagePoint, size, CV_RGB(255, 255, 0), CV_FILLED);
 
-		cvLine(colorImage, referencePoint, imagePoint, CV_RGB(255, 0, 0));
+		cvLine(colorImage, referencePoint, imagePoint, CV_RGB(255, 0, 0), 2);
 	}
 }
