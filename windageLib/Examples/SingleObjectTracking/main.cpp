@@ -86,8 +86,8 @@ void main()
 	windage::Algorithms::KalmanFilter* filter;
 
 	calibration = new windage::Calibration();
-	detector = new windage::Algorithms::SIFTGPUdetector();
-	searchtree = new windage::Algorithms::FLANNtree();
+	detector = new windage::Algorithms::WSURFdetector();
+	searchtree = new windage::Algorithms::KDtree();
 	opticalflow = new windage::Algorithms::OpticalFlow();
 	estimator = new windage::Algorithms::ProSACestimator();
 	checker = new windage::Algorithms::OutlierChecker();
@@ -96,7 +96,7 @@ void main()
 
 	calibration->Initialize(INTRINSIC[0], INTRINSIC[1], INTRINSIC[2], INTRINSIC[3], INTRINSIC[4], INTRINSIC[5], INTRINSIC[6], INTRINSIC[7]);
 	detector->SetThreshold(30.0);
-	searchtree->SetRatio(0.5);
+	searchtree->SetRatio(0.7);
 	opticalflow->Initialize(WIDTH, HEIGHT, cvSize(15, 15), 3);
 	estimator->SetReprojectionError(REPROJECTION_ERROR);
 	checker->SetReprojectionError(REPROJECTION_ERROR * 3);
@@ -111,7 +111,7 @@ void main()
 	tracking.AttatchRefiner(refiner);
 //	tracking.AttatchFilter(filter);
 
-	tracking.SetDitectionRatio(0);
+	tracking.SetDitectionRatio(1);
 	tracking.Initialize(WIDTH, HEIGHT, (double)WIDTH, (double)HEIGHT);
 
 	int keypointCount = 0;

@@ -74,6 +74,8 @@
 #include "Algorithms/Spilltree.h"
 #include "Algorithms/FLANNtree.h"
 
+#include "Algorithms/KDforest.h"
+
 // tracker
 #include "Algorithms/OpticalFlow.h"
 
