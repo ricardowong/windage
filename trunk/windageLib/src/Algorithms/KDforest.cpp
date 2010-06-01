@@ -37,11 +37,11 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-#include "Algorithms/Spilltree.h"
+#include "Algorithms/KDforest.h"
 using namespace windage;
 using namespace windage::Algorithms;
 
-bool Spilltree::Training(std::vector<windage::FeaturePoint>* pointList)
+bool KDforest::Training(std::vector<windage::FeaturePoint>* pointList)
 {
 	if(pointList == NULL)
 		return false;
@@ -50,52 +50,95 @@ bool Spilltree::Training(std::vector<windage::FeaturePoint>* pointList)
 	if(count <= 0)
 		return false;
 
+	int stepCount = cvRound((double)count / (double)this->treeNumber);
+	int overlabCount = cvRound((double)stepCount * this->overlab);
 	int dimension = (*pointList)[0].DESCRIPTOR_DIMENSION;
-
-	if(this->descriptorStorage) cvReleaseMat(&this->descriptorStorage);
-	this->descriptorStorage = cvCreateMat(count, dimension, DESCRIPTOR_DATA_TYPE);
 	
-	for(int y=0; y<count; y++)
+	for(int i=0; i<this->treeNumber; i++)
 	{
+		if(this->descriptorStorage[i]) cvReleaseMat(&this->descriptorStorage[i]);
+		this->descriptorStorage[i] = cvCreateMat(stepCount + overlabCount, dimension, DESCRIPTOR_DATA_TYPE);
+
+		this->descriptorIndex[i].resize(stepCount + overlabCount);
+	}
+
+	for(int i=0; i<count; i++)
+	{
+		int index = i%this->treeNumber;
+		int y = (i-index)/this->treeNumber;
+		this->descriptorIndex[index][y] = i;
 		for(int x=0; x<dimension; x++)
 		{
-			CV_MAT_ELEM((*this->descriptorStorage), double, y, x) = (*pointList)[y].descriptor[x];
+			CV_MAT_ELEM((*(this->descriptorStorage[index])), double, y, x) = (*pointList)[i].descriptor[x];
 		}
 	}
 
-	if(this->spilltree) cvReleaseFeatureTree(this->spilltree);
-	this->spilltree = cvCreateSpillTree(this->descriptorStorage);
+	CvRNG rng = cvRNG(cvGetTickCount());
+	for(int i=0; i<overlabCount; i++)
+	{
+		for(int index=0; index<this->treeNumber; index++)
+		{
+			int randIndex = cvRandInt(&rng) % count;
+			int y = stepCount + i;
+			this->descriptorIndex[index][y] = randIndex;
+			for(int x=0; x<dimension; x++)
+			{
+				CV_MAT_ELEM((*(this->descriptorStorage[index])), double, y, x) = (*pointList)[randIndex].descriptor[x];
+			}
+		}
+	}
 
+	for(int i=0; i<this->treeNumber; i++)
+	{
+		if(this->spilltree[i]) cvReleaseFeatureTree(this->spilltree[i]);
+		this->spilltree[i] = cvCreateKDTree(this->descriptorStorage[i]);
+	}
+	
 	return true;
 }
 
-int Spilltree::Matching(windage::FeaturePoint point, double* difference)
+int KDforest::Matching(windage::FeaturePoint point, double* difference)
 {
 	int index = -1;
-//*
+
 	int dimension = point.DESCRIPTOR_DIMENSION;
 	CvMat* currentDescriptor = cvCreateMat(1, dimension, DESCRIPTOR_DATA_TYPE);
-	CvMat* resultIndex = cvCreateMat(1, 2, CV_32S);
-	CvMat* resultDistance = cvCreateMat(1, 2, CV_64FC1);
+	CvMat* resultIndex = cvCreateMat(1, 1, CV_32S);
+	CvMat* resultDistance = cvCreateMat(1, 1, CV_64FC1);
 
 	for(int i=0; i<dimension; i++)
 		CV_MAT_ELEM((*currentDescriptor), double, 0, i) = point.descriptor[i];
 
-	cvFindFeatures(this->spilltree, currentDescriptor, resultIndex, resultDistance, 2, this->eMax);
+	std::vector<int> indexList;
+	std::vector<double> distanceList;
+
+	for(int i=0; i<this->treeNumber; i++)
+	{
+		cvFindFeatures(this->spilltree[i], currentDescriptor, resultIndex, resultDistance, 1, this->eMax);
+		indexList.push_back(CV_MAT_ELEM((*resultIndex), int, 0, 0));
+		distanceList.push_back(CV_MAT_ELEM((*resultDistance), double, 0, 0));
+	}
 	
-	double minDistance1 = CV_MAT_ELEM((*resultDistance), double, 0, 1);
-	double minDistance2 = CV_MAT_ELEM((*resultDistance), double, 0, 0);
-	int minIndex1 = CV_MAT_ELEM((*resultIndex), int, 0, 1);
-	int minIndex2 = CV_MAT_ELEM((*resultIndex), int, 0, 0);
-	
+	double minDistance1=99999999, minDistance2=99999999;
+	int minIndex1, minIndex2;
+
+	for(int i=0; i<this->treeNumber; i++)
+	{
+		if(distanceList[i] < minDistance1)
+		{
+			minDistance2 = minDistance1;
+			minIndex2 = minIndex1;
+
+			minDistance1 = distanceList[i];
+			minIndex1 = this->descriptorIndex[i][indexList[i]];
+		}
+		else if(distanceList[i] < minDistance2 && minIndex1 != this->descriptorIndex[i][indexList[i]])
+		{
+			minDistance2 = distanceList[i];
+			minIndex2 = this->descriptorIndex[i][indexList[i]];
+		}
+	}
 	index = minIndex1;
-    if(minDistance2 < minDistance1)
-    {
-            double temp = minDistance1;
-            minDistance1 = minDistance2;
-            minDistance2 = temp;
-            index = minIndex2;
-    }
 
 	cvReleaseMat(&currentDescriptor);
 	cvReleaseMat(&resultIndex);
@@ -105,6 +148,6 @@ int Spilltree::Matching(windage::FeaturePoint point, double* difference)
 		(*difference) = minDistance1;
 	if(minDistance1 > minDistance2 * this->nearestNeighbourhoodRatio)
 		return -1;
-//*/
+
 	return index;
 }

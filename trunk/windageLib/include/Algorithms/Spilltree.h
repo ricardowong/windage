@@ -89,10 +89,10 @@ namespace windage
 
 		public:
 			virtual char* GetFunctionName(){return "Spilltree";};
-			Spilltree(int eMax=20) : SearchTree()
+			Spilltree(int eMax=2) : SearchTree()
 			{
 				/** Spill-tree support only float/double type descriptor */
-				this->DESCRIPTOR_DATA_TYPE = CV_64F; 
+				this->DESCRIPTOR_DATA_TYPE = CV_64F;
 
 				this->descriptorStorage = NULL;
 				this->spilltree = NULL;

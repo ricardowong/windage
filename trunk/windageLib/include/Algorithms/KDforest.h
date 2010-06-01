@@ -38,15 +38,15 @@
  * ======================================================================== */
 
 /**
- * @file	KDtree.h
+ * @file	KDforest.h
  * @author	Woonhyuk Baek
  * @version 2.0
  * @date	2010.02.04
- * @brief	It is implemetation of search tree class to use KD-tree altorithm
+ * @brief	It is implemetation of search tree class to use Spill-tree altorithm
  */
 
-#ifndef _KD_TREE_H_
-#define _KD_TREE_H_
+#ifndef _SPILL_FOREST_H_
+#define _SPILL_FOREST_H_
 
 #include <vector>
 
@@ -77,31 +77,50 @@ namespace windage
 		 */
 
 		/**
-		 * @brief	class for feature matching to use KD-tree
+		 * @brief	class for feature matching to use Spill-tree
 		 * @author	Woonhyuk Baek
 		 */
-		class DLLEXPORT KDtree : public SearchTree
+		class DLLEXPORT KDforest : public SearchTree
 		{
 		private:
-			CvMat* descriptorStorage;	///< reference descriptor storage
-			CvFeatureTree* kdtree;		///< openCV tree search interface pointer
+			int treeNumber;
+			double overlab;
+			std::vector<CvMat*> descriptorStorage;	///< reference descriptor storage
+			std::vector<std::vector<int>> descriptorIndex;
+			std::vector<CvFeatureTree*> spilltree;	///< openCV tree search interface pointer
 			int eMax;					///< limitation of iteration count
 
 		public:
-			virtual char* GetFunctionName(){return "KDtree";};
-			KDtree(int eMax=20) : SearchTree()
+			virtual char* GetFunctionName(){return "KDforest";};
+			KDforest(int eMax=20, int treeNumber=4, double overlab=0.20) : SearchTree()
 			{
-				/** KD-tree support only float/double type descriptor */
-				this->DESCRIPTOR_DATA_TYPE = CV_64F;
+				/** Spill-tree support only float/double type descriptor */
+				this->DESCRIPTOR_DATA_TYPE = CV_64F; 
 
-				this->descriptorStorage = NULL;
-				this->kdtree = NULL;
+				this->treeNumber = treeNumber;
+				this->overlab = overlab;
+
+				this->descriptorStorage.resize(this->treeNumber);
+				this->spilltree.resize(this->treeNumber);
+				this->descriptorIndex.resize(this->treeNumber);
+
+				for(int i=0; i<this->treeNumber; i++)
+				{
+					this->descriptorStorage[i] = NULL;
+					this->spilltree[i] = NULL;
+				}
+
 				this->eMax = eMax;
 			}
-			~KDtree()
+			~KDforest()
 			{
-				if(this->descriptorStorage) cvReleaseMat(&this->descriptorStorage);
-				if(this->kdtree) cvReleaseFeatureTree(this->kdtree);
+				for(int i=0; i<this->treeNumber; i++)
+				{
+					if(this->descriptorStorage[i]) cvReleaseMat(&this->descriptorStorage[i]);
+					if(this->spilltree[i]) cvReleaseFeatureTree(this->spilltree[i]);
+				}
+				this->descriptorStorage.clear();
+				this->spilltree.clear();
 			}
 
 			inline void SetEMax(int emax){this->eMax = emax;};
@@ -141,4 +160,4 @@ namespace windage
 		/** @} */ // addtogroup Algorithms
 	}
 }
-#endif // _KD_TREE_H_
+#endif // _SPILL_FOREST_H_

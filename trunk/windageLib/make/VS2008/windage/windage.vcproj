@@ -334,6 +334,14 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\..\src\Algorithms\KDforest.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\include\Algorithms\KDforest.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\..\src\Algorithms\KDtree.cpp"
 					>
 				</File>

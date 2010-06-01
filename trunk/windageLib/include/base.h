@@ -64,4 +64,4 @@
 // for debuging
 #include <iostream>
 
-#endif
+#endif //_WINDAGE_BASE_H_
