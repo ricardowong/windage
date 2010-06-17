@@ -56,7 +56,7 @@ const double SCALE_FACTOR = 6.0;
 const int SCALE_STEP = 6;
 const double REPROJECTION_ERROR = 5.0;
 
-#define USE_TEMPLATE_IMAEG 0
+#define USE_TEMPLATE_IMAEG 1
 const char* TEMPLATE_IMAGE = "reference%d_320.png";
 const int TEMPLATE_IMAGE_COUNT = 2;
 void main()
