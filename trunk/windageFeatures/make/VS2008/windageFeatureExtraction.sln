@@ -1,0 +1,27 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "windageFeatures", "windageFeatures\windageFeatures.vcproj", "{E5F79192-C2F7-4A11-851D-72C75201D5E9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{B89D5FD0-8462-4210-801C-BF338FF13AAA}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Algorithms", "Algorithms", "{858E642D-1428-4A5F-A110-76B4A256AEF8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E5F79192-C2F7-4A11-851D-72C75201D5E9}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E5F79192-C2F7-4A11-851D-72C75201D5E9}.Debug|Win32.Build.0 = Debug|Win32
+		{E5F79192-C2F7-4A11-851D-72C75201D5E9}.Release|Win32.ActiveCfg = Release|Win32
+		{E5F79192-C2F7-4A11-851D-72C75201D5E9}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{E5F79192-C2F7-4A11-851D-72C75201D5E9} = {858E642D-1428-4A5F-A110-76B4A256AEF8}
+	EndGlobalSection
+EndGlobal
