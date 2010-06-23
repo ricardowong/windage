@@ -7,6 +7,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{B8
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Algorithms", "Algorithms", "{858E642D-1428-4A5F-A110-76B4A256AEF8}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ExtractFeatures", "..\..\Examples\ExtractFeatures\ExtractFeatures.vcproj", "{BE686912-9625-430D-9990-0A1C5AA13A47}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -17,11 +19,16 @@ Global
 		{E5F79192-C2F7-4A11-851D-72C75201D5E9}.Debug|Win32.Build.0 = Debug|Win32
 		{E5F79192-C2F7-4A11-851D-72C75201D5E9}.Release|Win32.ActiveCfg = Release|Win32
 		{E5F79192-C2F7-4A11-851D-72C75201D5E9}.Release|Win32.Build.0 = Release|Win32
+		{BE686912-9625-430D-9990-0A1C5AA13A47}.Debug|Win32.ActiveCfg = Debug|Win32
+		{BE686912-9625-430D-9990-0A1C5AA13A47}.Debug|Win32.Build.0 = Debug|Win32
+		{BE686912-9625-430D-9990-0A1C5AA13A47}.Release|Win32.ActiveCfg = Release|Win32
+		{BE686912-9625-430D-9990-0A1C5AA13A47}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{E5F79192-C2F7-4A11-851D-72C75201D5E9} = {858E642D-1428-4A5F-A110-76B4A256AEF8}
+		{BE686912-9625-430D-9990-0A1C5AA13A47} = {B89D5FD0-8462-4210-801C-BF338FF13AAA}
 	EndGlobalSection
 EndGlobal
