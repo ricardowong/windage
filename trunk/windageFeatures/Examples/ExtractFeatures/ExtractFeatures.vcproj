@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="windageFeatures"
-	ProjectGUID="{E5F79192-C2F7-4A11-851D-72C75201D5E9}"
-	RootNamespace="windageFeatures"
+	Name="ExtractFeatures"
+	ProjectGUID="{BE686912-9625-430D-9990-0A1C5AA13A47}"
+	RootNamespace="ExtractFeatures"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
@@ -20,7 +20,7 @@
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionDir)../../bin"
 			IntermediateDirectory="$(SolutionDir)../../BuildLog/$(ProjectName)/$(ConfigurationName)"
-			ConfigurationType="4"
+			ConfigurationType="1"
 			CharacterSet="1"
 			>
 			<Tool
@@ -42,7 +42,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../include&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.1/include&quot;"
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
+				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -60,11 +60,20 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)\$(ProjectName)d.lib"
+				Name="VCLinkerTool"
+				AdditionalDependencies="windageFeatures.lib cv210.lib cxcore210.lib highgui210.lib"
+				OutputFile="$(OutDir)\$(ProjectName)d.exe"
+				LinkIncremental="2"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)../../lib&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.1/lib&quot;"
+				GenerateDebugInformation="true"
+				SubSystem="1"
+				TargetMachine="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -76,15 +85,17 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="COPY /Y &quot;$(OutDir)\$(ProjectName).lib&quot; &quot;$(SolutionDir)\..\..\lib\$(ProjectName).lib&quot;"
 			/>
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)../../bin"
 			IntermediateDirectory="$(SolutionDir)../../BuildLog/$(ProjectName)/$(ConfigurationName)"
-			ConfigurationType="4"
+			ConfigurationType="1"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
 			>
@@ -108,7 +119,7 @@
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories="&quot;$(SolutionDir)../../include&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.1/include&quot;"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
+				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
@@ -125,10 +136,21 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLibrarianTool"
+				Name="VCLinkerTool"
+				AdditionalDependencies="windageFeatures.lib cv210.lib cxcore210.lib highgui210.lib"
+				LinkIncremental="1"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)../../lib&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.1/lib&quot;"
+				GenerateDebugInformation="true"
+				SubSystem="1"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				TargetMachine="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -140,8 +162,11 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="COPY /Y &quot;$(OutDir)\$(ProjectName).lib&quot; &quot;$(SolutionDir)\..\..\lib\$(ProjectName).lib&quot;"
+				CommandLine="COPY /Y &quot;$(OutDir)\$(ProjectName).exe&quot; &quot;$(SolutionDir)\..\..\runtime\$(ProjectName).exe&quot;"
 			/>
 		</Configuration>
 	</Configurations>
@@ -149,53 +174,15 @@
 	</References>
 	<Files>
 		<Filter
-			Name="Algorithms"
-			>
-		</Filter>
-		<Filter
-			Name="Structures"
+			Name="Source Files"
+			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
+			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath="..\..\..\include\Structures\FeaturePoint.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\include\Structures\Matrix.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\include\Structures\Vector.h"
+				RelativePath=".\main.cpp"
 				>
 			</File>
 		</Filter>
-		<Filter
-			Name="Utilities"
-			>
-			<File
-				RelativePath="..\..\..\src\Utilities\Logger.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\include\Utilities\Logger.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\src\Utilities\Utils.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\include\Utilities\Utils.h"
-				>
-			</File>
-		</Filter>
-		<File
-			RelativePath="..\..\..\include\base.h"
-			>
-		</File>
-		<File
-			RelativePath="..\..\..\include\windage.h"
-			>
-		</File>
 	</Files>
 	<Globals>
 	</Globals>
