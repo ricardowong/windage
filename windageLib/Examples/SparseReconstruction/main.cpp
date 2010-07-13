@@ -65,8 +65,8 @@ const int BUNDLEADSUTMENT_COUNT = 3;
 
 #define RECONSTRUCTION_TEST 0
 #define RECONSTRUCTION_TEMPLE 0
-#define RECONSTRUCTION_MINIATURE 0
-#define RECONSTRUCTION_INCREAMENTAL 1
+#define RECONSTRUCTION_MINIATURE 1
+#define RECONSTRUCTION_INCREAMENTAL 0
 
 #if RECONSTRUCTION_TEST
 const int START_INDEX = 0;
@@ -247,6 +247,7 @@ void main()
 
 					reconstructor->AttatchFeaturePoint(&featurePoint[imageCount]);
 					reconstructionImages.push_back(cvCloneImage(resizeImage));
+					filenameList.push_back(filename);
 
 					imageCount++;
 					if(imageCount >= 2)
@@ -261,7 +262,7 @@ void main()
 
 						renderingSceneNode->SetCalibrationList(reconstructor->GetCameraParameterList());
 						renderingSceneNode->SetReconstructionPoints(reconstructor->GetReconstructedPoint());
-//						renderingSceneNode->SetFileNameList(&filenameList);
+						renderingSceneNode->SetFileNameList(&filenameList);
 
 						renderingSceneNode->Initialize();
 					}
