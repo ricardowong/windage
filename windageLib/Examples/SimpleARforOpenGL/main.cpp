@@ -49,7 +49,7 @@
 #include "../Common/OpenGLRenderer.h"
 
 #define USE_TEMPLATE_IMAEG 1
-const char* TEMPLATE_IMAGE = "reference.png";
+const char* TEMPLATE_IMAGE = "reference2.png";
 
 const double SCALE_FACTOR = 4.0;
 const int SCALE_STEP = 8;
