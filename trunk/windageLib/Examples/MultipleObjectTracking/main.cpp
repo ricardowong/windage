@@ -50,11 +50,11 @@ const int HEIGHT = (WIDTH * 3) / 4;
 const double INTRINSIC[] = {1033.93, 1033.84, 319.044, 228.858,-0.206477, 0.306424, 0.000728208, 0.0011338};
 
 #define ADAPTIVE_THRESHOLD 1
-const int FEATURE_COUNT = WIDTH*2;
+const int FEATURE_COUNT = WIDTH;
 
-const double SCALE_FACTOR = 6.0;
-const int SCALE_STEP = 6;
-const double REPROJECTION_ERROR = 5.0;
+const double SCALE_FACTOR = 4.0;
+const int SCALE_STEP = 8;
+const double REPROJECTION_ERROR = 10.0;
 
 #define USE_TEMPLATE_IMAEG 1
 const char* TEMPLATE_IMAGE = "reference%d_320.png";

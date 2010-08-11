@@ -47,7 +47,7 @@
 #include "../Common/OpenGLRenderer.h"
 
 #define USE_TEMPLATE_IMAEG 1
-const char* TEMPLATE_IMAGE = "reference.png";
+const char* TEMPLATE_IMAGE = "reference2.png";
 
 const double SCALE_FACTOR = 4.0;
 const int SCALE_STEP = 8;
@@ -58,7 +58,6 @@ const int RENDERING_WIDTH = 640;
 const int RENDERING_HEIGHT = (RENDERING_WIDTH * 3) / 4;
 const double INTRINSIC[] = {1033.93, 1033.84, 319.044, 228.858,-0.206477, 0.306424, 0.000728208, 0.0011338};
 
-const double VIRTUAL_CAMERA_DISTANCE = 800.0;
 
 windage::Logger* logging;
 double fps;
@@ -76,7 +75,6 @@ IplImage* resultImage = NULL;
 
 windage::Frameworks::PlanarObjectTracking* tracker = NULL;
 OpenGLRenderer* renderer = NULL;
-double angle = 0.0;
 
 bool flip = true;
 
@@ -149,11 +147,52 @@ void keyboard(unsigned char ch, int x, int y)
 	}
 }
 
+int mode = -1;
+int mouseX = -1;
+int mouseY = -1;
+
+double ANGLE = 180.0;
+double VIRTUAL_CAMERA_DISTANCE = 800.0;
+
+void mouseClick(int button, int state, int x, int y)
+{
+	if(state == GLUT_DOWN)
+	{
+		switch(button)
+		{
+		case GLUT_LEFT_BUTTON:
+			mode = 1;
+			break;
+		case GLUT_RIGHT_BUTTON:
+			mode = 2;
+			break;
+		}
+		mouseX = x;
+		mouseY = y;
+	}
+	else if(state == GLUT_UP)
+	{
+		mode = -1;
+	}
+}
+
+void mouseMove(int x, int y)
+{
+	switch(mode)
+	{
+	case 1:
+		ANGLE += ((y - mouseY) + (x - mouseX)) / 100.0;
+		break;
+	case 2:
+		VIRTUAL_CAMERA_DISTANCE += ((y - mouseY) + (x - mouseX)) / 10.0;
+		if(VIRTUAL_CAMERA_DISTANCE < 10)
+			VIRTUAL_CAMERA_DISTANCE = 10;
+		break;
+	}
+}
+
 void idle(void)
 {
-	angle += 1.0;
-	if(angle >= 360.0)
-		angle = 0.0;
 	glutPostRedisplay();
 }
 
@@ -218,7 +257,9 @@ void display()
 	glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-	double radian = angle * CV_PI / 180.0;
+	
+	
+	double radian = ANGLE * CV_PI / 180.0;
 	double dx = sin(radian) * VIRTUAL_CAMERA_DISTANCE;
 	double dy = cos(radian) * VIRTUAL_CAMERA_DISTANCE;
 	gluLookAt(dx, dy, 2000, 0.0, 0.0, 600.0, 0.0, 0.0, 1.0);
@@ -277,6 +318,8 @@ void main()
 	glutDisplayFunc(display);
 	glutIdleFunc(idle);
 	glutKeyboardFunc(keyboard);
+	glutMouseFunc(mouseClick);
+	glutMotionFunc(mouseMove);
 
 	glutMainLoop();
 

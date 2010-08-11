@@ -47,15 +47,15 @@
 
 const int WIDTH = 640;
 const int HEIGHT = (WIDTH * 3) / 4;
-const int FEATURE_COUNT = WIDTH/2;
+const int FEATURE_COUNT = WIDTH;
 
 const double SCALE_FACTOR = 4.0;
 const int SCALE_STEP = 8;
-const double REPROJECTION_ERROR = 5.0;
+const double REPROJECTION_ERROR = 10.0;
 
 #define USE_ADAPTIVE_THRESHOLD 1
 #define USE_TEMPLATE_IMAEG 1
-const char* TEMPLATE_IMAGE = "reference1.png";
+const char* TEMPLATE_IMAGE = "reference2.png";
 const double INTRINSIC[] = {1033.93, 1033.84, 319.044, 228.858,-0.206477, 0.306424, 0.000728208, 0.0011338};
 
 void main()
@@ -95,7 +95,7 @@ void main()
 	filter = new windage::Algorithms::KalmanFilter();
 
 	calibration->Initialize(INTRINSIC[0], INTRINSIC[1], INTRINSIC[2], INTRINSIC[3], INTRINSIC[4], INTRINSIC[5], INTRINSIC[6], INTRINSIC[7]);
-	detector->SetThreshold(30.0);
+	detector->SetThreshold(20.0);
 	searchtree->SetRatio(0.7);
 	opticalflow->Initialize(WIDTH, HEIGHT, cvSize(15, 15), 3);
 	estimator->SetReprojectionError(REPROJECTION_ERROR);
@@ -167,8 +167,8 @@ void main()
 #endif
 			// draw result
 //			detector->DrawKeypoints(resultImage);
-			tracking.DrawDebugInfo(resultImage);
 			tracking.DrawOutLine(resultImage, true);
+			tracking.DrawDebugInfo(resultImage);
 			calibration->DrawInfomation(resultImage, 100);
 		}
 		matchingCount = tracking.GetMatchingCount();

@@ -46,7 +46,7 @@
 
 #define SERVER 1
 #define CLIENT 1
-#define WRITE_VIDEO 1
+#define WRITE_VIDEO 0
 
 const char* IMAGE_FILE_FORMAT = "capture/image_%d_%04d.png";
 
@@ -107,20 +107,20 @@ windage::Frameworks::MultiplePlanarObjectTracking* CreateTracker()
 void DrawOutLine(IplImage* colorImage, windage::Calibration* calibration, bool drawCross)
 {
 	int size = 4;
-	CvScalar color = CV_RGB(255, 255, 0);
+	CvScalar color = CV_RGB(0, 0, 0);
 	CvScalar color2 = CV_RGB(255, 255, 255);
 	int width = 640;
 	int height = 480;
 
-	cvLine(colorImage, calibration->ConvertWorld2Image(-width/2, -height/2, 0.0),	calibration->ConvertWorld2Image(+width/2, -height/2, 0.0),	color2, 6);
-	cvLine(colorImage, calibration->ConvertWorld2Image(+width/2, -height/2, 0.0),	calibration->ConvertWorld2Image(+width/2, +height/2, 0.0),	color2, 6);
-	cvLine(colorImage, calibration->ConvertWorld2Image(+width/2, +height/2, 0.0),	calibration->ConvertWorld2Image(-width/2, +height/2, 0.0),	color2, 6);
-	cvLine(colorImage, calibration->ConvertWorld2Image(-width/2, +height/2, 0.0),	calibration->ConvertWorld2Image(-width/2, -height/2, 0.0),	color2, 6);
+	cvLine(colorImage, calibration->ConvertWorld2Image(-width/2, -height/2, 0.0),	calibration->ConvertWorld2Image(+width/2, -height/2, 0.0),	color2, size+4);
+	cvLine(colorImage, calibration->ConvertWorld2Image(+width/2, -height/2, 0.0),	calibration->ConvertWorld2Image(+width/2, +height/2, 0.0),	color2, size+4);
+	cvLine(colorImage, calibration->ConvertWorld2Image(+width/2, +height/2, 0.0),	calibration->ConvertWorld2Image(-width/2, +height/2, 0.0),	color2, size+4);
+	cvLine(colorImage, calibration->ConvertWorld2Image(-width/2, +height/2, 0.0),	calibration->ConvertWorld2Image(-width/2, -height/2, 0.0),	color2, size+4);
 
-	cvLine(colorImage, calibration->ConvertWorld2Image(-width/2, -height/2, 0.0),	calibration->ConvertWorld2Image(+width/2, -height/2, 0.0),	color, 2);
-	cvLine(colorImage, calibration->ConvertWorld2Image(+width/2, -height/2, 0.0),	calibration->ConvertWorld2Image(+width/2, +height/2, 0.0),	color, 2);
-	cvLine(colorImage, calibration->ConvertWorld2Image(+width/2, +height/2, 0.0),	calibration->ConvertWorld2Image(-width/2, +height/2, 0.0),	color, 2);
-	cvLine(colorImage, calibration->ConvertWorld2Image(-width/2, +height/2, 0.0),	calibration->ConvertWorld2Image(-width/2, -height/2, 0.0),	color, 2);
+	cvLine(colorImage, calibration->ConvertWorld2Image(-width/2, -height/2, 0.0),	calibration->ConvertWorld2Image(+width/2, -height/2, 0.0),	color, size);
+	cvLine(colorImage, calibration->ConvertWorld2Image(+width/2, -height/2, 0.0),	calibration->ConvertWorld2Image(+width/2, +height/2, 0.0),	color, size);
+	cvLine(colorImage, calibration->ConvertWorld2Image(+width/2, +height/2, 0.0),	calibration->ConvertWorld2Image(-width/2, +height/2, 0.0),	color, size);
+	cvLine(colorImage, calibration->ConvertWorld2Image(-width/2, +height/2, 0.0),	calibration->ConvertWorld2Image(-width/2, -height/2, 0.0),	color, size);
 
 }
 
@@ -134,6 +134,9 @@ void main()
 	IplImage* resizeImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
 	IplImage* grayImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 1);
 	IplImage* resultImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
+
+	IplImage* serverImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
+	IplImage* clientImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
 
 	cvNamedWindow("Server-Side");
 	cvNamedWindow("Client-Side");
@@ -223,7 +226,7 @@ void main()
 			matchingCount[i] = serverTracker->GetMatchingCount(i);
 			if(serverTracker->GetMatchingCount(i) > 10)
 			{
-				serverTracker->DrawDebugInfo(resultImage, i);
+//				serverTracker->DrawDebugInfo(resultImage, i);
 				serverTracker->DrawOutLine(resultImage, i, true);
 
 				windage::Calibration* calibrationTemp = serverTracker->GetCameraParameter(i);
@@ -267,6 +270,8 @@ void main()
 //		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 60), 0.6, message);
 
 		cvShowImage("Server-Side", resultImage);
+
+		cvCopyImage(resultImage, serverImage);
 
 #if WRITE_VIDEO
 		cvWriteToAVI(serverWriter, resultImage);
@@ -348,8 +353,6 @@ void main()
 		{
 			if(updated[i])
 			{
-				
-
 				windage::Matrix4 extrinsic = windage::Coordinator::MultiMarkerCoordinator::CalculateExtrinsic(clientTracker->GetCameraParameter(0), rotationList[i], translationList[i]);
 				clientTracker->GetCameraParameter(i)->SetExtrinsicMatrix(extrinsic.m1);
 
@@ -387,6 +390,8 @@ void main()
 
 		cvShowImage("Client-Side", resultImage);
 
+		cvCopyImage(resultImage, clientImage);
+
 #if WRITE_VIDEO
 		cvWriteToAVI(clientWriter, resultImage);
 
@@ -402,6 +407,14 @@ void main()
 		char ch = cvWaitKey(1);
 		switch(ch)
 		{
+		case ' ':
+			cvWaitKey();
+			break;
+		case 's':
+		case 'S':
+			cvSaveImage("server.png", serverImage);
+			cvSaveImage("client.png", clientImage);
+			break;
 		case 'q':
 		case 'Q':
 			processing = false;

@@ -133,8 +133,9 @@ bool MultiplePlanarObjectTracking::TrainingReference(double scaleFactor, int sca
 		int count = 0;
 		for(int y=1; y<=scaleStep; y++)
 		{
-			for(int x=1; x<=scaleStep; x++)
+//			for(int x=1; x<=scaleStep; x++)
 			{
+				int x = y;
 				IplImage* resizeReferenceImage = cvCreateImage(cvSize(width*x, height*y), IPL_DEPTH_8U, 1);
 				cvResize(this->referenceImage[i], resizeReferenceImage, CV_INTER_LINEAR);
 				cvSmooth(resizeReferenceImage, resizeReferenceImage, CV_GAUSSIAN, 3, 3);
