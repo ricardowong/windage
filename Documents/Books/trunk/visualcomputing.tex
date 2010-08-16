@@ -1,0 +1,82 @@
+\documentclass[12pt,leqno]{book}
+\usepackage{amsmath,amssymb,amsfonts} % Typical maths resource packages
+\usepackage{graphics}                 % Packages to allow inclusion of graphics
+\usepackage{color}                    % For creating coloured text and background
+\usepackage{hyperref}                 % For creating hyperlinks in cross references
+\usepackage{url}
+
+% hangul package
+\usepackage[hangul,nonfrench]{dhucs}  % For creating hangul package
+
+\parindent 1cm
+\parskip 0.2cm
+\topmargin 0.2cm
+\oddsidemargin 1cm
+\evensidemargin 0.5cm
+\textwidth 15cm
+\textheight 21cm
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{definition}[theorem]{Definition}
+
+\def\R{\mathbb{ R}}
+\def\S{\mathbb{ S}}
+\def\I{\mathbb{ I}}
+\makeindex
+
+\title{
+Visual Computing : Mixed-Augmented Reality\\
+Computer Vision, Graphics and Geometry
+}
+
+\author{
+Edited by\\
+Woonhyuk Baek\\
+{\small\em \copyright \  Draft date \today }
+}
+
+\date{ }
+\begin{document}
+\maketitle
+ \addcontentsline{toc}{chapter}{Contents}
+\pagenumbering{roman}
+\tableofcontents
+
+%\listoffigures
+%\listoftables
+
+\chapter*{Preface}\normalsize
+  \addcontentsline{toc}{chapter}{Preface}
+\pagestyle{plain}
+Visual Computing\cite{tracking1999}
+
+\pagestyle{headings}
+\pagenumbering{arabic}
+
+%chapter1
+\include{geometry}
+%chapter2
+\include{3Dtracking}
+%chapter3
+\include{3Drendering}
+%chapter4
+\include{3Dreconstruction}
+%chapter5
+\include{Implementation}
+
+\bibliographystyle{abbrv}
+\bibliography{visualcomputing}
+%\bibliographystyle{plain}
+
+%\begin{thebibliography}{99}
+%  \addcontentsline{toc}{chapter}{Bibliography}
+%\bibitem{lamport} L. Lamport. {\bf \LaTeX \ A Document Preparation System}
+%Addison-Wesley, California 1986.
+%\end{thebibliography}
+
+\include{index}
+  \addcontentsline{toc}{chapter}{Index}
+\end{document}
