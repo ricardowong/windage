@@ -191,6 +191,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\include\Structures\OpenSURFpoint.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\include\Structures\ReconstructionPoint.h"
 				>
 			</File>
@@ -223,6 +227,14 @@
 				</File>
 				<File
 					RelativePath="..\..\..\include\Algorithms\FeatureDetector.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\src\Algorithms\windageSURF\OpenSURFdetector.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\include\Algorithms\OpenSURFdetector.h"
 					>
 				</File>
 				<File
@@ -318,6 +330,46 @@
 					</File>
 					<File
 						RelativePath="..\..\..\include\Algorithms\SIFT\siftutils.h"
+						>
+					</File>
+				</Filter>
+				<Filter
+					Name="openSURF"
+					>
+					<File
+						RelativePath="..\..\..\src\Algorithms\openSURF\fasthessian.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\..\include\Algorithms\openSURF\fasthessian.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\..\src\Algorithms\openSURF\integral.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\..\include\Algorithms\openSURF\integral.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\..\src\Algorithms\openSURF\ipoint.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\..\include\Algorithms\openSURF\ipoint.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\..\src\Algorithms\openSURF\surf.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\..\include\Algorithms\openSURF\surf.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\..\include\Algorithms\openSURF\surflib.h"
 						>
 					</File>
 				</Filter>

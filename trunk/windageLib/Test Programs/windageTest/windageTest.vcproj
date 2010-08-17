@@ -243,6 +243,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\OpenSURFdetectorTest.h"
+				>
+			</File>
+			<File
 				RelativePath=".\OpticalFlowTest.h"
 				>
 			</File>
