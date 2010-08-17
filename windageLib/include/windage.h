@@ -62,6 +62,7 @@
 // Algorithms
 // detector
 #include "Algorithms/FeatureDetector.h"
+#include "Algorithms/OpenSURFdetector.h"
 #include "Algorithms/SURFdetector.h"
 #include "Algorithms/SIFTdetector.h"
 #include "Algorithms/SIFTGPUdetector.h"

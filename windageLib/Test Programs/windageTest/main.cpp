@@ -45,6 +45,7 @@
 
 #include "FeaturePointTest.h"
 #include "SURFdetectorTest.h"
+#include "OpenSURFdetectorTest.h"
 #include "SIFTdetectorTest.h"
 #include "SIFTGPUdetectorTest.h"
 #include "WSURFdetectorTest.h"
@@ -83,6 +84,8 @@ void main()
 
 	FeaturePointTest testFeaturePoint;
 	SURFdetectorTest testSURFdetector;
+	OpenSURFdetectorTest testOpenSURFdetector;
+/*
 	SIFTdetectorTest testSIFTdetector;
 	SIFTGPUdetectorTest testSIFTGPUdetector;
 	WSURFdetectorTest testWSURFdetector;
@@ -109,7 +112,7 @@ void main()
 	MultiplePlanarObjectTrackingTest testMultiplePlanarObjectTracking;
 
 	StereoReconstructionTest testStereoReconstruction;
-
+*/
 	cvNamedWindow("stop");
 	cvWaitKey(10*1000);
 	cvDestroyAllWindows();
