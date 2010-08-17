@@ -64,8 +64,8 @@ bool OpenSURFdetector::DoExtractKeypointsDescriptor(IplImage* grayImage)
 		ipt = &ipts.at(i);
 
 		point.SetPoint(windage::Vector3(ipt->x, ipt->y, 1.0));
-		point.SetSize(ipt->scale);
-		point.SetDir(ipt->orientation);
+		point.SetSize(2.5f * ipt->scale);
+		point.SetDir(-ipt->orientation);
 		
 		for(int j=0; j<point.DESCRIPTOR_DIMENSION; j++)
 		{

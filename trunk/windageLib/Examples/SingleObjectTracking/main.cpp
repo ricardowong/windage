@@ -49,8 +49,8 @@ const int WIDTH = 640;
 const int HEIGHT = (WIDTH * 3) / 4;
 const int FEATURE_COUNT = WIDTH;
 
-const double SCALE_FACTOR = 4.0;
-const int SCALE_STEP = 4;
+const double SCALE_FACTOR = 1.0;
+const int SCALE_STEP = 1;
 const double REPROJECTION_ERROR = 10.0;
 
 #define USE_ADAPTIVE_THRESHOLD 0
