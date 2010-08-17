@@ -166,6 +166,11 @@ Matrix4 MultiMarkerCoordinator::GetRelation(Calibration* baseCalibration, Calibr
 			toMatrix.m[y][x] = CV_MAT_ELEM((*toExtrinsicMatrix), double, y, x);
 		}
 	}
+
+	double test = cvDet(fromExtrinsicMatrix);
+
+	CvMat* inverse = cvCreateMat(4, 4, CV_64FC1);
+	cvInvert(fromExtrinsicMatrix, inverse);
 	
 	return fromMatrix.Inverse() * toMatrix;
 }
