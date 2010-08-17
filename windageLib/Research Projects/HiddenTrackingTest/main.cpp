@@ -358,8 +358,8 @@ void main()
 				windage::Matrix4 extrinsic = windage::Coordinator::MultiMarkerCoordinator::CalculateExtrinsic(clientTracker->GetCameraParameter(0), rotationList[i], translationList[i]);
 				clientTracker->GetCameraParameter(i)->SetExtrinsicMatrix(extrinsic.m1);
 
-//				extrinsic = windage::Coordinator::MultiMarkerCoordinator::CalculateExtrinsic(clientTracker->GetCameraParameter(0), relationList[i]);
-//				clientTracker->GetCameraParameter(i)->SetExtrinsicMatrix(extrinsic.m1);
+				extrinsic = windage::Coordinator::MultiMarkerCoordinator::CalculateExtrinsic(clientTracker->GetCameraParameter(0), relationList[i]);
+				clientTracker->GetCameraParameter(i)->SetExtrinsicMatrix(extrinsic.m1);
 
 				windage::Calibration* calibrationTemp = clientTracker->GetCameraParameter(i);
 				DrawOutLine(resultImage, calibrationTemp, true);

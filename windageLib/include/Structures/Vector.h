@@ -46,6 +46,7 @@
 #ifndef _WBAEK_VECTOR_H_
 #define _WBAEK_VECTOR_H_
 
+#include <float.h>
 #include <math.h>
 #define max(a,b)            (((a) > (b)) ? (a) : (b))
 

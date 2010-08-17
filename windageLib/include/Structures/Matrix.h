@@ -152,93 +152,61 @@ namespace windage
 		// www.intel.com¿¡¼­ °¡Á®¿È
 		Matrix4 Inverse() const
 		{
-			double tmp[12];
-			double src[16] = {0};
-			double dst[16];
-			double det;
+			double a0 = m1[ 0] * m1[ 5] - m1[ 1] * m1[ 4];
+			double a1 = m1[ 0] * m1[ 6] - m1[ 2] * m1[ 4];
+			double a2 = m1[ 0] * m1[ 7] - m1[ 3] * m1[ 4];
+			double a3 = m1[ 1] * m1[ 6] - m1[ 2] * m1[ 5];
+			double a4 = m1[ 1] * m1[ 7] - m1[ 3] * m1[ 5];
+			double a5 = m1[ 2] * m1[ 7] - m1[ 3] * m1[ 6];
+			double b0 = m1[ 8] * m1[13] - m1[ 9] * m1[12];
+			double b1 = m1[ 8] * m1[14] - m1[10] * m1[12];
+			double b2 = m1[ 8] * m1[15] - m1[11] * m1[12];
+			double b3 = m1[ 9] * m1[14] - m1[10] * m1[13];
+			double b4 = m1[ 9] * m1[15] - m1[11] * m1[13];
+			double b5 = m1[10] * m1[15] - m1[11] * m1[14];
 
-			memcpy(&src, this, 4*16);
+			double det = a0*b5 - a1*b4 + a2*b3 + a3*b2 - a4*b1 + a5*b0;
 
-			tmp[ 0] = src[10] * src[15];
-			tmp[ 1] = src[11] * src[14];
-			tmp[ 2] = src[ 9] * src[15];
-			tmp[ 3] = src[11] * src[13];
-			tmp[ 4] = src[ 9] * src[14];
-			tmp[ 5] = src[10] * src[13];
-			tmp[ 6] = src[ 8] * src[15];
-			tmp[ 7] = src[11] * src[12];
-			tmp[ 8] = src[ 8] * src[14];
-			tmp[ 9] = src[10] * src[12];
-			tmp[10] = src[ 8] * src[13];
-			tmp[11] = src[ 9] * src[12];
-
-			dst[0]  = tmp[0] * src[5] + tmp[3] * src[6] + tmp[ 4] * src[7];
-			dst[0] -= tmp[1] * src[5] + tmp[2] * src[6] + tmp[ 5] * src[7];
-			dst[1]  = tmp[1] * src[4] + tmp[6] * src[6] + tmp[ 9] * src[7];
-			dst[1] -= tmp[0] * src[4] + tmp[7] * src[6] + tmp[ 8] * src[7];
-			dst[2]  = tmp[2] * src[4] + tmp[7] * src[5] + tmp[10] * src[7];
-			dst[2] -= tmp[3] * src[4] + tmp[6] * src[5] + tmp[11] * src[7];
-			dst[3]  = tmp[5] * src[4] + tmp[8] * src[5] + tmp[11] * src[6];
-			dst[3] -= tmp[4] * src[4] + tmp[9] * src[5] + tmp[10] * src[6];
-			dst[4]  = tmp[1] * src[1] + tmp[2] * src[2] + tmp[ 5] * src[3];
-			dst[4] -= tmp[0] * src[1] + tmp[3] * src[2] + tmp[ 4] * src[3];
-			dst[5]  = tmp[0] * src[0] + tmp[7] * src[2] + tmp[ 8] * src[3];
-			dst[5] -= tmp[1] * src[0] + tmp[6] * src[2] + tmp[ 9] * src[3];
-			dst[6]  = tmp[3] * src[0] + tmp[6] * src[1] + tmp[11] * src[3];
-			dst[6] -= tmp[2] * src[0] + tmp[7] * src[1] + tmp[10] * src[3];
-			dst[7]  = tmp[4] * src[0] + tmp[9] * src[1] + tmp[10] * src[2];
-			dst[7] -= tmp[5] * src[0] + tmp[8] * src[1] + tmp[11] * src[2];
-
-			tmp[ 0] = src[ 2] * src[ 7];
-			tmp[ 1] = src[ 3] * src[ 6];
-			tmp[ 2] = src[ 1] * src[ 7];
-			tmp[ 3] = src[ 3] * src[ 5];
-			tmp[ 4] = src[ 1] * src[ 6];
-			tmp[ 5] = src[ 2] * src[ 5];
-			tmp[ 6] = src[ 0] * src[ 7];
-			tmp[ 7] = src[ 3] * src[ 4];
-			tmp[ 8] = src[ 0] * src[ 6];
-			tmp[ 9] = src[ 2] * src[ 4];
-			tmp[10] = src[ 0] * src[ 5];
-			tmp[11] = src[ 1] * src[ 4];
-
-			dst[ 8]  = tmp[ 0] * src[13] + tmp[ 3] * src[14] + tmp[ 4] * src[15];
-			dst[ 8] -= tmp[ 1] * src[13] + tmp[ 2] * src[14] + tmp[ 5] * src[15];
-			dst[ 9]  = tmp[ 1] * src[12] + tmp[ 6] * src[14] + tmp[ 9] * src[15];
-			dst[ 9] -= tmp[ 0] * src[12] + tmp[ 7] * src[14] + tmp[ 8] * src[15];
-			dst[10]  = tmp[ 2] * src[12] + tmp[ 7] * src[13] + tmp[10] * src[15];
-			dst[10] -= tmp[ 3] * src[12] + tmp[ 6] * src[13] + tmp[11] * src[15];
-			dst[11]  = tmp[ 5] * src[12] + tmp[ 8] * src[13] + tmp[11] * src[14];
-			dst[11] -= tmp[ 4] * src[12] + tmp[ 9] * src[13] + tmp[10] * src[14];
-			dst[12]  = tmp[ 2] * src[10] + tmp[ 5] * src[11] + tmp[ 1] * src[ 9];
-			dst[12] -= tmp[ 4] * src[11] + tmp[ 0] * src[ 9] + tmp[ 3] * src[10];
-			dst[13]  = tmp[ 8] * src[11] + tmp[ 0] * src[ 8] + tmp[ 7] * src[10];
-			dst[13] -= tmp[ 6] * src[10] + tmp[ 9] * src[11] + tmp[ 1] * src[ 8];
-			dst[14]  = tmp[ 6] * src[ 9] + tmp[11] * src[11] + tmp[ 3] * src[ 8];
-			dst[14] -= tmp[10] * src[11] + tmp[ 2] * src[ 8] + tmp[ 7] * src[ 9];
-			dst[15]  = tmp[10] * src[10] + tmp[ 4] * src[ 8] + tmp[ 9] * src[ 9];
-			dst[15] -= tmp[ 8] * src[ 9] + tmp[11] * src[10] + tmp[ 5] * src[ 8];
-
-			det = src[0] * dst[0] + src[1] * dst[1] + src[2] * dst[2] + src[3] * dst[3];
-			if(!(det == 0.0f))
+			Matrix4 inverse;
+			if(DBL_EPSILON > 0)
 			{
-				det = 1/det;
-			}
-			else
-			{
-				det = 1.0f;
+				inverse.m1[ 0] = + m1[ 5]*b5 - m1[ 6]*b4 + m1[ 7]*b3;
+				inverse.m1[ 4] = - m1[ 4]*b5 + m1[ 6]*b2 - m1[ 7]*b1;
+				inverse.m1[ 8] = + m1[ 4]*b4 - m1[ 5]*b2 + m1[ 7]*b0;
+				inverse.m1[12] = - m1[ 4]*b3 + m1[ 5]*b1 - m1[ 6]*b0;
+				inverse.m1[ 1] = - m1[ 1]*b5 + m1[ 2]*b4 - m1[ 3]*b3;
+				inverse.m1[ 5] = + m1[ 0]*b5 - m1[ 2]*b2 + m1[ 3]*b1;
+				inverse.m1[ 9] = - m1[ 0]*b4 + m1[ 1]*b2 - m1[ 3]*b0;
+				inverse.m1[13] = + m1[ 0]*b3 - m1[ 1]*b1 + m1[ 2]*b0;
+				inverse.m1[ 2] = + m1[13]*a5 - m1[14]*a4 + m1[15]*a3;
+				inverse.m1[ 6] = - m1[12]*a5 + m1[14]*a2 - m1[15]*a1;
+				inverse.m1[10] = + m1[12]*a4 - m1[13]*a2 + m1[15]*a0;
+				inverse.m1[14] = - m1[12]*a3 + m1[13]*a1 - m1[14]*a0;
+				inverse.m1[ 3] = - m1[ 9]*a5 + m1[10]*a4 - m1[11]*a3;
+				inverse.m1[ 7] = + m1[ 8]*a5 - m1[10]*a2 + m1[11]*a1;
+				inverse.m1[11] = - m1[ 8]*a4 + m1[ 9]*a2 - m1[11]*a0;
+				inverse.m1[15] = + m1[ 8]*a3 - m1[ 9]*a1 + m1[10]*a0;
+
+				double invDet = 1.0/det;
+				inverse.m1[ 0] *= invDet;
+				inverse.m1[ 1] *= invDet;
+				inverse.m1[ 2] *= invDet;
+				inverse.m1[ 3] *= invDet;
+				inverse.m1[ 4] *= invDet;
+				inverse.m1[ 5] *= invDet;
+				inverse.m1[ 6] *= invDet;
+				inverse.m1[ 7] *= invDet;
+				inverse.m1[ 8] *= invDet;
+				inverse.m1[ 9] *= invDet;
+				inverse.m1[10] *= invDet;
+				inverse.m1[11] *= invDet;
+				inverse.m1[12] *= invDet;
+				inverse.m1[13] *= invDet;
+				inverse.m1[14] *= invDet;
+				inverse.m1[15] *= invDet;
 			}
 
-			for(int j=0; j<16; ++j)
-			{
-				dst[j] *= det;
-			}
-
-			Matrix4 Result;
-
-			memcpy(&Result, &dst, 16*4);
-
-			return Result.Transpose();
+			return inverse;
 		}
 
 		Vector4 operator*(const Vector4 &rhs) const
