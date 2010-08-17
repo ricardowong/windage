@@ -21,9 +21,10 @@ void main()
 //	windage::Algorithms::FeatureDetector* detector = new windage::Algorithms::SIFTGPUdetector();
 //	windage::Algorithms::FeatureDetector* detector = new windage::Algorithms::SIFTdetector();
 //	windage::Algorithms::FeatureDetector* detector = new windage::Algorithms::SURFdetector();
+//	windage::Algorithms::FeatureDetector* detector = new windage::Algorithms::OpenSURFdetector();
 	windage::Algorithms::FeatureDetector* detector = new windage::Algorithms::WSURFdetector();
 //	windage::Algorithms::FeatureDetector* detector = new windage::Algorithms::WSURFMultidetector(WIDTH, HEIGHT);
-	detector->SetThreshold(60);
+//	detector->SetThreshold(60);
 
 	FleaCamera* capture = new FleaCamera();
 	capture->open();
@@ -31,7 +32,7 @@ void main()
 //	CvCapture* capture = cvCaptureFromCAM(CV_CAP_ANY);
 	cvNamedWindow("result");
 
-	double threshold = 30.0;
+	double threshold = detector->GetThreshold();
 	int index = 0;
 	char message[100];
 	bool flip = false;
