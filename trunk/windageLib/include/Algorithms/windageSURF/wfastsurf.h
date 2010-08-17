@@ -53,9 +53,9 @@
 
 #include "wsurf.h"
 
-void wExtractFASTSURF( const CvArr* _img, const CvArr* _mask,
-							CvSeq** _keypoints, CvSeq** _descriptors,
-							CvMemStorage* storage, CvSURFParams params,
-							int useProvidedKeyPts);
+#include <vector>
+#include "Structures/WSURFpoint.h"
+
+void wExtractFASTSURF(const IplImage* image, std::vector<windage::FeaturePoint>* keypoints);
 
 #endif

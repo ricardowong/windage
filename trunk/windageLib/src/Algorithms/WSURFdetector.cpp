@@ -45,6 +45,7 @@
 #include "Algorithms/windageSURF/fast.h"
 #include "Algorithms/windageSURF/wsurf.h"
 #include "Algorithms/windageSURF/wfastsurf.h"
+#include "Algorithms/windageSURF/wfastopensurf.h"
 
 using namespace windage;
 using namespace windage::Algorithms;
@@ -59,10 +60,6 @@ bool WSURFdetector::DoExtractKeypointsDescriptor(IplImage* grayImage)
 	this->keypoints.clear();
 
 	// Extract FAST corners;
-	CvSeq* descriptors;
-	CvMemStorage* storage = cvCreateMemStorage(0);
-	CvSeq* keypointsSeq = cvCreateSeq(0, sizeof(CvSeq), sizeof(CvSURFPoint), storage );
-
 	int cornerCount = 0;
 	xy* cornerPoints = NULL;
 
@@ -82,43 +79,19 @@ bool WSURFdetector::DoExtractKeypointsDescriptor(IplImage* grayImage)
 		break;
 	}
 	
-
+	windage::WSURFpoint point;
 	for(int i=0; i<cornerCount; i++)
 	{
-		CvSURFPoint point = cvSURFPoint(cvPoint2D32f(cornerPoints[i].x, cornerPoints[i].y), 0, 15, 0, 0);
-		cvSeqPush(keypointsSeq, &point);
+		point.SetPoint(windage::Vector3(cornerPoints[i].x, cornerPoints[i].y, 1.0));
+		point.SetSize(15);
+		this->keypoints.push_back(point);
 	}
 	if(cornerPoints) delete[] cornerPoints;
 
 	// Generate Descriptor
-	CvSURFParams params = cvSURFParams(this->threshold, 0);
-	wExtractFASTSURF(grayImage, NULL, &keypointsSeq, &descriptors, storage, params, 1);
 //	wExtractSURF(grayImage, NULL, &keypointsSeq, &descriptors, storage, params, 1);
+	wExtractFASTSURF(grayImage, &this->keypoints);
+//	wExtractFASTOpenSURF(grayImage, &this->keypoints);
 	
-	CvSeqReader reader;
-	cvStartReadSeq(descriptors, &reader, 0);
-
-	windage::WSURFpoint point;
-	for(int i=0; i<keypointsSeq->total; i++)
-	{
-		CvSURFPoint* surfPT = (CvSURFPoint*)cvGetSeqElem(keypointsSeq, i);
-
-		point.SetPoint(windage::Vector3(surfPT->pt.x, surfPT->pt.y, 1.0));
-		point.SetSize(surfPT->size);
-		point.SetDir(surfPT->dir);
-
-		const float* vec = (const float*)reader.ptr;
-		CV_NEXT_SEQ_ELEM(reader.seq->elem_size, reader);
-
-		for(int j=0; j<point.DESCRIPTOR_DIMENSION; j++)
-		{
-			point.descriptor[j] = vec[j];
-		}
-
-		this->keypoints.push_back(point);
-	}
-
-	cvReleaseMemStorage(&storage);
-
 	return true;
 }

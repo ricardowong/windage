@@ -46,58 +46,21 @@ const int dy1[] = {0, 1, 2, 3, 3, 3, 2, 1};
 const int dy2[] = {0, -1, -2, -3, -3, -3, -2, -1};
 
 // modified FAST SURF descriptor
-void wExtractFASTSURF( const CvArr* _img, const CvArr* _mask,
-							CvSeq** _keypoints, CvSeq** _descriptors,
-							CvMemStorage* storage, CvSURFParams params,
-							int useProvidedKeyPts)
+void wExtractFASTSURF(const IplImage* image, std::vector<windage::FeaturePoint>* keypoints)
 {
-	const int PATCH_SZ = 15;
-	CvSeq *keypoints = *_keypoints;
-    int N = keypoints->total;
-	IplImage* image = ((IplImage*)_img);
+	const int PATCH_SZ = 7;
+	int N = keypoints->size();
 
-	// create descriptor storage
-	int descriptor_size = 36;
-	const int descriptor_data_type = CV_32F;
-	CvSeq* descriptors = 0;
-
-	if( _descriptors ) *_descriptors = 0;
-	if( _descriptors )
-    {
-        descriptors = cvCreateSeq( 0, sizeof(CvSeq),
-            descriptor_size*CV_ELEM_SIZE(descriptor_data_type), storage );
-        cvSeqPushMulti( descriptors, 0, N );
-    }
-
-#ifdef USE_GAUSSIAN_WEIGHT
-	const float DESC_SIGMA = 3.3f;
-	float DW[PATCH_SZ][PATCH_SZ];
-    CvMat _DW = cvMat(PATCH_SZ, PATCH_SZ, CV_32F, DW);
-	// Gaussian used to weight descriptor samples
-    {
-    double c2 = 1./(DESC_SIGMA*DESC_SIGMA*2);
-    double gs = 0;
-    for(int i = 0; i < PATCH_SZ; i++)
-    {
-        for(int j = 0; j < PATCH_SZ; j++)
-        {
-            double x = j - (float)(PATCH_SZ-1)/2, y = i - (float)(PATCH_SZ-1)/2;
-            double val = exp(-(x*x+y*y)*c2);
-            DW[i][j] = (float)val;
-            gs += val;
-        }
-    }
-    cvScale( &_DW, &_DW, 1./gs );
-    }
-#endif
-
-	#pragma omp parallel for schedule(dynamic)
+	int PATCH[PATCH_SZ+1][PATCH_SZ+1];
+	float DX[PATCH_SZ][PATCH_SZ];
+	float DY[PATCH_SZ][PATCH_SZ];
+	
+//	#pragma omp parallel for schedule(dynamic)
     for(int k = 0; k < N; k++ )
     {
 		int i, j;
-		CvSURFPoint* kp = (CvSURFPoint*)cvGetSeqElem( keypoints, k );
-		int x = cvRound(kp->pt.x);
-		int y = cvRound(kp->pt.y);
+		int x = cvRound((*keypoints)[k].GetPoint().x);
+		int y = cvRound((*keypoints)[k].GetPoint().y);
 
 		// calculate rotation
 		int dx = 0;
@@ -111,21 +74,18 @@ void wExtractFASTSURF( const CvArr* _img, const CvArr* _mask,
 			dy += dy1[i] * difference;
 		}
 
-        float descriptor_dir = -cvFastArctan( (float)dy, (float)dx );
+        float descriptor_dir = cvFastArctan( (float)dy, (float)dx );
         descriptor_dir *= (float)(CV_PI/180.0f);
-		kp->dir = descriptor_dir;
+		(*keypoints)[k].SetDir(descriptor_dir);
 
 		// extract descriptors
 		float sin_dir = sin(descriptor_dir);
         float cos_dir = cos(descriptor_dir) ;
 
-		int PATCH[PATCH_SZ+1][PATCH_SZ+1];
-		CvMat _patch = cvMat(PATCH_SZ+1, PATCH_SZ+1, CV_8U, PATCH);
-
         // Nearest neighbour version (faster)
         float win_offset = -(float)(PATCH_SZ-1)/2;
-        float start_x = kp->pt.x + win_offset*cos_dir + win_offset*sin_dir;
-        float start_y = kp->pt.y - win_offset*sin_dir + win_offset*cos_dir;
+        float start_x = x + win_offset*cos_dir + win_offset*sin_dir;
+        float start_y = y - win_offset*sin_dir + win_offset*cos_dir;
         for( i=0; i<PATCH_SZ+1; i++, start_x+=sin_dir, start_y+=cos_dir )
         {
             float pixel_x = start_x;
@@ -143,15 +103,13 @@ void wExtractFASTSURF( const CvArr* _img, const CvArr* _mask,
         }
 
         // Calculate gradients in x and y with wavelets of size 2s
-		float DX[PATCH_SZ][PATCH_SZ];
-		float DY[PATCH_SZ][PATCH_SZ];
 		float dw = 1.0f;
         for( i = 0; i < PATCH_SZ; i++ )
 		{
             for( j = 0; j < PATCH_SZ; j++ )
             {
 #ifdef USE_GAUSSIAN_WEIGHT
-				dw = DW[i][j];
+				dw = gauss25[i][j];
 #endif
 				DX[i][j] = (float)(PATCH[i][j+1] - PATCH[i][j] + PATCH[i+1][j+1] - PATCH[i+1][j]) * dw;
 				DY[i][j] = (float)(PATCH[i+1][j] - PATCH[i][j] + PATCH[i+1][j+1] - PATCH[i][j+1]) * dw;
@@ -159,11 +117,11 @@ void wExtractFASTSURF( const CvArr* _img, const CvArr* _mask,
 		}
 
         // Construct the descriptor
-		float* vec = (float*)cvGetSeqElem( descriptors, k );
-        for(i=0; i<descriptor_size; i++)
-            vec[i] = 0;
+//		for(i=0; i<(*keypoints)[k].DESCRIPTOR_DIMENSION; i++)
+//			(*keypoints)[k].descriptor[i] = 0;
 
 		// always 36-bin descriptor
+		int index = 0;
         for(i = 0; i < 3; i++)
 		{
             for(j = 0; j < 3; j++)
@@ -172,17 +130,15 @@ void wExtractFASTSURF( const CvArr* _img, const CvArr* _mask,
                 {
                     for(x = j*5; x < j*5+5; x++)
                     {
-                        vec[0] += DX[y][x];
-						vec[1] += DY[y][x];
-                        vec[2] += fabs(DX[y][x]);
-						vec[3] += fabs(DY[y][x]);
+                        (*keypoints)[k].descriptor[index + 0] += DX[y][x];
+						(*keypoints)[k].descriptor[index + 1] += DY[y][x];
+                        (*keypoints)[k].descriptor[index + 2] += fabs(DX[y][x]);
+						(*keypoints)[k].descriptor[index + 3] += fabs(DY[y][x]);
                     }
                 }
-                vec+=4;
+                index+=4;
 			}
 		}
     }
-
-	if( _descriptors )	*_descriptors = descriptors;
-	if( _keypoints)		*_keypoints = keypoints;
 }
+
