@@ -50,13 +50,13 @@
 
 const char* IMAGE_FILE_FORMAT = "capture/image_%d_%04d.png";
 
-const int CLIENT_ID = 0;
-const int SERVER_ID = 1;
+const int CLIENT_ID = 1;
+const int SERVER_ID = 0;
 const int NUMBER_OF_IMAGE = 1000;
 
 const int WIDTH = 640;
 const int HEIGHT = (WIDTH * 3) / 4;
-const double INTRINSIC[] = {1033.93, 1033.84, 319.044, 228.858,-0.206477, 0.306424, 0.000728208, 0.0011338};
+const double INTRINSIC[] = {1029.275, 1028.858, 322.551, 248.881,-0.206477, 0.306424, 0.000728208, 0.0011338};
 
 const int FEATURE_COUNT = 1000;
 const double SCALE_FACTOR = 6.0;
@@ -176,6 +176,7 @@ void main()
 	clientTracker->GetDetector()->SetThreshold(serverThreshold);
 
 	std::vector<bool> updated; updated.resize(TEMPLATE_IMAGE_COUNT);
+	std::vector<windage::Matrix4> relationList; relationList.resize(TEMPLATE_IMAGE_COUNT);
 	std::vector<windage::Matrix3> rotationList; rotationList.resize(TEMPLATE_IMAGE_COUNT);
 	std::vector<windage::Vector3> translationList; translationList.resize(TEMPLATE_IMAGE_COUNT);
 
@@ -253,9 +254,16 @@ void main()
 
 				rotationList[i] = rotation;
 				translationList[i] = translation;
+
+				windage::Matrix4 relation = windage::Coordinator::MultiMarkerCoordinator::GetRelation(serverTracker->GetCameraParameter(0), serverTracker->GetCameraParameter(i));
+				relationList[i] = relation;
+
 				updated[i] = true;
 			}
 		}
+
+		sprintf_s(message, "Server");
+		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, resultImage->height-30), 2.0, message);
 
 		processingTime = logger.calculateProcessTime();
 		logger.log("processingTime", processingTime);
@@ -311,7 +319,7 @@ void main()
 		// draw result
 		count = 0;
 		matchingCount.resize(clientTracker->GetObjectCount());
-		for(int i=0; i<clientTracker->GetObjectCount(); i++)
+		for(int i=0; i<1/*clientTracker->GetObjectCount()*/; i++)
 		{
 			matchingCount[i] = clientTracker->GetMatchingCount(i);
 			if(clientTracker->GetMatchingCount(i) > 10)
@@ -338,12 +346,6 @@ void main()
 
 				count++;
 			}
-			else
-			{
-				logTrackingInfo.log("x", -1);
-				logTrackingInfo.log("y", -1);
-				logTrackingInfo.log("z", -1);
-			}
 		}
 		logTrackingInfo.logNewLine();
 
@@ -356,9 +358,19 @@ void main()
 				windage::Matrix4 extrinsic = windage::Coordinator::MultiMarkerCoordinator::CalculateExtrinsic(clientTracker->GetCameraParameter(0), rotationList[i], translationList[i]);
 				clientTracker->GetCameraParameter(i)->SetExtrinsicMatrix(extrinsic.m1);
 
+//				extrinsic = windage::Coordinator::MultiMarkerCoordinator::CalculateExtrinsic(clientTracker->GetCameraParameter(0), relationList[i]);
+//				clientTracker->GetCameraParameter(i)->SetExtrinsicMatrix(extrinsic.m1);
+
 				windage::Calibration* calibrationTemp = clientTracker->GetCameraParameter(i);
 				DrawOutLine(resultImage, calibrationTemp, true);
 				calibrationTemp->DrawInfomation(resultImage, 200);
+
+				CvPoint centerPoint = calibrationTemp->ConvertWorld2Image(0.0, 0.0, 0.0);
+				
+				centerPoint.x += 5;
+				centerPoint.y += 10;
+				sprintf_s(message, "restoration object #%d", i+1);
+				windage::Utils::DrawTextToImage(resultImage, centerPoint, 0.6, message);
 				
 				CvScalar cameraPosition = calibrationTemp->GetCameraPosition();
 				logRestoreInfo.log("x", cameraPosition.val[0]);
@@ -375,6 +387,9 @@ void main()
 			}
 		}
 		logRestoreInfo.logNewLine();
+
+		sprintf_s(message, "Client");
+		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, resultImage->height-30), 2.0, message);
 
 		processingTime = logger.calculateProcessTime();
 		logger.log("processingTime", processingTime);

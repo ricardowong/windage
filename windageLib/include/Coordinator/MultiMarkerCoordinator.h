@@ -99,6 +99,9 @@ namespace windage
 			 *		extrinsic matrix
 			 */
 			static Matrix4 CalculateExtrinsic(Calibration* baseCalibration, Matrix3 toRotation, Vector3 toTranslation);
+
+			static Matrix4 GetRelation(Calibration* baseCalibration, Calibration* toCalibration);
+			static Matrix4 CalculateExtrinsic(Calibration* baseCalibration, Matrix4 relation);
 		};
 		/** @} */ // addtogroup Coordinator
 	}
