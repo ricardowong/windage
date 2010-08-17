@@ -143,3 +143,45 @@ Matrix4 MultiMarkerCoordinator::CalculateExtrinsic(Calibration* baseCalibration,
 
 	return matrix;
 }
+
+Matrix4 MultiMarkerCoordinator::GetRelation(Calibration* baseCalibration, Calibration* toCalibration)
+{
+	CvMat* toExtrinsicMatrix = toCalibration->GetExtrinsicMatrix();
+	CvMat* fromExtrinsicMatrix = baseCalibration->GetExtrinsicMatrix();
+
+	windage::Matrix4 fromMatrix;
+	for(int y=0; y<4; y++)
+	{
+		for(int x=0; x<4; x++)
+		{
+			fromMatrix.m[y][x] = CV_MAT_ELEM((*fromExtrinsicMatrix), double, y, x);
+		}
+	}
+	
+	windage::Matrix4 toMatrix;
+	for(int y=0; y<4; y++)
+	{
+		for(int x=0; x<4; x++)
+		{
+			toMatrix.m[y][x] = CV_MAT_ELEM((*toExtrinsicMatrix), double, y, x);
+		}
+	}
+	
+	return fromMatrix.Inverse() * toMatrix;
+}
+
+Matrix4 MultiMarkerCoordinator::CalculateExtrinsic(Calibration* baseCalibration, Matrix4 relation)
+{
+	CvMat* fromExtrinsicMatrix = baseCalibration->GetExtrinsicMatrix();
+
+	windage::Matrix4 fromMatrix;
+	for(int y=0; y<4; y++)
+	{
+		for(int x=0; x<4; x++)
+		{
+			fromMatrix.m[y][x] = CV_MAT_ELEM((*fromExtrinsicMatrix), double, y, x);
+		}
+	}
+
+	return fromMatrix * relation;
+}

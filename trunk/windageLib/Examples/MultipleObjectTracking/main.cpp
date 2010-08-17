@@ -54,7 +54,7 @@ const int FEATURE_COUNT = WIDTH;
 
 const double SCALE_FACTOR = 4.0;
 const int SCALE_STEP = 8;
-const double REPROJECTION_ERROR = 10.0;
+const double REPROJECTION_ERROR = 3.0;
 
 #define USE_TEMPLATE_IMAEG 1
 const char* TEMPLATE_IMAGE = "reference%d_320.png";
