@@ -230,7 +230,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\src\Algorithms\windageSURF\OpenSURFdetector.cpp"
+					RelativePath="..\..\..\src\Algorithms\OpenSURFdetector.cpp"
 					>
 				</File>
 				<File
@@ -286,6 +286,14 @@
 					</File>
 					<File
 						RelativePath="..\..\..\include\Algorithms\windageSURF\fast.h"
+						>
+					</File>
+					<File
+						RelativePath="..\..\..\src\Algorithms\windageSURF\wfastopensurf.cpp"
+						>
+					</File>
+					<File
+						RelativePath="..\..\..\include\Algorithms\windageSURF\wfastopensurf.h"
 						>
 					</File>
 					<File

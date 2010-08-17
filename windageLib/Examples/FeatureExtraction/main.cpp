@@ -61,12 +61,20 @@ void main()
 		std::cout << processingTime << " ms" << std::endl;
 
 		detector->DrawKeypoints(resultImage);
+		std::vector<windage::FeaturePoint>* keypoints;
+		keypoints = detector->GetKeypoints();
+		for(int i=0; i<detector->GetKeypointsCount(); i++)
+		{
+			windage::FeaturePoint pt = (*keypoints)[i];
+		}
 
 		char message[100];
 		sprintf_s(message, "Processing Time : %.2lf ms", processingTime);
 		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 20), 0.6, message);
-		sprintf_s(message, "Threshold : %.2lf ms", threshold);
+		sprintf_s(message, "Threshold : %.2lf", threshold);
 		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 40), 0.6, message);
+		sprintf_s(message, "Feature Count : %d", detector->GetKeypointsCount());
+		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 60), 0.6, message);
 
 		sprintf_s(message, "Press 'F' to flip image");
 		windage::Utils::DrawTextToImage(resultImage, cvPoint(WIDTH-200, HEIGHT-25), 0.5, message);
