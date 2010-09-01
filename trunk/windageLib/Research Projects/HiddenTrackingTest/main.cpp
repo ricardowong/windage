@@ -80,7 +80,7 @@ windage::Frameworks::MultiplePlanarObjectTracking* CreateTracker()
 	calibration = new windage::Calibration();
 	detector = new windage::Algorithms::WSURFdetector();
 	opticalflow = new windage::Algorithms::OpticalFlow();
-	estimator = new windage::Algorithms::ProSACestimator();
+	estimator = new windage::Algorithms::RANSACestimator();
 	checker = new windage::Algorithms::OutlierChecker();
 	refiner = new windage::Algorithms::LMmethod();
 
@@ -89,7 +89,7 @@ windage::Frameworks::MultiplePlanarObjectTracking* CreateTracker()
 	opticalflow->Initialize(WIDTH, HEIGHT, cvSize(15, 15), 3);
 	estimator->SetReprojectionError(REPROJECTION_ERROR);
 	checker->SetReprojectionError(REPROJECTION_ERROR * 3);
-	refiner->SetMaxIteration(10);
+	refiner->SetMaxIteration(50);
 
 	tracking->AttatchCalibration(calibration);
 	tracking->AttatchDetetor(detector);
@@ -153,7 +153,9 @@ void main()
 	windage::Frameworks::MultiplePlanarObjectTracking* serverTracker;
 	windage::Frameworks::MultiplePlanarObjectTracking* clientTracker;
 	serverTracker = CreateTracker();
+//	serverTracker->AttatchDetetor(new windage::Algorithms::SIFTGPUdetector());
 	clientTracker = CreateTracker();
+//	clientTracker->AttatchDetetor(new windage::Algorithms::SIFTdetector());
 
 	for(int i=0; i<TEMPLATE_IMAGE_COUNT; i++)
 	{
@@ -171,9 +173,10 @@ void main()
 	}
 	serverTracker->TrainingReference(SCALE_FACTOR, SCALE_STEP);
 	serverTracker->GetDetector()->SetThreshold(serverThreshold);
-
+	
 	clientTracker->TrainingReference(SCALE_FACTOR, SCALE_STEP);
 	clientTracker->GetDetector()->SetThreshold(serverThreshold);
+	clientTracker->SetDitectionRatio(2);
 
 	std::vector<bool> updated; updated.resize(TEMPLATE_IMAGE_COUNT);
 	std::vector<windage::Matrix4> relationList; relationList.resize(TEMPLATE_IMAGE_COUNT);

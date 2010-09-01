@@ -315,6 +315,7 @@ namespace windage
 			 *		draw recognized or tracked object outlier
 			 */
 			void DrawOutLine(IplImage* colorImage, bool drawCross);
+			void DrawOutLine(IplImage* colorImage, CvScalar color, bool drawCross);
 
 			/**
 			 * @fn	DrawDebugInfo
