@@ -48,7 +48,7 @@ const int dy2[] = {0, -1, -2, -3, -3, -3, -2, -1};
 // modified FAST SURF descriptor
 void wExtractFASTSURF(const IplImage* image, std::vector<windage::FeaturePoint>* keypoints)
 {
-	const int PATCH_SZ = 7;
+	const int PATCH_SZ = 25;
 	int N = keypoints->size();
 
 	int PATCH[PATCH_SZ+1][PATCH_SZ+1];

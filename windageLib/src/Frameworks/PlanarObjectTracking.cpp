@@ -279,8 +279,14 @@ bool PlanarObjectTracking::UpdateCamerapose(IplImage* grayImage)
 
 void PlanarObjectTracking::DrawOutLine(IplImage* colorImage, bool drawCross)
 {
-	int size = 4;
 	CvScalar color = CV_RGB(255, 0, 255);
+	DrawOutLine(colorImage, color, drawCross);
+}
+
+void PlanarObjectTracking::DrawOutLine(IplImage* colorImage, CvScalar color, bool drawCross)
+{
+	int size = 4;
+
 	CvScalar color2 = CV_RGB(255, 255, 255);
 
 	cvLine(colorImage, cameraParameter->ConvertWorld2Image(-this->width/2, -this->height/2, 0.0),	cameraParameter->ConvertWorld2Image(+this->width/2, -this->height/2, 0.0),	color2, 6);

@@ -45,12 +45,14 @@
 #include <windage.h>
 #include "../Common/FleaCamera.h"
 
+#define WRITE_VIDEO 1
+
 const int WIDTH = 640;
 const int HEIGHT = (WIDTH * 3) / 4;
 const int FEATURE_COUNT = WIDTH;
 
 const double SCALE_FACTOR = 4.0;
-const int SCALE_STEP = 4;
+const int SCALE_STEP = 8;
 const double REPROJECTION_ERROR = 10.0;
 
 #define USE_ADAPTIVE_THRESHOLD 0
@@ -58,24 +60,10 @@ const double REPROJECTION_ERROR = 10.0;
 const char* TEMPLATE_IMAGE = "reference1_320.png";
 const double INTRINSIC[] = {1033.93, 1033.84, 319.044, 228.858,-0.206477, 0.306424, 0.000728208, 0.0011338};
 
-void main()
+windage::Frameworks::PlanarObjectTracking* CreateTracker()
 {
-	windage::Logger logger(&std::cout);
+	windage::Frameworks::PlanarObjectTracking* tracking = new windage::Frameworks::PlanarObjectTracking();
 
-	IplImage* grabImage;
-	IplImage* inputImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 4);
-	IplImage* resizeImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
-	IplImage* grayImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 1);
-	IplImage* resultImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
-
-	FleaCamera* capture = new FleaCamera();
-	capture->open();
-	capture->start();
-//	CvCapture* capture = cvCaptureFromCAM(CV_CAP_ANY);
-	cvNamedWindow("result");
-
-	// create and initialize tracker
-	windage::Frameworks::PlanarObjectTracking tracking;
 	windage::Calibration* calibration;
 	windage::Algorithms::FeatureDetector* detector;
 	windage::Algorithms::SearchTree* searchtree;
@@ -101,31 +89,62 @@ void main()
 	checker->SetReprojectionError(REPROJECTION_ERROR * 3);
 	refiner->SetMaxIteration(10);
 
-	tracking.AttatchCalibration(calibration);
-	tracking.AttatchDetetor(detector);
-	tracking.AttatchMatcher(searchtree);
-	tracking.AttatchTracker(opticalflow);
-	tracking.AttatchEstimator(estimator);
-	tracking.AttatchChecker(checker);
-	tracking.AttatchRefiner(refiner);
-//	tracking.AttatchFilter(filter);
+	tracking->AttatchCalibration(calibration);
+	tracking->AttatchDetetor(detector);
+	tracking->AttatchMatcher(searchtree);
+	tracking->AttatchTracker(opticalflow);
+	tracking->AttatchEstimator(estimator);
+	tracking->AttatchChecker(checker);
+// 	tracking->AttatchRefiner(refiner);
+//	tracking->AttatchFilter(filter);
 
-	tracking.SetDitectionRatio(1);
-	tracking.Initialize(WIDTH, HEIGHT, (double)WIDTH, (double)HEIGHT);
+	tracking->SetDitectionRatio(1);
+	tracking->Initialize(WIDTH, HEIGHT, (double)WIDTH, (double)HEIGHT);
 
+	return tracking;
+}
+
+void main()
+{
+	windage::Logger logger1("RANSAC", "txt");
+	windage::Logger logger2("ProSAC", "txt");
+
+	IplImage* grabImage;
+	IplImage* inputImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 4);
+	IplImage* resizeImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
+	IplImage* grayImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 1);
+	IplImage* resultImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
+
+#if WRITE_VIDEO
+	CvVideoWriter* writer = cvCreateVideoWriter("tracking_test.avi", CV_FOURCC_DEFAULT, 15, cvSize(WIDTH, HEIGHT));
+#endif
+
+	FleaCamera* capture = new FleaCamera();
+	capture->open();
+	capture->start();
+//	CvCapture* capture = cvCaptureFromCAM(CV_CAP_ANY);
+	cvNamedWindow("result");
+
+	// create and initialize tracker
+	windage::Frameworks::PlanarObjectTracking* tracker1 = CreateTracker();
+	windage::Frameworks::PlanarObjectTracking* tracker2 = CreateTracker();
+	tracker2->AttatchEstimator(new windage::Algorithms::ProSACestimator());
+	tracker2->GetEstimator()->SetReprojectionError(REPROJECTION_ERROR);
+	
 	int keypointCount = 0;
 	int matchingCount = 0;
-	double threshold = detector->GetThreshold();
-	double processingTime = 0.0;
+	double threshold = tracker1->GetDetector()->GetThreshold();
+	double processingTime1 = 0.0;
+	double processingTime2 = 0.0;
 
 	bool trained = false;
 
 #if USE_TEMPLATE_IMAEG
 	IplImage* sampleImage = cvLoadImage(TEMPLATE_IMAGE, 0);
-	detector->SetThreshold(threshold);
-	tracking.AttatchReferenceImage(sampleImage);
-	tracking.TrainingReference(SCALE_FACTOR, SCALE_STEP);
-	detector->SetThreshold(threshold);
+	tracker1->AttatchReferenceImage(sampleImage);
+	tracker1->TrainingReference(SCALE_FACTOR, SCALE_STEP);
+	tracker2->AttatchReferenceImage(sampleImage);
+	tracker2->TrainingReference(SCALE_FACTOR, SCALE_STEP);
 	trained = true;
 #endif
 
@@ -144,39 +163,24 @@ void main()
 		if(flip)
 			cvFlip(inputImage, inputImage);
 
-		logger.updateTickCount();
+		logger1.updateTickCount();
+		tracker1->UpdateCamerapose(grayImage);
+		tracker1->DrawOutLine(resultImage, true);
+		processingTime1 = logger1.calculateProcessTime();
 
-		// track object
-		if(trained)
-		{
-			tracking.UpdateCamerapose(grayImage);
+		logger2.updateTickCount();
+		tracker2->UpdateCamerapose(grayImage);
+		tracker2->DrawOutLine(resultImage, CV_RGB(0, 255, 255), true);
+		processingTime2 = logger2.calculateProcessTime();
 
-			// adaptive threshold
-#if USE_ADAPTIVE_THRESHOLD
-			int localcount = detector->GetKeypointsCount();
-			if(keypointCount != localcount)
-			{
-				if(localcount > FEATURE_COUNT)
-					threshold += 1;
-				if(localcount < FEATURE_COUNT)
-					threshold -= 1;
-				detector->SetThreshold(threshold);
-				keypointCount = localcount;
-			}
-#endif
-			// draw result
-//			detector->DrawKeypoints(resultImage);
-			tracking.DrawOutLine(resultImage, true);
-			tracking.DrawDebugInfo(resultImage);
-			calibration->DrawInfomation(resultImage, 100);
-		}
-		matchingCount = tracking.GetMatchingCount();
+		matchingCount = tracker1->GetMatchingCount();
+		
+		logger1.log("processingTime RANSAC", processingTime1);
+		logger1.logNewLine();
+		logger2.log("processingTime ProSAC", processingTime2);
+		logger2.logNewLine();
 
-		processingTime = logger.calculateProcessTime();
-		logger.log("processingTime", processingTime);
-		logger.logNewLine();
-
-		sprintf_s(message, "Processing Time : %.2lf ms", processingTime);
+		sprintf_s(message, "Processing Time : %.2lf ms", processingTime1);
 		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 20), 0.6, message);
 		sprintf_s(message, "Feature Count : %d, Threshold : %.0lf", keypointCount, threshold);
 		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 40), 0.6, message);
@@ -189,6 +193,10 @@ void main()
 		windage::Utils::DrawTextToImage(resultImage, cvPoint(WIDTH-270, HEIGHT-25), 0.5, message);
 		cvShowImage("result", resultImage);
 
+#if WRITE_VIDEO
+		cvWriteToAVI(writer, resultImage);
+#endif
+
 		char ch = cvWaitKey(1);
 		switch(ch)
 		{
@@ -200,21 +208,17 @@ void main()
 		case 'F':
 			flip = !flip;
 			break;
-		case ' ':
-		case 's':
-		case 'S':
-			detector->SetThreshold(30.0);
-			tracking.AttatchReferenceImage(grayImage);
-			tracking.TrainingReference(SCALE_FACTOR, SCALE_STEP);
-			detector->SetThreshold(threshold);
-			trained = true;
-			break;
 		}		
 	}
 
 	capture->stop();
 	capture->close();
 	delete capture;
+
+#if WRITE_VIDEO
+	cvReleaseVideoWriter(&writer);
+#endif
+
 //	cvReleaseCapture(&capture);
 	cvDestroyAllWindows();
 }
