@@ -40,48 +40,57 @@
 #ifndef OPENGL_RENDERER_H
 #define OPENGL_RENDERER_H
 
+#include <vector>
+
 #include <GL/glut.h>
 #include <cv.h>
 #include "Structures/Vector.h"
+#include "Structures/Matrix.h"
 #include "Structures/Calibration.h"
 
 class OpenGLRenderer
 {
 private:
 	static const int TEXTURE_SIZE = 512;
-	GLuint referenceTexture;
-	GLuint inputTexture;
-	IplImage* referenceImage;
-	IplImage* inputImage;
 
+	int numberOfReferences;
+	int numberOfInputs;
+	std::vector<GLuint> referenceTexture;
+	std::vector<GLuint> inputTexture;
+	std::vector<IplImage*> referenceImages;
+	std::vector<IplImage*> inputImages;
+
+public:
 	int width;
 	int height;
 	int cameraWidth;
 	int cameraHeight;
 
-public:
 	OpenGLRenderer()
 	{
-		referenceImage = cvCreateImage(cvSize(TEXTURE_SIZE, TEXTURE_SIZE), IPL_DEPTH_8U, 3);
-		inputImage = cvCreateImage(cvSize(TEXTURE_SIZE, TEXTURE_SIZE), IPL_DEPTH_8U, 3);
-
-		cvZero(referenceImage);
-		cvZero(inputImage);
-
-		glGenTextures(1, &referenceTexture);
-		glGenTextures(1, &inputTexture);
+		numberOfReferences = 0;
+		numberOfInputs = 0;		
 	}
 	~OpenGLRenderer()
 	{
-		if(this->referenceImage) cvReleaseImage(&referenceImage);
-		referenceImage = NULL;
-		if(this->inputImage) cvReleaseImage(&inputImage);
-		inputImage = NULL;
+	}
 
-		if(referenceTexture) glDeleteTextures(1, &referenceTexture);
-		referenceTexture = 0;
-		if(inputTexture) glDeleteTextures(1, &inputTexture);
-		inputTexture = 0;
+	void SetNumberOfCameras(int number)
+	{
+		for(int i=0; i<inputImages.size(); i++)
+		{
+			cvReleaseImage(&inputImages[i]);
+		}
+
+		this->numberOfInputs = number;
+		inputTexture.resize(number);
+		inputImages.resize(number);
+
+		for(int i=0; i<number; i++)
+		{
+			inputImages[i] = cvCreateImage(cvSize(TEXTURE_SIZE, TEXTURE_SIZE), IPL_DEPTH_8U, 3);
+			glGenTextures(1, &(inputTexture[i]));
+		}
 	}
 
 	void Initialize(int width = 320, int height = 240, char * windowName = "OpenGL Renderer");
@@ -96,9 +105,13 @@ public:
 	inline void SetCameraSize(int width, int height){this->cameraWidth = width, this->cameraHeight = height;};
 	void DrawAxis(double size);
 	void AttatchReference(IplImage* image);
-	void DrawReference(double width, double height);
-	void DrawCamera(windage::Calibration* calibration, IplImage* image = NULL, double scale = 1.0);
+	void DrawReference(int id, double width, double height, windage::Vector3 color = windage::Vector3(1.0, 0.0, 1.0));
+	void DrawReference(int id, double width, double height, windage::Matrix4 relation, windage::Vector3 color = windage::Vector3(1.0, 0.0, 1.0));
+
+	void DrawCamera(int id, windage::Calibration* calibration, IplImage* image = NULL, double scale = 1.0);
 	void DrawCameraAxis(windage::Calibration* calibration, double size = 1.0);
+
+	void DrawDID(IplImage* image, double width, double height);
 
 	// overwriting
 	/*

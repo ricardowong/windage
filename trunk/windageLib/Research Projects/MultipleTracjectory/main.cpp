@@ -48,11 +48,20 @@
 #include "../Common/OpenGLRenderer.h"
 #include "../Common/FleaCamera.h"
 
-#define USE_TEMPLATE_IMAEG 1
-const char* TEMPLATE_IMAGE = "reference2.png";
+const int NUMBER_OF_REFERENCES = 2;
+const char* REFERENCE_IMAGE_FORMAT = "reference%d.png";
 
-const double SCALE_FACTOR = 4.0;
-const int SCALE_STEP = 8;
+const int NUMBER_OF_CAMERAS = 2;
+std::vector<FleaCamera*> captures;
+std::vector<IplImage*> grayImages;
+std::vector<IplImage*> resultImages;
+IplImage* resizeImage;
+IplImage* colorImage;
+IplImage* composeImage;
+
+const double SCALE_FACTOR = 1.0;
+const int SCALE_STEP = 1;
+const double REPROJECTION_ERROR = 5.0;
 
 const int WIDTH = 640;
 const int HEIGHT = (WIDTH * 3) / 4;
@@ -65,31 +74,25 @@ double fps;
 const int FPS_UPDATE_STEP = 10;
 int fpsStep = 0;
 
-const int FEATURE_COUNT = WIDTH;
+const int FEATURE_COUNT = WIDTH*2;
 int keypointCount = 0;
 double threshold = 50.0;
 
-const int NUMBER_OF_CAMERA = 2;
-
-CvCapture* capture = NULL;
-IplImage* resizeImage = NULL;
-IplImage* grayImage = NULL;
-IplImage* resultImage = NULL;
-
-windage::Frameworks::PlanarObjectTracking* tracker = NULL;
+std::vector<windage::Frameworks::MultiplePlanarObjectTracking*> trackers;
 OpenGLRenderer* renderer = NULL;
 
-bool flip = true;
+bool flip = false;
+bool drawCamera = true;
 
-windage::Frameworks::PlanarObjectTracking* CreateTracker()
+windage::Frameworks::MultiplePlanarObjectTracking* CreateTracker()
 {
-	windage::Frameworks::PlanarObjectTracking* tracker = new windage::Frameworks::PlanarObjectTracking();
+	windage::Frameworks::MultiplePlanarObjectTracking* tracker = new windage::Frameworks::MultiplePlanarObjectTracking();
 
 	windage::Calibration* calibration = new windage::Calibration();
-	windage::Algorithms::FeatureDetector* detector = new windage::Algorithms::WSURFdetector();
+	windage::Algorithms::FeatureDetector* detector = new windage::Algorithms::SURFdetector();
 	windage::Algorithms::SearchTree* searchtree = new windage::Algorithms::FLANNtree();
 	windage::Algorithms::OpticalFlow* opticalflow = new windage::Algorithms::OpticalFlow();
-	windage::Algorithms::HomographyEstimator* estimator = new windage::Algorithms::ProSACestimator();
+	windage::Algorithms::HomographyEstimator* estimator = new windage::Algorithms::RANSACestimator();
 	windage::Algorithms::OutlierChecker* checker = new windage::Algorithms::OutlierChecker();
 	windage::Algorithms::HomographyRefiner* refiner = new windage::Algorithms::LMmethod();
 	windage::Algorithms::KalmanFilter* filter = new windage::Algorithms::KalmanFilter();
@@ -98,13 +101,13 @@ windage::Frameworks::PlanarObjectTracking* CreateTracker()
 	detector->SetThreshold(30.0);
 	searchtree->SetRatio(0.7);
 	opticalflow->Initialize(WIDTH, HEIGHT, cvSize(8, 8), 3);
-	estimator->SetReprojectionError(10.0);
-	checker->SetReprojectionError(10.0);
+	estimator->SetReprojectionError(REPROJECTION_ERROR);
+	checker->SetReprojectionError(REPROJECTION_ERROR*3);
 	refiner->SetMaxIteration(10);
 
 	tracker->AttatchCalibration(calibration);
 	tracker->AttatchDetetor(detector);
-	tracker->AttatchMatcher(searchtree);
+//	tracker->AttatchMatcher(searchtree);
 	tracker->AttatchTracker(opticalflow);
 	tracker->AttatchEstimator(estimator);
 	tracker->AttatchChecker(checker);
@@ -117,34 +120,31 @@ windage::Frameworks::PlanarObjectTracking* CreateTracker()
 	return tracker;
 }
 
-void TrainingRefereneImage(windage::Frameworks::PlanarObjectTracking* tracker, IplImage* refImage)
-{
-	tracker->GetDetector()->SetThreshold(30.0);
-
-	tracker->AttatchReferenceImage(refImage);
-	tracker->TrainingReference(SCALE_FACTOR, SCALE_STEP);
-
-	tracker->GetDetector()->SetThreshold(threshold);
-}
-
 void keyboard(unsigned char ch, int x, int y)
 {
 	switch(ch)
 	{
-	case 's':
-	case 'S':
-	case ' ':
-		renderer->AttatchReference(resizeImage);
-		TrainingRefereneImage(tracker, grayImage);
-		break;
 	case 'f':
 	case 'F':
 		flip = !flip;
 		break;
+	case 'd':
+	case 'D':
+		drawCamera = !drawCamera;
+		break;
 	case 'q':
 	case 'Q':
-		if(capture) cvReleaseCapture(&capture);
-		cvDestroyAllWindows();
+
+		for(int i=0; i<NUMBER_OF_CAMERAS; i++)
+		{
+			if(captures[i])
+			{
+				captures[i]->stop();
+				captures[i]->close();
+				delete captures[i];
+			}
+		}
+		
 		exit(0);
 		break;
 	}
@@ -201,34 +201,115 @@ void idle(void)
 
 void display()
 {
-	// capture from camera
-	IplImage* grabImage = cvRetrieveFrame(capture);
-	if(flip)
-		cvFlip(grabImage, grabImage);
+	// clear screen
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	cvResize(grabImage, resizeImage);
-	cvCvtColor(resizeImage, grayImage, CV_BGR2GRAY);
-	cvCopyImage(resizeImage, resultImage);
+	// draw virtual object
+	glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+	glViewport(0, 0, renderer->width, renderer->height);
+	gluPerspective(60, (double)renderer->width/(double)renderer->height, 0.1, 10000.0);
 
-	// update camera pose
-	tracker->UpdateCamerapose(grayImage);
-	tracker->DrawDebugInfo(resultImage);
-	tracker->DrawOutLine(resultImage, true);
-	tracker->GetCameraParameter()->DrawInfomation(resultImage, WIDTH/4);
+	glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
 	
-	int matchingCount = tracker->GetMatchingCount();
+	double radian = ANGLE * CV_PI / 180.0;
+	double dx = sin(radian) * VIRTUAL_CAMERA_DISTANCE;
+	double dy = cos(radian) * VIRTUAL_CAMERA_DISTANCE;
+	gluLookAt(dx, dy, 2000, 0.0, 0.0, 600.0, 0.0, 0.0, 1.0);
 
-	// adaptive threshold
-	int localcount = tracker->GetDetector()->GetKeypointsCount();
-	if(keypointCount != localcount) // if updated
+	glPushMatrix();
 	{
-		if(localcount > FEATURE_COUNT)
-			threshold += 1;
-		if(localcount < FEATURE_COUNT)
-			threshold -= 1;
-		keypointCount = localcount;
-		tracker->GetDetector()->SetThreshold(threshold);
+		windage::Matrix4 translation;
+		translation._11 = 1.0;
+		translation._22 = 1.0;
+		translation._33 = 1.0;
+		translation._44 = 1.0;
+		translation._42 = 300.0;
+
+		// draw reference image & coordinate
+		renderer->DrawReference(0, (double)WIDTH, (double)HEIGHT);
+		renderer->DrawAxis((double)WIDTH / 4.0);
+
+//		renderer->DrawReference(1, (double)WIDTH, (double)HEIGHT, translation);
+
+		// capture from camera
+		for(int i=0; i<NUMBER_OF_CAMERAS; i++)
+		{
+			captures[i]->update();
+			IplImage* grabImage = captures[i]->GetIPLImage();
+			if(flip)
+				cvFlip(grabImage, grabImage);
+			
+			cvResize(grabImage, resizeImage);
+			cvCvtColor(resizeImage, colorImage, CV_BGRA2BGR);
+			cvCvtColor(resizeImage, grayImages[i], CV_BGRA2GRAY);
+			cvCopyImage(colorImage, resultImages[i]);
+
+			// update camera pose
+			trackers[i]->UpdateCamerapose(grayImages[i]);
+
+			for(int j=0; j<NUMBER_OF_REFERENCES; j++)
+			{
+				trackers[i]->DrawDebugInfo(resultImages[i], j);
+				trackers[i]->DrawOutLine(resultImages[i], j, true);
+				trackers[i]->GetCameraParameter(j)->DrawInfomation(resultImages[i], WIDTH/4);
+			}
+			int matchingCount = trackers[i]->GetMatchingCount(0);
+
+			// adaptive threshold
+			int localcount = trackers[i]->GetDetector()->GetKeypointsCount();
+			if(keypointCount != localcount) // if updated
+			{
+				if(localcount > FEATURE_COUNT)
+					threshold += 1;
+				if(localcount < FEATURE_COUNT)
+					threshold -= 1;
+				keypointCount = localcount;
+				trackers[i]->GetDetector()->SetThreshold(threshold);
+			}
+
+			char message[100];
+			sprintf_s(message, "FPS : %.2lf", fps);
+			windage::Utils::DrawTextToImage(resultImages[i], cvPoint(10, 20), 0.6, message);
+			sprintf_s(message, "Feature Count : %d, Threshold : %.0lf", keypointCount, threshold);
+			windage::Utils::DrawTextToImage(resultImages[i], cvPoint(10, 40), 0.6, message);
+			sprintf_s(message, "Matching Count : %d", matchingCount);
+			windage::Utils::DrawTextToImage(resultImages[i], cvPoint(10, 60), 0.6, message);
+
+			sprintf_s(message, "Press 'Space' to track the current image");
+			windage::Utils::DrawTextToImage(resultImages[i], cvPoint(WIDTH-270, HEIGHT-10), 0.5, message);
+			sprintf_s(message, "Press 'F' to flip image");
+			windage::Utils::DrawTextToImage(resultImages[i], cvPoint(WIDTH-270, HEIGHT-25), 0.5, message);
+
+			char windowName[100];
+			sprintf(windowName, "tracking %d", i);
+			cvShowImage(windowName, resultImages[i]);
+
+			cvSetImageROI(composeImage, cvRect(WIDTH*i, 0, WIDTH*(i+1), HEIGHT));
+			cvCopyImage(resultImages[i], composeImage);
+		}
+
+		for(int i=0; i<NUMBER_OF_CAMERAS; i++)
+		{
+			for(int j=1; j<NUMBER_OF_REFERENCES; j++)
+			{
+				windage::Matrix4 relation = windage::Coordinator::MultiMarkerCoordinator::GetRelation(trackers[i]->GetCameraParameter(0), trackers[i]->GetCameraParameter(j));
+				renderer->DrawReference(1, (double)WIDTH, (double)HEIGHT, relation.Transpose(), windage::Vector3(1.0, 0, i));
+			}
+		}
+		if(drawCamera)
+		for(int i=0; i<NUMBER_OF_CAMERAS; i++)
+		{
+			renderer->DrawCamera(i, trackers[i]->GetCameraParameter(0), colorImage);
+		}
+		
+		cvResetImageROI(composeImage);
+		renderer->DrawDID(composeImage, 0.2*NUMBER_OF_CAMERAS, 0.2);
 	}
+	glPopMatrix();
+
+	
 
 	// calculate fps
     fpsStep++;
@@ -239,84 +320,72 @@ void display()
 		fpsStep = 0;
     }
 
-	char message[100];
-    sprintf_s(message, "FPS : %.2lf", fps);
-    windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 20), 0.6, message);
-	sprintf_s(message, "Feature Count : %d, Threshold : %.0lf", keypointCount, threshold);
-		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 40), 0.6, message);
-		sprintf_s(message, "Matching Count : %d", matchingCount);
-		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 60), 0.6, message);
-
-	sprintf_s(message, "Press 'Space' to track the current image");
-	windage::Utils::DrawTextToImage(resultImage, cvPoint(WIDTH-270, HEIGHT-10), 0.5, message);
-	sprintf_s(message, "Press 'F' to flip image");
-	windage::Utils::DrawTextToImage(resultImage, cvPoint(WIDTH-270, HEIGHT-25), 0.5, message);
-	cvShowImage("tracking information window", resultImage);
-
-	// clear screen
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	// draw virtual object
-	glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-
-	
-	
-	double radian = ANGLE * CV_PI / 180.0;
-	double dx = sin(radian) * VIRTUAL_CAMERA_DISTANCE;
-	double dy = cos(radian) * VIRTUAL_CAMERA_DISTANCE;
-	gluLookAt(dx, dy, 2000, 0.0, 0.0, 600.0, 0.0, 0.0, 1.0);
-
-	glPushMatrix();
-	{
-		// draw reference image & coordinate
-		renderer->DrawReference((double)WIDTH, (double)HEIGHT);
-		renderer->DrawAxis((double)WIDTH / 4.0);
-
-		// draw camera image & position
-		renderer->DrawCamera(tracker->GetCameraParameter(), resizeImage);
-	}
-	glPopMatrix();
-
 	glutSwapBuffers();
 }
 
 void main()
 {
-	// connect camera
-	capture = cvCaptureFromCAM(CV_CAP_ANY);
-	if(!capture)
-	{
-		std::cout << "can not connect any camera" << std::endl;
-		exit(0);
-	}
-
-	cvNamedWindow("tracking information window");
-
-	resizeImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
-	grayImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 1);
-	resultImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
-
 	logging = new windage::Logger(&std::cout);
 	logging->updateTickCount();
 
-	// create tracker
-	tracker = CreateTracker();
+	captures.resize(NUMBER_OF_CAMERAS);
+	grayImages.resize(NUMBER_OF_CAMERAS);
+	resultImages.resize(NUMBER_OF_CAMERAS);
+	trackers.resize(NUMBER_OF_CAMERAS);
 
-#if USE_TEMPLATE_IMAEG
-	IplImage* sampleImage = cvLoadImage(TEMPLATE_IMAGE, 0);
+	// connect camera
+	resizeImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 4);
+	colorImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
+	composeImage = cvCreateImage(cvSize(WIDTH*NUMBER_OF_CAMERAS, HEIGHT), IPL_DEPTH_8U, 3);
+	for(int i=0; i<NUMBER_OF_CAMERAS; i++)
+	{
+		captures[i] = new FleaCamera();
+		captures[i]->open();
+		captures[i]->start();
 
-	double threahold = tracker->GetDetector()->GetThreshold();
-	tracker->GetDetector()->SetThreshold(30.0);
-	tracker->AttatchReferenceImage(sampleImage);
-	tracker->TrainingReference(SCALE_FACTOR, SCALE_STEP);
-	tracker->GetDetector()->SetThreshold(threahold);
-#endif
+		char windowName[100];
+		sprintf(windowName, "tracking %d", i);
+		cvNamedWindow(windowName);
+
+		grayImages[i] = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 1);
+		resultImages[i] = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
+
+		trackers[i] = CreateTracker();
+
+		for(int j=0; j<NUMBER_OF_REFERENCES; j++)
+		{
+			char referenceName[100];
+			sprintf(referenceName, REFERENCE_IMAGE_FORMAT, j+1);
+
+			IplImage* sampleImage = cvLoadImage(referenceName);
+			IplImage* grayImage = cvLoadImage(referenceName, 0);
+
+			trackers[i]->AttatchReferenceImage(grayImage);
+			trackers[i]->TrainingReference(SCALE_FACTOR, SCALE_STEP);
+
+			cvReleaseImage(&sampleImage);
+			cvReleaseImage(&grayImage);
+		}
+	}
 
 	// initialize rendering engine using GLUT
 	renderer = new OpenGLRenderer();
 	renderer->Initialize(RENDERING_WIDTH, RENDERING_HEIGHT, "windage Camera Tracjectory");
 	renderer->SetCameraSize(WIDTH, HEIGHT);
+	renderer->SetNumberOfCameras(NUMBER_OF_CAMERAS);
+
+	for(int j=0; j<NUMBER_OF_REFERENCES; j++)
+	{
+		char referenceName[100];
+		sprintf(referenceName, REFERENCE_IMAGE_FORMAT, j+1);
+
+		IplImage* sampleImage = cvLoadImage(referenceName);
+
+		renderer->AttatchReference(sampleImage);
+
+		cvReleaseImage(&sampleImage);
+	}
+	
 	
 	glutDisplayFunc(display);
 	glutIdleFunc(idle);
@@ -326,6 +395,14 @@ void main()
 
 	glutMainLoop();
 
-	cvReleaseCapture(&capture);
+	for(int i=0; i<NUMBER_OF_CAMERAS; i++)
+	{
+		if(captures[i])
+		{
+			captures[i]->stop();
+			captures[i]->close();
+			delete captures[i];
+		}
+	}	
 	cvDestroyAllWindows();
 }

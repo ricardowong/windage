@@ -154,145 +154,222 @@ void OpenGLRenderer::DrawAxis(double size)
 
 void OpenGLRenderer::AttatchReference(IplImage* image)
 {
-	cvResize(image, this->referenceImage);
+	this->referenceImages.push_back(cvCloneImage(image));
+
+	int count = this->referenceTexture.size();
+	this->referenceTexture.resize(count+1);
+	glGenTextures(1, &(referenceTexture[count]));
 }
 
-void OpenGLRenderer::DrawReference(double width, double height)
+void OpenGLRenderer::DrawReference(int id, double width, double height, windage::Vector3 color)
 {
-	glBindTexture(GL_TEXTURE_2D, this->referenceTexture);
-
-	glEnable(GL_TEXTURE_2D);
-    glDisable(GL_BLEND);
-    glDisable(GL_LIGHTING);
-    glDisable(GL_DEPTH_TEST);
-
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-	glTexImage2D(	GL_TEXTURE_2D, 0, GL_RGB, referenceImage->width, referenceImage->height, 0, GL_BGR_EXT, GL_UNSIGNED_BYTE, referenceImage->imageData);
-
-    glColor3f(1.0f, 1.0f, 1.0f);
-    glBegin(GL_POLYGON);
-    {
-		glTexCoord2d(0,1);
-		glVertex3d(-width/2.0, -height/2.0, 0);
-
-		glTexCoord2d(1,1);
-		glVertex3d(+width/2.0, -height/2.0, 0);
-
-		glTexCoord2d(1,0);
-		glVertex3d(+width/2.0, +height/2.0, 0);
-
-		glTexCoord2d(0,0);
-		glVertex3d(-width/2.0, +height/2.0, 0);
-    }
-    glEnd();
-
-	glDisable(GL_TEXTURE_2D);
 	glEnable(GL_DEPTH_TEST);
-
-	// outline
-	glColor3f(1, 0, 1);
-	glBegin(GL_LINE_STRIP);
+	glPushMatrix();
 	{
-		glVertex3d(-width/2.0, -height/2.0, 0);
-		glVertex3d(+width/2.0, -height/2.0, 0);
-		glVertex3d(+width/2.0, +height/2.0, 0);
-		glVertex3d(-width/2.0, +height/2.0, 0);
-		glVertex3d(-width/2.0, -height/2.0, 0);
+		if(referenceImages.size() > id)
+		if(referenceImages[id])
+		{
+			glBindTexture(GL_TEXTURE_2D, this->referenceTexture[id]);
+
+			glEnable(GL_TEXTURE_2D);
+			glDisable(GL_BLEND);
+			glDisable(GL_LIGHTING);
+			glDisable(GL_DEPTH_TEST);
+
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+			glTexImage2D(	GL_TEXTURE_2D, 0, GL_RGB, referenceImages[id]->width, referenceImages[id]->height, 0, GL_BGR_EXT, GL_UNSIGNED_BYTE, referenceImages[id]->imageData);
+
+			glColor3f(1.0f, 1.0f, 1.0f);
+			glBegin(GL_POLYGON);
+			{
+				glTexCoord2d(0,1);
+				glVertex3d(-width/2.0, -height/2.0, 0);
+
+				glTexCoord2d(1,1);
+				glVertex3d(+width/2.0, -height/2.0, 0);
+
+				glTexCoord2d(1,0);
+				glVertex3d(+width/2.0, +height/2.0, 0);
+
+				glTexCoord2d(0,0);
+				glVertex3d(-width/2.0, +height/2.0, 0);
+			}
+			glEnd();
+
+			glDisable(GL_TEXTURE_2D);
+			glEnable(GL_DEPTH_TEST);
+		}
+		// outline
+		glColor3f(color.x, color.y, color.z);
+		glBegin(GL_LINE_STRIP);
+		{
+			glVertex3d(-width/2.0, -height/2.0, 0);
+			glVertex3d(+width/2.0, -height/2.0, 0);
+			glVertex3d(+width/2.0, +height/2.0, 0);
+			glVertex3d(-width/2.0, +height/2.0, 0);
+			glVertex3d(-width/2.0, -height/2.0, 0);
+		}
+		glEnd();
 	}
-	glEnd();
+	glPopMatrix();
 }
 
-void OpenGLRenderer::DrawCamera(Calibration* calibration, IplImage* image, double scale)
+void OpenGLRenderer::DrawReference(int id, double width, double height, windage::Matrix4 relation, windage::Vector3 color)
 {
-	CvScalar pt = calibration->GetCameraPosition();
-	CvScalar at = calibration->GetLookAt();
-	CvScalar up = calibration->GetUpPoint();
-	CvScalar ri = calibration->GetRightPoint();
-
-	Vector3 cameraPosition	= Vector3(pt.val[0], pt.val[1], pt.val[2]);
-	Vector3 lookAt			= Vector3(at.val[0], at.val[1], at.val[2]);
-	Vector3 upVector		= Vector3(up.val[0], up.val[1], up.val[2]);
-	Vector3 rightVector		= Vector3(ri.val[0], ri.val[1], ri.val[2]);
-	Vector3 point[4];
-
-	// translate relation value
-	lookAt -= cameraPosition;
-	upVector -= cameraPosition;
-	rightVector -= cameraPosition;
-	
-	lookAt *= ((double)calibration->GetParameters()[0]) / lookAt.getLength();
-	upVector *= ((double)this->cameraHeight/2.0) / upVector.getLength();
-	rightVector *= ((double)this->cameraWidth/2.0) / rightVector.getLength();
-
-	lookAt *= scale;
-	upVector *= scale;
-	rightVector *= scale;
-
-	point[0] = cameraPosition + lookAt + upVector - rightVector;
-	point[1] = cameraPosition + lookAt + upVector + rightVector;
-	point[2] = cameraPosition + lookAt - upVector + rightVector;
-	point[3] = cameraPosition + lookAt - upVector - rightVector;
-
-	// translate absolution value
-	lookAt += cameraPosition;
-	upVector += cameraPosition;	
-	rightVector += cameraPosition;
-
-	glLineWidth(3);
-	glColor3f(1, 1, 0);
-	glBegin(GL_LINES);
+	glEnable(GL_DEPTH_TEST);
+	GLfloat params[16];
+	glPushMatrix();
 	{
-		for(int i=0; i<4; i++)
+		if(referenceImages.size() > id)
+		if(referenceImages[id])
 		{
-			glVertex3f(cameraPosition.x, cameraPosition.y, cameraPosition.z);
-			glVertex3f(point[i].x, point[i].y, point[i].z);
+			glGetFloatv(GL_MODELVIEW_MATRIX, params);
+//			glLoadMatrixd(relation.m1);
+			glMultMatrixd(relation.m1);
+			glGetFloatv(GL_MODELVIEW_MATRIX, params);
+
+			glBindTexture(GL_TEXTURE_2D, this->referenceTexture[id]);
+
+			glEnable(GL_TEXTURE_2D);
+			glDisable(GL_BLEND);
+			glDisable(GL_LIGHTING);
+			glDisable(GL_DEPTH_TEST);
+
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+			glTexImage2D(	GL_TEXTURE_2D, 0, GL_RGB, referenceImages[id]->width, referenceImages[id]->height, 0, GL_BGR_EXT, GL_UNSIGNED_BYTE, referenceImages[id]->imageData);
+
+			glColor3f(1.0f, 1.0f, 1.0f);
+			glBegin(GL_POLYGON);
+			{
+				glTexCoord2d(0,1);
+				glVertex3d(-width/2.0, -height/2.0, 0);
+
+				glTexCoord2d(1,1);
+				glVertex3d(+width/2.0, -height/2.0, 0);
+
+				glTexCoord2d(1,0);
+				glVertex3d(+width/2.0, +height/2.0, 0);
+
+				glTexCoord2d(0,0);
+				glVertex3d(-width/2.0, +height/2.0, 0);
+			}
+			glEnd();
+
+			glDisable(GL_TEXTURE_2D);
+			glEnable(GL_DEPTH_TEST);
 		}
-	}
-	glEnd();
-
-	glBegin(GL_LINE_STRIP);
-	{
-		for(int i=0; i<4; i++)
-			glVertex3f(point[i].x, point[i].y, point[i].z);
-		glVertex3f(point[0].x, point[0].y, point[0].z);
-	}
-	glEnd();
-
-	// draw input image
-	if(image)
-	{
-		cvResize(image, this->inputImage);
-		glBindTexture(GL_TEXTURE_2D, this->inputTexture);
-
-		glEnable(GL_TEXTURE_2D);
-		glDisable(GL_BLEND);
-		glDisable(GL_LIGHTING);
-
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-		glTexImage2D(	GL_TEXTURE_2D, 0, GL_RGB, inputImage->width, inputImage->height, 0, GL_BGR_EXT, GL_UNSIGNED_BYTE, inputImage->imageData);
-
-		glColor3f(1.0f, 1.0f, 1.0f);
-		glBegin(GL_POLYGON);
+		// outline
+		glColor3f(color.x, color.y, color.z);
+		glBegin(GL_LINE_STRIP);
 		{
-			glTexCoord2d(0,0);
-			glVertex3d(point[0].x, point[0].y, point[0].z);
+			glVertex3d(-width/2.0, -height/2.0, 0);
+			glVertex3d(+width/2.0, -height/2.0, 0);
+			glVertex3d(+width/2.0, +height/2.0, 0);
+			glVertex3d(-width/2.0, +height/2.0, 0);
+			glVertex3d(-width/2.0, -height/2.0, 0);
+		}
+		glEnd();
+	}
+	glPopMatrix();
+}
 
-			glTexCoord2d(1,0);
-			glVertex3d(point[1].x, point[1].y, point[1].z);
+void OpenGLRenderer::DrawCamera(int id, Calibration* calibration, IplImage* image, double scale)
+{
+	glEnable(GL_DEPTH_TEST);
+	glPushMatrix();
+	{
+		CvScalar pt = calibration->GetCameraPosition();
+		CvScalar at = calibration->GetLookAt();
+		CvScalar up = calibration->GetUpPoint();
+		CvScalar ri = calibration->GetRightPoint();
 
-			glTexCoord2d(1,1);
-			glVertex3d(point[2].x, point[2].y, point[2].z);
+		Vector3 cameraPosition	= Vector3(pt.val[0], pt.val[1], pt.val[2]);
+		Vector3 lookAt			= Vector3(at.val[0], at.val[1], at.val[2]);
+		Vector3 upVector		= Vector3(up.val[0], up.val[1], up.val[2]);
+		Vector3 rightVector		= Vector3(ri.val[0], ri.val[1], ri.val[2]);
+		Vector3 point[4];
 
-			glTexCoord2d(0,1);
-			glVertex3d(point[3].x, point[3].y, point[3].z);
+		// translate relation value
+		lookAt -= cameraPosition;
+		upVector -= cameraPosition;
+		rightVector -= cameraPosition;
+		
+		lookAt *= ((double)calibration->GetParameters()[0]) / lookAt.getLength();
+		upVector *= ((double)this->cameraHeight/2.0) / upVector.getLength();
+		rightVector *= ((double)this->cameraWidth/2.0) / rightVector.getLength();
+
+		lookAt *= scale;
+		upVector *= scale;
+		rightVector *= scale;
+
+		point[0] = cameraPosition + lookAt + upVector - rightVector;
+		point[1] = cameraPosition + lookAt + upVector + rightVector;
+		point[2] = cameraPosition + lookAt - upVector + rightVector;
+		point[3] = cameraPosition + lookAt - upVector - rightVector;
+
+		// translate absolution value
+		lookAt += cameraPosition;
+		upVector += cameraPosition;	
+		rightVector += cameraPosition;
+
+		glLineWidth(3);
+		glColor3f(1, 1, 0);
+		glBegin(GL_LINES);
+		{
+			for(int i=0; i<4; i++)
+			{
+				glVertex3f(cameraPosition.x, cameraPosition.y, cameraPosition.z);
+				glVertex3f(point[i].x, point[i].y, point[i].z);
+			}
 		}
 		glEnd();
 
-		glDisable(GL_TEXTURE_2D);
-		glEnable(GL_DEPTH_TEST);
+		glBegin(GL_LINE_STRIP);
+		{
+			for(int i=0; i<4; i++)
+				glVertex3f(point[i].x, point[i].y, point[i].z);
+			glVertex3f(point[0].x, point[0].y, point[0].z);
+		}
+		glEnd();
+
+		// draw input image
+		if(image)
+		{
+			cvResize(image, this->inputImages[id]);
+			glBindTexture(GL_TEXTURE_2D, this->inputTexture[id]);
+
+			glEnable(GL_TEXTURE_2D);
+			glDisable(GL_BLEND);
+			glDisable(GL_LIGHTING);
+
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+			glTexImage2D(	GL_TEXTURE_2D, 0, GL_RGB, inputImages[id]->width, inputImages[id]->height, 0, GL_BGR_EXT, GL_UNSIGNED_BYTE, inputImages[id]->imageData);
+
+			glColor3f(1.0f, 1.0f, 1.0f);
+			glBegin(GL_POLYGON);
+			{
+				glTexCoord2d(0,0);
+				glVertex3d(point[0].x, point[0].y, point[0].z);
+
+				glTexCoord2d(1,0);
+				glVertex3d(point[1].x, point[1].y, point[1].z);
+
+				glTexCoord2d(1,1);
+				glVertex3d(point[2].x, point[2].y, point[2].z);
+
+				glTexCoord2d(0,1);
+				glVertex3d(point[3].x, point[3].y, point[3].z);
+			}
+			glEnd();
+
+			glDisable(GL_TEXTURE_2D);
+			glEnable(GL_DEPTH_TEST);
+		}
 	}
+	glPopMatrix();
 }
 
 void OpenGLRenderer::DrawCameraAxis(windage::Calibration* calibration, double size)
@@ -338,4 +415,47 @@ void OpenGLRenderer::DrawCameraAxis(windage::Calibration* calibration, double si
 	}
 	glEnd();
 
+}
+
+void OpenGLRenderer::DrawDID(IplImage* image, double width, double height)
+{
+	glEnable(GL_TEXTURE_2D);
+    glDisable(GL_BLEND);
+    glDisable(GL_LIGHTING);
+    glDisable(GL_DEPTH_TEST);
+
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+	glTexImage2D(	GL_TEXTURE_2D, 0, GL_RGB, image->width, image->height, 0, GL_BGR_EXT, GL_UNSIGNED_BYTE, image->imageData);
+
+    // draw captured image texture...
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+//	if(isFlip == false)
+//		glOrtho(0, 1, 0, 1, -1, 1);
+//	else
+		glOrtho(0, 1, 1, 0, -1, 1);
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    glColor3f(1.0f, 1.0f, 1.0f);
+    glBegin(GL_POLYGON);
+    {
+		glTexCoord2d(0,1);
+		glVertex2d(1.0-width,1);
+
+		glTexCoord2d(1,1);
+		glVertex2d(1,1);
+
+		glTexCoord2d(1,0);
+		glVertex2d(1,1.0-height);
+
+		glTexCoord2d(0,0);
+		glVertex2d(1.0-width,1.0-height);
+    }
+    glEnd();
+
+	glDisable(GL_TEXTURE_2D);
+	glEnable(GL_DEPTH_TEST);
 }
