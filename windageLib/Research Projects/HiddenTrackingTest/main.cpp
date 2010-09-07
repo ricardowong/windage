@@ -59,9 +59,9 @@ const int HEIGHT = (WIDTH * 3) / 4;
 const double INTRINSIC[] = {1029.275, 1028.858, 322.551, 248.881,-0.206477, 0.306424, 0.000728208, 0.0011338};
 
 const int FEATURE_COUNT = 1000;
-const double SCALE_FACTOR = 6.0;
-const int SCALE_STEP = 6;
-const double REPROJECTION_ERROR = 5.0;
+const double SCALE_FACTOR = 1.0;
+const int SCALE_STEP = 1;
+const double REPROJECTION_ERROR = 3.0;
 
 const char* TEMPLATE_IMAGE = "reference%d_320.png";
 const int TEMPLATE_IMAGE_COUNT = 3;
@@ -78,7 +78,7 @@ windage::Frameworks::MultiplePlanarObjectTracking* CreateTracker()
 	windage::Algorithms::HomographyRefiner* refiner;
 
 	calibration = new windage::Calibration();
-	detector = new windage::Algorithms::WSURFdetector();
+	detector = new windage::Algorithms::SURFdetector();
 	opticalflow = new windage::Algorithms::OpticalFlow();
 	estimator = new windage::Algorithms::RANSACestimator();
 	checker = new windage::Algorithms::OutlierChecker();

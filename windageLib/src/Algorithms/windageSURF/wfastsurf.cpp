@@ -38,7 +38,6 @@
  * ======================================================================== */
 
 #include "Algorithms/windageSURF/wfastsurf.h"
-//#define USE_GAUSSIAN_WEIGHT
 
 const int dx1[] = {3, 3, 2, 1, 0, -1, -2, -3};
 const int dx2[] = {-3, -3, -2, -1, 0, 1, 2, 3};
@@ -103,23 +102,16 @@ void wExtractFASTSURF(const IplImage* image, std::vector<windage::FeaturePoint>*
         }
 
         // Calculate gradients in x and y with wavelets of size 2s
-		float dw = 1.0f;
         for( i = 0; i < PATCH_SZ; i++ )
 		{
             for( j = 0; j < PATCH_SZ; j++ )
             {
-#ifdef USE_GAUSSIAN_WEIGHT
-				dw = gauss25[i][j];
-#endif
-				DX[i][j] = (float)(PATCH[i][j+1] - PATCH[i][j] + PATCH[i+1][j+1] - PATCH[i+1][j]) * dw;
-				DY[i][j] = (float)(PATCH[i+1][j] - PATCH[i][j] + PATCH[i+1][j+1] - PATCH[i][j+1]) * dw;
+				DX[i][j] = (float)(PATCH[i][j+1] - PATCH[i][j] + PATCH[i+1][j+1] - PATCH[i+1][j]);
+				DY[i][j] = (float)(PATCH[i+1][j] - PATCH[i][j] + PATCH[i+1][j+1] - PATCH[i][j+1]);
             }
 		}
 
         // Construct the descriptor
-//		for(i=0; i<(*keypoints)[k].DESCRIPTOR_DIMENSION; i++)
-//			(*keypoints)[k].descriptor[i] = 0;
-
 		// always 36-bin descriptor
 		int index = 0;
         for(i = 0; i < 3; i++)
