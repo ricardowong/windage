@@ -49,14 +49,14 @@
 #include "../Common/FleaCamera.h"
 
 const int NUMBER_OF_REFERENCES = 2;
-const char* REFERENCE_IMAGE_FORMAT = "reference%d.png";
+const char* REFERENCE_IMAGE_FORMAT = "reference%d_320.png";
 
 const int NUMBER_OF_CAMERAS = 2;
 std::vector<FleaCamera*> captures;
 std::vector<IplImage*> grayImages;
 std::vector<IplImage*> resultImages;
+std::vector<IplImage*> colorImage;
 IplImage* resizeImage;
-IplImage* colorImage;
 IplImage* composeImage;
 
 const double SCALE_FACTOR = 1.0;
@@ -70,6 +70,8 @@ const int RENDERING_HEIGHT = (RENDERING_WIDTH * 3) / 4;
 const double INTRINSIC[] = {1033.93, 1033.84, 319.044, 228.858,-0.206477, 0.306424, 0.000728208, 0.0011338};
 
 windage::Logger* logging;
+windage::Logger* fileLog = new windage::Logger("realation", "text", true);
+
 double fps;
 const int FPS_UPDATE_STEP = 10;
 int fpsStep = 0;
@@ -84,12 +86,18 @@ OpenGLRenderer* renderer = NULL;
 bool flip = false;
 bool drawCamera = true;
 
-windage::Frameworks::MultiplePlanarObjectTracking* CreateTracker()
+windage::Frameworks::MultiplePlanarObjectTracking* CreateTracker(int index)
 {
 	windage::Frameworks::MultiplePlanarObjectTracking* tracker = new windage::Frameworks::MultiplePlanarObjectTracking();
 
 	windage::Calibration* calibration = new windage::Calibration();
-	windage::Algorithms::FeatureDetector* detector = new windage::Algorithms::SURFdetector();
+
+	windage::Algorithms::FeatureDetector* detector = NULL;
+//	if(index == 0)
+//		detector = new windage::Algorithms::SIFTGPUdetector();
+//	else
+		detector = new windage::Algorithms::SURFdetector();
+	
 	windage::Algorithms::SearchTree* searchtree = new windage::Algorithms::FLANNtree();
 	windage::Algorithms::OpticalFlow* opticalflow = new windage::Algorithms::OpticalFlow();
 	windage::Algorithms::HomographyEstimator* estimator = new windage::Algorithms::RANSACestimator();
@@ -242,9 +250,9 @@ void display()
 				cvFlip(grabImage, grabImage);
 			
 			cvResize(grabImage, resizeImage);
-			cvCvtColor(resizeImage, colorImage, CV_BGRA2BGR);
+			cvCvtColor(resizeImage, colorImage[i], CV_BGRA2BGR);
 			cvCvtColor(resizeImage, grayImages[i], CV_BGRA2GRAY);
-			cvCopyImage(colorImage, resultImages[i]);
+			cvCopyImage(colorImage[i], resultImages[i]);
 
 			// update camera pose
 			trackers[i]->UpdateCamerapose(grayImages[i]);
@@ -295,14 +303,22 @@ void display()
 			for(int j=1; j<NUMBER_OF_REFERENCES; j++)
 			{
 				windage::Matrix4 relation = windage::Coordinator::MultiMarkerCoordinator::GetRelation(trackers[i]->GetCameraParameter(0), trackers[i]->GetCameraParameter(j));
-				renderer->DrawReference(1, (double)WIDTH, (double)HEIGHT, relation.Transpose(), windage::Vector3(1.0, 0, i));
+
+				renderer->DrawReference(j, (double)WIDTH, (double)HEIGHT, relation.Transpose(), windage::Vector3(1.0-((double)i/(double)(NUMBER_OF_CAMERAS-1)), 0, ((double)i/(double)(NUMBER_OF_CAMERAS-1))));
 			}
 		}
 		if(drawCamera)
 		for(int i=0; i<NUMBER_OF_CAMERAS; i++)
 		{
-			renderer->DrawCamera(i, trackers[i]->GetCameraParameter(0), colorImage);
+			renderer->DrawCamera(i, trackers[i]->GetCameraParameter(0), colorImage[i]);
 		}
+
+		CvScalar position1 = trackers[0]->GetCameraParameter(1)->GetCameraPosition();
+		CvScalar position2 = trackers[1]->GetCameraParameter(1)->GetCameraPosition();
+		fileLog->log("x", position1.val[0] - position2.val[0]);
+		fileLog->log("y", position1.val[1] - position2.val[1]);
+		fileLog->log("z", position1.val[2] - position2.val[2]);
+		fileLog->logNewLine();
 		
 		cvResetImageROI(composeImage);
 		renderer->DrawDID(composeImage, 0.2*NUMBER_OF_CAMERAS, 0.2);
@@ -331,11 +347,11 @@ void main()
 	captures.resize(NUMBER_OF_CAMERAS);
 	grayImages.resize(NUMBER_OF_CAMERAS);
 	resultImages.resize(NUMBER_OF_CAMERAS);
+	colorImage.resize(NUMBER_OF_CAMERAS);
 	trackers.resize(NUMBER_OF_CAMERAS);
 
 	// connect camera
 	resizeImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 4);
-	colorImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
 	composeImage = cvCreateImage(cvSize(WIDTH*NUMBER_OF_CAMERAS, HEIGHT), IPL_DEPTH_8U, 3);
 	for(int i=0; i<NUMBER_OF_CAMERAS; i++)
 	{
@@ -349,8 +365,9 @@ void main()
 
 		grayImages[i] = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 1);
 		resultImages[i] = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
+		colorImage[i] = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
 
-		trackers[i] = CreateTracker();
+		trackers[i] = CreateTracker(i);
 
 		for(int j=0; j<NUMBER_OF_REFERENCES; j++)
 		{
