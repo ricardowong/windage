@@ -66,19 +66,27 @@ void main()
 	cvNamedWindow("result");
 
 	// create and initialize tracker
+	windage::Frameworks::MultipleMarkerTracking* tracker;
+
 	windage::Calibration* calibration;
-	windage::Algorithms::ChessboardDetector* detector;
 	windage::Algorithms::HomographyEstimator* estimator;
 	windage::Algorithms::LMmethod* refiner;
+
+	tracker = new windage::Frameworks::MultipleMarkerTracking();
 	
 	calibration = new windage::Calibration();
-	detector = new windage::Algorithms::ChessboardDetector();
 	estimator = new windage::Algorithms::RANSACestimator();
 	refiner = new windage::Algorithms::LMmethod();
 	refiner->SetMaxIteration(50);
 
 	calibration->Initialize(INTRINSIC[0], INTRINSIC[1], INTRINSIC[2], INTRINSIC[3], INTRINSIC[4], INTRINSIC[5], INTRINSIC[6], INTRINSIC[7]);
-	estimator->AttatchCameraParameter(calibration);
+	tracker->AttatchCalibration(calibration);
+	tracker->AttatchEstimator(estimator);
+	tracker->AttatchRefiner(refiner);
+
+	tracker->AttatchChessboard(8, 7, 28.0);
+	tracker->AttatchChessboard(6, 7, 28.0);
+	tracker->Initialize(WIDTH, HEIGHT);
 	
 	double processingTime = 0.0;
 
@@ -98,20 +106,13 @@ void main()
 		logger.updateTickCount();
 
 		// track object
-		detector->FindMarker(grayImage);
-		detector->DrawMarkerInfo(resultImage);
-		estimator->AttatchReferencePoint(detector->GetReferencePoints());
-		estimator->AttatchScenePoint(detector->GetKeypoints());
-		estimator->Calculate();
-
-		refiner->AttatchHomography(estimator->GetHomography());
-		refiner->AttatchReferencePoint(estimator->GetReferencePoint());
-		refiner->AttatchScenePoint(estimator->GetScenePoint());
-		refiner->Calculate();
-
-		estimator->DecomposeHomography();
-
-		calibration->DrawInfomation(resultImage, 100.0);
+		tracker->UpdateCamerapose(grayImage);
+		for(int i=0; i<tracker->GetObjectCount(); i++)
+		{
+			tracker->DrawDebugInfo(resultImage, i);
+			tracker->DrawOutLine(resultImage, i, true);
+			tracker->GetCameraParameter(i)->DrawInfomation(resultImage, 100);
+		}
 
 		processingTime = logger.calculateProcessTime();
 		logger.log("processingTime", processingTime);
