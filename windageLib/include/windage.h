@@ -114,6 +114,7 @@
 #include "Frameworks/MultiplePlanarObjectThreadTracking.h"
 #include "Frameworks/SingleObjectTracking.h"
 #include "Frameworks/MultipleObjectTracking.h"
+#include "Frameworks/MultipleMarkerTracking.h"
 
 // Coordinator
 #include "Coordinator/RotationConverter.h"
