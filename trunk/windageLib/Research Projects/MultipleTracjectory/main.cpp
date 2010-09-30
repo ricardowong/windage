@@ -80,11 +80,33 @@ const int FEATURE_COUNT = WIDTH*2;
 int keypointCount = 0;
 double threshold = 50.0;
 
-std::vector<windage::Frameworks::MultiplePlanarObjectTracking*> trackers;
+std::vector<windage::Frameworks::MultipleMarkerTracking*> trackers;
 OpenGLRenderer* renderer = NULL;
 
 bool flip = false;
 bool drawCamera = true;
+
+windage::Frameworks::MultipleMarkerTracking* CreateMarkerTracker(int index)
+{
+	windage::Frameworks::MultipleMarkerTracking* tracker = new windage::Frameworks::MultipleMarkerTracking();
+
+	windage::Calibration* calibration = new windage::Calibration();
+	windage::Algorithms::HomographyEstimator* estimator = new windage::Algorithms::LMedSestimator();
+	windage::Algorithms::HomographyRefiner* refiner = new windage::Algorithms::LMmethod();
+
+	calibration->Initialize(INTRINSIC[0], INTRINSIC[1], INTRINSIC[2], INTRINSIC[3], INTRINSIC[4], INTRINSIC[5], INTRINSIC[6], INTRINSIC[7]);
+	refiner->SetMaxIteration(10);
+
+	tracker->AttatchCalibration(calibration);
+	tracker->AttatchEstimator(estimator);
+	tracker->AttatchRefiner(refiner);
+
+	tracker->AttatchChessboard(8, 7, 50.0);
+	tracker->AttatchChessboard(6, 7, 50.0);
+	tracker->Initialize(WIDTH, HEIGHT, true);
+
+	return tracker;
+}
 
 windage::Frameworks::MultiplePlanarObjectTracking* CreateTracker(int index)
 {
@@ -93,10 +115,7 @@ windage::Frameworks::MultiplePlanarObjectTracking* CreateTracker(int index)
 	windage::Calibration* calibration = new windage::Calibration();
 
 	windage::Algorithms::FeatureDetector* detector = NULL;
-//	if(index == 0)
-//		detector = new windage::Algorithms::SIFTGPUdetector();
-//	else
-		detector = new windage::Algorithms::SURFdetector();
+	detector = new windage::Algorithms::SURFdetector();
 	
 	windage::Algorithms::SearchTree* searchtree = new windage::Algorithms::FLANNtree();
 	windage::Algorithms::OpticalFlow* opticalflow = new windage::Algorithms::OpticalFlow();
@@ -263,6 +282,7 @@ void display()
 				trackers[i]->DrawOutLine(resultImages[i], j, true);
 				trackers[i]->GetCameraParameter(j)->DrawInfomation(resultImages[i], WIDTH/4);
 			}
+/*
 			int matchingCount = trackers[i]->GetMatchingCount(0);
 
 			// adaptive threshold
@@ -276,14 +296,14 @@ void display()
 				keypointCount = localcount;
 				trackers[i]->GetDetector()->SetThreshold(threshold);
 			}
-
+*/
 			char message[100];
 			sprintf_s(message, "FPS : %.2lf", fps);
 			windage::Utils::DrawTextToImage(resultImages[i], cvPoint(10, 20), 0.6, message);
 			sprintf_s(message, "Feature Count : %d, Threshold : %.0lf", keypointCount, threshold);
 			windage::Utils::DrawTextToImage(resultImages[i], cvPoint(10, 40), 0.6, message);
-			sprintf_s(message, "Matching Count : %d", matchingCount);
-			windage::Utils::DrawTextToImage(resultImages[i], cvPoint(10, 60), 0.6, message);
+//			sprintf_s(message, "Matching Count : %d", matchingCount);
+//			windage::Utils::DrawTextToImage(resultImages[i], cvPoint(10, 60), 0.6, message);
 
 			sprintf_s(message, "Press 'Space' to track the current image");
 			windage::Utils::DrawTextToImage(resultImages[i], cvPoint(WIDTH-270, HEIGHT-10), 0.5, message);
@@ -367,8 +387,9 @@ void main()
 		resultImages[i] = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
 		colorImage[i] = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
 
-		trackers[i] = CreateTracker(i);
-
+//		trackers[i] = CreateTracker(i);
+		trackers[i] = CreateMarkerTracker(i);
+/*
 		for(int j=0; j<NUMBER_OF_REFERENCES; j++)
 		{
 			char referenceName[100];
@@ -383,6 +404,7 @@ void main()
 			cvReleaseImage(&sampleImage);
 			cvReleaseImage(&grayImage);
 		}
+*/
 	}
 
 	// initialize rendering engine using GLUT
