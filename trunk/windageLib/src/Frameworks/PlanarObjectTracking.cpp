@@ -113,12 +113,12 @@ bool PlanarObjectTracking::TrainingReference(double scaleFactor, int scaleStep)
 	this->referenceRepository.clear();
 	for(int y=1; y<=scaleStep; y++)
 	{
-//		for(int x=1; x<=scaleStep; x++)
+		for(int x=1; x<=scaleStep; x++)
 		{
-			int x = y;
+//			int x = y;
 			IplImage* resizeReferenceImage = cvCreateImage(cvSize(width*x, height*y), IPL_DEPTH_8U, 1);
 			cvResize(this->referenceImage, resizeReferenceImage, CV_INTER_LINEAR);
-			cvSmooth(resizeReferenceImage, resizeReferenceImage, CV_GAUSSIAN, 3, 3);
+//			cvSmooth(resizeReferenceImage, resizeReferenceImage, CV_GAUSSIAN, 3, 3);
 
 			this->detector->DoExtractKeypointsDescriptor(resizeReferenceImage);
 			std::vector<windage::FeaturePoint>* tempReferenceKeypoints = this->detector->GetKeypoints();

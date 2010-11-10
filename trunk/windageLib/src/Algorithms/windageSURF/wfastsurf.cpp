@@ -73,7 +73,7 @@ void wExtractFASTSURF(const IplImage* image, std::vector<windage::FeaturePoint>*
 			dy += dy1[i] * difference;
 		}
 
-        float descriptor_dir = cvFastArctan( (float)dy, (float)dx );
+        float descriptor_dir = -cvFastArctan( (float)dy, (float)dx );
         descriptor_dir *= (float)(CV_PI/180.0f);
 		(*keypoints)[k].SetDir(descriptor_dir);
 

@@ -48,8 +48,8 @@
 #include <windage.h>
 #include <Coordinator/ARForOpenGL.h>
 
-const char* FILE_NAME = "testImages\\reference3.png";
-const char* RESULT_DIR = "testImages\\reference3_d-%d_%c-%d.png";
+const char* FILE_NAME = "testImages\\reference1.png";
+const char* RESULT_DIR = "testImages\\reference1_d-%d_%c-%d.png";
 const int WIDTH = 640;
 const int HEIGHT = 480;
 const double INTRINSIC[] = {1033.93, 1033.84, 319.044, 228.858,-0.206477, 0.306424, 0.000728208, 0.0011338};
@@ -58,8 +58,8 @@ const int ROTATION_RANGE_S = 0;
 const int ROTATION_RANGE_E = +80;
 const int ROTATION_RANGE_D = 10;
 
-const int DISTANCE_RANGE_S = -500;
-const int DISTANCE_RANGE_E = 1000;
+const int DISTANCE_RANGE_S = -600;
+const int DISTANCE_RANGE_E = 2000;
 const int DISTANCE_RANGE_D = 300;
 
 windage::Coordinator::AugmentedReality* artool = NULL;
@@ -105,6 +105,8 @@ void display()
 				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 				// draw virtual object
+				glMatrixMode(GL_PROJECTION);
+				glLoadIdentity();
 				glMatrixMode(GL_MODELVIEW);
 				glLoadIdentity();
 
@@ -114,7 +116,7 @@ void display()
 
 				double distance = -INTRINSIC[0];
 				double error = 10.0;
-				gluLookAt(0.0, 0.0, distance, 0.0, error, 0.0, 0.0, -1.0, 0.0);
+				gluLookAt(0.0, 0.0, distance, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0);
 
 				// transformation
 				glTranslatef(0.0f, 0.0f, (float)d);
