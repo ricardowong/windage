@@ -141,10 +141,13 @@ void display()
 			//	renderer->DrawAxis((double)WIDTH / 4.0);
 
 				glutSwapBuffers();
+				glutSwapBuffers();
 //				glutPostRedisplay();
 
+				Sleep(50);
+
 				// save image
-				glPixelStorei(GL_PACK_ALIGNMENT, 1);
+				glPixelStorei(GL_PACK_ALIGNMENT, 0);
 				glReadPixels(0, 0, WIDTH, HEIGHT, GL_BGR_EXT, GL_UNSIGNED_BYTE, saveImage->imageData);
 
 				int tempR = (r<0)?360+r:r;
@@ -164,7 +167,9 @@ void display()
 				cvSaveImage(message, saveImage);
 				std::cout << message << std::endl;
 
-				Sleep(100);
+				Sleep(50);
+
+				glutSwapBuffers();
 			}
 		}
 	}

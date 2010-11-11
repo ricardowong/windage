@@ -68,6 +68,8 @@
 #include "Algorithms/HomographyRefiner.h"
 #include "Algorithms/KalmanFilter.h"
 
+#include "Utilities/Logger.h"
+
 namespace windage
 {
 	namespace Frameworks
@@ -117,6 +119,9 @@ namespace windage
 
 			bool initialize;										///< checked initialized
 			bool trained;											///< checked trained
+
+			//for performance check
+			windage::Logger* logger;
 			
 		public:
 			virtual char* GetFunctionName(){return "PlanarObjectTracking";};
@@ -141,6 +146,8 @@ namespace windage
 
 				step = 1;
 				detectionRatio = 0;
+
+				logger = NULL;
 			}
 			virtual ~PlanarObjectTracking()
 			{
@@ -158,6 +165,7 @@ namespace windage
 			inline void SetFilterSetp(int step){this->filterStep = step;};
 			inline int GetMatchingCount(){return (int)this->refMatchedKeypoints.size();};
 			inline IplImage* GetReferenceImage(){return this->referenceImage;};
+			inline void SetLogger(windage::Logger* logger){this->logger = logger;};
 
 			/**
 			 * @fn	AttatchCalibration
