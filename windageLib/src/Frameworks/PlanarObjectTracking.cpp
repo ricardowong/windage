@@ -212,7 +212,8 @@ bool PlanarObjectTracking::UpdateCamerapose(IplImage* grayImage)
 		}
 	}
 
-	if((int)refMatchedKeypoints.size() > MIN_FEATURE_POINTS_COUNT)
+	int matchedCount = (int)refMatchedKeypoints.size();
+	if(matchedCount > MIN_FEATURE_POINTS_COUNT)
 	{
 		// pose estimate
 		this->estimator->AttatchReferencePoint(&refMatchedKeypoints);
@@ -237,6 +238,14 @@ bool PlanarObjectTracking::UpdateCamerapose(IplImage* grayImage)
 					i--;
 				}
 			}
+		}
+
+		if(this->logger)
+		{
+			this->logger->log("keypoint", (int)this->detector->GetKeypoints()->size());
+			this->logger->log("match", matchedCount);
+			this->logger->log("inlier", (int)refMatchedKeypoints.size());
+			this->logger->logNewLine();
 		}
 
 		// refinement

@@ -61,12 +61,15 @@ const int DISTANCE_RANGE_E = 2000;
 const int DISTANCE_RANGE_D = 300;
 
 const double SCALE_FACTOR = 4.0;
-const int SCALE_STEP = 8;
+const int SCALE_STEP = 10;
 const double REPROJECTION_ERROR = 5.0;
 
 void main()
 {
 	windage::Logger logger(&std::cout);
+	windage::Logger fileXLog("SIFT_recognition5_x_", "txt", true);
+	windage::Logger fileYLog("SIFT_recognition5_y_", "txt", true);
+	windage::Logger fileZLog("SIFT_recognition5_z_", "txt", true);
 
 	IplImage* grayImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 1);
 	IplImage* resultImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
@@ -90,7 +93,7 @@ void main()
 	refiner = new windage::Algorithms::LMmethod();
 
 	calibration->Initialize(INTRINSIC[0], INTRINSIC[1], INTRINSIC[2], INTRINSIC[3], INTRINSIC[4], INTRINSIC[5], INTRINSIC[6], INTRINSIC[7]);
-	detector->SetThreshold(30.0);
+//	detector->SetThreshold(30.0);
 	searchtree->SetRatio(0.7);
 	estimator->SetReprojectionError(REPROJECTION_ERROR);
 	checker->SetReprojectionError(REPROJECTION_ERROR * 3);
@@ -119,6 +122,8 @@ void main()
 	double processingTime;
 	while(processing)
 	{
+		cvWaitKey();
+
 		for(int d=DISTANCE_RANGE_S; d<=DISTANCE_RANGE_E; d+=DISTANCE_RANGE_D)
 		{
 			for(int rMode=0; rMode<3; rMode++)
@@ -130,12 +135,21 @@ void main()
 					switch(rMode)
 					{
 					case 0://x
+						tracking.SetLogger(&fileXLog);
+						fileXLog.log("D", d);
+						fileXLog.log("R", r);
 						sprintf(filename, RESULT_DIR, tempD, 'x', tempR);
 						break;
 					case 1://y
+						fileYLog.log("D", d);
+						fileYLog.log("R", r);
+						tracking.SetLogger(&fileYLog);
 						sprintf(filename, RESULT_DIR, tempD, 'y', tempR);
 						break;
 					case 2://z
+						tracking.SetLogger(&fileZLog);
+						fileZLog.log("D", d);
+						fileZLog.log("R", r);
 						sprintf(filename, RESULT_DIR, tempD, 'z', tempR);
 						break;
 					}
@@ -156,36 +170,7 @@ void main()
 
 					// draw result
 //					detector->DrawKeypoints(resultImage);
-/*
-					windage::Vector3 pt1(-WIDTH/2.0, -HEIGHT/2.0, 1.0);
-					windage::Vector3 pt2(+WIDTH/2.0, -HEIGHT/2.0, 1.0);
-					windage::Vector3 pt3(+WIDTH/2.0, +HEIGHT/2.0, 1.0);
-					windage::Vector3 pt4(-WIDTH/2.0, +HEIGHT/2.0, 1.0);
-					windage::Matrix3 h = (*estimator->GetHomography());
 
-					windage::Vector3 ipt1 = h*pt1;
-					windage::Vector3 ipt2 = h*pt2;
-					windage::Vector3 ipt3 = h*pt3;
-					windage::Vector3 ipt4 = h*pt4;
-
-					ipt1 /= ipt1.z;
-					ipt2 /= ipt2.z;
-					ipt3 /= ipt3.z;
-					ipt4 /= ipt4.z;
-
-					CvScalar color = CV_RGB(255, 0, 255);
-					CvScalar color2 = CV_RGB(255, 255, 255);
-
-					cvLine(resultImage, cvPoint(ipt1.x, ipt1.y), cvPoint(ipt4.x, ipt4.y), color2, 6);
-					cvLine(resultImage, cvPoint(ipt2.x, ipt2.y), cvPoint(ipt1.x, ipt1.y), color2, 6);
-					cvLine(resultImage, cvPoint(ipt3.x, ipt3.y), cvPoint(ipt2.x, ipt2.y), color2, 6);
-					cvLine(resultImage, cvPoint(ipt4.x, ipt4.y), cvPoint(ipt3.x, ipt3.y), color2, 6);
-
-					cvLine(resultImage, cvPoint(ipt1.x, ipt1.y), cvPoint(ipt4.x, ipt4.y), color, 2);
-					cvLine(resultImage, cvPoint(ipt2.x, ipt2.y), cvPoint(ipt1.x, ipt1.y), color, 2);
-					cvLine(resultImage, cvPoint(ipt3.x, ipt3.y), cvPoint(ipt2.x, ipt2.y), color, 2);
-					cvLine(resultImage, cvPoint(ipt4.x, ipt4.y), cvPoint(ipt3.x, ipt3.y), color, 2);
-//*/
 					tracking.DrawOutLine(resultImage, true);
 					tracking.DrawDebugInfo(resultImage);
 					calibration->DrawInfomation(resultImage, 100);
@@ -208,7 +193,7 @@ void main()
 					windage::Utils::DrawTextToImage(resultImage, cvPoint(WIDTH-350, HEIGHT-10), 0.5, message);
 					cvShowImage("result", resultImage);
 
-					char ch = cvWaitKey(0);
+					char ch = cvWaitKey(100);
 					switch(ch)
 					{
 					case 'q':
@@ -219,6 +204,7 @@ void main()
 				}
 			}
 		}
+		processing = false;
 	}
 
 	cvDestroyAllWindows();
