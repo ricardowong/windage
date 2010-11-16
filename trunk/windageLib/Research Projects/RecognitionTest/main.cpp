@@ -47,6 +47,7 @@
 
 const char* FILE_NAME = "testImages\\reference1.png";
 const char* RESULT_DIR = "testImages\\reference1_d-%d_%c-%d.png";
+const char* RESULT_SAVE_DIR = "testImages\\reference1_d-%d_%c-%d_result.png";
 const int WIDTH = 640;
 const int HEIGHT = 480;
 const double INTRINSIC[] = {1033.93, 1033.84, 319.044, 228.858,-0.206477, 0.306424, 0.000728208, 0.0011338};
@@ -67,9 +68,9 @@ const double REPROJECTION_ERROR = 5.0;
 void main()
 {
 	windage::Logger logger(&std::cout);
-	windage::Logger fileXLog("SIFT_recognition5_x_", "txt", true);
-	windage::Logger fileYLog("SIFT_recognition5_y_", "txt", true);
-	windage::Logger fileZLog("SIFT_recognition5_z_", "txt", true);
+	windage::Logger fileXLog("WSURF_recognition5_x_", "txt", true);
+	windage::Logger fileYLog("WSURF_recognition5_y_", "txt", true);
+	windage::Logger fileZLog("WSURF_recognition5_z_", "txt", true);
 
 	IplImage* grayImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 1);
 	IplImage* resultImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
@@ -118,6 +119,7 @@ void main()
 
 	char message[1000];
 	char filename[1000];
+	char filenameSave[1000];
 	bool processing = true;
 	double processingTime;
 	while(processing)
@@ -130,6 +132,11 @@ void main()
 			{
 				for(int r=ROTATION_RANGE_S; r<=ROTATION_RANGE_E; r+=ROTATION_RANGE_D)
 				{
+//*
+					d = 1200;
+					rMode = 1;
+					r = 50;
+//*/
 					int tempR = (r<0)?360+r:r;
 					int tempD = d - DISTANCE_RANGE_S;
 					switch(rMode)
@@ -139,18 +146,21 @@ void main()
 						fileXLog.log("D", d);
 						fileXLog.log("R", r);
 						sprintf(filename, RESULT_DIR, tempD, 'x', tempR);
+						sprintf(filenameSave, RESULT_SAVE_DIR, tempD, 'x', tempR);
 						break;
 					case 1://y
 						fileYLog.log("D", d);
 						fileYLog.log("R", r);
 						tracking.SetLogger(&fileYLog);
 						sprintf(filename, RESULT_DIR, tempD, 'y', tempR);
+						sprintf(filenameSave, RESULT_SAVE_DIR, tempD, 'y', tempR);
 						break;
 					case 2://z
 						tracking.SetLogger(&fileZLog);
 						fileZLog.log("D", d);
 						fileZLog.log("R", r);
 						sprintf(filename, RESULT_DIR, tempD, 'z', tempR);
+						sprintf(filenameSave, RESULT_SAVE_DIR, tempD, 'z', tempR);
 						break;
 					}
 
@@ -172,7 +182,7 @@ void main()
 //					detector->DrawKeypoints(resultImage);
 
 					tracking.DrawOutLine(resultImage, true);
-					tracking.DrawDebugInfo(resultImage);
+//					tracking.DrawDebugInfo(resultImage);
 					calibration->DrawInfomation(resultImage, 100);
 
 					int keypointCount = detector->GetKeypointsCount();
@@ -193,9 +203,14 @@ void main()
 					windage::Utils::DrawTextToImage(resultImage, cvPoint(WIDTH-350, HEIGHT-10), 0.5, message);
 					cvShowImage("result", resultImage);
 
-					char ch = cvWaitKey(100);
+					char ch = cvWaitKey(0);
 					switch(ch)
 					{
+					case 's':
+					case 'S':
+						std::cout << "file sasve : " << filenameSave << std::endl;
+						cvSaveImage(filenameSave, resultImage);
+						break;
 					case 'q':
 					case 'Q':
 						processing = false;
