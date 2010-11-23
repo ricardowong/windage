@@ -62,6 +62,8 @@ const int WIDTH = 640;
 const int HEIGHT = 480;
 const double intrinsicValues[8] = {1033.93, 1033.84, 319.044, 228.858,-0.206477, 0.306424, 0.000728208, 0.0011338};
 
+const char* MODEL_FILE = "model/cow.osg";
+
 windage::Logger* logging;
 double fps = 0;
 const int FPS_UPDATE_STEP = 30;
@@ -112,7 +114,7 @@ public:
 					exit(0);
 					break;
 				case ' ':
-					tracker->GetDetector()->SetThreshold(15.0);
+					tracker->GetDetector()->SetThreshold(30.0);
 					tracker->AttatchReferenceImage(gray);
 					tracker->TrainingReference(4.0, 8);
 					tracker->GetDetector()->SetThreshold(fastThreshold);
@@ -135,7 +137,7 @@ windage::Frameworks::PlanarObjectTracking* CreateTracker()
 	windage::Algorithms::FeatureDetector* detector = new windage::Algorithms::WSURFdetector();
 	windage::Algorithms::SearchTree* searchtree = new windage::Algorithms::FLANNtree();
 	windage::Algorithms::OpticalFlow* opticalflow = new windage::Algorithms::OpticalFlow();
-	windage::Algorithms::HomographyEstimator* estimator = new windage::Algorithms::ProSACestimator();
+	windage::Algorithms::HomographyEstimator* estimator = new windage::Algorithms::RANSACestimator();
 	windage::Algorithms::OutlierChecker* checker = new windage::Algorithms::OutlierChecker();
 	windage::Algorithms::HomographyRefiner* refiner = new windage::Algorithms::LMmethod();
 
@@ -174,7 +176,7 @@ osg::Matrixd GetTrackerCoordinate()
 	// call tracking algorithm
 	tracker->GetDetector()->SetThreshold(fastThreshold);
 	tracker->UpdateCamerapose(gray);
-	tracker->DrawDebugInfo(input);
+//	tracker->DrawDebugInfo(input);
 
 	int featureCount = tracker->GetDetector()->GetKeypointsCount();
 	int matchingCount = tracker->GetMatchingCount();
@@ -300,7 +302,7 @@ int main(int argc, char ** argv )
 	osg::Matrixd translate;	translate.makeTranslate(x, y, z);
 	objectCoordinate->postMult(translate);
 	objectCoordinate->postMult(scale);
-	objectCoordinate->addChild(LoadModel("model/cow.osg"));
+	objectCoordinate->addChild(LoadModel(MODEL_FILE));
 
 #ifdef SAVE_RENDERING_IMAGE
     IplImage* saveImage = cvCreateImage(cvSize(640, 480), IPL_DEPTH_8U, 3);
