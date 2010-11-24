@@ -184,6 +184,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EvaluateHomographyEstimatio
 		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B} = {BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "testImageSequence", "..\..\Research Projects\testImageSequence\testImageSequence.vcproj", "{2188AC97-614B-4D7D-BBD0-58BC21C273E6}"
+	ProjectSection(ProjectDependencies) = postProject
+		{BDCCBABD-5CC7-4472-9E01-A5ED45A2266B} = {BDCCBABD-5CC7-4472-9E01-A5ED45A2266B}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -326,6 +331,10 @@ Global
 		{1C78F80D-1556-46A0-8329-23601369504E}.Debug|Win32.Build.0 = Debug|Win32
 		{1C78F80D-1556-46A0-8329-23601369504E}.Release|Win32.ActiveCfg = Release|Win32
 		{1C78F80D-1556-46A0-8329-23601369504E}.Release|Win32.Build.0 = Release|Win32
+		{2188AC97-614B-4D7D-BBD0-58BC21C273E6}.Debug|Win32.ActiveCfg = Debug|Win32
+		{2188AC97-614B-4D7D-BBD0-58BC21C273E6}.Debug|Win32.Build.0 = Debug|Win32
+		{2188AC97-614B-4D7D-BBD0-58BC21C273E6}.Release|Win32.ActiveCfg = Release|Win32
+		{2188AC97-614B-4D7D-BBD0-58BC21C273E6}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -374,5 +383,6 @@ Global
 		{1D25CFA2-4582-4D30-B623-9451D7AF59C9} = {4F0A7C1E-4B4F-448C-961E-28D973222132}
 		{F8556F9F-196B-4B70-8BEA-8102E80A003B} = {4F0A7C1E-4B4F-448C-961E-28D973222132}
 		{1C78F80D-1556-46A0-8329-23601369504E} = {4F0A7C1E-4B4F-448C-961E-28D973222132}
+		{2188AC97-614B-4D7D-BBD0-58BC21C273E6} = {4F0A7C1E-4B4F-448C-961E-28D973222132}
 	EndGlobalSection
 EndGlobal
