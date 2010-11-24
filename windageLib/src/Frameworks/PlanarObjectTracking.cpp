@@ -158,7 +158,7 @@ bool PlanarObjectTracking::UpdateCamerapose(IplImage* grayImage)
 	if(tracker == NULL)
 		this->SetDitectionRatio(0);
 	
-	if(this->detectionRatio < 1)
+	if(this->detectionRatio < 0)
 	{
 		refMatchedKeypoints.clear();
 		sceMatchedKeypoints.clear();

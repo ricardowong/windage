@@ -52,7 +52,7 @@ bool OutlierChecker::Calculate()
 		std::vector<windage::FeaturePoint>* refPoints = this->homographyEstimator->GetReferencePoint();
 		std::vector<windage::FeaturePoint>* scePoints = this->homographyEstimator->GetScenePoint();
 
-		#pragma omp for
+//		#pragma omp for
 		for(int i=0; i<(int)refPoints->size(); i++)
 		{
 			windage::Vector3 imagePoint = this->homographyEstimator->ConvertObjectToImage((*refPoints)[i].GetPoint());
@@ -78,7 +78,7 @@ bool OutlierChecker::Calculate()
 		std::vector<windage::FeaturePoint>* refPoints = this->poseEstimator->GetReferencePoint();
 		std::vector<windage::FeaturePoint>* scePoints = this->poseEstimator->GetScenePoint();
 
-		#pragma omp for
+//		#pragma omp for
 		for(int i=0; i<(int)refPoints->size(); i++)
 		{
 			windage::Vector3 imagePoint = this->poseEstimator->ConvertWorldToImage((*refPoints)[i].GetPoint());
