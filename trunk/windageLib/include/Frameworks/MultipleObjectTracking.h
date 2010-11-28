@@ -63,6 +63,7 @@
 #include "Algorithms/FeatureDetector.h"
 #include "Algorithms/SearchTree.h"
 #include "Algorithms/FLANNtree.h"
+#include "Algorithms/KDtree.h"
 #include "Algorithms/OpticalFlow.h"
 #include "Algorithms/PoseEstimator.h"
 #include "Algorithms/EPnPRANSACestimator.h"
@@ -72,7 +73,7 @@
 
 /** pre-selected search tree algorithm whenever can change other search tree algorithm  */
 #define SearchTreeT windage::Algorithms::FLANNtree
-#define SEARCH_TREE_RATIO 0.4
+#define SEARCH_TREE_RATIO 0.5
 #define PoseEstimationT windage::Algorithms::OpenCVRANSACestimator
 
 namespace windage

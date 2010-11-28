@@ -60,7 +60,7 @@ const double REAL_WIDTH = 172.0;
 const double REAL_HEIGHT = (REAL_WIDTH * 3) / 4;
 const double INTRINSIC[] = {1029.275, 1028.858, 322.551, 248.881,-0.206477, 0.306424, 0.000728208, 0.0011338};
 
-const int FEATURE_COUNT = 1000;
+const int FEATURE_COUNT = 5000;
 const double SCALE_FACTOR = 1.0;
 const int SCALE_STEP = 1;
 const double REPROJECTION_ERROR = 3.0;
@@ -68,11 +68,12 @@ const double REPROJECTION_ERROR = 3.0;
 const char* TEMPLATE_IMAGE = "reference%d.png";
 const int TEMPLATE_IMAGE_COUNT = 1;
 
-const int OBJECT_COUNT = 1;
+const int OBJECT_COUNT = 2;
 const char* FILE_NAME[] = {	"data/reconstruction-2010-11-28_14_05_09/reconstruction.txt", 
-							"data/reconstruction-2010-11-28_16_24_23/reconstruction.txt"};
+							"data/reconstruction-2010-11-28_16_24_23/reconstruction.txt",
+							"data/reconstruction-2010-11-28_22_12_48/reconstruction.txt"};
 
-void DrawRectangle(IplImage* image, windage::Calibration* calibration, double dx, double dy, double dz, double x=0, double y=0, double z=0)
+void DrawRectangle(IplImage* image, windage::Calibration* calibration, CvScalar color, double dx, double dy, double dz, double x=0, double y=0, double z=0)
 {
 	CvPoint pt[8];
 
@@ -89,16 +90,16 @@ void DrawRectangle(IplImage* image, windage::Calibration* calibration, double dx
 	for(int i=0; i<4; i++)
 	{
 		int i2 = i==3?0:i+1;
-		cvLine(image, pt[i], pt[i2], CV_RGB(0, 0, 0), 5);
-		cvLine(image, pt[i+4], pt[i2+4], CV_RGB(0, 0, 0), 5);
-		cvLine(image, pt[i], pt[i+4], CV_RGB(0, 0, 0), 5);
+		cvLine(image, pt[i], pt[i2], CV_RGB(255, 255, 255), 5);
+		cvLine(image, pt[i+4], pt[i2+4], CV_RGB(255, 255, 255), 5);
+		cvLine(image, pt[i], pt[i+4], CV_RGB(255, 255, 255), 5);
 	}
 	for(int i=0; i<4; i++)
 	{
 		int i2 = i==3?0:i+1;
-		cvLine(image, pt[i], pt[i2], CV_RGB(255, 255, 255), 2);
-		cvLine(image, pt[i+4], pt[i2+4], CV_RGB(255, 255, 255), 2);
-		cvLine(image, pt[i], pt[i+4], CV_RGB(255, 255, 255), 2);
+		cvLine(image, pt[i], pt[i2], color, 2);
+		cvLine(image, pt[i+4], pt[i2+4], color, 2);
+		cvLine(image, pt[i], pt[i+4], color, 2);
 	}
 }
 
@@ -151,17 +152,17 @@ windage::Frameworks::MultipleObjectTracking* Create3DTracker()
 	
 	calibration->Initialize(INTRINSIC[0], INTRINSIC[1], INTRINSIC[2], INTRINSIC[3], INTRINSIC[4], INTRINSIC[5], INTRINSIC[6], INTRINSIC[7]);
 	opticalflow->Initialize(WIDTH, HEIGHT, cvSize(15, 15), 3);
-	estimator->SetReprojectionError(REPROJECTION_ERROR);
+	estimator->SetReprojectionError(10.0);
 	estimator->SetConfidence(0.95);
-	estimator->SetMaxIteration(50);
-	refiner->SetMaxIteration(5);
+	estimator->SetMaxIteration(500);
+	refiner->SetMaxIteration(50);
 
 	tracking->AttatchCalibration(calibration);
 	tracking->AttatchTracker(opticalflow);
 	tracking->AttatchEstimator(estimator);
 	tracking->AttatchRefiner(refiner);
 
-	tracking->SetDitectionRatio(3);
+	tracking->SetDitectionRatio(1);
 	tracking->Initialize(WIDTH, HEIGHT);
 	return tracking;
 }
@@ -200,9 +201,11 @@ void main()
 	IplImage* clientImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
 
 #if WRITE_VIDEO
-	CvVideoWriter* serverWriter = cvCreateVideoWriter("server.avi", CV_FOURCC_DEFAULT, 15, cvSize(WIDTH, HEIGHT));
-	CvVideoWriter* clientWriter = cvCreateVideoWriter("client.avi", CV_FOURCC_DEFAULT, 15, cvSize(WIDTH, HEIGHT));
-	CvVideoWriter* writer = cvCreateVideoWriter("result.avi", CV_FOURCC_DEFAULT, 15, cvSize(WIDTH, HEIGHT));
+	int framerate = 10;
+	CvVideoWriter* serverWriter = cvCreateVideoWriter("server.avi", CV_FOURCC_DEFAULT, framerate, cvSize(WIDTH, HEIGHT));
+	CvVideoWriter* clientWriter = cvCreateVideoWriter("client.avi", CV_FOURCC_DEFAULT, framerate, cvSize(WIDTH, HEIGHT));
+	CvVideoWriter* writer = cvCreateVideoWriter("result.avi", CV_FOURCC_DEFAULT, framerate, cvSize(WIDTH, HEIGHT));
+	CvVideoWriter* writerDID = cvCreateVideoWriter("clientDID.avi", CV_FOURCC_DEFAULT, framerate, cvSize(WIDTH, HEIGHT));
 	IplImage* resultWriter = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
 #endif
 
@@ -286,13 +289,14 @@ void main()
 	int serverKeypointCount = 0;
 	int clientKeypointCount = 0;
 	double processingTime = 0.0;
-	std::vector<int> matchingCount;
+	std::vector<int> matchingCount; matchingCount.resize(OBJECT_COUNT+1);
 
 	char message[100];
 	bool processing = true;
 	
-	for(int k=100; k<NUMBER_OF_IMAGE&&processing; k++)
+	for(int k=20; k<NUMBER_OF_IMAGE&&processing; k++)
 	{
+		std::cout << "frames : " << k << std::endl;
 #if SERVER
 		logger.updateTickCount();
 
@@ -322,7 +326,7 @@ void main()
 
 		// draw result
 		count = 0;
-		matchingCount.resize(serverTracker->GetObjectCount());
+//		matchingCount.resize(serverTracker->GetObjectCount());
 		for(int i=0; i<serverTracker->GetObjectCount(); i++)
 		{
 			matchingCount[i] = serverTracker->GetMatchingCount(i);
@@ -352,8 +356,12 @@ void main()
 				server3DTracker->DrawDebugInfo(resultImage, i);
 				
 				windage::Calibration* calibrationTemp = server3DTracker->GetCameraParameter(i);
-				calibrationTemp->DrawInfomation(resultImage, 50);
-				DrawRectangle(resultImage, calibrationTemp, 180/2, 125/2, 58/2);
+//				calibrationTemp->DrawInfomation(resultImage, 50);
+				
+				if(i == 0)
+					DrawRectangle(resultImage, calibrationTemp, CV_RGB(255, 0, 255), 180/2, 125/2, 58/2, 0, 10, 0);
+				else if(i==1)
+					DrawRectangle(resultImage, calibrationTemp, CV_RGB(255, 0, 255), 180/2, 80/2, 58/2, 0, 0, 0);
 
 				CvPoint centerPoint = calibrationTemp->ConvertWorld2Image(0.0, 0.0, 0.0);
 				
@@ -371,7 +379,7 @@ void main()
 		for(int i=0; i<OBJECT_COUNT; i++)
 		{
 			updated[i] = false;
-			if(serverTracker->GetMatchingCount(0) > 10 && serverTracker->GetMatchingCount(i) > 10)
+			if(serverTracker->GetMatchingCount(0) > 10 && server3DTracker->GetMatchingCount(i) > 10)
 			{
 //				windage::Matrix3 rotation = windage::Coordinator::MultiMarkerCoordinator::GetRotation(serverTracker->GetCameraParameter(0), server3DTracker->GetCameraParameter(i-1));
 //				windage::Vector3 translation = windage::Coordinator::MultiMarkerCoordinator::GetTranslation(serverTracker->GetCameraParameter(0), server3DTracker->GetCameraParameter(i-1));
@@ -385,12 +393,12 @@ void main()
 			}
 		}
 
-		logger.log(serverTracker->GetCameraParameter(0)->GetExtrinsicMatrix());
-		logger.log(server3DTracker->GetCameraParameter(0)->GetExtrinsicMatrix());
+//		logger.log(serverTracker->GetCameraParameter(0)->GetExtrinsicMatrix());
+//		logger.log(server3DTracker->GetCameraParameter(0)->GetExtrinsicMatrix());
 
 //*/
 		sprintf_s(message, "Desktop");
-		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, resultImage->height-30), 2.0, message);
+//		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, resultImage->height-30), 2.0, message);
 
 		processingTime = logger.calculateProcessTime();
 		logger.log("processingTime", processingTime);
@@ -445,9 +453,9 @@ void main()
 
 		// draw result
 		count = 0;
-		matchingCount.resize(clientTracker->GetObjectCount());
+//		matchingCount.resize(clientTracker->GetObjectCount());
 		for(int i=0; i<1/*clientTracker->GetObjectCount()*/; i++)
-		{
+	{
 			matchingCount[i] = clientTracker->GetMatchingCount(i);
 			if(clientTracker->GetMatchingCount(i) > 10)
 			{
@@ -492,8 +500,13 @@ void main()
 				calibrationTemp->SetExtrinsicMatrix(extrinsic.m1);
 				
 //				DrawOutLine(resultImage, calibrationTemp, true);
-				calibrationTemp->DrawInfomation(resultImage, 50);
-				DrawRectangle(resultImage, calibrationTemp, 180/2, 125/2, 58/2, 10, -15, -58/2);
+//				calibrationTemp->DrawInfomation(resultImage, 50);
+
+				// client
+				if(i == 0)
+					DrawRectangle(resultImage, calibrationTemp, CV_RGB(0, 0, 0), 180/2, 125/2, 58/2, 20, 5, 0);
+				else if(i==1)
+					DrawRectangle(resultImage, calibrationTemp, CV_RGB(0, 0, 0), 180/2, 80/2, 58/2, 10, 10, 0);
 
 				CvPoint centerPoint = calibrationTemp->ConvertWorld2Image(0.0, 0.0, 0.0);
 				
@@ -519,7 +532,7 @@ void main()
 		logRestoreInfo.logNewLine();
 
 		sprintf_s(message, "Mobile device");
-		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, resultImage->height-30), 2.0, message);
+//		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, resultImage->height-30), 2.0, message);
 
 		processingTime = logger.calculateProcessTime();
 		logger.log("processingTime", processingTime);
@@ -544,6 +557,19 @@ void main()
 		cvResize(resultImage, resultWriter);
 		cvResetImageROI(resultWriter);
 		cvWriteToAVI(writer, resultWriter);
+
+		cvSetImageROI(resultImage, cvRect(640-230,480 -180, 200, 150));
+		cvSetImageROI(resultWriter, cvRect(0, 120, 320, 240));
+		cvResize(resultWriter, resultImage);
+		cvResetImageROI(resultImage);
+		cvResetImageROI(resultWriter);
+		cvLine(resultImage, cvPoint(640-230, 480-180), cvPoint(640-30, 480-180), CV_RGB(255, 255, 255), 5);
+		cvLine(resultImage, cvPoint(640-230, 480-30), cvPoint(640-30, 480-30), CV_RGB(255, 255, 255), 5);
+		cvLine(resultImage, cvPoint(640-230, 480-180), cvPoint(640-230, 480-30), CV_RGB(255, 255, 255), 5);
+		cvLine(resultImage, cvPoint(640-30, 480-180), cvPoint(640-30, 480-30), CV_RGB(255, 255, 255), 5);
+
+		cvWriteToAVI(writerDID, resultImage);
+		
 #endif
 #endif
 		logger.log("Frame", k);
@@ -571,6 +597,7 @@ void main()
 	cvReleaseVideoWriter(&serverWriter);
 	cvReleaseVideoWriter(&clientWriter);
 	cvReleaseVideoWriter(&writer);
+	cvReleaseVideoWriter(&writerDID);
 #endif
 
 	cvDestroyAllWindows();
