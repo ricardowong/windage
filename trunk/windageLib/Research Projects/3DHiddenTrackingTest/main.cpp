@@ -70,7 +70,7 @@ const int TEMPLATE_IMAGE_COUNT = 1;
 
 const int OBJECT_COUNT = 1;
 const char* FILE_NAME[] = {	"data/reconstruction-2010-11-28_14_05_09/reconstruction.txt", 
-							"data/reconstruction-2010-03-29_09_33_01/reconstruction.txt"};
+							"data/reconstruction-2010-11-28_16_24_23/reconstruction.txt"};
 
 void DrawRectangle(IplImage* image, windage::Calibration* calibration, double dx, double dy, double dz, double x=0, double y=0, double z=0)
 {
