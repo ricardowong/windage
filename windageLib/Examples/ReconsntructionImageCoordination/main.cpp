@@ -61,8 +61,8 @@ const double real_width = 180;
 //const char* FILE_NAME = "data/reconstruction-2010-03-29_18_28_38/reconstruction.txt";
 //const char* FILE_NAME = "data/reconstruction-2010-03-29_09_33_01/reconstruction.txt";
 //const char* FILE_NAME = "data/reconstruction-2010-03-29_09_33_01/reconstruction.txt";
-const char* FILE_NAME = "data/reconstruction-2010-11-28_16_13_16/reconstruction.txt";
-const char* REFE_FILE = "data/reconstruction-2010-11-28_16_13_16/reference.png";
+const char* FILE_NAME = "data/reconstruction-2010-11-28_23_06_34/reconstruction.txt";
+const char* REFE_FILE = "data/reconstruction-2010-11-28_23_06_34/reference.png";
 
 void main()
 {
