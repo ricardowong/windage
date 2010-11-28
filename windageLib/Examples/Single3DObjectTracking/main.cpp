@@ -53,7 +53,7 @@ const double INTRINSIC[] = {1033.93, 1033.84, 319.044, 228.858,-0.206477, 0.3064
 //const char* FILE_NAME = "data/reconstruction-2010-03-29_18_28_38/reconstruction.txt";
 //const char* FILE_NAME = "data/reconstruction-2010-03-29_09_33_01/reconstruction.txt";
 //const char* FILE_NAME = "data/reconstruction-2010-03-29_09_33_01/reconstruction.txt";
-const char* FILE_NAME = "data/reconstruction-2010-11-28_13_30_05/reconstruction.txt";
+const char* FILE_NAME = "data/reconstruction-2010-11-28_16_24_23/reconstruction.txt";
 
 void DrawRectangle(IplImage* image, windage::Calibration* calibration, double dx, double dy, double dz)
 {
@@ -205,9 +205,9 @@ void main()
 
 				//draw rectangle
 //*
-				float dx = 320.0f;
-				float dy = 216.0f;
-				float dz = 100.0f;
+				float dx = 180.0f/2;
+				float dy = 82.0f/2;
+				float dz = 57.0f/2;
 
 				CvPoint pt[8];
 				pt[0] = calibration->ConvertWorld2Image(+dx, +dy, +dz);
