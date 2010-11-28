@@ -176,6 +176,7 @@ bool MultipleObjectTracking::TrainingReference(std::vector<windage::FeaturePoint
 	{
 		(*referenceFeatures)[i].SetObjectID(this->objectCount);
 		(*referenceFeatures)[i].SetRepositoryID(i);
+		
 		this->referenceRepository[this->objectCount].push_back((*referenceFeatures)[i]);
 	}
 	this->searchTree[this->objectCount] = new SearchTreeT();

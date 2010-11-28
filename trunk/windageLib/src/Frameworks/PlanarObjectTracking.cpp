@@ -156,7 +156,7 @@ bool PlanarObjectTracking::UpdateCamerapose(IplImage* grayImage)
 		return false;
 
 	if(tracker == NULL)
-		this->SetDitectionRatio(0);
+		this->SetDitectionRatio(-1);
 	
 	if(this->detectionRatio < 0)
 	{
@@ -165,6 +165,9 @@ bool PlanarObjectTracking::UpdateCamerapose(IplImage* grayImage)
 	}
 	else // featur tracking routine
 	{
+		if(this->performance)
+			this->performance->updateTickCount();
+
 		std::vector<windage::FeaturePoint> sceneKeypoints;
 		this->tracker->TrackFeatures(prevImage, grayImage, &sceMatchedKeypoints, &sceneKeypoints);
 
@@ -184,13 +187,27 @@ bool PlanarObjectTracking::UpdateCamerapose(IplImage* grayImage)
 				refMatchedKeypoints.erase(refMatchedKeypoints.begin() + index);
 			}
 		}
+
+		if(this->performance)
+			this->performance->log("tracking", this->performance->calculateProcessTime());
 	}
 
 	if(this->step > this->detectionRatio || this->detectionRatio < 1) // detection routine (add new points)
 	{
 		step = 0;
+
+		if(this->performance)
+			this->performance->updateTickCount();
+
 		this->detector->DoExtractKeypointsDescriptor(grayImage);
+
+		if(this->performance)
+			this->performance->log("feature", this->performance->calculateProcessTime());
+
 		std::vector<windage::FeaturePoint>* sceneKeypoints = this->detector->GetKeypoints();
+
+		if(this->performance)
+			this->performance->updateTickCount();
 
 		for(unsigned int i=0; i<sceneKeypoints->size(); i++)
 		{
@@ -210,11 +227,17 @@ bool PlanarObjectTracking::UpdateCamerapose(IplImage* grayImage)
 				count++;
 			}
 		}
+
+		if(this->performance)
+			this->performance->log("matching", this->performance->calculateProcessTime());
 	}
 
 	int matchedCount = (int)refMatchedKeypoints.size();
 	if(matchedCount > MIN_FEATURE_POINTS_COUNT)
 	{
+		if(this->performance)
+			this->performance->updateTickCount();
+
 		// pose estimate
 		this->estimator->AttatchReferencePoint(&refMatchedKeypoints);
 		this->estimator->AttatchScenePoint(&sceMatchedKeypoints);
@@ -240,14 +263,6 @@ bool PlanarObjectTracking::UpdateCamerapose(IplImage* grayImage)
 			}
 		}
 
-		if(this->logger)
-		{
-			this->logger->log("keypoint", (int)this->detector->GetKeypoints()->size());
-			this->logger->log("match", matchedCount);
-			this->logger->log("inlier", (int)refMatchedKeypoints.size());
-			this->logger->logNewLine();
-		}
-
 		// refinement
 		if(refiner)
 		{
@@ -258,6 +273,9 @@ bool PlanarObjectTracking::UpdateCamerapose(IplImage* grayImage)
 		}
 
 		this->estimator->DecomposeHomography(this->cameraParameter);
+
+		if(this->performance)
+			this->performance->log("pose", this->performance->calculateProcessTime());
 
 		// filtering
 		if(filter)
@@ -278,6 +296,22 @@ bool PlanarObjectTracking::UpdateCamerapose(IplImage* grayImage)
 
 			this->cameraParameter->SetCameraPosition(cvScalar(prediction.x, prediction.y, prediction.z));
 		}
+	}
+
+	if(this->performance)
+	{
+		this->performance->log("keypoint", (int)this->detector->GetKeypoints()->size());
+		this->performance->log("match", matchedCount);
+		this->performance->log("inlier", (int)refMatchedKeypoints.size());
+		this->performance->logNewLine();
+	}
+
+	if(this->logger)
+	{
+		this->logger->log("keypoint", (int)this->detector->GetKeypoints()->size());
+		this->logger->log("match", matchedCount);
+		this->logger->log("inlier", (int)refMatchedKeypoints.size());
+		this->logger->logNewLine();
 	}
 
 	cvCopyImage(grayImage, this->prevImage);

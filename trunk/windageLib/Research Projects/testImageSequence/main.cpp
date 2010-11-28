@@ -49,18 +49,24 @@ const int WIDTH = 640;
 const int HEIGHT = (WIDTH * 3) / 4;
 const int FEATURE_COUNT = WIDTH*2;
 
-const double SCALE_FACTOR = 4.0;
-const int SCALE_STEP = 10;
-const double REPROJECTION_ERROR = 5.0;
+const double SCALE_FACTOR = 6.0;
+const int SCALE_STEP = 6;
+const double REPROJECTION_ERROR = 2.0;
 
 const char* TEMPLATE_IMAGE = "D:\\Datasets\\metaio\\target6\\target6_320.png";
-const char* IMAGE_SEQUENCE = "D:\\Datasets\\metaio\\target6\\6-2\\%04d.png";
+const char* IMAGE_SEQUENCE = "D:\\Datasets\\metaio\\target6\\6-1\\%04d.png";
 
 const double INTRINSIC[] = {901.155, 901.155, 322.1, 229.541, 0, 0, 0, 0};
+
+#define RECODING 1
 
 void main()
 {
 	windage::Logger logger(&std::cout);
+
+#if RECODING
+	CvVideoWriter* writer = cvCreateVideoWriter("metaio_result.avi", CV_FOURCC_DEFAULT, 30, cvSize(WIDTH, HEIGHT));
+#endif
 
 	IplImage* grabImage;
 	IplImage* inputImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 4);
@@ -153,11 +159,13 @@ void main()
 				keypointCount = localcount;
 			}
 
-			// draw result
-//			detector->DrawKeypoints(resultImage);
-			tracking.DrawOutLine(resultImage, true);
-			tracking.DrawDebugInfo(resultImage);
-			calibration->DrawInfomation(resultImage, 100);
+			if(tracking.GetMatchingCount() > 10)
+			{
+//				detector->DrawKeypoints(resultImage);
+				tracking.DrawOutLine(resultImage, true);
+				tracking.DrawDebugInfo(resultImage);
+				calibration->DrawInfomation(resultImage, 100);
+			}
 		}
 		matchingCount = tracking.GetMatchingCount();
 
@@ -166,23 +174,27 @@ void main()
 		logger.logNewLine();
 
 		sprintf_s(message, "Processing Time : %.2lf ms", processingTime);
-		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 20), 0.6, message);
+//		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 20), 0.6, message);
 		sprintf_s(message, "Feature Count : %d, Threshold : %.0lf", keypointCount, threshold);
 		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 40), 0.6, message);
 		sprintf_s(message, "Matching Count : %d", matchingCount);
 		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 60), 0.6, message);
 
-		sprintf_s(message, "Press 'Space' to track the current image");
-		windage::Utils::DrawTextToImage(resultImage, cvPoint(WIDTH-270, HEIGHT-10), 0.5, message);
-		sprintf_s(message, "Press 'F' to flip image");
-		windage::Utils::DrawTextToImage(resultImage, cvPoint(WIDTH-270, HEIGHT-25), 0.5, message);
 		cvShowImage("result", resultImage);
+#if RECODING
+		cvWriteToAVI(writer, resultImage);
+#endif
+		
 
 		cvReleaseImage(&inputImage);
 
 		char ch = cvWaitKey(1);
 		switch(ch)
 		{
+		case 'c':
+		case 'C':
+			tracking.ClearTracking();
+			break;
 		case 'q':
 		case 'Q':
 			processing = false;
@@ -191,5 +203,8 @@ void main()
 	}
 
 //	cvReleaseCapture(&capture);
+#if RECODING
+	cvReleaseVideoWriter(&writer);
+#endif
 	cvDestroyAllWindows();
 }

@@ -48,8 +48,8 @@
 #include <windage.h>
 #include <Coordinator/ARForOpenGL.h>
 
-const char* FILE_NAME = "testImages\\reference1.png";
-const char* RESULT_DIR = "testImages\\reference1_d-%d_%c-%d.png";
+const char* FILE_NAME = "testImages\\reference6.png";
+const char* RESULT_DIR = "testImages\\reference6_d-%d_%c-%d.png";
 const int WIDTH = 640;
 const int HEIGHT = 480;
 const double INTRINSIC[] = {1033.93, 1033.84, 319.044, 228.858,-0.206477, 0.306424, 0.000728208, 0.0011338};

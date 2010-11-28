@@ -122,6 +122,7 @@ namespace windage
 
 			//for performance check
 			windage::Logger* logger;
+			windage::Logger* performance;
 			
 		public:
 			virtual char* GetFunctionName(){return "PlanarObjectTracking";};
@@ -148,6 +149,7 @@ namespace windage
 				detectionRatio = 0;
 
 				logger = NULL;
+				performance = NULL;
 			}
 			virtual ~PlanarObjectTracking()
 			{
@@ -166,6 +168,10 @@ namespace windage
 			inline int GetMatchingCount(){return (int)this->refMatchedKeypoints.size();};
 			inline IplImage* GetReferenceImage(){return this->referenceImage;};
 			inline void SetLogger(windage::Logger* logger){this->logger = logger;};
+			inline void SetPerformance(windage::Logger* logger){this->performance = logger;};
+
+
+			inline void ClearTracking(){refMatchedKeypoints.clear();sceMatchedKeypoints.clear();};
 
 			/**
 			 * @fn	AttatchCalibration

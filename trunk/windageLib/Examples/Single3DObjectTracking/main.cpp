@@ -47,12 +47,13 @@
 const int WIDTH = 640;
 const int HEIGHT = (WIDTH * 3) / 4;
 
-const double REPROJECTION_ERROR = 5.0;
+const double REPROJECTION_ERROR = 2.0;
 const double INTRINSIC[] = {1033.93, 1033.84, 319.044, 228.858,-0.206477, 0.306424, 0.000728208, 0.0011338};
 
 //const char* FILE_NAME = "data/reconstruction-2010-03-29_18_28_38/reconstruction.txt";
 //const char* FILE_NAME = "data/reconstruction-2010-03-29_09_33_01/reconstruction.txt";
-const char* FILE_NAME = "data/reconstruction-2010-03-29_09_33_01/reconstruction.txt";
+//const char* FILE_NAME = "data/reconstruction-2010-03-29_09_33_01/reconstruction.txt";
+const char* FILE_NAME = "data/reconstruction-2010-11-28_13_30_05/reconstruction.txt";
 
 void DrawRectangle(IplImage* image, windage::Calibration* calibration, double dx, double dy, double dz)
 {
@@ -103,21 +104,16 @@ void main()
 	windage::Calibration* calibration					= new windage::Calibration();
 	windage::Algorithms::SearchTree* searchtree			= new windage::Algorithms::FLANNtree(30);
 	windage::Algorithms::OpticalFlow* opticalflow		= new windage::Algorithms::OpticalFlow();
-	windage::Algorithms::EPnPRANSACestimator* estimator	= new windage::Algorithms::EPnPRANSACestimator();
+	windage::Algorithms::OpenCVRANSACestimator* estimator	= new windage::Algorithms::OpenCVRANSACestimator();
 	windage::Algorithms::PoseRefiner* refiner			= new windage::Algorithms::PoseLMmethod();
 	
-	calibration = new windage::Calibration();
-	opticalflow = new windage::Algorithms::OpticalFlow();
-	estimator = new windage::Algorithms::EPnPRANSACestimator();
-	refiner = new windage::Algorithms::PoseLMmethod();
-
 	calibration->Initialize(INTRINSIC[0], INTRINSIC[1], INTRINSIC[2], INTRINSIC[3], INTRINSIC[4], INTRINSIC[5], INTRINSIC[6], INTRINSIC[7]);
 	searchtree->SetRatio(0.3);
 	opticalflow->Initialize(WIDTH, HEIGHT, cvSize(15, 15), 3);
 	estimator->SetReprojectionError(REPROJECTION_ERROR);
-	estimator->SetConfidence(0.95);
+	estimator->SetConfidence(0.90);
 	estimator->SetMaxIteration(100);
-	refiner->SetMaxIteration(10);
+	refiner->SetMaxIteration(20);
 
 	tracking.AttatchCalibration(calibration);
 	tracking.AttatchMatcher(searchtree);
@@ -204,8 +200,43 @@ void main()
 			// draw result
 			if(tracking.GetMatchingCount() > 9)
 			{
-				tracking.DrawDebugInfo(resultImage);
-				calibration->DrawInfomation(resultImage, 50);
+//				tracking.DrawDebugInfo(resultImage);
+				calibration->DrawInfomation(resultImage, 100);
+
+				//draw rectangle
+//*
+				float dx = 320.0f;
+				float dy = 216.0f;
+				float dz = 100.0f;
+
+				CvPoint pt[8];
+				pt[0] = calibration->ConvertWorld2Image(+dx, +dy, +dz);
+				pt[1] = calibration->ConvertWorld2Image(+dx, -dy, +dz);
+				pt[2] = calibration->ConvertWorld2Image(-dx, -dy, +dz);
+				pt[3] = calibration->ConvertWorld2Image(-dx, +dy, +dz);
+				pt[4] = calibration->ConvertWorld2Image(+dx, +dy, -dz);
+				pt[5] = calibration->ConvertWorld2Image(+dx, -dy, -dz);
+				pt[6] = calibration->ConvertWorld2Image(-dx, -dy, -dz);
+				pt[7] = calibration->ConvertWorld2Image(-dx, +dy, -dz);
+
+				for(int i=0; i<4; i++)
+				{
+					int i2 = i==3?0:i+1;
+					cvLine(resultImage, pt[i], pt[i2], CV_RGB(0, 0, 0), 5);
+					cvLine(resultImage, pt[i], pt[i2], CV_RGB(255, 0, 255), 3);
+				}
+				for(int i=4; i<8; i++)
+				{
+					int i2 = i==7?4:i+1;
+					cvLine(resultImage, pt[i], pt[i2], CV_RGB(0, 0, 0), 5);
+					cvLine(resultImage, pt[i], pt[i2], CV_RGB(255, 0, 255), 3);
+				}
+				for(int i=0; i<4; i++)
+				{
+					cvLine(resultImage, pt[i], pt[i+4], CV_RGB(0, 0, 0), 5);
+					cvLine(resultImage, pt[i], pt[i+4], CV_RGB(255, 0, 255), 3);
+				}
+//*/
 			}
 		}
 		matchingCount = tracking.GetMatchingCount();
