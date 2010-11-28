@@ -45,9 +45,17 @@
 
 #include <windage.h>
 
-const char* FILE_NAME = "testImages\\reference1.png";
-const char* RESULT_DIR = "testImages\\reference1_d-%d_%c-%d.png";
-const char* RESULT_SAVE_DIR = "testImages\\reference1_d-%d_%c-%d_result.png";
+#define SIFT 1
+#define SURF 0
+#define WSURF 0
+#define REFERENCE_NUMBER 5
+#define PERFORMANCE 1
+#define ACCURACY 0
+
+char FILE_NAME[1000];
+const char* FILE_NAME_TEMPLATE = "testImages\\reference%d.png";
+const char* RESULT_DIR = "testImages\\reference%d_d-%d_%c-%d.png";
+const char* RESULT_SAVE_DIR = "testImagesResult\\reference%d_d-%d_%c-%d_result.png";
 const int WIDTH = 640;
 const int HEIGHT = 480;
 const double INTRINSIC[] = {1033.93, 1033.84, 319.044, 228.858,-0.206477, 0.306424, 0.000728208, 0.0011338};
@@ -61,17 +69,53 @@ const int DISTANCE_RANGE_S = -600;
 const int DISTANCE_RANGE_E = 2000;
 const int DISTANCE_RANGE_D = 300;
 
+#if WSURF
 const double SCALE_FACTOR = 4.0;
 const int SCALE_STEP = 10;
+#else
+const double SCALE_FACTOR = 1.0;
+const int SCALE_STEP = 1;
+#endif
 const double REPROJECTION_ERROR = 5.0;
 
 void main()
 {
 	windage::Logger logger(&std::cout);
-	windage::Logger fileXLog("WSURF_recognition5_x_", "txt", true);
-	windage::Logger fileYLog("WSURF_recognition5_y_", "txt", true);
-	windage::Logger fileZLog("WSURF_recognition5_z_", "txt", true);
+#if ACCURACY
+	char loggerFileX[100], loggerFileY[100], loggerFileZ[100];
+#if SIFT
+	sprintf(loggerFileX, "SIFT_recognition%d_x", REFERENCE_NUMBER);
+	sprintf(loggerFileY, "SIFT_recognition%d_y", REFERENCE_NUMBER);
+	sprintf(loggerFileZ, "SIFT_recognition%d_z", REFERENCE_NUMBER);
+#elif SURF
+	sprintf(loggerFileX, "SURF_recognition%d_x", REFERENCE_NUMBER);
+	sprintf(loggerFileY, "SURF_recognition%d_y", REFERENCE_NUMBER);
+	sprintf(loggerFileZ, "SURF_recognition%d_z", REFERENCE_NUMBER);
+#else
+	sprintf(loggerFileX, "WSURF_recognition%d_x", REFERENCE_NUMBER);
+	sprintf(loggerFileY, "WSURF_recognition%d_y", REFERENCE_NUMBER);
+	sprintf(loggerFileZ, "WSURF_recognition%d_z", REFERENCE_NUMBER);
+#endif
+	
+	windage::Logger fileXLog(//&std::cout);
+							 loggerFileX, "txt", false);
+	windage::Logger fileYLog(//&std::cout);
+							 loggerFileY, "txt", false);
+	windage::Logger fileZLog(//&std::cout);
+							 loggerFileZ, "txt", false);
+#elif PERFORMANCE
+	char perfilename[100];
+#if SIFT
+	sprintf(perfilename, "SIFT_recognition%d_p", REFERENCE_NUMBER);
+#elif SURF
+	sprintf(perfilename, "SURF_recognition%d_p", REFERENCE_NUMBER);
+#else
+	sprintf(perfilename, "WSURF_recognition%d_p", REFERENCE_NUMBER);
+#endif
+	windage::Logger performance(perfilename, "txt", false);
+#endif
 
+	sprintf(FILE_NAME, FILE_NAME_TEMPLATE, REFERENCE_NUMBER);
 	IplImage* grayImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 1);
 	IplImage* resultImage = cvCreateImage(cvSize(WIDTH, HEIGHT), IPL_DEPTH_8U, 3);
 
@@ -87,7 +131,14 @@ void main()
 	windage::Algorithms::HomographyRefiner* refiner;
 
 	calibration = new windage::Calibration();
+#if SIFT
+	detector = new windage::Algorithms::SIFTdetector();
+#elif SURF
+	detector = new windage::Algorithms::SURFdetector();
+#else
 	detector = new windage::Algorithms::WSURFdetector();
+#endif
+	
 	searchtree = new windage::Algorithms::FLANNtree();
 	estimator = new windage::Algorithms::RANSACestimator();
 	checker = new windage::Algorithms::OutlierChecker();
@@ -106,8 +157,12 @@ void main()
 	tracking.AttatchEstimator(estimator);
 	tracking.AttatchChecker(checker);
 	tracking.AttatchRefiner(refiner);
+	tracking.SetDitectionRatio(-1);
 
-//	tracking.SetDitectionRatio(1);
+#if PERFORMANCE
+	tracking.SetPerformance(&performance);
+#endif
+
 	tracking.Initialize(WIDTH, HEIGHT, (double)WIDTH, (double)HEIGHT);
 
 	IplImage* sampleImage = cvLoadImage(FILE_NAME, 0);
@@ -124,7 +179,7 @@ void main()
 	double processingTime;
 	while(processing)
 	{
-		cvWaitKey();
+//		cvWaitKey(0);
 
 		for(int d=DISTANCE_RANGE_S; d<=DISTANCE_RANGE_E; d+=DISTANCE_RANGE_D)
 		{
@@ -133,37 +188,49 @@ void main()
 				for(int r=ROTATION_RANGE_S; r<=ROTATION_RANGE_E; r+=ROTATION_RANGE_D)
 				{
 //*
-					d = 1200;
-					rMode = 1;
-					r = 50;
+//					int rMode, r;
+					d = DISTANCE_RANGE_S + 900;
+					rMode = 0;
+					r = 0;
 //*/
 					int tempR = (r<0)?360+r:r;
 					int tempD = d - DISTANCE_RANGE_S;
+
+					switch(rMode)
+					{
+					case 0://x
+						sprintf(filename, RESULT_DIR, REFERENCE_NUMBER, tempD, 'x', tempR);
+						sprintf(filenameSave, RESULT_SAVE_DIR, REFERENCE_NUMBER, tempD, 'x', tempR);
+						break;
+					case 1://y
+						sprintf(filename, RESULT_DIR, REFERENCE_NUMBER, tempD, 'y', tempR);
+						sprintf(filenameSave, RESULT_SAVE_DIR, REFERENCE_NUMBER, tempD, 'y', tempR);
+						break;
+					case 2://z
+						sprintf(filename, RESULT_DIR, REFERENCE_NUMBER, tempD, 'z', tempR);
+						sprintf(filenameSave, RESULT_SAVE_DIR, REFERENCE_NUMBER, tempD, 'z', tempR);
+						break;
+					}
+#if ACCURACY
 					switch(rMode)
 					{
 					case 0://x
 						tracking.SetLogger(&fileXLog);
 						fileXLog.log("D", d);
 						fileXLog.log("R", r);
-						sprintf(filename, RESULT_DIR, tempD, 'x', tempR);
-						sprintf(filenameSave, RESULT_SAVE_DIR, tempD, 'x', tempR);
 						break;
 					case 1://y
 						fileYLog.log("D", d);
 						fileYLog.log("R", r);
 						tracking.SetLogger(&fileYLog);
-						sprintf(filename, RESULT_DIR, tempD, 'y', tempR);
-						sprintf(filenameSave, RESULT_SAVE_DIR, tempD, 'y', tempR);
 						break;
 					case 2://z
 						tracking.SetLogger(&fileZLog);
 						fileZLog.log("D", d);
 						fileZLog.log("R", r);
-						sprintf(filename, RESULT_DIR, tempD, 'z', tempR);
-						sprintf(filenameSave, RESULT_SAVE_DIR, tempD, 'z', tempR);
 						break;
 					}
-
+#endif
 					// capture image
 					IplImage* inputImage = cvLoadImage(filename);
 //					cvSmooth(inputImage, inputImage);
@@ -181,9 +248,12 @@ void main()
 					// draw result
 //					detector->DrawKeypoints(resultImage);
 
-					tracking.DrawOutLine(resultImage, true);
+					if(tracking.GetMatchingCount() > 10)
+					{
+						tracking.DrawOutLine(resultImage, true);
 //					tracking.DrawDebugInfo(resultImage);
-					calibration->DrawInfomation(resultImage, 100);
+						calibration->DrawInfomation(resultImage, 100);
+					}
 
 					int keypointCount = detector->GetKeypointsCount();
 					int matchingCount = tracking.GetMatchingCount();
@@ -193,17 +263,17 @@ void main()
 					logger.logNewLine();
 
 					sprintf_s(message, "Processing Time : %.2lf ms", processingTime);
-					windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 20), 0.6, message);
+//					windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 20), 0.6, message);
 					sprintf_s(message, "Feature Count : %d", keypointCount);
-					windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 40), 0.6, message);
+//					windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 40), 0.6, message);
 					sprintf_s(message, "Matching Count : %d", matchingCount);
-					windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 60), 0.6, message);
+//					windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 60), 0.6, message);
 
 					sprintf_s(message, "File name : %s", filename);
 					windage::Utils::DrawTextToImage(resultImage, cvPoint(WIDTH-350, HEIGHT-10), 0.5, message);
 					cvShowImage("result", resultImage);
 
-					char ch = cvWaitKey(0);
+					char ch = cvWaitKey(1);
 					switch(ch)
 					{
 					case 's':

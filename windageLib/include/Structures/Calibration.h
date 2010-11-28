@@ -176,6 +176,7 @@ namespace windage
 		 * @{
 		 */
 		int ConvertWorld2Camera(CvMat* output4vector, CvMat* input4vector);
+		windage::Vector4 ConvertWorld2Camerad(windage::Vector4 input);
 		int ConvertCamera2Image(CvMat* output3vector, CvMat* input3vector);
 		int ConvertWorld2Image(CvMat* output3vector, CvMat* input4vector);
 		CvPoint ConvertWorld2Image(double x, double y, double z);

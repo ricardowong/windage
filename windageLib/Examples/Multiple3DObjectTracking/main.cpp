@@ -52,8 +52,8 @@ const double REPROJECTION_ERROR = 2.0;
 const double INTRINSIC[] = {1033.93, 1033.84, 319.044, 228.858,-0.206477, 0.306424, 0.000728208, 0.0011338};
 
 const int OBJECT_COUNT = 2;
-const char* FILE_NAME[] = {	"data/reconstruction-2010-04-08_15_09_46/reconstruction.txt", 
-							"data/reconstruction-2010-03-29_09_33_01/reconstruction.txt"};
+const char* FILE_NAME[] = {	"data/reconstruction-O_box/reconstruction.txt", 
+//							"data/reconstruction-O_box/reconstruction.txt"};
 const char* BASE_FEATURE_NAME = {"data/descriptor-2010-04-26.txt"};
 
 void main()

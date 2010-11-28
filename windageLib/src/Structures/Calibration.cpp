@@ -225,6 +225,27 @@ int Calibration::ConvertWorld2Camera(CvMat* output, CvMat* input)
 	return 1;
 }
 
+windage::Vector4 Calibration::ConvertWorld2Camerad(windage::Vector4 input)
+{
+	CvMat* cameraCoordinate = cvCreateMat(4, 1,CV_64FC1);
+	CvMat* worldCoordinate = cvCreateMat(4, 1,CV_64FC1);
+
+	CV_MAT_ELEM((*worldCoordinate), double, 0, 0) = input.x;
+	CV_MAT_ELEM((*worldCoordinate), double, 1, 0) = input.y;
+	CV_MAT_ELEM((*worldCoordinate), double, 2, 0) = input.z;
+	CV_MAT_ELEM((*worldCoordinate), double, 3, 0) = input.w;
+	ConvertWorld2Camera(cameraCoordinate, worldCoordinate);
+
+	double ww = 1.0 / CV_MAT_ELEM((*cameraCoordinate), double, 3, 0);
+	windage::Vector4 point;
+	point.x = CV_MAT_ELEM((*cameraCoordinate), double, 0, 0) * ww;
+	point.y = CV_MAT_ELEM((*cameraCoordinate), double, 1, 0) * ww;
+	point.z = CV_MAT_ELEM((*cameraCoordinate), double, 2, 0) * ww;
+	point.w = 1.0;
+
+	return point;
+}
+
 int Calibration::ConvertCamera2Image(CvMat* output, CvMat* input)
 {
 	cvMatMul(this->intrinsicMatrix, input, output);
