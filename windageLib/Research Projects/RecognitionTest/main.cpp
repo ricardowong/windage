@@ -45,12 +45,14 @@
 
 #include <windage.h>
 
-#define SIFT 1
+#define SIFT 0
 #define SURF 0
-#define WSURF 0
-#define REFERENCE_NUMBER 5
-#define PERFORMANCE 1
-#define ACCURACY 0
+#define WSURF 1
+
+// 1, 5, 6
+#define REFERENCE_NUMBER 6
+#define PERFORMANCE 0
+#define ACCURACY 1
 
 char FILE_NAME[1000];
 const char* FILE_NAME_TEMPLATE = "testImages\\reference%d.png";
@@ -77,6 +79,32 @@ const double SCALE_FACTOR = 1.0;
 const int SCALE_STEP = 1;
 #endif
 const double REPROJECTION_ERROR = 5.0;
+
+windage::Vector3 EstimateCameraPose(int rMode, double d, double theta)
+{
+	windage::Vector3 result;
+	double radius = theta * CV_PI / 180;
+	switch(rMode)
+	{
+	case 0://x
+		result.x = 0;
+		result.y = -sin(radius) * d;
+		result.z = cos(radius) * d;
+		break;
+	case 1://y
+		result.x = sin(radius) * d;
+		result.y = 0;
+		result.z = cos(radius) * d;
+		break;
+	case 2://z
+		result.x = 0;
+		result.y = 0;
+		result.z = d;
+		break;
+	}
+
+	return result;
+}
 
 void main()
 {
@@ -132,7 +160,7 @@ void main()
 
 	calibration = new windage::Calibration();
 #if SIFT
-	detector = new windage::Algorithms::SIFTdetector();
+	detector = new windage::Algorithms::SIFTGPUdetector();
 #elif SURF
 	detector = new windage::Algorithms::SURFdetector();
 #else
@@ -171,6 +199,8 @@ void main()
 	tracking.AttatchReferenceImage(sampleImage);
 	tracking.TrainingReference(SCALE_FACTOR, SCALE_STEP);
 
+	windage::Vector3 cameraPositionE;
+	windage::Vector3 cameraPositionC;
 
 	char message[1000];
 	char filename[1000];
@@ -187,7 +217,7 @@ void main()
 			{
 				for(int r=ROTATION_RANGE_S; r<=ROTATION_RANGE_E; r+=ROTATION_RANGE_D)
 				{
-//*
+/*
 //					int rMode, r;
 					d = DISTANCE_RANGE_S + 900;
 					rMode = 0;
@@ -195,6 +225,7 @@ void main()
 //*/
 					int tempR = (r<0)?360+r:r;
 					int tempD = d - DISTANCE_RANGE_S;
+
 
 					switch(rMode)
 					{
@@ -230,6 +261,8 @@ void main()
 						fileZLog.log("R", r);
 						break;
 					}
+
+					cameraPositionE = EstimateCameraPose(rMode, (double)d+INTRINSIC[0], (double)r);
 #endif
 					// capture image
 					IplImage* inputImage = cvLoadImage(filename);
@@ -253,8 +286,44 @@ void main()
 						tracking.DrawOutLine(resultImage, true);
 //					tracking.DrawDebugInfo(resultImage);
 						calibration->DrawInfomation(resultImage, 100);
+						
 					}
 
+#if ACCURACY
+					cameraPositionC = windage::Vector3();
+					CvScalar tempPos = calibration->GetCameraPosition();
+
+					cameraPositionC.x = tempPos.val[0];
+					cameraPositionC.y = tempPos.val[1];
+					cameraPositionC.z = tempPos.val[2];
+
+					cameraPositionC -= cameraPositionE;
+					cameraPositionC.x = fabs(cameraPositionC.x);
+					cameraPositionC.y = fabs(cameraPositionC.y);
+					cameraPositionC.z = fabs(cameraPositionC.z);
+
+					switch(rMode)
+					{
+					case 0://x
+						fileXLog.log("poseX", cameraPositionC.x);
+						fileXLog.log("poseY", cameraPositionC.y);
+						fileXLog.log("poseZ", cameraPositionC.z);
+						fileXLog.logNewLine();
+						break;
+					case 1://y
+						fileYLog.log("poseX", cameraPositionC.x);
+						fileYLog.log("poseY", cameraPositionC.y);
+						fileYLog.log("poseZ", cameraPositionC.z);
+						fileYLog.logNewLine();
+						break;
+					case 2://z
+						fileZLog.log("poseX", cameraPositionC.x);
+						fileZLog.log("poseY", cameraPositionC.y);
+						fileZLog.log("poseZ", cameraPositionC.z);
+						fileZLog.logNewLine();
+						break;
+					}
+#endif
 					int keypointCount = detector->GetKeypointsCount();
 					int matchingCount = tracking.GetMatchingCount();
 

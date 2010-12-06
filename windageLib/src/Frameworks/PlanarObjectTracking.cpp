@@ -311,7 +311,7 @@ bool PlanarObjectTracking::UpdateCamerapose(IplImage* grayImage)
 		this->logger->log("keypoint", (int)this->detector->GetKeypoints()->size());
 		this->logger->log("match", matchedCount);
 		this->logger->log("inlier", (int)refMatchedKeypoints.size());
-		this->logger->logNewLine();
+//		this->logger->logNewLine();
 	}
 
 	cvCopyImage(grayImage, this->prevImage);
