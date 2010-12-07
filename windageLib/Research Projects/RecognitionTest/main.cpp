@@ -51,8 +51,8 @@
 
 // 1, 5, 6
 #define REFERENCE_NUMBER 6
-#define PERFORMANCE 0
-#define ACCURACY 1
+#define PERFORMANCE 1
+#define ACCURACY 0
 
 char FILE_NAME[1000];
 const char* FILE_NAME_TEMPLATE = "testImages\\reference%d.png";
@@ -160,7 +160,7 @@ void main()
 
 	calibration = new windage::Calibration();
 #if SIFT
-	detector = new windage::Algorithms::SIFTGPUdetector();
+	detector = new windage::Algorithms::SIFTdetector();
 #elif SURF
 	detector = new windage::Algorithms::SURFdetector();
 #else

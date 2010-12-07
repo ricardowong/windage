@@ -232,11 +232,12 @@ bool PlanarObjectTracking::UpdateCamerapose(IplImage* grayImage)
 			this->performance->log("matching", this->performance->calculateProcessTime());
 	}
 
+	if(this->performance)
+		this->performance->updateTickCount();
+
 	int matchedCount = (int)refMatchedKeypoints.size();
 	if(matchedCount > MIN_FEATURE_POINTS_COUNT)
 	{
-		if(this->performance)
-			this->performance->updateTickCount();
 
 		// pose estimate
 		this->estimator->AttatchReferencePoint(&refMatchedKeypoints);
@@ -274,9 +275,6 @@ bool PlanarObjectTracking::UpdateCamerapose(IplImage* grayImage)
 
 		this->estimator->DecomposeHomography(this->cameraParameter);
 
-		if(this->performance)
-			this->performance->log("pose", this->performance->calculateProcessTime());
-
 		// filtering
 		if(filter)
 		{
@@ -297,6 +295,10 @@ bool PlanarObjectTracking::UpdateCamerapose(IplImage* grayImage)
 			this->cameraParameter->SetCameraPosition(cvScalar(prediction.x, prediction.y, prediction.z));
 		}
 	}
+
+	if(this->performance)
+		this->performance->log("pose", this->performance->calculateProcessTime());
+
 
 	if(this->performance)
 	{
