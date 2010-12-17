@@ -75,8 +75,33 @@ const char* FILE_NAME[] = {	"data/reconstruction-2010-11-28_14_05_09/reconstruct
 
 void DrawRectangle(IplImage* image, windage::Calibration* calibration, CvScalar color, double dx, double dy, double dz, double x=0, double y=0, double z=0)
 {
-	CvPoint pt[8];
+	CvScalar tempCP = calibration->GetCameraPosition();
+	windage::Vector3 center = windage::Vector3(tempCP.val[0], tempCP.val[1], tempCP.val[2]);
+	int farIndex = -1;
 
+	windage::Vector3 tempPt[8];
+	tempPt[0] = windage::Vector3(+dx + x, +dy + y, +dz + z);
+	tempPt[1] = windage::Vector3(+dx + x, -dy + y, +dz + z);
+	tempPt[2] = windage::Vector3(-dx + x, -dy + y, +dz + z);
+	tempPt[3] = windage::Vector3(-dx + x, +dy + y, +dz + z);
+					   					 
+	tempPt[4] = windage::Vector3(+dx + x, +dy + y, -dz + z);
+	tempPt[5] = windage::Vector3(+dx + x, -dy + y, -dz + z);
+	tempPt[6] = windage::Vector3(-dx + x, -dy + y, -dz + z);
+	tempPt[7] = windage::Vector3(-dx + x, +dy + y, -dz + z);
+
+	double farDistance = 0;
+	for(int i=0; i<8; i++)
+	{
+		double distance = center.getDistance(tempPt[i]);
+		if(farDistance < distance)
+		{
+			farDistance = distance;
+			farIndex = i;
+		}
+	}
+
+	CvPoint pt[8];
 	pt[0] = calibration->ConvertWorld2Image(+dx + x, +dy + y, +dz + z);
 	pt[1] = calibration->ConvertWorld2Image(+dx + x, -dy + y, +dz + z);
 	pt[2] = calibration->ConvertWorld2Image(-dx + x, -dy + y, +dz + z);
@@ -90,16 +115,30 @@ void DrawRectangle(IplImage* image, windage::Calibration* calibration, CvScalar 
 	for(int i=0; i<4; i++)
 	{
 		int i2 = i==3?0:i+1;
-		cvLine(image, pt[i], pt[i2], CV_RGB(255, 255, 255), 5);
-		cvLine(image, pt[i+4], pt[i2+4], CV_RGB(255, 255, 255), 5);
-		cvLine(image, pt[i], pt[i+4], CV_RGB(255, 255, 255), 5);
+
+		if(i != farIndex && i2 != farIndex)
+		{
+			cvLine(image, pt[i], pt[i2], CV_RGB(255, 255, 255), 5);
+		}
+		if(i+4 != farIndex && i2+4 != farIndex)
+		{
+			cvLine(image, pt[i+4], pt[i2+4], CV_RGB(255, 255, 255), 5);
+		}
+		if(i != farIndex && i+4 != farIndex)
+		{
+			cvLine(image, pt[i], pt[i+4], CV_RGB(255, 255, 255), 5);
+		}
 	}
 	for(int i=0; i<4; i++)
 	{
 		int i2 = i==3?0:i+1;
-		cvLine(image, pt[i], pt[i2], color, 2);
-		cvLine(image, pt[i+4], pt[i2+4], color, 2);
-		cvLine(image, pt[i], pt[i+4], color, 2);
+
+		if(i != farIndex && i2 != farIndex)
+			cvLine(image, pt[i], pt[i2], color, 2);
+		if(i+4 != farIndex && i2+4 != farIndex)
+			cvLine(image, pt[i+4], pt[i2+4], color, 2);
+		if(i != farIndex && i+4 != farIndex)
+			cvLine(image, pt[i], pt[i+4], color, 2);
 	}
 }
 
@@ -294,7 +333,7 @@ void main()
 	char message[100];
 	bool processing = true;
 	
-	for(int k=20; k<NUMBER_OF_IMAGE&&processing; k++)
+	for(int k=0; k<NUMBER_OF_IMAGE&&processing; k++)
 	{
 		std::cout << "frames : " << k << std::endl;
 #if SERVER
@@ -359,9 +398,9 @@ void main()
 //				calibrationTemp->DrawInfomation(resultImage, 50);
 				
 				if(i == 0)
-					DrawRectangle(resultImage, calibrationTemp, CV_RGB(255, 0, 255), 180/2, 125/2, 58/2, 0, 10, 0);
+					DrawRectangle(resultImage, calibrationTemp, CV_RGB(255, 0, 255), 180/2, 125/2, 58/2, 5, 0, -5);
 				else if(i==1)
-					DrawRectangle(resultImage, calibrationTemp, CV_RGB(255, 0, 255), 180/2, 80/2, 58/2, 0, 0, 0);
+					DrawRectangle(resultImage, calibrationTemp, CV_RGB(255, 0, 255), 180/2, 80/2, 58/2, 0, -5, -10);
 
 				CvPoint centerPoint = calibrationTemp->ConvertWorld2Image(0.0, 0.0, 0.0);
 				
@@ -379,7 +418,7 @@ void main()
 		for(int i=0; i<OBJECT_COUNT; i++)
 		{
 			updated[i] = false;
-			if(serverTracker->GetMatchingCount(0) > 10 && server3DTracker->GetMatchingCount(i) > 10)
+			if(serverTracker->GetMatchingCount(0) > 30 && server3DTracker->GetMatchingCount(i) > 30)
 			{
 //				windage::Matrix3 rotation = windage::Coordinator::MultiMarkerCoordinator::GetRotation(serverTracker->GetCameraParameter(0), server3DTracker->GetCameraParameter(i-1));
 //				windage::Vector3 translation = windage::Coordinator::MultiMarkerCoordinator::GetTranslation(serverTracker->GetCameraParameter(0), server3DTracker->GetCameraParameter(i-1));
@@ -453,12 +492,14 @@ void main()
 
 		// draw result
 		count = 0;
+		bool tracked = false;
 //		matchingCount.resize(clientTracker->GetObjectCount());
 		for(int i=0; i<1/*clientTracker->GetObjectCount()*/; i++)
 	{
 			matchingCount[i] = clientTracker->GetMatchingCount(i);
 			if(clientTracker->GetMatchingCount(i) > 10)
 			{
+				tracked = true;
 				windage::Calibration* calibrationTemp = clientTracker->GetCameraParameter(i);
 				if(i == 0)
 				{
@@ -488,7 +529,7 @@ void main()
 		countRest = 1;
 		for(int i=0; i<OBJECT_COUNT; i++)
 		{
-			if(updated[i])
+			if(updated[i] && tracked)
 			{
 				windage::Matrix4 extrinsic;
 //				windage::Matrix4 extrinsic = windage::Coordinator::MultiMarkerCoordinator::CalculateExtrinsic(clientTracker->GetCameraParameter(0), rotationList[i], translationList[i]);
@@ -504,9 +545,9 @@ void main()
 
 				// client
 				if(i == 0)
-					DrawRectangle(resultImage, calibrationTemp, CV_RGB(0, 0, 0), 180/2, 125/2, 58/2, 20, 5, 0);
+					DrawRectangle(resultImage, calibrationTemp, CV_RGB(0, 0, 0), 180/2, 125/2, 58/2, 10, 0, 5);
 				else if(i==1)
-					DrawRectangle(resultImage, calibrationTemp, CV_RGB(0, 0, 0), 180/2, 80/2, 58/2, 10, 10, 0);
+					DrawRectangle(resultImage, calibrationTemp, CV_RGB(0, 0, 0), 180/2, 80/2, 58/2, 10, 0, 10);
 
 				CvPoint centerPoint = calibrationTemp->ConvertWorld2Image(0.0, 0.0, 0.0);
 				
@@ -540,9 +581,9 @@ void main()
 
 //		sprintf_s(message, "Processing Time : %.2lf ms", processingTime);
 		sprintf_s(message, "Detection Number : %d, Restoration Number : %d", count, countRest);
-		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 20), 0.6, message);
+//		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 20), 0.6, message);
 		sprintf_s(message, "Feature Count : %d, Threshold : %.0lf", serverKeypointCount, serverThreshold);
-		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 40), 0.6, message);
+//		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 40), 0.6, message);
 		sprintf_s(message, "Matching Count : %d", matchingCount);
 //		windage::Utils::DrawTextToImage(resultImage, cvPoint(10, 60), 0.6, message);
 

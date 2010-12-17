@@ -52,10 +52,79 @@ const double REPROJECTION_ERROR = 5.0;
 const double INTRINSIC[] = {1033.93, 1033.84, 319.044, 228.858,-0.206477, 0.306424, 0.000728208, 0.0011338};
 
 const int OBJECT_COUNT = 2;
-const char* FILE_NAME[] = {	"data/reconstruction-2010-05-25_05_57_34/reconstruction.txt", 
-							"data/reconstruction-2010-03-29_09_33_01/reconstruction.txt"};
+const char* FILE_NAME[] = {	"data/reconstruction-2010-11-28_14_05_09/reconstruction.txt", 
+							"data/reconstruction-2010-11-28_16_24_23/reconstruction.txt"};
 const char* BASE_IMAGE_NAME = "reference1_320.png";
 const char* BASE_FEATURE_NAME = {"data/descriptor-2010-04-26.txt"};
+
+void DrawRectangle(IplImage* image, windage::Calibration* calibration, CvScalar color, double dx, double dy, double dz, double x=0, double y=0, double z=0)
+{
+	CvScalar tempCP = calibration->GetCameraPosition();
+	windage::Vector3 center = windage::Vector3(tempCP.val[0], tempCP.val[1], tempCP.val[2]);
+	int farIndex = -1;
+
+	windage::Vector3 tempPt[8];
+	tempPt[0] = windage::Vector3(+dx + x, +dy + y, +dz + z);
+	tempPt[1] = windage::Vector3(+dx + x, -dy + y, +dz + z);
+	tempPt[2] = windage::Vector3(-dx + x, -dy + y, +dz + z);
+	tempPt[3] = windage::Vector3(-dx + x, +dy + y, +dz + z);
+					   					 
+	tempPt[4] = windage::Vector3(+dx + x, +dy + y, -dz + z);
+	tempPt[5] = windage::Vector3(+dx + x, -dy + y, -dz + z);
+	tempPt[6] = windage::Vector3(-dx + x, -dy + y, -dz + z);
+	tempPt[7] = windage::Vector3(-dx + x, +dy + y, -dz + z);
+
+	double farDistance = 0;
+	for(int i=0; i<8; i++)
+	{
+		double distance = center.getDistance(tempPt[i]);
+		if(farDistance < distance)
+		{
+			farDistance = distance;
+			farIndex = i;
+		}
+	}
+
+	CvPoint pt[8];
+	pt[0] = calibration->ConvertWorld2Image(+dx + x, +dy + y, +dz + z);
+	pt[1] = calibration->ConvertWorld2Image(+dx + x, -dy + y, +dz + z);
+	pt[2] = calibration->ConvertWorld2Image(-dx + x, -dy + y, +dz + z);
+	pt[3] = calibration->ConvertWorld2Image(-dx + x, +dy + y, +dz + z);
+																 
+	pt[4] = calibration->ConvertWorld2Image(+dx + x, +dy + y, -dz + z);
+	pt[5] = calibration->ConvertWorld2Image(+dx + x, -dy + y, -dz + z);
+	pt[6] = calibration->ConvertWorld2Image(-dx + x, -dy + y, -dz + z);
+	pt[7] = calibration->ConvertWorld2Image(-dx + x, +dy + y, -dz + z);
+	
+	for(int i=0; i<4; i++)
+	{
+		int i2 = i==3?0:i+1;
+
+		if(i != farIndex && i2 != farIndex)
+		{
+			cvLine(image, pt[i], pt[i2], CV_RGB(255, 255, 255), 5);
+		}
+		if(i+4 != farIndex && i2+4 != farIndex)
+		{
+			cvLine(image, pt[i+4], pt[i2+4], CV_RGB(255, 255, 255), 5);
+		}
+		if(i != farIndex && i+4 != farIndex)
+		{
+			cvLine(image, pt[i], pt[i+4], CV_RGB(255, 255, 255), 5);
+		}
+	}
+	for(int i=0; i<4; i++)
+	{
+		int i2 = i==3?0:i+1;
+
+		if(i != farIndex && i2 != farIndex)
+			cvLine(image, pt[i], pt[i2], color, 2);
+		if(i+4 != farIndex && i2+4 != farIndex)
+			cvLine(image, pt[i+4], pt[i2+4], color, 2);
+		if(i != farIndex && i+4 != farIndex)
+			cvLine(image, pt[i], pt[i+4], color, 2);
+	}
+}
 
 windage::Frameworks::MultipleObjectTracking* CreateMultipleObjectTracking()
 {
@@ -244,10 +313,14 @@ void main()
 				int matchedCount = tracking->GetMatchingCount(i);
 				if(matchedCount > 9)
 				{
-					tracking->DrawDebugInfo(resultImage, i);
+//					tracking->DrawDebugInfo(resultImage, i);
 					
 					windage::Calibration* cameraParam = tracking->GetCameraParameter(i);
 					cameraParam->DrawInfomation(resultImage, 50);
+					if(i == 0)
+						DrawRectangle(resultImage, cameraParam, CV_RGB(255, 0, 255), 180/2, 125/2, 58/2, 5, 0, -5);
+					else if(i==1)
+						DrawRectangle(resultImage, cameraParam, CV_RGB(255, 0, 255), 180/2, 80/2, 58/2, 0, -5, -10);
 
 					CvPoint point = cameraParam->ConvertWorld2Image(0.0, 0.0, 0.0);
 					point.x += 5;
