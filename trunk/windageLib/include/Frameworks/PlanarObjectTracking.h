@@ -169,6 +169,7 @@ namespace windage
 			inline IplImage* GetReferenceImage(){return this->referenceImage;};
 			inline void SetLogger(windage::Logger* logger){this->logger = logger;};
 			inline void SetPerformance(windage::Logger* logger){this->performance = logger;};
+			inline std::vector<windage::FeaturePoint>* GetReferenceRep(){return &this->referenceRepository;};
 
 
 			inline void ClearTracking(){refMatchedKeypoints.clear();sceMatchedKeypoints.clear();};

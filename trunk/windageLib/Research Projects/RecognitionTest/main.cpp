@@ -50,9 +50,10 @@
 #define WSURF 1
 
 // 1, 5, 6
-#define REFERENCE_NUMBER 6
-#define PERFORMANCE 1
+#define REFERENCE_NUMBER 1
+#define PERFORMANCE 0
 #define ACCURACY 0
+#define MEMORY 1
 
 char FILE_NAME[1000];
 const char* FILE_NAME_TEMPLATE = "testImages\\reference%d.png";
@@ -196,8 +197,13 @@ void main()
 	IplImage* sampleImage = cvLoadImage(FILE_NAME, 0);
 //	cvSmooth(sampleImage, sampleImage);
 
+	logger.updateTickCount();
 	tracking.AttatchReferenceImage(sampleImage);
 	tracking.TrainingReference(SCALE_FACTOR, SCALE_STEP);
+	logger.log("training time", logger.calculateProcessTime());
+	logger.logNewLine();
+	logger.log("training size", (int)tracking.GetReferenceRep()->size());
+	logger.logNewLine();
 
 	windage::Vector3 cameraPositionE;
 	windage::Vector3 cameraPositionC;
