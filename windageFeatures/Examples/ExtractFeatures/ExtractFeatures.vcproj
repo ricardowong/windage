@@ -61,7 +61,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="windageFeatures.lib cv210.lib cxcore210.lib highgui210.lib"
+				AdditionalDependencies="cv210.lib cxcore210.lib highgui210.lib"
 				OutputFile="$(OutDir)\$(ProjectName)d.exe"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="&quot;$(SolutionDir)../../lib&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.1/lib&quot;"
@@ -137,7 +137,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="windageFeatures.lib cv210.lib cxcore210.lib highgui210.lib"
+				AdditionalDependencies="cv210.lib cxcore210.lib highgui210.lib"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="&quot;$(SolutionDir)../../lib&quot;;&quot;$(SolutionDir)../../component/OpenCV 2.1/lib&quot;"
 				GenerateDebugInformation="true"

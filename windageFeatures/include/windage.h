@@ -37,8 +37,22 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
+// Utils
+#include "Utilities/Logger.h"
+#include "Utilities/Utils.h"
+
 // Structures
 #include "Structures/Vector.h"
 #include "Structures/Matrix.h"
 
 #include "Structures/FeaturePoint.h"
+
+// algorithms
+#include "Algorithms/FeatureExtractor.h"
+#include "Algorithms/GoodFeatureToTrack.h"
+#include "Algorithms/HarrisDetector.h"
+#include "Algorithms/FASTDetector.h"
+#include "Algorithms/SURFDetector.h"
+#include "Algorithms/SIFTDetector.h"
+
+

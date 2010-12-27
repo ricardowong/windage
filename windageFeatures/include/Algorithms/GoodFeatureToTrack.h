@@ -37,32 +37,37 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-/**
- * @file	base.h
- * @author	Woonhyuk Baek
- * @version 2.0
- * @date	2010.02.04
- * @brief	header file is positively necessary for making library
- * @warning to insert every library files without exception
- */
+#ifndef _GOOD_FEATURE_TO_TRACK_
+#define _GOOD_FEATURE_TO_TRACK_
 
-#ifndef _WINDAGE_BASE_H_
-#define _WINDAGE_BASE_H_
+#include <vector>
+#include <cv.h>
 
-//#define DYNAMIC_LIBRARY
-#ifdef DYNAMIC_LIBRARY
-	#define DLLEXPORT __declspec(dllexport)   
-	#define DLLIMPORT __declspec(dllimport)
+#include <base.h>
+#include "Structures/FeaturePoint.h"
+#include "Algorithms/FeatureExtractor.h"
 
-	#pragma warning(disable : 4251)
-	#pragma warning(disable : 4786)
-#else
-	#define DLLEXPORT 
-	#define DLLIMPORT   
-#endif
+namespace windage
+{
+	namespace Algorithms
+	{
+		class GoodFeatureToTrack : public FeatureExtractor
+		{
+		protected:
 
-// for debuging
-#include <iostream>
-#include <highgui.h>
+		public:
+			GoodFeatureToTrack()
+			{
+				this->threshold = 0.1;
+				this->NAME = "GoodFeatureToTrack";
+			}
+			~GoodFeatureToTrack()
+			{
+			}
+			
+			bool DoExtractFeature(IplImage* grayImage);
+		};
+	}
+}
 
-#endif //_WINDAGE_BASE_H_
+#endif //_GOOD_FEATURE_TO_TRACK_

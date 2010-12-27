@@ -1,7 +1,7 @@
 /* ========================================================================
- * PROJECT: windage Features
+ * PROJECT: windage Library
  * ========================================================================
- * This work is based on the original windage Features developed by
+ * This work is based on the original windage Library developed by
  *   Woonhyuk Baek (wbaek@gist.ac.kr / windage@live.com)
  *   Woontack Woo (wwoo@gist.ac.kr)
  *   U-VR Lab, GIST of Gwangju in Korea.
@@ -37,32 +37,30 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-/**
- * @file	base.h
- * @author	Woonhyuk Baek
- * @version 2.0
- * @date	2010.02.04
- * @brief	header file is positively necessary for making library
- * @warning to insert every library files without exception
- */
+#include "Algorithms/SIFTDetector.h"
 
-#ifndef _WINDAGE_BASE_H_
-#define _WINDAGE_BASE_H_
+using namespace windage::Algorithms;
 
-//#define DYNAMIC_LIBRARY
-#ifdef DYNAMIC_LIBRARY
-	#define DLLEXPORT __declspec(dllexport)   
-	#define DLLIMPORT __declspec(dllimport)
+#include "Algorithms/SIFT/sift.h"
+#include "Algorithms/SIFT/imgfeatures.h"
 
-	#pragma warning(disable : 4251)
-	#pragma warning(disable : 4786)
-#else
-	#define DLLEXPORT 
-	#define DLLIMPORT   
-#endif
+bool SIFTDetector::DoExtractFeature(IplImage* grayImage)
+{
+	const double SIZE_AMPLIFICATION = 5.0;
+	this->featurePoints.clear();
 
-// for debuging
-#include <iostream>
-#include <highgui.h>
+	struct feature* features = NULL;
+	int count = sift_features(grayImage, &features);
 
-#endif //_WINDAGE_BASE_H_
+	windage::FeaturePoint point;
+	for(int i=0; i<count; i++)
+	{
+		point.SetPoint(windage::Vector3(features[i].x, features[i].y, 1.0));
+		point.SetSize(cvRound(features[i].scl * SIZE_AMPLIFICATION));
+		point.SetDir(features[i].ori);
+
+		this->featurePoints.push_back(point);
+	}
+
+	return false;
+}

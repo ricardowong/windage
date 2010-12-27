@@ -8,6 +8,9 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Algorithms", "Algorithms", "{858E642D-1428-4A5F-A110-76B4A256AEF8}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ExtractFeatures", "..\..\Examples\ExtractFeatures\ExtractFeatures.vcproj", "{BE686912-9625-430D-9990-0A1C5AA13A47}"
+	ProjectSection(ProjectDependencies) = postProject
+		{E5F79192-C2F7-4A11-851D-72C75201D5E9} = {E5F79192-C2F7-4A11-851D-72C75201D5E9}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
