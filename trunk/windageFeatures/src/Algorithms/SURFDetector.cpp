@@ -1,7 +1,7 @@
 /* ========================================================================
- * PROJECT: windage Features
+ * PROJECT: windage Library
  * ========================================================================
- * This work is based on the original windage Features developed by
+ * This work is based on the original windage Library developed by
  *   Woonhyuk Baek (wbaek@gist.ac.kr / windage@live.com)
  *   Woontack Woo (wwoo@gist.ac.kr)
  *   U-VR Lab, GIST of Gwangju in Korea.
@@ -37,32 +37,37 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-/**
- * @file	base.h
- * @author	Woonhyuk Baek
- * @version 2.0
- * @date	2010.02.04
- * @brief	header file is positively necessary for making library
- * @warning to insert every library files without exception
- */
+#include "Algorithms/SURFDetector.h"
 
-#ifndef _WINDAGE_BASE_H_
-#define _WINDAGE_BASE_H_
+using namespace windage::Algorithms;
 
-//#define DYNAMIC_LIBRARY
-#ifdef DYNAMIC_LIBRARY
-	#define DLLEXPORT __declspec(dllexport)   
-	#define DLLIMPORT __declspec(dllimport)
+bool SURFDetector::DoExtractFeature(IplImage* grayImage)
+{
+	this->featurePoints.clear();
 
-	#pragma warning(disable : 4251)
-	#pragma warning(disable : 4786)
-#else
-	#define DLLEXPORT 
-	#define DLLIMPORT   
-#endif
+	CvSeq* keypoints;
+	CvSeq* descriptors;
+	CvMemStorage* storage = cvCreateMemStorage(0);
 
-// for debuging
-#include <iostream>
-#include <highgui.h>
+	CvSURFParams params = cvSURFParams(this->threshold, 1);
+	cvExtractSURF(grayImage, NULL, &keypoints, &descriptors, storage, params);
+	
+	CvSeqReader reader;
+	cvStartReadSeq(descriptors, &reader, 0);
 
-#endif //_WINDAGE_BASE_H_
+	windage::FeaturePoint point;
+	for(int i=0; i<keypoints->total; i++)
+	{
+		CvSURFPoint* surfPT = (CvSURFPoint*)cvGetSeqElem(keypoints, i);
+
+		point.SetPoint(windage::Vector3(surfPT->pt.x, surfPT->pt.y, 1.0));
+		point.SetSize(surfPT->size);
+		point.SetDir(surfPT->dir);
+
+		this->featurePoints.push_back(point);
+	}
+
+	cvReleaseMemStorage(&storage);
+
+	return true;
+}

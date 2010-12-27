@@ -37,32 +37,28 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-/**
- * @file	base.h
- * @author	Woonhyuk Baek
- * @version 2.0
- * @date	2010.02.04
- * @brief	header file is positively necessary for making library
- * @warning to insert every library files without exception
- */
+#include "Algorithms/GoodFeatureToTrack.h"
 
-#ifndef _WINDAGE_BASE_H_
-#define _WINDAGE_BASE_H_
+using namespace windage::Algorithms;
 
-//#define DYNAMIC_LIBRARY
-#ifdef DYNAMIC_LIBRARY
-	#define DLLEXPORT __declspec(dllexport)   
-	#define DLLIMPORT __declspec(dllimport)
+bool GoodFeatureToTrack::DoExtractFeature(IplImage* grayImage)
+{
+	this->featurePoints.clear();
 
-	#pragma warning(disable : 4251)
-	#pragma warning(disable : 4786)
-#else
-	#define DLLEXPORT 
-	#define DLLIMPORT   
-#endif
+	int featureCount = 500;
+	std::vector<CvPoint2D32f> featurePoints;
+	featurePoints.resize(featureCount);
 
-// for debuging
-#include <iostream>
-#include <highgui.h>
+	cvGoodFeaturesToTrack(grayImage, NULL, NULL, (CvPoint2D32f*)&featurePoints[0], &featureCount, this->threshold, 5);
 
-#endif //_WINDAGE_BASE_H_
+	this->featurePoints.clear();
+	for(int i=0; i<featureCount; i++)
+	{
+		windage::FeaturePoint feature;
+		feature.SetPoint(windage::Vector3(featurePoints[i].x, featurePoints[i].y, 0.0));
+		feature.SetSize(5.0);
+		this->featurePoints.push_back(feature);
+	}
+
+	return true;
+}

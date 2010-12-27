@@ -37,32 +37,42 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-/**
- * @file	base.h
- * @author	Woonhyuk Baek
- * @version 2.0
- * @date	2010.02.04
- * @brief	header file is positively necessary for making library
- * @warning to insert every library files without exception
- */
+#include "Algorithms/FASTDetector.h"
+#include "Algorithms/FAST/fast.h"
 
-#ifndef _WINDAGE_BASE_H_
-#define _WINDAGE_BASE_H_
+using namespace windage::Algorithms;
 
-//#define DYNAMIC_LIBRARY
-#ifdef DYNAMIC_LIBRARY
-	#define DLLEXPORT __declspec(dllexport)   
-	#define DLLIMPORT __declspec(dllimport)
+bool FASTDetector::DoExtractFeature(IplImage* grayImage)
+{
+	this->featurePoints.clear();
 
-	#pragma warning(disable : 4251)
-	#pragma warning(disable : 4786)
-#else
-	#define DLLEXPORT 
-	#define DLLIMPORT   
-#endif
+	int cornerCount = 0;
+	xy* cornerPoints = NULL;
 
-// for debuging
-#include <iostream>
-#include <highgui.h>
+	switch(this->FASTindex)
+	{
+	case 9:
+		cornerPoints = fast9_detect_nonmax((const byte*)grayImage->imageData, grayImage->width, grayImage->height, grayImage->widthStep, cvRound(this->threshold), &cornerCount);
+		break;
+	case 10:
+		cornerPoints = fast10_detect_nonmax((const byte*)grayImage->imageData, grayImage->width, grayImage->height, grayImage->widthStep, cvRound(this->threshold), &cornerCount);
+		break;
+	case 11:
+		cornerPoints = fast11_detect_nonmax((const byte*)grayImage->imageData, grayImage->width, grayImage->height, grayImage->widthStep, cvRound(this->threshold), &cornerCount);
+		break;
+	default:
+		cornerPoints = fast12_detect_nonmax((const byte*)grayImage->imageData, grayImage->width, grayImage->height, grayImage->widthStep, cvRound(this->threshold), &cornerCount);
+		break;
+	}
 
-#endif //_WINDAGE_BASE_H_
+	for(int i=0; i<cornerCount; i++)
+	{
+		windage::FeaturePoint feature;
+		feature.SetPoint(windage::Vector3(cornerPoints[i].x, cornerPoints[i].y, 0.0));
+		feature.SetSize(5.0);
+		this->featurePoints.push_back(feature);
+	}
+
+	if(cornerPoints) delete[] cornerPoints;
+	return true;
+}

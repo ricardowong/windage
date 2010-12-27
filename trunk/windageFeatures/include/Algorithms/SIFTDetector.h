@@ -1,7 +1,7 @@
 /* ========================================================================
- * PROJECT: windage Features
+ * PROJECT: windage Library
  * ========================================================================
- * This work is based on the original windage Features developed by
+ * This work is based on the original windage Library developed by
  *   Woonhyuk Baek (wbaek@gist.ac.kr / windage@live.com)
  *   Woontack Woo (wwoo@gist.ac.kr)
  *   U-VR Lab, GIST of Gwangju in Korea.
@@ -37,32 +37,38 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-/**
- * @file	base.h
- * @author	Woonhyuk Baek
- * @version 2.0
- * @date	2010.02.04
- * @brief	header file is positively necessary for making library
- * @warning to insert every library files without exception
- */
+#ifndef _SIFT_DETECTOR_H_
+#define _SIFT_DETECTOR_H_
 
-#ifndef _WINDAGE_BASE_H_
-#define _WINDAGE_BASE_H_
+#include <vector>
 
-//#define DYNAMIC_LIBRARY
-#ifdef DYNAMIC_LIBRARY
-	#define DLLEXPORT __declspec(dllexport)   
-	#define DLLIMPORT __declspec(dllimport)
+#include <cv.h>
+#include "base.h"
 
-	#pragma warning(disable : 4251)
-	#pragma warning(disable : 4786)
-#else
-	#define DLLEXPORT 
-	#define DLLIMPORT   
-#endif
+#include "Structures/FeaturePoint.h"
+#include "Algorithms/FeatureExtractor.h"
 
-// for debuging
-#include <iostream>
-#include <highgui.h>
+namespace windage
+{
+	namespace Algorithms
+	{
+		class SIFTDetector : public FeatureExtractor
+		{
+		protected:
 
-#endif //_WINDAGE_BASE_H_
+		public:
+			SIFTDetector()
+			{
+				this->threshold = 1.0e-3;
+				this->NAME = "SIFTDetector";
+			}
+			~SIFTDetector()
+			{
+			}
+			
+			bool DoExtractFeature(IplImage* grayImage);
+		};
+
+	}
+}
+#endif // _SIFT_DETECTOR_H_

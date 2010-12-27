@@ -37,32 +37,47 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-/**
- * @file	base.h
- * @author	Woonhyuk Baek
- * @version 2.0
- * @date	2010.02.04
- * @brief	header file is positively necessary for making library
- * @warning to insert every library files without exception
- */
+#ifndef _FEATURE_EXTRACTOR_H_
+#define _FEATURE_EXTRACTOR_H_
 
-#ifndef _WINDAGE_BASE_H_
-#define _WINDAGE_BASE_H_
+#include <vector>
+#include <cv.h>
 
-//#define DYNAMIC_LIBRARY
-#ifdef DYNAMIC_LIBRARY
-	#define DLLEXPORT __declspec(dllexport)   
-	#define DLLIMPORT __declspec(dllimport)
+#include <base.h>
+#include "Structures/FeaturePoint.h"
 
-	#pragma warning(disable : 4251)
-	#pragma warning(disable : 4786)
-#else
-	#define DLLEXPORT 
-	#define DLLIMPORT   
-#endif
 
-// for debuging
-#include <iostream>
-#include <highgui.h>
+namespace windage
+{
+	namespace Algorithms
+	{
+		class DLLEXPORT FeatureExtractor
+		{
+		protected:
+			std::string NAME;
+			double threshold;
+			std::vector<windage::FeaturePoint> featurePoints;
 
-#endif //_WINDAGE_BASE_H_
+		public:
+			FeatureExtractor()
+			{
+				this->threshold = 0;
+				this->NAME = "FeatureExtractor";
+			}
+			virtual ~FeatureExtractor()
+			{
+			}
+
+			inline std::string GetFunctionName(){return this->NAME;};
+
+			inline double GetThreshold(){return this->threshold;}
+			inline void SetThreshold(double threshold){this->threshold = threshold;}
+			inline int GetFeaturePointsCount(){return (int)this->featurePoints.size();}
+			inline std::vector<windage::FeaturePoint>* GetFeaturePoints(){return &this->featurePoints;}
+
+			virtual bool DoExtractFeature(IplImage* grayImage) = 0;
+		};
+	}
+}
+
+#endif //_FEATURE_EXTRACTOR_H_

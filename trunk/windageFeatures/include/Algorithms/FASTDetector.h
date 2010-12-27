@@ -37,32 +37,40 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-/**
- * @file	base.h
- * @author	Woonhyuk Baek
- * @version 2.0
- * @date	2010.02.04
- * @brief	header file is positively necessary for making library
- * @warning to insert every library files without exception
- */
+#ifndef _FAST_DETECTOR_
+#define _FAST_DETECTOR_
 
-#ifndef _WINDAGE_BASE_H_
-#define _WINDAGE_BASE_H_
+#include <vector>
+#include <cv.h>
 
-//#define DYNAMIC_LIBRARY
-#ifdef DYNAMIC_LIBRARY
-	#define DLLEXPORT __declspec(dllexport)   
-	#define DLLIMPORT __declspec(dllimport)
+#include <base.h>
+#include "Structures/FeaturePoint.h"
+#include "Algorithms/FeatureExtractor.h"
 
-	#pragma warning(disable : 4251)
-	#pragma warning(disable : 4786)
-#else
-	#define DLLEXPORT 
-	#define DLLIMPORT   
-#endif
+namespace windage
+{
+	namespace Algorithms
+	{
+		class FASTDetector : public FeatureExtractor
+		{
+		protected:
+			int FASTindex;
 
-// for debuging
-#include <iostream>
-#include <highgui.h>
+		public:
+			FASTDetector()
+			{
+				this->FASTindex = 9;
+				this->threshold = 30.0;
+				this->NAME = "FASTDetector";
+			}
+			~FASTDetector()
+			{
+			}
+			
+			void SetIndex(int index){this->FASTindex = index;}
+			bool DoExtractFeature(IplImage* grayImage);
+		};
+	}
+}
 
-#endif //_WINDAGE_BASE_H_
+#endif //_FAST_DETECTOR_

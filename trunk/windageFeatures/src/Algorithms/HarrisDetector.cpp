@@ -37,32 +37,40 @@
  ** @author   Woonhyuk Baek
  * ======================================================================== */
 
-/**
- * @file	base.h
- * @author	Woonhyuk Baek
- * @version 2.0
- * @date	2010.02.04
- * @brief	header file is positively necessary for making library
- * @warning to insert every library files without exception
- */
+#include "Algorithms/HarrisDetector.h"
 
-#ifndef _WINDAGE_BASE_H_
-#define _WINDAGE_BASE_H_
+using namespace windage::Algorithms;
 
-//#define DYNAMIC_LIBRARY
-#ifdef DYNAMIC_LIBRARY
-	#define DLLEXPORT __declspec(dllexport)   
-	#define DLLIMPORT __declspec(dllimport)
+bool HarrisDetector::DoExtractFeature(IplImage* grayImage)
+{
+	this->featurePoints.clear();
 
-	#pragma warning(disable : 4251)
-	#pragma warning(disable : 4786)
-#else
-	#define DLLEXPORT 
-	#define DLLIMPORT   
-#endif
+	IplImage* harrisResponse = cvCreateImage(cvGetSize(grayImage), IPL_DEPTH_32F, 1);
+	cvCornerHarris(grayImage, harrisResponse, this->windowSize, 3, 0.1);
 
-// for debuging
-#include <iostream>
-#include <highgui.h>
+	double minValue, maxValue;
+	cvMinMaxLoc(harrisResponse, &minValue, &maxValue);
+	cvConvertScale(harrisResponse, harrisResponse, 255.0/(maxValue-minValue), minValue);
+//	cvScale(harrisResponse, harrisResponse, 255.0/(maxValue-minValue), minValue);
+	cvNamedWindow("test");
+	cvShowImage("test", harrisResponse);
 
-#endif //_WINDAGE_BASE_H_
+	for(int y=0; y<harrisResponse->height; y++)
+	{
+		for(int x=0; x<harrisResponse->width; x++)
+		{
+			float cornerness = CV_IMAGE_ELEM(harrisResponse, float, y, x);
+			if(cornerness > 0)// this->threshold)
+			{
+				windage::FeaturePoint feature;
+				feature.SetPoint(windage::Vector3(x, y, 0.0));
+				feature.SetSize(5.0);
+				this->featurePoints.push_back(feature);
+			}
+		}
+	}
+
+	cvReleaseImage(&harrisResponse);
+
+	return true;
+}
