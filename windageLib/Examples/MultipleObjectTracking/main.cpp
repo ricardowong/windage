@@ -180,6 +180,7 @@ void main()
 				{
 					tracking.DrawDebugInfo(resultImage, i);
 					tracking.DrawOutLine(resultImage, i, true);
+
 					windage::Calibration* calibrationTemp = tracking.GetCameraParameter(i);
 					calibrationTemp->DrawInfomation(resultImage, 100);
 					CvPoint centerPoint = calibrationTemp->ConvertWorld2Image(0.0, 0.0, 0.0);
