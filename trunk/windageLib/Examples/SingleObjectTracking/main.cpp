@@ -49,14 +49,14 @@ const int WIDTH = 640;
 const int HEIGHT = (WIDTH * 3) / 4;
 const int FEATURE_COUNT = WIDTH;
 
-const double SCALE_FACTOR = 8.0;
+const double SCALE_FACTOR = 4.0;
 const int SCALE_STEP = 8;
 const double REPROJECTION_ERROR = 10.0;
 
 #define USE_ADAPTIVE_THRESHOLD 0
 #define USE_TEMPLATE_IMAEG 1
 const char* TEMPLATE_IMAGE = "reference1_320.png";
-const double INTRINSIC[] = {1033.93, 1033.84, 319.044, 228.858,-0.206477, 0.306424, 0.000728208, 0.0011338};
+const double INTRINSIC[] = {1033.93, 1033.84, 319.044, 228.858, -0.206477, 0.306424, 0.000728208, 0.0011338};
 
 void main()
 {
@@ -75,7 +75,9 @@ void main()
 	cvNamedWindow("result");
 
 	// create and initialize tracker
+	//IMPORTANT
 	windage::Frameworks::PlanarObjectTracking tracking;
+
 	windage::Calibration* calibration;
 	windage::Algorithms::FeatureDetector* detector;
 	windage::Algorithms::SearchTree* searchtree;
@@ -83,7 +85,6 @@ void main()
 	windage::Algorithms::HomographyEstimator* estimator;
 	windage::Algorithms::OutlierChecker* checker;
 	windage::Algorithms::HomographyRefiner* refiner;
-	windage::Algorithms::KalmanFilter* filter;
 
 	calibration = new windage::Calibration();
 	detector = new windage::Algorithms::WSURFdetector();
@@ -92,7 +93,6 @@ void main()
 	estimator = new windage::Algorithms::RANSACestimator();
 	checker = new windage::Algorithms::OutlierChecker();
 	refiner = new windage::Algorithms::LMmethod();
-	filter = new windage::Algorithms::KalmanFilter();
 
 	calibration->Initialize(INTRINSIC[0], INTRINSIC[1], INTRINSIC[2], INTRINSIC[3], INTRINSIC[4], INTRINSIC[5], INTRINSIC[6], INTRINSIC[7]);
 	searchtree->SetRatio(0.7);
@@ -149,6 +149,7 @@ void main()
 		// track object
 		if(trained)
 		{
+			//IMPORTANT
 			tracking.UpdateCamerapose(grayImage);
 
 			// adaptive threshold
@@ -166,8 +167,12 @@ void main()
 #endif
 			// draw result
 //			detector->DrawKeypoints(resultImage);
+
 			tracking.DrawOutLine(resultImage, true);
 			tracking.DrawDebugInfo(resultImage);
+
+			windage::Calibration* result = tracking.GetCameraParameter();
+
 			calibration->DrawInfomation(resultImage, 100);
 		}
 		matchingCount = tracking.GetMatchingCount();

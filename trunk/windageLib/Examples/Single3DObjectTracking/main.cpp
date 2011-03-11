@@ -201,6 +201,7 @@ void main()
 			if(tracking.GetMatchingCount() > 9)
 			{
 //				tracking.DrawDebugInfo(resultImage);
+				tracking.GetCameraParameter();
 				calibration->DrawInfomation(resultImage, 100);
 
 				//draw rectangle
