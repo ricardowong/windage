@@ -27,7 +27,7 @@
  *
  * For further information please contact 
  *   Woonhyuk Baek
- *   <windage@live.com>
+ *   <wbaek@daumcorp.com>
  *   GIST U-VR Lab.
  *   Department of Information and Communication
  *   Gwangju Institute of Science and Technology
